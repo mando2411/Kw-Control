@@ -927,6 +927,7 @@
         const setFieldState = (field, isValid) => {
             field.classList.remove('is-valid', 'is-invalid');
             field.classList.add(isValid ? 'is-valid' : 'is-invalid');
+            field.setAttribute('aria-invalid', String(!isValid));
         };
 
         const toggleError = (node, show) => {
