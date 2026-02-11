@@ -97,13 +97,11 @@ class VoterController extends Controller
         ]);
         try {
             if (request('check') == "replace") {
-                Voter::with(['contractors', 'groups'])->each(function ($voter) {
-                    $voter->contractors()->detach();
-                    $voter->groups()->detach();
-                    $voter->delete();
-                });
                 \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
+                DB::table('contractor_voter')->truncate();
+                DB::table('group_voter')->truncate();
+                DB::table('election_voter')->truncate();
                 Voter::truncate();
                 Selection::truncate();
                 Family::truncate();
