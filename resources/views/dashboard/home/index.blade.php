@@ -874,32 +874,34 @@
                 </div>
                 <div class="p-4">
                     <x-dashboard.partials.message-alert />
-                    @if (session('import_summary'))
-                        @php
-                            $summary = session('import_summary');
-                        @endphp
-                        <div class="alert alert-info" role="alert">
-                            <div class="fw-bold mb-1">ملخص الاستيراد</div>
-                            @if (array_key_exists('total', $summary))
-                                <div>إجمالي الصفوف: {{ $summary['total'] ?? 0 }}</div>
-                            @endif
-                            <div>تمت المعالجة بنجاح: {{ $summary['success'] ?? 0 }}</div>
-                            @if (array_key_exists('created', $summary))
-                                <div>سجلات جديدة: {{ $summary['created'] ?? 0 }}</div>
-                            @endif
-                            @if (array_key_exists('existing', $summary))
-                                <div>سجلات موجودة: {{ $summary['existing'] ?? 0 }}</div>
-                            @endif
-                            @if (array_key_exists('updated', $summary))
-                                <div>تم تحديثها: {{ $summary['updated'] ?? 0 }}</div>
-                            @endif
-                            @if (array_key_exists('duplicate_skipped', $summary))
-                                <div>مكررات تم تخطيها: {{ $summary['duplicate_skipped'] ?? 0 }}</div>
-                            @endif
-                            <div>تم تخطيها: {{ $summary['skipped'] ?? 0 }}</div>
-                            <div>فشلت: {{ $summary['failed'] ?? 0 }}</div>
-                        </div>
-                    @endif
+                    <div id="importSummaryContainer">
+                        @if (session('import_summary'))
+                            @php
+                                $summary = session('import_summary');
+                            @endphp
+                            <div class="alert alert-info" role="alert">
+                                <div class="fw-bold mb-1">ملخص الاستيراد</div>
+                                @if (array_key_exists('total', $summary))
+                                    <div>إجمالي الصفوف: {{ $summary['total'] ?? 0 }}</div>
+                                @endif
+                                <div>تمت المعالجة بنجاح: {{ $summary['success'] ?? 0 }}</div>
+                                @if (array_key_exists('created', $summary))
+                                    <div>سجلات جديدة: {{ $summary['created'] ?? 0 }}</div>
+                                @endif
+                                @if (array_key_exists('existing', $summary))
+                                    <div>سجلات موجودة: {{ $summary['existing'] ?? 0 }}</div>
+                                @endif
+                                @if (array_key_exists('updated', $summary))
+                                    <div>تم تحديثها: {{ $summary['updated'] ?? 0 }}</div>
+                                @endif
+                                @if (array_key_exists('duplicate_skipped', $summary))
+                                    <div>مكررات تم تخطيها: {{ $summary['duplicate_skipped'] ?? 0 }}</div>
+                                @endif
+                                <div>تم تخطيها: {{ $summary['skipped'] ?? 0 }}</div>
+                                <div>فشلت: {{ $summary['failed'] ?? 0 }}</div>
+                            </div>
+                        @endif
+                    </div>
 
                     <div class="import-warning mb-4" role="alert">
                         <strong>تنبيه:</strong> خيار <strong>استبدال البيانات</strong> يحذف البيانات القديمة قبل الاستيراد. استخدمه فقط عند الحاجة.
@@ -1191,6 +1193,36 @@
     const confirmReplaceButton = document.getElementById('confirmReplace');
     const replaceModal = replaceModalElement ? new bootstrap.Modal(replaceModalElement) : null;
     let pendingConfirm = null;
+    const summaryContainer = document.getElementById('importSummaryContainer');
+
+    const renderSummary = (summary) => {
+        if (!summaryContainer || !summary) return;
+        const lines = [];
+        if (summary.total !== undefined && summary.total !== null) {
+            lines.push(`إجمالي الصفوف: ${summary.total ?? 0}`);
+        }
+        lines.push(`تمت المعالجة بنجاح: ${summary.success ?? 0}`);
+        if (summary.created !== undefined && summary.created !== null) {
+            lines.push(`سجلات جديدة: ${summary.created ?? 0}`);
+        }
+        if (summary.existing !== undefined && summary.existing !== null) {
+            lines.push(`سجلات موجودة: ${summary.existing ?? 0}`);
+        }
+        if (summary.updated !== undefined && summary.updated !== null) {
+            lines.push(`تم تحديثها: ${summary.updated ?? 0}`);
+        }
+        if (summary.duplicate_skipped !== undefined && summary.duplicate_skipped !== null) {
+            lines.push(`مكررات تم تخطيها: ${summary.duplicate_skipped ?? 0}`);
+        }
+        lines.push(`تم تخطيها: ${summary.skipped ?? 0}`);
+        lines.push(`فشلت: ${summary.failed ?? 0}`);
+        summaryContainer.innerHTML = `
+            <div class="alert alert-info" role="alert">
+                <div class="fw-bold mb-1">ملخص الاستيراد</div>
+                ${lines.map((line) => `<div>${line}</div>`).join('')}
+            </div>
+        `;
+    };
 
     if (confirmReplaceButton) {
         confirmReplaceButton.addEventListener('click', function() {
@@ -1240,6 +1272,11 @@
                 node.classList.toggle('d-none', !show);
             };
 
+            const setErrorText = (node, text) => {
+                if (!node || !text) return;
+                node.textContent = text;
+            };
+
             const setLoadingState = (isLoading) => {
                 if (!submitButton) return;
                 submitButton.disabled = isLoading;
@@ -1287,6 +1324,7 @@
                 const formData = new FormData(importForm);
                 const xhr = new XMLHttpRequest();
                 xhr.open('POST', importForm.action, true);
+                xhr.setRequestHeader('Accept', 'application/json');
 
                 xhr.upload.addEventListener('progress', function(event) {
                     if (event.lengthComputable) {
@@ -1298,11 +1336,50 @@
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState !== XMLHttpRequest.DONE) return;
 
+                    let responseJson = null;
+                    try {
+                        responseJson = xhr.responseText ? JSON.parse(xhr.responseText) : null;
+                    } catch (error) {
+                        responseJson = null;
+                    }
+
                     if (xhr.status >= 200 && xhr.status < 400) {
-                        window.location.reload();
+                        if (responseJson && responseJson.summary) {
+                            renderSummary(responseJson.summary);
+                        }
+                        setLoadingState(false);
+                        resetProgress();
+                        isSubmitting = false;
+                        fileField.value = '';
+                        replaceConfirmed = false;
                         return;
                     }
 
+                    if (xhr.status === 422 && responseJson && responseJson.errors) {
+                        const errors = responseJson.errors;
+                        if (errors.election) {
+                            setFieldState(electionField, false);
+                            setErrorText(electionError, errors.election[0]);
+                            toggleError(electionError, true);
+                        }
+                        if (errors.import) {
+                            setFieldState(fileField, false);
+                            setErrorText(fileError, errors.import[0]);
+                            toggleError(fileError, true);
+                        }
+                        if (errors.check) {
+                            setErrorText(modeError, errors.check[0]);
+                            toggleError(modeError, true);
+                        }
+                        setLoadingState(false);
+                        resetProgress();
+                        isSubmitting = false;
+                        return;
+                    }
+
+                    if (responseJson && responseJson.message) {
+                        setErrorText(submitError, responseJson.message);
+                    }
                     toggleError(submitError, true);
                     setLoadingState(false);
                     resetProgress();

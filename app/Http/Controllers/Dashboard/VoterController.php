@@ -93,56 +93,75 @@ class VoterController extends Controller
             'election' => 'required'
 
         ]);
-        if(request('check') == "replace"){
-            Voter::with(['contractors', 'groups'])->each(function ($voter) {
-                $voter->contractors()->detach();
-                $voter->groups()->detach();
-                $voter->delete();
-            });
-            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        try {
+            if (request('check') == "replace") {
+                Voter::with(['contractors', 'groups'])->each(function ($voter) {
+                    $voter->contractors()->detach();
+                    $voter->groups()->detach();
+                    $voter->delete();
+                });
+                \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-            Voter::truncate();
-            Selection::truncate();
-            Family::truncate();
-            Group::truncate();
+                Voter::truncate();
+                Selection::truncate();
+                Family::truncate();
+                Group::truncate();
 
-            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            }
+
+            ini_set('memory_limit', '2048M');
+
+            ini_set('max_execution_time', 300); // 5 minutes
+            if (request('check') == "status") {
+                $import = new VoterCheck($request->election);
+                Excel::import($import, $request->file('import'));
+                $summary = [
+                    'mode' => 'status',
+                    'total' => $import->getTotalRows(),
+                    'success' => $import->getSuccessCount(),
+                    'skipped' => $import->getSkippedCount(),
+                    'failed' => $import->getFailedCount(),
+                    'created' => $import->getCreatedCount(),
+                    'existing' => $import->getExistingCount(),
+                    'updated' => $import->getUpdatedCount(),
+                    'duplicate_skipped' => $import->getDuplicateSkippedCount(),
+                ];
+            } else {
+                $import = new VotersImport($request->election);
+                Excel::import($import, $request->file('import'));
+                $summary = [
+                    'mode' => request('check'),
+                    'total' => $import->getTotalRows(),
+                    'success' => $import->getSuccessCount(),
+                    'skipped' => $import->getSkippedCount(),
+                    'failed' => $import->getFailedCount(),
+                    'created' => $import->getCreatedCount(),
+                    'existing' => $import->getExistingCount(),
+                    'updated' => $import->getUpdatedCount(),
+                    'duplicate_skipped' => $import->getDuplicateSkippedCount(),
+                ];
+            }
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'summary' => $summary,
+                ]);
+            }
+
+            session()->flash('import_summary', $summary);
+            return redirect()->back();
+        } catch (\Throwable $e) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.',
+                ], 500);
+            }
+
+            throw $e;
         }
-
-        ini_set('memory_limit', '2048M');
-
-        ini_set('max_execution_time', 300); // 5 minutes
-        if(request('check')=="status"){
-            $import = new VoterCheck($request->election);
-            Excel::import($import, $request->file('import'));
-            session()->flash('import_summary', [
-                'mode' => 'status',
-                'total' => $import->getTotalRows(),
-                'success' => $import->getSuccessCount(),
-                'skipped' => $import->getSkippedCount(),
-                'failed' => $import->getFailedCount(),
-                'created' => $import->getCreatedCount(),
-                'existing' => $import->getExistingCount(),
-                'updated' => $import->getUpdatedCount(),
-                'duplicate_skipped' => $import->getDuplicateSkippedCount(),
-            ]);
-        }else{
-            $import = new VotersImport($request->election);
-            Excel::import($import, $request->file('import'));
-            session()->flash('import_summary', [
-                'mode' => request('check'),
-                'total' => $import->getTotalRows(),
-                'success' => $import->getSuccessCount(),
-                'skipped' => $import->getSkippedCount(),
-                'failed' => $import->getFailedCount(),
-                'created' => $import->getCreatedCount(),
-                'existing' => $import->getExistingCount(),
-                'updated' => $import->getUpdatedCount(),
-                'duplicate_skipped' => $import->getDuplicateSkippedCount(),
-            ]);
-        }
-        // dd($request->all());
-        return redirect()->back();
     }
     //=====================================================================
     // public function updateStatus($id, Request $request)
