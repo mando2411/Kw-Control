@@ -759,6 +759,69 @@
             }
         });
     }, 120000);
+
+    const importForm = document.getElementById('voters-import-form');
+    if (importForm) {
+        const electionField = document.getElementById('election');
+        const fileField = document.getElementById('import');
+        const modeFields = importForm.querySelectorAll('input[name="check"]');
+
+        const electionError = document.getElementById('electionError');
+        const fileError = document.getElementById('fileError');
+        const modeError = document.getElementById('modeError');
+
+        const setFieldState = (field, isValid) => {
+            field.classList.remove('is-valid', 'is-invalid');
+            field.classList.add(isValid ? 'is-valid' : 'is-invalid');
+        };
+
+        const toggleError = (node, show) => {
+            if (!node) return;
+            node.classList.toggle('d-none', !show);
+        };
+
+        const validateImportForm = () => {
+            let valid = true;
+
+            if (!electionField.value) {
+                setFieldState(electionField, false);
+                toggleError(electionError, true);
+                valid = false;
+            } else {
+                setFieldState(electionField, true);
+                toggleError(electionError, false);
+            }
+
+            if (!fileField.files.length) {
+                setFieldState(fileField, false);
+                toggleError(fileError, true);
+                valid = false;
+            } else {
+                const validExt = /\.(xlsx|xls|csv)$/i.test(fileField.files[0].name);
+                setFieldState(fileField, validExt);
+                toggleError(fileError, !validExt);
+                valid = valid && validExt;
+            }
+
+            const modeSelected = Array.from(modeFields).some((field) => field.checked);
+            toggleError(modeError, !modeSelected);
+            if (!modeSelected) {
+                valid = false;
+            }
+
+            return valid;
+        };
+
+        importForm.addEventListener('submit', function(event) {
+            if (!validateImportForm()) {
+                event.preventDefault();
+            }
+        });
+
+        electionField.addEventListener('change', validateImportForm);
+        fileField.addEventListener('change', validateImportForm);
+        modeFields.forEach((field) => field.addEventListener('change', validateImportForm));
+    }
 </script>
 
 
