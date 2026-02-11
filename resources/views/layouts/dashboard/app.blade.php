@@ -78,7 +78,7 @@
     <script src="{{ asset('assets/admin/js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/jquery.easing.1.3.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="{{ asset('assets/admin/js/main.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/main.js') }}?v={{ filemtime(public_path('assets/admin/js/main.js')) }}"></script>
     <!-- Bootstrap JS already loaded via assets/admin/js/bootstrap.bundle.min.js -->
 
 
