@@ -160,22 +160,38 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+        width: 100%;
+        min-width: 0;
+        white-space: normal;
     }
 
     .import-option input {
         margin: 0;
+        align-self: flex-start;
+    }
+
+    .import-option-wrapper {
+        width: 100%;
+    }
+
+    .import-option-content {
+        width: 100%;
+        min-width: 0;
     }
 
     .import-option .option-title {
         font-weight: 600;
         font-size: 1rem;
+        white-space: normal;
     }
 
     .import-option .option-desc {
         font-size: 0.9rem;
         color: #6c757d;
         line-height: 1.5;
-        word-break: break-word;
+        word-break: normal;
+        overflow-wrap: break-word;
+        white-space: normal;
     }
 
     .import-option.option-danger {
