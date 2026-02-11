@@ -10,10 +10,12 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Carbon\Carbon;
 
-class VotersImport implements ToCollection, WithHeadingRow
+class VotersImport implements ToCollection, WithHeadingRow, WithChunkReading, WithBatchInserts
 {
     private $election;
     private int $totalRows = 0;
@@ -66,6 +68,16 @@ class VotersImport implements ToCollection, WithHeadingRow
                     }
             }
         });
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
+    }
+
+    public function batchSize(): int
+    {
+        return 500;
     }
 
     public function getSuccessCount(): int
