@@ -130,3 +130,4 @@ Known Risks and Tech Debt
 - Pusher keys are embedded in Blade views; consider environment-driven config.
 - Some responses expose raw model data without explicit resource shaping.
 - Contractor deletion uses force delete; audit/soft delete policy is unclear.
+a
