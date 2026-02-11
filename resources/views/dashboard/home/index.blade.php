@@ -276,31 +276,48 @@
             display: block;
         }
 
-        .import-form-mobile .import-option {
+        .import-form-mobile .import-option-mobile {
+            display: grid;
+            grid-template-columns: 1fr 24px;
+            column-gap: 12px;
+            align-items: start;
+            width: 100%;
             padding: 14px 14px 12px;
-            align-items: flex-start;
             border-radius: 14px;
             background: #fdf7ef;
             border: 1px solid #f2d2a7;
             box-shadow: 0 8px 20px rgba(138, 75, 0, 0.08);
+            direction: rtl;
+            text-align: right;
+            cursor: pointer;
         }
 
-        .import-form-mobile .import-option-content {
-            word-break: normal;
-            overflow-wrap: anywhere;
-        }
-
-        .import-form-mobile .option-title,
-        .import-form-mobile .option-desc {
-            word-break: normal;
-            overflow-wrap: anywhere;
-        }
-
-        .import-form-mobile .import-option.option-danger {
+        .import-form-mobile .import-option-mobile.option-danger {
             background: #fff0f0;
             border-color: #f3b1b7;
             border-right: 6px solid #dc3545;
             box-shadow: 0 8px 20px rgba(220, 53, 69, 0.12);
+        }
+
+        .import-form-mobile .import-option-text {
+            min-width: 0;
+        }
+
+        .import-form-mobile .import-option-radio {
+            display: flex;
+            align-items: start;
+            justify-content: flex-end;
+        }
+
+        .import-form-mobile .import-option-radio input {
+            margin-top: 4px;
+        }
+
+        .import-form-mobile .import-option-mobile .option-title,
+        .import-form-mobile .import-option-mobile .option-desc {
+            word-break: normal;
+            overflow-wrap: anywhere;
+            white-space: normal;
         }
 
         .import-form-mobile .form-label {
@@ -1023,38 +1040,38 @@
                             <div class="row g-3">
 
     <div class="col-12">
-        <label class="import-option" for="dublicate-mobile">
-            <div class="import-option-wrapper">
-                <input type="radio" id="dublicate-mobile" name="check" value="dublicate" class="import-option-input" checked>
-                <div class="import-option-content">
-                    <div class="option-title">إضافة</div>
-                    <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
-                </div>
-            </div>
+        <label class="import-option-mobile" for="dublicate-mobile">
+            <span class="import-option-text">
+                <span class="option-title">إضافة</span>
+                <span class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</span>
+            </span>
+            <span class="import-option-radio">
+                <input type="radio" id="dublicate-mobile" name="check" value="dublicate" checked>
+            </span>
         </label>
     </div>
 
     <div class="col-12">
-        <label class="import-option option-danger" for="replace-mobile">
-            <div class="import-option-wrapper">
-                <input type="radio" id="replace-mobile" name="check" value="replace" class="import-option-input">
-                <div class="import-option-content">
-                    <div class="option-title">استبدال</div>
-                    <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
-                </div>
-            </div>
+        <label class="import-option-mobile option-danger" for="replace-mobile">
+            <span class="import-option-text">
+                <span class="option-title">استبدال</span>
+                <span class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</span>
+            </span>
+            <span class="import-option-radio">
+                <input type="radio" id="replace-mobile" name="check" value="replace">
+            </span>
         </label>
     </div>
 
     <div class="col-12">
-        <label class="import-option" for="status-mobile">
-            <div class="import-option-wrapper">
-                <input type="radio" id="status-mobile" name="check" value="status" class="import-option-input">
-                <div class="import-option-content">
-                    <div class="option-title">تحديث الحالة</div>
-                    <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
-                </div>
-            </div>
+        <label class="import-option-mobile" for="status-mobile">
+            <span class="import-option-text">
+                <span class="option-title">تحديث الحالة</span>
+                <span class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</span>
+            </span>
+            <span class="import-option-radio">
+                <input type="radio" id="status-mobile" name="check" value="status">
+            </span>
         </label>
     </div>
 
