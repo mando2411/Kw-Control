@@ -804,45 +804,39 @@
                             <div class="row g-3">
 
     <div class="col-12 col-md-4">
-        <div class="import-option-wrapper">
-            <label class="import-option" for="dublicate">
-                <input type="radio" id="dublicate" name="check" value="dublicate" checked>
+        <label class="import-option" for="dublicate">
+            <div class="import-option-wrapper">
+                <input type="radio" id="dublicate" name="check" value="dublicate" class="import-option-input" checked>
                 <div class="import-option-content">
                     <div class="option-title">إضافة</div>
-                    <div class="option-desc">
-                        يضيف السجلات الجديدة دون حذف البيانات الحالية.
-                    </div>
+                    <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
                 </div>
-            </label>
-        </div>
+            </div>
+        </label>
     </div>
 
     <div class="col-12 col-md-4">
-        <div class="import-option-wrapper">
-            <label class="import-option option-danger" for="replace">
-                <input type="radio" id="replace" name="check" value="replace">
+        <label class="import-option option-danger" for="replace">
+            <div class="import-option-wrapper">
+                <input type="radio" id="replace" name="check" value="replace" class="import-option-input">
                 <div class="import-option-content">
                     <div class="option-title">استبدال</div>
-                    <div class="option-desc">
-                        يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.
-                    </div>
+                    <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
                 </div>
-            </label>
-        </div>
+            </div>
+        </label>
     </div>
 
     <div class="col-12 col-md-4">
-        <div class="import-option-wrapper">
-            <label class="import-option" for="status">
-                <input type="radio" id="status" name="check" value="status">
+        <label class="import-option" for="status">
+            <div class="import-option-wrapper">
+                <input type="radio" id="status" name="check" value="status" class="import-option-input">
                 <div class="import-option-content">
                     <div class="option-title">تحديث الحالة</div>
-                    <div class="option-desc">
-                        يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.
-                    </div>
+                    <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
                 </div>
-            </label>
-        </div>
+            </div>
+        </label>
     </div>
 
 </div>
