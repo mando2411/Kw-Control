@@ -158,8 +158,9 @@
         height: 100%;
         background: #f8f9fb;
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 12px;
         width: 100%;
         min-width: 0;
         white-space: normal;
@@ -168,6 +169,7 @@
     .import-option input {
         margin: 0;
         align-self: flex-start;
+        flex: 0 0 auto;
     }
 
     .import-option-wrapper {
@@ -177,6 +179,7 @@
     .import-option-content {
         width: 100%;
         min-width: 0;
+        flex: 1 1 auto;
     }
 
     .import-option .option-title {
@@ -301,6 +304,23 @@
 
         .import-option {
             padding: 14px;
+            gap: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .import-option {
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .import-option input {
+            margin-top: 4px;
+        }
+
+        .import-option .option-title,
+        .import-option .option-desc {
+            text-align: right;
         }
     }
 
