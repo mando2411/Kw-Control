@@ -151,28 +151,44 @@
         font-size: 0.95rem;
     }
 
-    .import-option {
+    .import-choice {
         border: 1px solid #e3e6ea;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 12px 14px;
-        height: 100%;
+        min-height: 56px;
         background: #f8f9fb;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        height: 100%;
     }
 
-    .import-option input {
-        margin-top: 6px;
+    .import-choice-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
     }
 
-    .import-option .option-title {
+    .import-choice-title {
         font-weight: 600;
+        font-size: 1rem;
     }
 
-    .import-option .option-desc {
-        font-size: 0.9rem;
+    .import-choice-help {
+        font-size: 0.92rem;
         color: #6c757d;
+        line-height: 1.5;
+        word-break: break-word;
     }
 
-    .import-option.option-danger {
+    .import-choice-input {
+        margin: 0;
+        min-width: 18px;
+        min-height: 18px;
+    }
+
+    .import-choice-danger {
         border-color: #f1b0b7;
         background: #fff5f5;
     }
@@ -237,17 +253,9 @@
         font-size: 1rem;
     }
 
-    .import-option input {
+    .import-choice input {
         margin-right: 0;
         margin-left: 0;
-    }
-
-    .import-option .option-title {
-        font-size: 1rem;
-    }
-
-    .import-option .option-desc {
-        font-size: 0.95rem;
     }
 
     .import-progress {
@@ -268,7 +276,7 @@
             font-size: 1rem;
         }
 
-        .import-option {
+        .import-choice {
             padding: 14px;
         }
     }
@@ -767,7 +775,6 @@
 
                         <div class="col-12 d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
                             <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
-</br></br>
                             <button type="submit" class="btn btn-custom px-4 import-submit w-100 w-md-auto" id="importSubmit">
                                 <span class="submit-text">بدء الاستيراد</span>
                                 <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
