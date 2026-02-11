@@ -125,6 +125,73 @@
         transform: translateY(0);
         /* Move to its original position */
     }
+
+    .import-card {
+        border: 1px solid #e3e6ea;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .import-header {
+        border-bottom: 1px solid #eef1f4;
+    }
+
+    .import-help {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .import-warning {
+        background: #fff4e5;
+        border: 1px solid #ffd19a;
+        color: #8a4b00;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .import-option {
+        border: 1px solid #e3e6ea;
+        border-radius: 10px;
+        padding: 12px 14px;
+        height: 100%;
+        background: #f8f9fb;
+    }
+
+    .import-option input {
+        margin-top: 6px;
+    }
+
+    .import-option .option-title {
+        font-weight: 600;
+    }
+
+    .import-option .option-desc {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .import-option.option-danger {
+        border-color: #f1b0b7;
+        background: #fff5f5;
+    }
+
+    .import-field.is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+    }
+
+    .import-field.is-valid {
+        border-color: #198754 !important;
+        box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.15);
+    }
+
+    .import-error {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 6px;
+    }
 </style>
 <div class="projectContainer mx-auto">
     <!-- banner -->
@@ -507,45 +574,90 @@
 
         @can('import-voters')
         <div class="container">
-            <div class="form-container ">
-                <x-dashboard.partials.message-alert />
+            <div class="import-card p-0">
+                <div class="import-header p-4">
+                    <h2 class="h4 mb-2">استيراد الناخبين</h2>
+                    <p class="import-help mb-0">استخدم هذا النموذج لرفع ملف الناخبين حسب القالب المعتمد. جميع الحقول موضحة بالأسفل.</p>
+                </div>
+                <div class="p-4">
+                    <x-dashboard.partials.message-alert />
 
-                <form action="{{ route('dashboard.import-voters') }}" class="row flex-column" enctype="multipart/form-data" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label for="election">
-                            الانتخابات
-                        </label>
-                        @php
-                        $elections=App\Models\Election::select('id','name')->get();
-                        @endphp
-                        <select name="election" id="" required>
-                            <option value="" disabled>اختر الانتخابات</option>
-                            @foreach ($elections as $election )
-                            <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
-                            @endforeach
-                        </select>
+                    <div class="import-warning mb-4" role="alert">
+                        <strong>تنبيه:</strong> خيار <strong>استبدال البيانات</strong> يحذف البيانات القديمة قبل الاستيراد. استخدمه فقط عند الحاجة.
                     </div>
-                    <div class="form-group">
-                        <label for="import">ادراج ملف</label>
-                        <input type="file" class="form-control-file" id="import" name="import">
-                    </div>
-                    <div class="text-center">
-                        <input type="radio" id="dublicate" name="check" value="dublicate" class="ms-3 ">
-                        <label for="dublicate">
-                            اضافه بيانات جديده فقط
-                        </label>
-                        <input type="radio" id="replace" name="check" value="replace" class="ms-3 ">
-                        <label for="replace">
-                            استبدال البيانات
-                        </label>
-                        <input type="radio" id="status" name="check" value="status" class="ms-3 ">
-                        <label for="status">
-                            تعديل البيانات
-                        </label>
-                    </div>
-                    <button type="submit" class="btn btn-custom btn-block">ادراج</button>
-                </form>
+
+                    <form id="voters-import-form" action="{{ route('dashboard.import-voters') }}" class="row g-4" enctype="multipart/form-data" method="POST" novalidate>
+                        @csrf
+                        <div class="col-12 col-lg-6">
+                            <label for="election" class="form-label">الانتخابات</label>
+                            @php
+                            $elections=App\Models\Election::select('id','name')->get();
+                            @endphp
+                            <select name="election" id="election" class="form-select import-field" required aria-describedby="electionHelp">
+                                <option value="" selected disabled>اختر الانتخابات</option>
+                                @foreach ($elections as $election )
+                                <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
+                                @endforeach
+                            </select>
+                            <div id="electionHelp" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
+                            <div class="import-error d-none" id="electionError">يرجى اختيار الانتخابات.</div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <label for="import" class="form-label">ملف الاستيراد</label>
+                            <input type="file" class="form-control import-field" id="import" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelp">
+                            <div id="fileHelp" class="import-help">الصيغ المقبولة: .xlsx, .xls, .csv</div>
+                            <div class="import-error d-none" id="fileError">يرجى اختيار ملف صالح.</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">طريقة الاستيراد</label>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-4">
+                                    <label class="import-option d-block" for="dublicate">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="option-title">إضافة بيانات جديدة فقط</div>
+                                                <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
+                                            </div>
+                                            <input type="radio" id="dublicate" name="check" value="dublicate" aria-describedby="importModeHelp">
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="import-option option-danger d-block" for="replace">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="option-title">استبدال البيانات</div>
+                                                <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
+                                            </div>
+                                            <input type="radio" id="replace" name="check" value="replace" aria-describedby="replaceHelp">
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="import-option d-block" for="status">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <div class="option-title">تحديث الحالة</div>
+                                                <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
+                                            </div>
+                                            <input type="radio" id="status" name="check" value="status" aria-describedby="importModeHelp">
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="importModeHelp" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
+                            <div id="replaceHelp" class="import-help mt-1">تحذير: هذا الخيار يمسح البيانات الحالية.</div>
+                            <div class="import-error d-none" id="modeError">يرجى اختيار طريقة الاستيراد.</div>
+                        </div>
+
+                        <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+                            <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
+                            <button type="submit" class="btn btn-custom px-4">بدء الاستيراد</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
         @endcan
