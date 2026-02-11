@@ -175,6 +175,14 @@
 
     .import-option-wrapper {
         width: 100%;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .import-option-input {
+        flex: 0 0 auto;
+        margin-top: 4px;
     }
 
     .import-option-content {
@@ -182,7 +190,7 @@
         min-width: 0;
         flex: 1 1 auto;
         white-space: normal;
-        word-break: keep-all;
+        word-break: normal;
         overflow-wrap: break-word;
     }
 
