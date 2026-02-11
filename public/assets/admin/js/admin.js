@@ -21506,6 +21506,9 @@ $(document).ready(function () {
 
 
 function fmSetLink($url, target = null, name = null) {
+  if ($url && typeof $url === 'string') {
+    $url = $url.replace(/\/media\//g, '/storage/media/');
+  }
     if (!window.payload.multiple) {
         $(target).find('.card.image-box').remove()    
     }
