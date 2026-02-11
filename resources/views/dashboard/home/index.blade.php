@@ -151,44 +151,28 @@
         font-size: 0.95rem;
     }
 
-    .import-choice {
+    .import-option {
         border: 1px solid #e3e6ea;
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 12px 14px;
-        min-height: 56px;
-        background: #f8f9fb;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
         height: 100%;
+        background: #f8f9fb;
     }
 
-    .import-choice-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+    .import-option input {
+        margin-top: 6px;
     }
 
-    .import-choice-title {
+    .import-option .option-title {
         font-weight: 600;
-        font-size: 1rem;
     }
 
-    .import-choice-help {
-        font-size: 0.92rem;
+    .import-option .option-desc {
+        font-size: 0.9rem;
         color: #6c757d;
-        line-height: 1.5;
-        word-break: break-word;
     }
 
-    .import-choice-input {
-        margin: 0;
-        min-width: 18px;
-        min-height: 18px;
-    }
-
-    .import-choice-danger {
+    .import-option.option-danger {
         border-color: #f1b0b7;
         background: #fff5f5;
     }
@@ -253,9 +237,17 @@
         font-size: 1rem;
     }
 
-    .import-choice input {
+    .import-option input {
         margin-right: 0;
         margin-left: 0;
+    }
+
+    .import-option .option-title {
+        font-size: 1rem;
+    }
+
+    .import-option .option-desc {
+        font-size: 0.95rem;
     }
 
     .import-progress {
@@ -276,7 +268,7 @@
             font-size: 1rem;
         }
 
-        .import-choice {
+        .import-option {
             padding: 14px;
         }
     }
