@@ -193,6 +193,7 @@
         min-width: 0;
         word-break: normal;
         overflow-wrap: anywhere;
+        white-space: nowrap;
         direction: rtl;
         text-align: right;
     }
@@ -347,6 +348,11 @@
             font-size: 0.95rem;
         }
     }
+
+    .import-option * {
+    min-width: 0 !important;
+}
+
 </style>
 <div class="projectContainer mx-auto">
     <!-- banner -->
