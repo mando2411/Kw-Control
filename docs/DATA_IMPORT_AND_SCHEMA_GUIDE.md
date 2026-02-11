@@ -375,6 +375,55 @@ Notes
 - alaaaylh creates/links a family under the selected election.
 - cod1/cod2/cod3 and address fields also populate selections.
 
+Expanded Guide: Voters Master Import
+
+Required vs optional fields
+- Required (minimum):
+  - alasm (name). Rows with empty alasm are skipped.
+- Strongly recommended (for matching/reporting):
+  - alrkm_almdny (civil ID), albtn, alfraa, alktaah, alfkhd, alnoaa.
+- Optional (fills secondary info):
+  - mrgaa, btn_almoyhy, tarykh_alandmam, alrkm_ala_yl_llaanoan, alkyd_ao_alsndok, alhatf1, alhatf2, almntk, cod1, cod2, cod3, hal_alkyd, alaaaylh, street, home, elharaa.
+
+Detailed column explanations
+- alasm: Full voter name. Used to derive father and grand names by splitting on spaces.
+- alrkm_almdny: Civil ID. Used to derive yearOfBirth and age; also key for matching in other flows.
+- albtn, alfraa, alktaah, alfkhd: Geographic/administrative fields used in filters and reports.
+- alnoaa: Gender/type value (used in attendance and statistics).
+- alhatf1, alhatf2: Phone numbers (phone1/phone2 in DB).
+- cod1, cod2, cod3: Coded selectors used in filters and selections.
+- alaaaylh: Family name; creates/links families per election.
+- street, home, elharaa: Address fields that populate selections.
+- hal_alkyd: Restriction status. Defaults to a non-empty value when missing.
+
+Data normalization rules (import logic)
+- yearOfBirth and age are computed from alrkm_almdny:
+  - First digit determines century (2 => 19xx, 3 => 20xx).
+  - If invalid, dateOfBirth/age remain null and a warning is logged.
+- father and grand are derived from alasm (2nd and 3rd tokens).
+- family is created/linked using alaaaylh and the selected election.
+- selections are created using cod1/2/3 plus address fields.
+
+Duplicate prevention logic
+- VotersImport uses firstOrCreate with the full voter data array.
+- If any non-key fields differ, a new row can be created even if the civil ID matches.
+- Election linkage is guarded: the voter is attached to the election only if not already linked.
+
+Step-by-step validation before upload
+1) Confirm alasm is present for all rows.
+2) Confirm alrkm_almdny is present for as many rows as possible and stored as Text.
+3) Ensure headers match exactly (no extra spaces or alternate spellings).
+4) Check gender/type values are consistent (e.g., "ذكر" vs "اناث").
+5) Remove duplicate rows that differ only in optional fields.
+6) Ensure alaaaylh values are consistent to avoid fragmenting families.
+
+Post-import verification checklist
+- Spot-check newly created voters for name, civil ID, and phone numbers.
+- Confirm families were created and linked to the election.
+- Verify selections contain the expected cod/address values.
+- Run a basic filter (by family, type, or cod1) and confirm results.
+- Confirm voters appear under the selected election (election_voter).
+
 B) Attendance status import (VoterCheck)
 Required headers
 - mrgaa_aldakhly
@@ -427,6 +476,22 @@ pip install openpyxl
 python docs/templates/generate_xlsx_templates.py
 ```
 - Open a CSV template in Excel and save as .xlsx if you prefer manual conversion.
+
+Quickstart: Using Import Templates
+1) Download the template
+  - Pick the right template from docs/templates and copy it to your working folder.
+2) Fill required columns
+  - Keep the header row unchanged.
+  - Fill only the required columns first, then add optional columns as needed.
+3) Avoid common mistakes
+  - Do not rename headers.
+  - Format civil ID columns as Text to avoid losing leading digits.
+  - Use exact contractor names when required.
+4) Upload in the dashboard
+  - Go to the import screen, choose the file, select required options (election, check type, contractor), then submit.
+5) Verify results
+  - Confirm new records appear in the relevant list views.
+  - Spot-check a few records for correct names, IDs, and linked entities.
 
 Fields Used in Filters, Search, and Reports
 - Voter filters (Pipeline): name, albtn, phone1, family_id, father, status, alfkhd, alktaa, alfraa, cod1, cod2, cod3, type, alrkm_almd_yn, alsndok, age, restricted.
