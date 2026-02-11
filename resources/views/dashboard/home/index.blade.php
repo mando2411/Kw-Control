@@ -192,6 +192,25 @@
         font-size: 0.85rem;
         margin-top: 6px;
     }
+
+    .import-progress {
+        height: 10px;
+        background: #eef1f4;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .import-progress-bar {
+        height: 100%;
+        width: 0;
+        background: #0d6efd;
+        transition: width 0.2s ease;
+    }
+
+    .import-submit.is-loading {
+        opacity: 0.75;
+        cursor: not-allowed;
+    }
 </style>
 <div class="projectContainer mx-auto">
     <!-- banner -->
@@ -654,7 +673,17 @@
 
                         <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
                             <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
-                            <button type="submit" class="btn btn-custom px-4">بدء الاستيراد</button>
+                            <button type="submit" class="btn btn-custom px-4 import-submit" id="importSubmit">
+                                <span class="submit-text">بدء الاستيراد</span>
+                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="col-12">
+                            <div class="import-progress d-none" id="importProgress">
+                                <div class="import-progress-bar" id="importProgressBar"></div>
+                            </div>
+                            <div class="import-help mt-2 d-none" id="importProgressText">جاري رفع الملف...</div>
+                            <div class="import-error d-none" id="submitError">حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
                         </div>
                     </form>
                 </div>
@@ -788,6 +817,15 @@
         const confirmReplaceButton = document.getElementById('confirmReplace');
         const replaceModal = replaceModalElement ? new bootstrap.Modal(replaceModalElement) : null;
         let replaceConfirmed = false;
+        let isSubmitting = false;
+
+        const submitButton = document.getElementById('importSubmit');
+        const submitText = submitButton ? submitButton.querySelector('.submit-text') : null;
+        const submitSpinner = submitButton ? submitButton.querySelector('.spinner-border') : null;
+        const progressWrap = document.getElementById('importProgress');
+        const progressBar = document.getElementById('importProgressBar');
+        const progressText = document.getElementById('importProgressText');
+        const submitError = document.getElementById('submitError');
 
         const electionError = document.getElementById('electionError');
         const fileError = document.getElementById('fileError');
@@ -801,6 +839,85 @@
         const toggleError = (node, show) => {
             if (!node) return;
             node.classList.toggle('d-none', !show);
+        };
+
+        const setLoadingState = (isLoading) => {
+            if (!submitButton) return;
+            submitButton.disabled = isLoading;
+            submitButton.classList.toggle('is-loading', isLoading);
+            if (submitSpinner) {
+                submitSpinner.classList.toggle('d-none', !isLoading);
+            }
+            if (submitText) {
+                submitText.textContent = isLoading ? 'جاري الاستيراد...' : 'بدء الاستيراد';
+            }
+        };
+
+        const showProgress = (percent) => {
+            if (progressWrap) {
+                progressWrap.classList.remove('d-none');
+            }
+            if (progressText) {
+                progressText.classList.remove('d-none');
+                progressText.textContent = percent < 100 ? `جاري رفع الملف... ${percent}%` : 'تم رفع الملف، جاري المعالجة...';
+            }
+            if (progressBar) {
+                progressBar.style.width = `${percent}%`;
+            }
+        };
+
+        const resetProgress = () => {
+            if (progressWrap) {
+                progressWrap.classList.add('d-none');
+            }
+            if (progressText) {
+                progressText.classList.add('d-none');
+            }
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+        };
+
+        const submitWithProgress = () => {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            toggleError(submitError, false);
+            setLoadingState(true);
+            showProgress(0);
+
+            const formData = new FormData(importForm);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', importForm.action, true);
+
+            xhr.upload.addEventListener('progress', function(event) {
+                if (event.lengthComputable) {
+                    const percent = Math.round((event.loaded / event.total) * 100);
+                    showProgress(percent);
+                }
+            });
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState !== XMLHttpRequest.DONE) return;
+
+                if (xhr.status >= 200 && xhr.status < 400) {
+                    window.location.reload();
+                    return;
+                }
+
+                toggleError(submitError, true);
+                setLoadingState(false);
+                resetProgress();
+                isSubmitting = false;
+            };
+
+            xhr.onerror = function() {
+                toggleError(submitError, true);
+                setLoadingState(false);
+                resetProgress();
+                isSubmitting = false;
+            };
+
+            xhr.send(formData);
         };
 
         const validateImportForm = () => {
@@ -844,7 +961,11 @@
             if (replaceField && replaceField.checked && !replaceConfirmed && replaceModal) {
                 event.preventDefault();
                 replaceModal.show();
+                return;
             }
+
+            event.preventDefault();
+            submitWithProgress();
         });
 
         if (confirmReplaceButton) {
@@ -853,13 +974,18 @@
                 if (replaceModal) {
                     replaceModal.hide();
                 }
-                importForm.submit();
+                submitWithProgress();
             });
         }
 
         electionField.addEventListener('change', validateImportForm);
         fileField.addEventListener('change', validateImportForm);
-        modeFields.forEach((field) => field.addEventListener('change', validateImportForm));
+        modeFields.forEach((field) => field.addEventListener('change', () => {
+            if (!replaceField || !replaceField.checked) {
+                replaceConfirmed = false;
+            }
+            validateImportForm();
+        }));
     }
 </script>
 
