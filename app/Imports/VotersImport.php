@@ -10,12 +10,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Carbon\Carbon;
 
-class VotersImport implements ToCollection, WithHeadingRow, WithChunkReading, WithBatchInserts
+class VotersImport implements ToCollection, WithHeadingRow
 {
     private $election;
     private int $totalRows = 0;
@@ -42,7 +40,6 @@ class VotersImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
             foreach ($rows as $i=>$row) {
                     if (empty($row['alasm'])) {
                         $this->skippedCount++;
-                        Log::warning('Missing data in row:', $row->toArray());
                         continue;
                     }
 
@@ -61,24 +58,11 @@ class VotersImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                         $this->successCount++;
                     } catch (\Throwable $exception) {
                         $this->failedCount++;
-                        Log::error('Voter import failed:', [
-                            'row' => $row->toArray(),
-                            'error' => $exception->getMessage(),
-                        ]);
                     }
             }
         });
     }
 
-    public function chunkSize(): int
-    {
-        return 500;
-    }
-
-    public function batchSize(): int
-    {
-        return 500;
-    }
 
     public function getSuccessCount(): int
     {
@@ -140,7 +124,7 @@ class VotersImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                 $dateOfBirth = $birthDate->format('Y-m-d');
                 $age = $birthDate->age;
             } catch (\Exception $e) {
-                Log::warning('Invalid birth date:', ['id' => $row['alrkm_almdny']]);
+                // Ignore invalid birth dates to avoid slowing down imports with excessive logging.
             }
         }
 

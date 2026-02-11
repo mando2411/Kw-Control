@@ -10,12 +10,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Carbon\Carbon;
 
-class VoterCheck implements ToCollection, WithHeadingRow, WithChunkReading, WithBatchInserts
+class VoterCheck implements ToCollection, WithHeadingRow
 {
     private $election;
     private int $totalRows = 0;
@@ -68,22 +66,10 @@ class VoterCheck implements ToCollection, WithHeadingRow, WithChunkReading, With
                 });
             } catch (\Throwable $exception) {
                 $this->failedCount++;
-                Log::error('VoterCheck import failed:', [
-                    'error' => $exception->getMessage(),
-                ]);
             }
         });
     }
 
-    public function chunkSize(): int
-    {
-        return 500;
-    }
-
-    public function batchSize(): int
-    {
-        return 500;
-    }
 
     public function getSuccessCount(): int
     {
