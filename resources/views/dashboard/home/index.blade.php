@@ -767,6 +767,7 @@
 
                         <div class="col-12 d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
                             <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
+</br>
                             <button type="submit" class="btn btn-custom px-4 import-submit w-100 w-md-auto" id="importSubmit">
                                 <span class="submit-text">بدء الاستيراد</span>
                                 <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
