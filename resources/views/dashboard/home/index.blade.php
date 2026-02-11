@@ -182,8 +182,8 @@
         min-width: 0;
         flex: 1 1 auto;
         white-space: normal;
-        word-break: normal;
-        overflow-wrap: anywhere;
+        word-break: keep-all;
+        overflow-wrap: break-word;
     }
 
     .import-option .option-title {
@@ -191,9 +191,8 @@
         font-size: 1rem;
         white-space: normal;
         min-width: 0;
-        word-break: normal;
-        overflow-wrap: anywhere;
-        white-space: nowrap;
+        word-break: keep-all;
+        overflow-wrap: break-word;
         direction: rtl;
         text-align: right;
     }
@@ -202,8 +201,8 @@
         font-size: 0.9rem;
         color: #6c757d;
         line-height: 1.5;
-        word-break: normal;
-        overflow-wrap: anywhere;
+        word-break: keep-all;
+        overflow-wrap: break-word;
         white-space: normal;
         min-width: 0;
     }
@@ -320,11 +319,11 @@
         .option-title {
         font-size: 16px;
         line-height: 1.6;
-        }
-        .option-desc {
-            font-size: 14px;
-            line-height: 1.7;
-        }
+    }
+    .option-desc {
+        font-size: 14px;
+        line-height: 1.7;
+    }
     }
 
     @media (max-width: 480px) {
@@ -348,11 +347,6 @@
             font-size: 0.95rem;
         }
     }
-
-    .import-option * {
-    min-width: 0 !important;
-}
-
 </style>
 <div class="projectContainer mx-auto">
     <!-- banner -->
