@@ -660,6 +660,23 @@
                 </div>
             </div>
 </br>
+        <div class="modal fade" id="replaceConfirmModal" tabindex="-1" aria-labelledby="replaceConfirmLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="replaceConfirmLabel">تأكيد استبدال البيانات</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                    </div>
+                    <div class="modal-body">
+                        هذا الخيار سيحذف البيانات القديمة قبل استيراد الملف الجديد. هل تريد المتابعة؟
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="button" class="btn btn-danger" id="confirmReplace">نعم، استبدل البيانات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
         @endcan
     </main>
@@ -766,6 +783,11 @@
         const electionField = document.getElementById('election');
         const fileField = document.getElementById('import');
         const modeFields = importForm.querySelectorAll('input[name="check"]');
+        const replaceField = document.getElementById('replace');
+        const replaceModalElement = document.getElementById('replaceConfirmModal');
+        const confirmReplaceButton = document.getElementById('confirmReplace');
+        const replaceModal = replaceModalElement ? new bootstrap.Modal(replaceModalElement) : null;
+        let replaceConfirmed = false;
 
         const electionError = document.getElementById('electionError');
         const fileError = document.getElementById('fileError');
@@ -816,8 +838,24 @@
         importForm.addEventListener('submit', function(event) {
             if (!validateImportForm()) {
                 event.preventDefault();
+                return;
+            }
+
+            if (replaceField && replaceField.checked && !replaceConfirmed && replaceModal) {
+                event.preventDefault();
+                replaceModal.show();
             }
         });
+
+        if (confirmReplaceButton) {
+            confirmReplaceButton.addEventListener('click', function() {
+                replaceConfirmed = true;
+                if (replaceModal) {
+                    replaceModal.hide();
+                }
+                importForm.submit();
+            });
+        }
 
         electionField.addEventListener('change', validateImportForm);
         fileField.addEventListener('change', validateImportForm);
