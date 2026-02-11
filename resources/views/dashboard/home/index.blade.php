@@ -710,7 +710,6 @@
         @endif
 
         @can('import-voters')
-</br>
         <div class="container import-section" dir="rtl">
             <div class="import-card p-0">
                 <div class="import-header p-4">
@@ -844,7 +843,6 @@
                     </form>
                 </div>
             </div>
-</br>
         <div class="modal fade" id="replaceConfirmModal" tabindex="-1" aria-labelledby="replaceConfirmLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
