@@ -37,9 +37,23 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                 Log::info($row);
                 Log::info('----------------------------');
                 //=============================================================================================================
-                if (($this->contractor_id) == 0) {
-                    $this->breakLoop('يرجى اختيار المتعهد الرئيسي من النموذج قبل الرفع.', 0);
-                    break;
+                if(($this->contractor_id) == 0 ){
+                    if(isset($row['asm_almtaahd']) && $row['asm_almtaahd'] != null){//check if found namr for mtaahd or miss in case no value choosen from form
+                        $constractor_detail=Contractor::select('id')->where('name',$row['asm_almtaahd'])->first();
+                        if(isset($constractor_detail)){
+                            $this->sheet_contractor_id = $constractor_detail->id;
+                            Log::info('----------------------------');
+                            Log::info('contractor_id : '.$this->sheet_contractor_id);
+                            Log::info('----------------------------');
+                        }else{
+                            $this->failed_count++;
+                            continue;
+                        }
+                    }else{
+                        if($row['alrkm_almdn']==null){break;}
+                        $this->breakLoop('تاكد من ادخال قيمه للمتعهد الفرعى فى النموذج ', 0);
+                        break;
+                    }
                 }
                 //=============================================================================================================
                 // if(isset($row['alrkm_almdn']) && $row['alasm']){
