@@ -874,34 +874,6 @@
                 </div>
                 <div class="p-4">
                     <x-dashboard.partials.message-alert />
-                    <div id="importSummaryContainer">
-                        @if (session('import_summary'))
-                            @php
-                                $summary = session('import_summary');
-                            @endphp
-                            <div class="alert alert-info" role="alert">
-                                <div class="fw-bold mb-1">ملخص الاستيراد</div>
-                                @if (array_key_exists('total', $summary))
-                                    <div>إجمالي الصفوف: {{ $summary['total'] ?? 0 }}</div>
-                                @endif
-                                <div>تمت المعالجة بنجاح: {{ $summary['success'] ?? 0 }}</div>
-                                @if (array_key_exists('created', $summary))
-                                    <div>سجلات جديدة: {{ $summary['created'] ?? 0 }}</div>
-                                @endif
-                                @if (array_key_exists('existing', $summary))
-                                    <div>سجلات موجودة: {{ $summary['existing'] ?? 0 }}</div>
-                                @endif
-                                @if (array_key_exists('updated', $summary))
-                                    <div>تم تحديثها: {{ $summary['updated'] ?? 0 }}</div>
-                                @endif
-                                @if (array_key_exists('duplicate_skipped', $summary))
-                                    <div>مكررات تم تخطيها: {{ $summary['duplicate_skipped'] ?? 0 }}</div>
-                                @endif
-                                <div>تم تخطيها: {{ $summary['skipped'] ?? 0 }}</div>
-                                <div>فشلت: {{ $summary['failed'] ?? 0 }}</div>
-                            </div>
-                        @endif
-                    </div>
 
                     <div class="import-warning mb-4" role="alert">
                         <strong>تنبيه:</strong> خيار <strong>استبدال البيانات</strong> يحذف البيانات القديمة قبل الاستيراد. استخدمه فقط عند الحاجة.
@@ -1081,7 +1053,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="replaceConfirmLabel">تأكيد استبدال البيانات</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                        <button type="button" class="btn-close summary-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
                     </div>
                     <div class="modal-body">
                         هذا الخيار سيحذف البيانات القديمة قبل استيراد الملف الجديد. هل تريد المتابعة؟
@@ -1104,7 +1076,7 @@
                         تم استلام نتيجة الاستيراد.
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                        <button type="button" class="btn btn-secondary summary-modal-close" data-bs-dismiss="modal">إغلاق</button>
                     </div>
                 </div>
             </div>
@@ -1218,10 +1190,18 @@
     const summaryModal = summaryModalElement ? new bootstrap.Modal(summaryModalElement) : null;
     const summaryModalBody = document.getElementById('importSummaryModalBody');
     let pendingConfirm = null;
-    const summaryContainer = document.getElementById('importSummaryContainer');
+
+    document.querySelectorAll('.summary-modal-close').forEach((button) => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            if (summaryModal) {
+                summaryModal.hide();
+            }
+        });
+    });
 
     const renderSummary = (summary) => {
-        if (!summaryContainer || !summary) return;
+        if (!summary) return;
         const lines = [];
         if (summary.total !== undefined && summary.total !== null) {
             lines.push(`إجمالي الصفوف: ${summary.total ?? 0}`);
@@ -1247,7 +1227,6 @@
                 ${lines.map((line) => `<div>${line}</div>`).join('')}
             </div>
         `;
-        summaryContainer.innerHTML = summaryHtml;
         if (summaryModalBody) {
             summaryModalBody.innerHTML = summaryHtml;
         }
