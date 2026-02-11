@@ -24,6 +24,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     public function __construct($contractor_id){
         $this->contractor_id        = $contractor_id;
         $this->sheet_contractor_id  = 0;
+        $this->success_count        = 0;
+        $this->failed_count         = 0;
+        $this->repeat_count         = 0;
         $this->msg                  = '';
     }
     //=================================================================================================
@@ -33,6 +36,15 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows){
         DB::transaction(function () use ($rows) {
             foreach ($rows as $row) {
+                $row_data = $row->toArray();
+                $has_data = count(array_filter($row_data, function ($value) {
+                    return $value !== null && $value !== '';
+                })) > 0;
+
+                if (!$has_data) {
+                    continue;
+                }
+
                 Log::info('----------------------------');
                 Log::info($row);
                 Log::info('----------------------------');
@@ -50,9 +62,12 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                             continue;
                         }
                     }else{
-                        if($row['alrkm_almdn']==null){break;}
-                        $this->breakLoop('تاكد من ادخال قيمه للمتعهد الفرعى فى النموذج ', 0);
-                        break;
+                        if($row['alrkm_almdn']==null){
+                            continue;
+                        }
+                        $this->msg = 'تاكد من ادخال قيمه للمتعهد الفرعى فى النموذج ';
+                        $this->failed_count++;
+                        continue;
                     }
                 }
                 //=============================================================================================================
@@ -87,8 +102,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     }
                 }else{
                     Log::warning('Missing data in row:', $row->toArray());
-                    $this->breakLoop('تاكد من ادخال قيمه للرقم المدنى ', 0);
-                    break;
+                    $this->msg = 'تاكد من ادخال قيمه للرقم المدنى ';
+                    $this->failed_count++;
+                    continue;
                 }
                 //=============================================================================================================
                 Log::info('----------------------------');
@@ -272,9 +288,6 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     //=================================================================================================
     public function breakLoop($msg,$count){
         $this->msg           = $msg;
-        $this->failed_count  = $count;
-        $this->success_count = 0;
-        $this->repeat_count  = 0;
         return 1;
     }
 }
