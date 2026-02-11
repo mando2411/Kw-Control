@@ -922,6 +922,9 @@
                                 @endforeach
                             </select>
                             <div id="electionHelpDesktop" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <a href="#" class="btn btn-outline-secondary btn-sm import-view-data disabled" data-base-url="{{ route('dashboard.import-voters-data') }}" aria-disabled="true">عرض الداتا</a>
+                            </div>
                             <div class="import-error import-error-election d-none">يرجى اختيار الانتخابات.</div>
                         </div>
 
@@ -1008,6 +1011,9 @@
                                     @endforeach
                                 </select>
                                 <div id="electionHelpMobile" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    <a href="#" class="btn btn-outline-secondary btn-sm import-view-data disabled" data-base-url="{{ route('dashboard.import-voters-data') }}" aria-disabled="true">عرض الداتا</a>
+                                </div>
                                 <div class="import-error import-error-election d-none">يرجى اختيار الانتخابات.</div>
                             </div>
 
@@ -1083,6 +1089,22 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
                         <button type="button" class="btn btn-danger" id="confirmReplace">نعم، استبدل البيانات</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="importSummaryModal" tabindex="-1" aria-labelledby="importSummaryLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importSummaryLabel">نتيجة الاستيراد</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                    </div>
+                    <div class="modal-body" id="importSummaryModalBody">
+                        تم استلام نتيجة الاستيراد.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
                     </div>
                 </div>
             </div>
@@ -1190,8 +1212,11 @@
 
     const importForms = document.querySelectorAll('.voters-import-form');
     const replaceModalElement = document.getElementById('replaceConfirmModal');
+    const summaryModalElement = document.getElementById('importSummaryModal');
     const confirmReplaceButton = document.getElementById('confirmReplace');
     const replaceModal = replaceModalElement ? new bootstrap.Modal(replaceModalElement) : null;
+    const summaryModal = summaryModalElement ? new bootstrap.Modal(summaryModalElement) : null;
+    const summaryModalBody = document.getElementById('importSummaryModalBody');
     let pendingConfirm = null;
     const summaryContainer = document.getElementById('importSummaryContainer');
 
@@ -1216,12 +1241,19 @@
         }
         lines.push(`تم تخطيها: ${summary.skipped ?? 0}`);
         lines.push(`فشلت: ${summary.failed ?? 0}`);
-        summaryContainer.innerHTML = `
+        const summaryHtml = `
             <div class="alert alert-info" role="alert">
                 <div class="fw-bold mb-1">ملخص الاستيراد</div>
                 ${lines.map((line) => `<div>${line}</div>`).join('')}
             </div>
         `;
+        summaryContainer.innerHTML = summaryHtml;
+        if (summaryModalBody) {
+            summaryModalBody.innerHTML = summaryHtml;
+        }
+        if (summaryModal) {
+            summaryModal.show();
+        }
     };
 
     if (confirmReplaceButton) {
@@ -1246,6 +1278,7 @@
             let isSubmitting = false;
 
             const submitButton = importForm.querySelector('.import-submit');
+            const viewDataButton = importForm.querySelector('.import-view-data');
             const submitText = submitButton ? submitButton.querySelector('.submit-text') : null;
             const submitSpinner = submitButton ? submitButton.querySelector('.spinner-border') : null;
             const progressWrap = importForm.querySelector('.import-progress');
@@ -1260,6 +1293,20 @@
             if (!electionField || !fileField || !modeFields.length) {
                 return;
             }
+
+            const updateViewDataLink = () => {
+                if (!viewDataButton) return;
+                const baseUrl = viewDataButton.dataset.baseUrl;
+                if (!electionField.value) {
+                    viewDataButton.classList.add('disabled');
+                    viewDataButton.setAttribute('aria-disabled', 'true');
+                    viewDataButton.setAttribute('href', '#');
+                    return;
+                }
+                viewDataButton.classList.remove('disabled');
+                viewDataButton.setAttribute('aria-disabled', 'false');
+                viewDataButton.setAttribute('href', `${baseUrl}?election=${electionField.value}`);
+            };
 
             const setFieldState = (field, isValid) => {
                 field.classList.remove('is-valid', 'is-invalid');
@@ -1449,6 +1496,7 @@
             });
 
             electionField.addEventListener('change', validateImportForm);
+            electionField.addEventListener('change', updateViewDataLink);
             fileField.addEventListener('change', validateImportForm);
             modeFields.forEach((field) => field.addEventListener('change', () => {
                 if (!replaceField || !replaceField.checked) {
@@ -1456,6 +1504,8 @@
                 }
                 validateImportForm();
             }));
+
+            updateViewDataLink();
         });
     }
 </script>

@@ -81,6 +81,7 @@ Route::group(['prefix' => 'dashboard',
     Route::resource('schools', SchoolController::class)->except('show');
     Route::resource('families', FamilyController::class)->except('show');
     Route::post('import/voters', [VoterController::class,'import'])->name('import-voters');
+    Route::get('import/voters/data', [VoterController::class,'importData'])->name('import-voters-data');
     Route::get('madameen', [VoterController::class,'madameen'])->name('madameen');
     Route::get('history', [HistoryController::class,'history'])->name('history');
     Route::get('delete', [HistoryController::class,'delete'])->name('delete');

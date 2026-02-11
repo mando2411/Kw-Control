@@ -6,6 +6,7 @@ use PgSql\Lob;
 use App\Models\Group;
 use App\Models\Voter;
 use App\Models\Family;
+use App\Models\Election;
 use App\Models\Candidate;
 use App\Models\Committee;
 use App\Models\Selection;
@@ -19,6 +20,7 @@ use App\DataTables\VoterDataTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Scopes\ElectionScope;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ContractorVotersImport;
 use App\Http\Requests\Dashboard\VoterRequest;
@@ -162,6 +164,35 @@ class VoterController extends Controller
 
             throw $e;
         }
+    }
+    //=====================================================================
+    public function importData(Request $request)
+    {
+        $request->validate([
+            'election' => 'required|exists:elections,id',
+        ]);
+
+        $electionId = (int) $request->input('election');
+        if (!auth()->user()->hasRole('Administrator') && auth()->user()->election_id !== $electionId) {
+            abort(403);
+        }
+
+        $query = Voter::query();
+        if (auth()->user()->hasRole('Administrator')) {
+            $query->withoutGlobalScope(ElectionScope::class);
+        }
+
+        $voters = $query
+            ->whereHas('election', function ($q) use ($electionId) {
+                $q->where('election_id', $electionId);
+            })
+            ->orderBy('name', 'asc')
+            ->paginate(50)
+            ->withQueryString();
+
+        $election = Election::select('id', 'name')->findOrFail($electionId);
+
+        return view('dashboard.voters.import-data', compact('voters', 'election'));
     }
     //=====================================================================
     // public function updateStatus($id, Request $request)
