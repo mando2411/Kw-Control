@@ -16,9 +16,14 @@ use Carbon\Carbon;
 class VotersImport implements ToCollection, WithHeadingRow
 {
     private $election;
+    private int $totalRows = 0;
     private int $successCount = 0;
     private int $skippedCount = 0;
     private int $failedCount = 0;
+    private int $createdCount = 0;
+    private int $existingCount = 0;
+    private int $updatedCount = 0;
+    private int $duplicateSkippedCount = 0;
 
     public function __construct($election)
     {
@@ -30,6 +35,7 @@ class VotersImport implements ToCollection, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
+        $this->totalRows = $rows->count();
         DB::transaction(function () use ($rows) {
             foreach ($rows as $i=>$row) {
                     if (empty($row['alasm'])) {
@@ -44,6 +50,11 @@ class VotersImport implements ToCollection, WithHeadingRow
 
                         if (!$voter->election()->where('election_id', $this->election->id)->exists()) {
                             $voter->election()->attach($this->election->id);
+                        }
+                        if ($voter->wasRecentlyCreated) {
+                            $this->createdCount++;
+                        } else {
+                            $this->existingCount++;
                         }
                         $this->successCount++;
                     } catch (\Throwable $exception) {
@@ -62,6 +73,11 @@ class VotersImport implements ToCollection, WithHeadingRow
         return $this->successCount;
     }
 
+    public function getTotalRows(): int
+    {
+        return $this->totalRows;
+    }
+
     public function getSkippedCount(): int
     {
         return $this->skippedCount;
@@ -70,6 +86,26 @@ class VotersImport implements ToCollection, WithHeadingRow
     public function getFailedCount(): int
     {
         return $this->failedCount;
+    }
+
+    public function getCreatedCount(): int
+    {
+        return $this->createdCount;
+    }
+
+    public function getExistingCount(): int
+    {
+        return $this->existingCount;
+    }
+
+    public function getUpdatedCount(): int
+    {
+        return $this->updatedCount;
+    }
+
+    public function getDuplicateSkippedCount(): int
+    {
+        return $this->duplicateSkippedCount;
     }
 
     private function processVoter(array $row)

@@ -16,9 +16,14 @@ use Carbon\Carbon;
 class VoterCheck implements ToCollection, WithHeadingRow
 {
     private $election;
+    private int $totalRows = 0;
     private int $successCount = 0;
     private int $skippedCount = 0;
     private int $failedCount = 0;
+    private int $createdCount = 0;
+    private int $existingCount = 0;
+    private int $updatedCount = 0;
+    private int $duplicateSkippedCount = 0;
 
     public function __construct($election)
     {
@@ -30,6 +35,7 @@ class VoterCheck implements ToCollection, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
+        $this->totalRows = $rows->count();
         DB::transaction(function () use ($rows) {
             try {
                 $validRows = $rows->filter(function ($row) {
@@ -44,6 +50,8 @@ class VoterCheck implements ToCollection, WithHeadingRow
                     ->get();
 
                 $this->successCount += $voters->count();
+                $this->updatedCount += $voters->count();
+                $this->existingCount += $voters->count();
                 $unmatched = $mrgaaAlDakhlyIds->count() - $voters->count();
                 if ($unmatched > 0) {
                     $this->skippedCount += $unmatched;
@@ -70,6 +78,11 @@ class VoterCheck implements ToCollection, WithHeadingRow
         return $this->successCount;
     }
 
+    public function getTotalRows(): int
+    {
+        return $this->totalRows;
+    }
+
     public function getSkippedCount(): int
     {
         return $this->skippedCount;
@@ -78,5 +91,25 @@ class VoterCheck implements ToCollection, WithHeadingRow
     public function getFailedCount(): int
     {
         return $this->failedCount;
+    }
+
+    public function getCreatedCount(): int
+    {
+        return $this->createdCount;
+    }
+
+    public function getExistingCount(): int
+    {
+        return $this->existingCount;
+    }
+
+    public function getUpdatedCount(): int
+    {
+        return $this->updatedCount;
+    }
+
+    public function getDuplicateSkippedCount(): int
+    {
+        return $this->duplicateSkippedCount;
     }
 }

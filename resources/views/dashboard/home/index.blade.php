@@ -211,6 +211,73 @@
         opacity: 0.75;
         cursor: not-allowed;
     }
+
+    .import-section {
+        direction: rtl;
+        text-align: right;
+    }
+
+    .import-section .form-label,
+    .import-section .import-help,
+    .import-section .import-error,
+    .import-section .alert,
+    .import-section .import-warning {
+        text-align: right;
+    }
+
+    .import-section .form-control,
+    .import-section .form-select,
+    .import-option {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    .import-section .btn {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    .import-option input {
+        margin-right: 0;
+        margin-left: 0;
+    }
+
+    .import-option .option-title {
+        font-size: 1rem;
+    }
+
+    .import-option .option-desc {
+        font-size: 0.95rem;
+    }
+
+    .import-progress {
+        direction: ltr;
+    }
+
+    @media (max-width: 576px) {
+        .import-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .import-help {
+            font-size: 0.95rem;
+        }
+
+        .import-section .form-control,
+        .import-section .form-select {
+            font-size: 1rem;
+        }
+
+        .import-option {
+            padding: 14px;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .import-section .import-help {
+            font-size: 0.95rem;
+        }
+    }
 </style>
 <div class="projectContainer mx-auto">
     <!-- banner -->
@@ -606,7 +673,22 @@
                         @endphp
                         <div class="alert alert-info" role="alert">
                             <div class="fw-bold mb-1">ملخص الاستيراد</div>
+                            @if (array_key_exists('total', $summary))
+                                <div>إجمالي الصفوف: {{ $summary['total'] ?? 0 }}</div>
+                            @endif
                             <div>تمت المعالجة بنجاح: {{ $summary['success'] ?? 0 }}</div>
+                            @if (array_key_exists('created', $summary))
+                                <div>سجلات جديدة: {{ $summary['created'] ?? 0 }}</div>
+                            @endif
+                            @if (array_key_exists('existing', $summary))
+                                <div>سجلات موجودة: {{ $summary['existing'] ?? 0 }}</div>
+                            @endif
+                            @if (array_key_exists('updated', $summary))
+                                <div>تم تحديثها: {{ $summary['updated'] ?? 0 }}</div>
+                            @endif
+                            @if (array_key_exists('duplicate_skipped', $summary))
+                                <div>مكررات تم تخطيها: {{ $summary['duplicate_skipped'] ?? 0 }}</div>
+                            @endif
                             <div>تم تخطيها: {{ $summary['skipped'] ?? 0 }}</div>
                             <div>فشلت: {{ $summary['failed'] ?? 0 }}</div>
                         </div>

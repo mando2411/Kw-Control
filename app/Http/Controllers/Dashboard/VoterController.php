@@ -117,18 +117,28 @@ class VoterController extends Controller
             Excel::import($import, $request->file('import'));
             session()->flash('import_summary', [
                 'mode' => 'status',
+                'total' => $import->getTotalRows(),
                 'success' => $import->getSuccessCount(),
                 'skipped' => $import->getSkippedCount(),
                 'failed' => $import->getFailedCount(),
+                'created' => $import->getCreatedCount(),
+                'existing' => $import->getExistingCount(),
+                'updated' => $import->getUpdatedCount(),
+                'duplicate_skipped' => $import->getDuplicateSkippedCount(),
             ]);
         }else{
             $import = new VotersImport($request->election);
             Excel::import($import, $request->file('import'));
             session()->flash('import_summary', [
                 'mode' => request('check'),
+                'total' => $import->getTotalRows(),
                 'success' => $import->getSuccessCount(),
                 'skipped' => $import->getSkippedCount(),
                 'failed' => $import->getFailedCount(),
+                'created' => $import->getCreatedCount(),
+                'existing' => $import->getExistingCount(),
+                'updated' => $import->getUpdatedCount(),
+                'duplicate_skipped' => $import->getDuplicateSkippedCount(),
             ]);
         }
         // dd($request->all());
