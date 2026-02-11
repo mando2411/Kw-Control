@@ -415,41 +415,6 @@
         direction: ltr;
     }
 
-    .import-section-desktop {
-        display: none;
-    }
-
-    .import-section-mobile {
-        display: block;
-    }
-
-    .import-option-mobile {
-        border: 1px solid #e3e6ea;
-        border-radius: 10px;
-        padding: 14px 16px;
-        background: #f8f9fb;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .import-option-mobile.option-danger {
-        border-color: #f1b0b7;
-        border-right: 4px solid #dc3545;
-        background: #fff5f5;
-    }
-
-    .import-option-mobile .option-title {
-        font-weight: 600;
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-
-    .import-option-mobile .option-desc {
-        font-size: 0.95rem;
-        line-height: 1.7;
-        color: #6c757d;
-    }
 
     @media (max-width: 576px) {
         .import-header h2 {
@@ -928,6 +893,7 @@
                         <strong>تنبيه:</strong> خيار <strong>استبدال البيانات</strong> يحذف البيانات القديمة قبل الاستيراد. استخدمه فقط عند الحاجة.
                     </div>
 
+                    {{-- Desktop import form (hidden on small screens) --}}
                     <form id="voters-import-form-desktop" action="{{ route('dashboard.import-voters') }}" class="row g-4 voters-import-form import-form-desktop" enctype="multipart/form-data" method="POST" novalidate>
                         @csrf
                         <div class="col-12 col-lg-6">
@@ -954,45 +920,46 @@
 
                         <div class="col-12">
                             <label class="form-label">طريقة الاستيراد</label>
+                            {{-- Desktop option cards --}}
                             <div class="row g-3">
 
-    <div class="col-12 col-md-4">
-        <label class="import-option" for="dublicate-desktop">
-            <div class="import-option-wrapper">
-                <input type="radio" id="dublicate-desktop" name="check" value="dublicate" class="import-option-input" checked>
-                <div class="import-option-content">
-                    <div class="option-title">إضافة</div>
-                    <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
-                </div>
-            </div>
-        </label>
-    </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="import-option" for="dublicate-desktop">
+                                        <div class="import-option-wrapper">
+                                            <input type="radio" id="dublicate-desktop" name="check" value="dublicate" class="import-option-input" checked>
+                                            <div class="import-option-content">
+                                                <div class="option-title">إضافة</div>
+                                                <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
 
-    <div class="col-12 col-md-4">
-        <label class="import-option option-danger" for="replace-desktop">
-            <div class="import-option-wrapper">
-                <input type="radio" id="replace-desktop" name="check" value="replace" class="import-option-input">
-                <div class="import-option-content">
-                    <div class="option-title">استبدال</div>
-                    <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
-                </div>
-            </div>
-        </label>
-    </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="import-option option-danger" for="replace-desktop">
+                                        <div class="import-option-wrapper">
+                                            <input type="radio" id="replace-desktop" name="check" value="replace" class="import-option-input">
+                                            <div class="import-option-content">
+                                                <div class="option-title">استبدال</div>
+                                                <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
 
-    <div class="col-12 col-md-4">
-        <label class="import-option" for="status-desktop">
-            <div class="import-option-wrapper">
-                <input type="radio" id="status-desktop" name="check" value="status" class="import-option-input">
-                <div class="import-option-content">
-                    <div class="option-title">تحديث الحالة</div>
-                    <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
-                </div>
-            </div>
-        </label>
-    </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="import-option" for="status-desktop">
+                                        <div class="import-option-wrapper">
+                                            <input type="radio" id="status-desktop" name="check" value="status" class="import-option-input">
+                                            <div class="import-option-content">
+                                                <div class="option-title">تحديث الحالة</div>
+                                                <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
 
-</div>
+                            </div>
 
                             <div id="importModeHelpDesktop" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
                             <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
@@ -1014,6 +981,7 @@
                             <div class="import-error import-error-submit d-none">حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
                         </div>
                     </form>
+                    {{-- Mobile import form (shown on small screens) --}}
                     <form id="voters-import-form-mobile" action="{{ route('dashboard.import-voters') }}" class="row g-4 voters-import-form import-form-mobile" enctype="multipart/form-data" method="POST" novalidate>
                         @csrf
                         <div class="col-12">
@@ -1037,45 +1005,44 @@
 
                         <div class="col-12">
                             <label class="form-label">طريقة الاستيراد</label>
+                            {{-- Mobile option cards (grid layout) --}}
                             <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="import-option-mobile" for="dublicate-mobile">
+                                        <span class="import-option-text">
+                                            <span class="option-title">إضافة</span>
+                                            <span class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</span>
+                                        </span>
+                                        <span class="import-option-radio">
+                                            <input type="radio" id="dublicate-mobile" name="check" value="dublicate" checked>
+                                        </span>
+                                    </label>
+                                </div>
 
-    <div class="col-12">
-        <label class="import-option-mobile" for="dublicate-mobile">
-            <span class="import-option-text">
-                <span class="option-title">إضافة</span>
-                <span class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</span>
-            </span>
-            <span class="import-option-radio">
-                <input type="radio" id="dublicate-mobile" name="check" value="dublicate" checked>
-            </span>
-        </label>
-    </div>
+                                <div class="col-12">
+                                    <label class="import-option-mobile option-danger" for="replace-mobile">
+                                        <span class="import-option-text">
+                                            <span class="option-title">استبدال</span>
+                                            <span class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</span>
+                                        </span>
+                                        <span class="import-option-radio">
+                                            <input type="radio" id="replace-mobile" name="check" value="replace">
+                                        </span>
+                                    </label>
+                                </div>
+                                <div class="col-12">
+                                    <label class="import-option-mobile" for="status-mobile">
+                                        <span class="import-option-text">
+                                            <span class="option-title">تحديث الحالة</span>
+                                            <span class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</span>
+                                        </span>
+                                        <span class="import-option-radio">
+                                            <input type="radio" id="status-mobile" name="check" value="status">
+                                        </span>
+                                    </label>
+                                </div>
 
-    <div class="col-12">
-        <label class="import-option-mobile option-danger" for="replace-mobile">
-            <span class="import-option-text">
-                <span class="option-title">استبدال</span>
-                <span class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</span>
-            </span>
-            <span class="import-option-radio">
-                <input type="radio" id="replace-mobile" name="check" value="replace">
-            </span>
-        </label>
-    </div>
-
-    <div class="col-12">
-        <label class="import-option-mobile" for="status-mobile">
-            <span class="import-option-text">
-                <span class="option-title">تحديث الحالة</span>
-                <span class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</span>
-            </span>
-            <span class="import-option-radio">
-                <input type="radio" id="status-mobile" name="check" value="status">
-            </span>
-        </label>
-    </div>
-
-</div>
+                            </div>
 
                             <div id="importModeHelpMobile" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
                             <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
