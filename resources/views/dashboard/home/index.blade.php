@@ -277,8 +277,12 @@
         }
 
         .import-form-mobile .import-option {
-            padding: 12px;
-            align-items: stretch;
+            padding: 14px 14px 12px;
+            align-items: flex-start;
+            border-radius: 14px;
+            background: #fdf7ef;
+            border: 1px solid #f2d2a7;
+            box-shadow: 0 8px 20px rgba(138, 75, 0, 0.08);
         }
 
         .import-form-mobile .import-option-content {
@@ -290,6 +294,60 @@
         .import-form-mobile .option-desc {
             word-break: normal;
             overflow-wrap: anywhere;
+        }
+
+        .import-form-mobile .import-option.option-danger {
+            background: #fff0f0;
+            border-color: #f3b1b7;
+            border-right: 6px solid #dc3545;
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.12);
+        }
+
+        .import-form-mobile .form-label {
+            font-weight: 600;
+            color: #2f2f2f;
+        }
+
+        .import-form-mobile .form-select,
+        .import-form-mobile .form-control {
+            border-radius: 12px;
+            border-color: #ead7c6;
+            background: #fffaf5;
+            padding: 12px 14px;
+        }
+
+        .import-form-mobile .import-help {
+            font-size: 0.85rem;
+            color: #8a4b00;
+        }
+
+        .import-form-mobile .import-warning {
+            background: #fff1dc;
+            border-color: #f3c890;
+            color: #7a3e00;
+        }
+
+        .import-form-mobile .import-submit {
+            border-radius: 999px;
+            background: #0f6f5c;
+            border-color: #0f6f5c;
+            padding: 12px 18px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .import-form-mobile .import-submit:hover {
+            background: #0c5c4c;
+            border-color: #0c5c4c;
+        }
+
+        .import-form-mobile .import-progress {
+            height: 12px;
+            background: #f1e2d6;
+        }
+
+        .import-form-mobile .import-progress-bar {
+            background: linear-gradient(90deg, #0f6f5c 0%, #2aa08a 100%);
         }
     }
 
