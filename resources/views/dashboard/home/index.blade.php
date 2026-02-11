@@ -157,24 +157,39 @@
         padding: 12px 14px;
         height: 100%;
         background: #f8f9fb;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 
     .import-option input {
-        margin-top: 6px;
+        margin: 0;
     }
 
     .import-option .option-title {
         font-weight: 600;
+        font-size: 1rem;
     }
 
     .import-option .option-desc {
         font-size: 0.9rem;
         color: #6c757d;
+        line-height: 1.5;
+        word-break: break-word;
     }
 
     .import-option.option-danger {
         border-color: #f1b0b7;
+        border-right: 4px solid #dc3545;
         background: #fff5f5;
+    }
+
+    .import-option-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 48px;
     }
 
     .import-field.is-invalid {
@@ -728,40 +743,34 @@
                             <div class="row g-3">
                                 <div class="col-12 col-md-4">
                                     <label class="import-option d-block" for="dublicate">
-                                        <div class="d-flex justify-content-between align-items-start gap-3">
-                                            <div>
-                                                <div class="option-title">إضافة بيانات جديدة فقط</div>
-                                                <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
-                                            </div>
-                                            <input type="radio" id="dublicate" name="check" value="dublicate" aria-describedby="importModeHelp">
+                                        <div class="import-option-header">
+                                            <div class="option-title">إضافة</div>
+                                            <input type="radio" id="dublicate" name="check" value="dublicate" aria-describedby="dublicateHelp">
                                         </div>
+                                        <div class="option-desc" id="dublicateHelp">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
                                     </label>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label class="import-option option-danger d-block" for="replace">
-                                        <div class="d-flex justify-content-between align-items-start gap-3">
-                                            <div>
-                                                <div class="option-title">استبدال البيانات</div>
-                                                <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
-                                            </div>
+                                        <div class="import-option-header">
+                                            <div class="option-title">استبدال</div>
                                             <input type="radio" id="replace" name="check" value="replace" aria-describedby="replaceHelp">
                                         </div>
+                                        <div class="option-desc" id="replaceHelp">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
                                     </label>
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label class="import-option d-block" for="status">
-                                        <div class="d-flex justify-content-between align-items-start gap-3">
-                                            <div>
-                                                <div class="option-title">تحديث الحالة</div>
-                                                <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
-                                            </div>
-                                            <input type="radio" id="status" name="check" value="status" aria-describedby="importModeHelp">
+                                        <div class="import-option-header">
+                                            <div class="option-title">تحديث الحالة</div>
+                                            <input type="radio" id="status" name="check" value="status" aria-describedby="statusHelp">
                                         </div>
+                                        <div class="option-desc" id="statusHelp">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
                                     </label>
                                 </div>
                             </div>
                             <div id="importModeHelp" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
-                            <div id="replaceHelp" class="import-help mt-1">تحذير: هذا الخيار يمسح البيانات الحالية.</div>
+                            <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
                             <div class="import-error d-none" id="modeError">يرجى اختيار طريقة الاستيراد.</div>
                         </div>
 
