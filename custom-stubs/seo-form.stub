@@ -1,0 +1,3 @@
+<!--Start SEO-->
+<x-dashboard.form.seo-form {{ seoObject }} />
+<!--End SEO-->

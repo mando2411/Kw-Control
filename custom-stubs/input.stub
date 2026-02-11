@@ -1,0 +1,1 @@
+<x-dashboard.form.input-{{ inputType }} error-key="{{ errorKey }}" name="{{ inputName }}" :value="{{ inputValue }}" id="{{ inputId }}" label-title="{{ inputLabel }}"/>

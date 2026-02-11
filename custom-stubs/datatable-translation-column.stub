@@ -1,0 +1,3 @@
+->editColumn('{{ column }}', fn({{ model }} ${{ modelVariable }}) => ${{ modelVariable }}->{{ column }})
+->filterTranslatedColumn('{{ column }}')
+->orderColumn('{{ column }}', fn($query, $dir) => $query->orderByTranslation('{{ column }}', $dir))

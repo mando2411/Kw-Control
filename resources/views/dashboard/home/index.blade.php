@@ -1,0 +1,653 @@
+@extends('layouts.dashboard.app')
+
+@section('content')
+
+{{-- voter --}}
+{{-- <style>
+    .button-arrived {
+        background-color: green;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+    .button-not-arrived {
+        background-color: red;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+    .button-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style> --}}
+
+
+{{-- canditates --}}
+<style>
+    .button {
+        margin: 5px;
+        padding: 10px;
+        font-size: 1.2em;
+        cursor: pointer;
+    }
+
+    .button-increment {
+        background-color: green;
+        color: white;
+    }
+
+    .button-decrement {
+        background-color: red;
+        color: white;
+    }
+
+    .button-update {
+        background-color: blue;
+        color: white;
+        margin-top: 10px;
+    }
+
+    .form-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+    }
+
+    .custom-file-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .custom-file-label {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    .btn-custom {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+    }
+
+    .btn-custom:hover {
+        background-color: #0056b3;
+        border-color: #004085;
+    }
+
+    .online {
+        animation: myAnim 1000ms ease 0s infinite normal both;
+    }
+
+    @keyframes myAnim {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        /* Start slightly lower */
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        /* Transition effect */
+    }
+
+    /* Final state (visible) */
+    .fade-in.show {
+        opacity: 1;
+        transform: translateY(0);
+        /* Move to its original position */
+    }
+</style>
+<div class="projectContainer mx-auto">
+    <!-- banner -->
+    @if (auth()->user()->candidate()->exists())
+
+    <div class="pt-5 banner rtl">
+        <div class="container-fluid">
+            <div class="d-flex border-bottom justify-content-center align-items-center">
+                <div class="">
+                    <figure class="mx-auto text-center rounded-circle overflow-hidden" style="@auth
+                          width: 150px;
+      height: 150px;
+      margin-left: 25px !important;
+                  @endauth"><img src="{{auth()->user()->image}}" class="w-100 h-100" alt=""></figure>
+                </div>
+                <div class="text-center me-3">
+                    <h1>{{auth()->user()->name}}</h1>
+                    <p class="fs-5"> {{"مرشح". "  ".  auth()->user()->election?->name }} </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <section class="countDown py-3">
+        <div class="container">
+
+            <div class="text-center madameenControl mx-auto">
+                <h2 class="textMainColor time-election">
+                    باقى على موعد الانتخابات
+                </h2>
+
+                <div class="row g-3 align-items-center mt-3 mb-1">
+                    <div class="col-3">
+                        <div class="inner border border-2 p-2 rounded-3 rounded">
+                            <div class="textMainColor text-center fw-bold">
+                                <span class="fs-2" id="days"></span> <br />
+                                يوم
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+                        <div class="inner border border-2 p-2 rounded-3 rounded">
+                            <div class="textMainColor text-center fw-bold">
+                                <span class="fs-2" id="hours"></span> <br />
+                                ساعه
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+                        <div class="inner border border-2 p-2 rounded-3 rounded">
+                            <div class="textMainColor text-center fw-bold">
+                                <span class="fs-2" id="minutes"></span> <br />
+                                دقيقه
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+                        <div class="inner border border-2 p-2 rounded-3 rounded">
+                            <div class="textMainColor text-center fw-bold">
+                                <span class="fs-2" id="seconds"></span> <br />
+                                ثانيه
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="startDate" value="{{ \Carbon\Carbon::parse(auth()->user()->election?->start_date)->format('Y-m-d') }}">
+                <input type="hidden" id="startTime" value="{{ \Carbon\Carbon::parse(auth()->user()->election?->start_time)->format('H:i:s') }}">
+                <input type="hidden" id="endDate" value="{{ \Carbon\Carbon::parse(auth()->user()->election?->end_date)->format('Y-m-d') }}">
+                <input type="hidden" id="endTime" value="{{ \Carbon\Carbon::parse(auth()->user()->election?->end_time)->format('H:i:s') }}">
+                <div id="election_start">
+                    <p class="text-danger">
+                        حتى تاريخ {{ \Carbon\Carbon::parse(auth()->user()->election?->start_date)->format('d/m/Y') }} , الساعة
+                        {{ \Carbon\Carbon::parse(auth()->user()->election?->start_time)->format('h:i') }}
+                        {{ \Carbon\Carbon::parse(auth()->user()->election?->start_time)->format('A') === 'AM' ? 'ص' : 'م' }}
+                    </p>
+                </div>
+                <div id="election_end" class="d-none">
+                    <p class="text-danger">
+                        حتى تاريخ {{ \Carbon\Carbon::parse(auth()->user()->election?->end_date)->format('d/m/Y') }} , الساعة
+                        {{ \Carbon\Carbon::parse(auth()->user()->election?->end_time)->format('h:i') }}
+                        {{ \Carbon\Carbon::parse(auth()->user()->election?->end_time)->format('A') === 'AM' ? 'ص' : 'م' }}
+                    </p>
+                </div>
+
+
+
+            </div>
+
+        </div>
+    </section>
+    <!-- main -->
+    <main>
+
+        @if(auth()->user()->can('statement.show') ||
+        auth()->user()->can('madameen') ||
+        auth()->user()->can('contractors.list') ||
+        auth()->user()->can('statement') ||
+        auth()->user()->can('statement.search'))
+        <div>
+            <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتعهدين والمضامين</h1>
+            <div class="container">
+                <div class="row g-3 mb-4">
+                    @can('statement.show')
+                    <div class="col-lg-2 col-md-3 col-sm-6 flex-grow-1">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.statement.show')}}">
+                                <button class="btn w-100 btn-dark">
+                                    <i class="fa fs-5 fa-table-cells d-block my-1"></i>
+                                    <h6>العرض الشامل</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can('madameen')
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.madameen')}}">
+                                <button class="btn w-100 btn-info">
+                                    <i class="fa fs-5 fa-list-check d-block my-1"></i>
+                                    <h6>المضامين</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can('contractors.list')
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.contractors.index')}}">
+                                <button class="btn w-100 btn-primary">
+                                    <i class="fa fs-5 fa-user-check d-block my-1"></i>
+                                    <h6>المتعهدين</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can('statement')
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.statement')}}">
+                                <button class="btn w-100 btn-warning">
+                                    <i class="fa fs-5 fa-clipboard-list d-block my-1"></i>
+                                    <h6>كشوف</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can('statement.search')
+
+                    <div class="col-lg-3 col-md-3 col-sm-6 flex-grow-1">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.statement.search')}}">
+                                <button class="btn w-100 btn-secondary">
+                                    <i class="fa fs-5 fa-magnifying-glass d-block my-1"></i>
+                                    <h6>البحث عن الكشوف</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <div>
+            <h1 class="bg-dark text-white py-2 text-center h2 mb-2">تحضير وفرز (لجان الانتخابات)</h1>
+            <div class="container">
+                <div class="row g-3 mb-4">
+                    @can('candidates.list')
+
+                    <div class="col-lg-3 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.rep-home')}}">
+                                <button class="btn w-100 btn-success">
+                                    <i class="fa fs-5 fa-user-shield d-block my-1"></i>
+                                    <h6>المندوبين</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can('committee.home')
+
+                    <div class="col-lg-3 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.committee.home')}}">
+                                <button class="btn w-100 btn-danger">
+                                    <i class="fa fs-5 fa-receipt d-block my-1"></i>
+                                    <h6>اللجان</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can ('sorting')
+                    <div class="col-lg-3 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.sorting')}}">
+                                <button class="btn w-100 btn-info">
+                                    <i class="fa fs-5 fa-rectangle-list d-block my-1"></i>
+                                    <h6>الفرز</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                    @can('attending')
+
+                    <div class="col-lg-3 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.attending')}}">
+                                <button class="btn w-100 btn-primary">
+                                    <i class="fa fs-5 fa-clipboard-check d-block my-1"></i>
+                                    <h6>التحضير</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+
+                </div>
+                
+                <div class="row g-3 mb-4">
+                    <?php if(isset($show_all_result) && $show_all_result==true){?>
+                        <div class="col-lg-4 col-md-3 col-sm-6">
+                            <div class="w-100">
+                                <a href="{{route('all.results')}}">
+                                    <button class="btn w-100 btn-secondary">
+                                        <i class="fa fs-5 fa-chart-simple d-block my-1"></i>
+                                        <h6>النتائج العامة</h6>
+                                    </button>
+                                </a>
+                            </div>
+                        </div>
+                    <?php }?>
+                    @can ('candidates.index')
+                    <div class="col-lg-4 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.results')}}">
+                                <button class="btn w-100 btn-dark">
+                                    <i class="fa fs-5 fa-chart-simple d-block my-1"></i>
+                                    <h6>النتائج</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+
+                    @can('statistics')
+                    <div class="col-lg-4 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.statistics')}}">
+                                <button class="btn w-100 btn-warning">
+                                    <i class="fa fs-5 fa-list-check d-block my-1"></i>
+                                    <h6>احصائيات</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+
+                    @can('reports.create')
+                    <div class="col-lg-4 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.reports.create')}}">
+                                <button class="btn w-100 btn-primary">
+                                    <i class="fa fs-5 fa-receipt d-block my-1"></i>
+                                    <h6>التقارير</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endcan
+                </div>
+            </div>
+        </div>
+        @if ( auth()->user()->hasRole('Administrator'))
+        <div>
+            <h1 class="bg-dark text-white py-2 text-center h2 mb-2">أدوات الموقع</h1>
+            <div class="container">
+                <div class="row g-3 mb-4 align-items-center justify-content-center">
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.delete')}}">
+                                <button class="btn w-100 btn-outline-danger">
+                                    <i class="fa fs-5 fa-receipt d-block my-1"></i>
+                                    <h6>المحذوفين</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.history')}}">
+                                <button class="btn w-100 btn-secondary">
+                                    <i class="fa fs-5 fa-list-check d-block my-1"></i>
+                                    <h6>سجل الموقع</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-3 col-sm-6">
+                        <div class="w-100">
+                            <a href="">
+                                <button class="btn w-100 btn-success">
+                                    <i class="fa-brands fs-5 fa-whatsapp d-block my-1"></i>
+                                    <h6>whatsapp</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="w-100">
+                            <a href="{{route('dashboard.cards',$data=null)}}">
+                                <button class="btn w-100 btn-dark">
+                                    <i class="fa fs-5 fa-gear d-block my-1"></i>
+                                    <h6>الكوادر واعضاء اللجان</h6>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتواجدين الأن</h1>
+
+            <div class="table-responsive mb-5">
+                <table class="table table-striped w-100  text-center rtl overflow-scroll">
+                    <thead class="table-primary  border-0 border-dark border-bottom border-2">
+                        <tr class="py-4 ">
+                            <th>الاسم</th>
+                            <th>أخر ظهور</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider" id="user-list">
+                        @php
+                        $users=App\Models\User::where('creator_id', auth()->user()->id)->take(10)->get();
+                        @endphp
+                        @foreach ( $users as $user )
+                        @if ($user->isOnline() || $user->isOffline())
+                        <tr>
+                            <td>
+                                <i class="fa fa-circle rounded-circle @if ($user->isOnline())
+                                            online text-success
+                                            @else
+                                            text-danger
+                                        @endif ms-1"></i>
+                                {{$user->name}}
+                            </td>
+                            <td>
+                                @if ($user->isOffline())
+                                {{$user->LoginTime($user->last_active_at)}}
+                                @endif
+                            </td>
+                        </tr>
+
+                        @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center">
+                <button id="load-more" data-page="1" class="btn btn-primary">المزيد</button>
+            </div>
+        </div>
+        @endif
+
+        @can('import-voters')
+        <div class="container">
+            <div class="form-container ">
+                <x-dashboard.partials.message-alert />
+
+                <form action="{{ route('dashboard.import-voters') }}" class="row flex-column" enctype="multipart/form-data" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label for="election">
+                            الانتخابات
+                        </label>
+                        @php
+                        $elections=App\Models\Election::select('id','name')->get();
+                        @endphp
+                        <select name="election" id="" required>
+                            <option value="" disabled>اختر الانتخابات</option>
+                            @foreach ($elections as $election )
+                            <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="import">ادراج ملف</label>
+                        <input type="file" class="form-control-file" id="import" name="import">
+                    </div>
+                    <div class="text-center">
+                        <input type="radio" id="dublicate" name="check" value="dublicate" class="ms-3 ">
+                        <label for="dublicate">
+                            اضافه بيانات جديده فقط
+                        </label>
+                        <input type="radio" id="replace" name="check" value="replace" class="ms-3 ">
+                        <label for="replace">
+                            استبدال البيانات
+                        </label>
+                        <input type="radio" id="status" name="check" value="status" class="ms-3 ">
+                        <label for="status">
+                            تعديل البيانات
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-custom btn-block">ادراج</button>
+                </form>
+            </div>
+        </div>
+        @endcan
+    </main>
+</div>
+@endsection
+@push('js')
+<script>
+    $('#load-more').on('click', function() {
+        var page = $(this).data('page');
+        page++;
+
+        $.ajax({
+            url: '/get-users',
+            method: 'GET',
+            data: {
+                page: page
+            },
+            success: function(response) {
+                if (response.data.length > 0) {
+                    response.data.forEach(function(user) {
+                        if (user.is_online || user.is_offline) {
+                            var row = `
+                        <tr>
+                            <td>
+                                <i class="fa fa-circle rounded-circle ${user.is_online ? 'online text-success' : 'text-danger'} ms-1"></i>
+                                ${user.name}
+                            </td>
+                            <td>
+                                ${user.is_offline ? user.last_active_at : ''}
+                            </td>
+                        </tr>
+                    `;
+
+                            $('#user-list').append(row);
+
+                            setTimeout(function() {
+                                $('#user-list tr:last-child').css({
+                                    'opacity': 1,
+                                    'transform': 'translateY(0)',
+                                    'transition': 'all 0.5s ease'
+                                });
+                            }, 100);
+                        }
+                    });
+
+                    $('#load-more').data('page', page);
+                } else {
+                    $('#load-more').hide();
+                }
+            }
+        });
+    });
+
+    setInterval(function() {
+        $.ajax({
+            url: '/users/online',
+            method: 'GET',
+            data: {
+                page: $('#load-more').data('page')
+            },
+            success: function(response) {
+                console.log(response);
+
+                $('#user-list tr').css({
+                    'opacity': 0,
+                    'transform': 'translateY(20px)',
+                    'transition': 'all 0.5s ease'
+                });
+                $('#user-list').html('');
+
+
+                response.data.forEach(function(user) {
+                    if (user.is_online || user.is_offline) {
+                        var row = `
+                        <tr>
+                            <td>
+                                <i class="fa fa-circle rounded-circle ${user.is_online ? 'online text-success' : 'text-danger'} ms-1"></i>
+                                ${user.name}
+                            </td>
+                            <td>
+                                ${user.is_offline ? user.last_active_at : ''}
+                            </td>
+                        </tr>
+                    `;
+
+                        $('#user-list').append(row);
+                        $('#load-more').data('page', 1);
+
+                        setTimeout(function() {
+                            $('#user-list tr:last-child').css({
+                                'opacity': 1,
+                                'transform': 'translateY(0)',
+                                'transition': 'all 0.5s ease'
+                            });
+                        }, 100);
+                    }
+                });
+            }
+        });
+    }, 120000);
+</script>
+
+
+@endpush
