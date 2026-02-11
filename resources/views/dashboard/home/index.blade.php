@@ -659,7 +659,7 @@
         @endif
 
         @can('import-voters')
-        <div class="container">
+        <div class="container import-section" dir="rtl">
             <div class="import-card p-0">
                 <div class="import-header p-4">
                     <h2 class="h4 mb-2">استيراد الناخبين</h2>
@@ -705,7 +705,7 @@
                             @php
                             $elections=App\Models\Election::select('id','name')->get();
                             @endphp
-                            <select name="election" id="election" class="form-select import-field" required aria-describedby="electionHelp">
+                            <select name="election" id="election" class="form-select import-field" required aria-describedby="electionHelp" aria-invalid="false">
                                 <option value="" selected disabled>اختر الانتخابات</option>
                                 @foreach ($elections as $election )
                                 <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
@@ -717,7 +717,7 @@
 
                         <div class="col-12 col-lg-6">
                             <label for="import" class="form-label">ملف الاستيراد</label>
-                            <input type="file" class="form-control import-field" id="import" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelp">
+                            <input type="file" class="form-control import-field" id="import" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelp" aria-invalid="false">
                             <div id="fileHelp" class="import-help">الصيغ المقبولة: .xlsx, .xls, .csv</div>
                             <div class="import-error d-none" id="fileError">يرجى اختيار ملف صالح.</div>
                         </div>
@@ -727,7 +727,7 @@
                             <div class="row g-3">
                                 <div class="col-12 col-md-4">
                                     <label class="import-option d-block" for="dublicate">
-                                        <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
                                             <div>
                                                 <div class="option-title">إضافة بيانات جديدة فقط</div>
                                                 <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
@@ -738,7 +738,7 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label class="import-option option-danger d-block" for="replace">
-                                        <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
                                             <div>
                                                 <div class="option-title">استبدال البيانات</div>
                                                 <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
@@ -749,7 +749,7 @@
                                 </div>
                                 <div class="col-12 col-md-4">
                                     <label class="import-option d-block" for="status">
-                                        <div class="d-flex justify-content-between align-items-start">
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
                                             <div>
                                                 <div class="option-title">تحديث الحالة</div>
                                                 <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
@@ -764,9 +764,9 @@
                             <div class="import-error d-none" id="modeError">يرجى اختيار طريقة الاستيراد.</div>
                         </div>
 
-                        <div class="col-12 d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+                        <div class="col-12 d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
                             <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
-                            <button type="submit" class="btn btn-custom px-4 import-submit" id="importSubmit">
+                            <button type="submit" class="btn btn-custom px-4 import-submit w-100 w-md-auto" id="importSubmit">
                                 <span class="submit-text">بدء الاستيراد</span>
                                 <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
                             </button>
