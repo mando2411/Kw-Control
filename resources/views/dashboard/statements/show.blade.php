@@ -763,7 +763,7 @@
                         <td class="bg-warning bg-opacity-25">${contractor.trust}%</td>
                         <td class="bg-warning bg-opacity-25" data-bs-toggle="modal" data-bs-target="#mota3ahdeenName">${contractor.name}</td>
                         <td class="bg-warning bg-opacity-25 w30">${contractor.voters ? contractor.voters.length : 0}</td>
-                        <td class="bg-warning bg-opacity-25">${(contractor.pivot && contractor.pivot.percentage != null) ? contractor.pivot.percentage : "0"}%</td>
+                        <td class="bg-warning bg-opacity-25">${(contractor.pivot && contractor.pivot.percentage !== null && contractor.pivot.percentage !== '' && contractor.pivot.percentage !== 'null') ? contractor.pivot.percentage : "0"}%</td>
                         <td class="bg-warning bg-opacity-25">${contractor.phone}</td>
                         ${
                             cIndex === 0
@@ -904,7 +904,7 @@ let url
                                 ${voters[i].name}
                             </td>
 
-                            <td>${(voters[i].pivot && voters[i].pivot.percentage != null) ? voters[i].pivot.percentage : "0"}%</td>
+                            <td>${(voters[i].pivot && voters[i].pivot.percentage !== null && voters[i].pivot.percentage !== '' && voters[i].pivot.percentage !== 'null') ? voters[i].pivot.percentage : "0"}%</td>
                             <td>${voters[i].phone1}</td>
                             <td></td>
                           </tr>
@@ -1041,7 +1041,7 @@ for (let i = 0; i < contractors.length; i++) {
 cartona.push(`
 <tr>
 <td rowspan="3">${contractors[i].name}</td>
-<td>الالتزام: ${contractors[i].pivot.percentage ? contractors[i].pivot.percentage : "0"}%</td>
+<td>الالتزام: ${(contractors[i].pivot && contractors[i].pivot.percentage !== null && contractors[i].pivot.percentage !== '' && contractors[i].pivot.percentage !== 'null') ? contractors[i].pivot.percentage : "0"}%</td>
 </tr>
 <tr>
 <td>الهاتف: ${contractors[i].phone ? contractors[i].phone : "لايوجد"}</td>
