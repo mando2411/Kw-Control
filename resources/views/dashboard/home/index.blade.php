@@ -158,6 +158,7 @@
         height: 100%;
         background: #f8f9fb;
         display: flex;
+        flex-wrap: nowrap;
         flex-direction: row;
         align-items: flex-start;
         gap: 12px;
@@ -180,21 +181,30 @@
         width: 100%;
         min-width: 0;
         flex: 1 1 auto;
+        white-space: normal;
+        word-break: keep-all;
+        overflow-wrap: break-word;
     }
 
     .import-option .option-title {
         font-weight: 600;
         font-size: 1rem;
         white-space: normal;
+        min-width: 0;
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        direction: rtl;
+        text-align: right;
     }
 
     .import-option .option-desc {
         font-size: 0.9rem;
         color: #6c757d;
         line-height: 1.5;
-        word-break: normal;
+        word-break: keep-all;
         overflow-wrap: break-word;
         white-space: normal;
+        min-width: 0;
     }
 
     .import-option.option-danger {
@@ -303,8 +313,16 @@
         }
 
         .import-option {
-            padding: 14px;
-            gap: 10px;
+            padding: 16px;
+            gap: 12px;
+        }
+        .option-title {
+        font-size: 16px;
+        line-height: 1.6;
+        }
+        .option-desc {
+            font-size: 14px;
+            line-height: 1.7;
         }
     }
 
