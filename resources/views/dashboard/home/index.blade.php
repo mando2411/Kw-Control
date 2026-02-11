@@ -182,8 +182,8 @@
         min-width: 0;
         flex: 1 1 auto;
         white-space: normal;
-        word-break: keep-all;
-        overflow-wrap: break-word;
+        word-break: normal;
+        overflow-wrap: anywhere;
     }
 
     .import-option .option-title {
@@ -191,8 +191,8 @@
         font-size: 1rem;
         white-space: normal;
         min-width: 0;
-        word-break: keep-all;
-        overflow-wrap: break-word;
+        word-break: normal;
+        overflow-wrap: anywhere;
         direction: rtl;
         text-align: right;
     }
@@ -201,8 +201,8 @@
         font-size: 0.9rem;
         color: #6c757d;
         line-height: 1.5;
-        word-break: keep-all;
-        overflow-wrap: break-word;
+        word-break: normal;
+        overflow-wrap: anywhere;
         white-space: normal;
         min-width: 0;
     }
