@@ -276,6 +276,22 @@
             display: block;
         }
 
+        .import-form-mobile .import-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .import-form-mobile .import-stack-item {
+            width: 100%;
+        }
+
+        .import-form-mobile .import-options-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .import-form-mobile .import-option-mobile {
             display: flex;
             align-items: flex-start;
@@ -978,32 +994,31 @@
                         </div>
                     </form>
                     {{-- Mobile import form (shown on small screens) --}}
-                    <form id="voters-import-form-mobile" action="{{ route('dashboard.import-voters') }}" class="row g-4 voters-import-form import-form-mobile" enctype="multipart/form-data" method="POST" novalidate>
+                    <form id="voters-import-form-mobile" action="{{ route('dashboard.import-voters') }}" class="voters-import-form import-form-mobile" enctype="multipart/form-data" method="POST" novalidate>
                         @csrf
-                        <div class="col-12">
-                            <label for="election-mobile" class="form-label">الانتخابات</label>
-                            <select name="election" id="election-mobile" class="form-select import-field" required aria-describedby="electionHelpMobile" aria-invalid="false">
-                                <option value="" selected disabled>اختر الانتخابات</option>
-                                @foreach ($elections as $election )
-                                <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
-                                @endforeach
-                            </select>
-                            <div id="electionHelpMobile" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
-                            <div class="import-error import-error-election d-none">يرجى اختيار الانتخابات.</div>
-                        </div>
+                        <div class="import-stack">
+                            <div class="import-stack-item">
+                                <label for="election-mobile" class="form-label">الانتخابات</label>
+                                <select name="election" id="election-mobile" class="form-select import-field" required aria-describedby="electionHelpMobile" aria-invalid="false">
+                                    <option value="" selected disabled>اختر الانتخابات</option>
+                                    @foreach ($elections as $election )
+                                    <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
+                                    @endforeach
+                                </select>
+                                <div id="electionHelpMobile" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
+                                <div class="import-error import-error-election d-none">يرجى اختيار الانتخابات.</div>
+                            </div>
 
-                        <div class="col-12">
-                            <label for="import-mobile" class="form-label">ملف الاستيراد</label>
-                            <input type="file" class="form-control import-field" id="import-mobile" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelpMobile" aria-invalid="false">
-                            <div id="fileHelpMobile" class="import-help">الصيغ المقبولة: .xlsx, .xls, .csv</div>
-                            <div class="import-error import-error-file d-none">يرجى اختيار ملف صالح.</div>
-                        </div>
+                            <div class="import-stack-item">
+                                <label for="import-mobile" class="form-label">ملف الاستيراد</label>
+                                <input type="file" class="form-control import-field" id="import-mobile" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelpMobile" aria-invalid="false">
+                                <div id="fileHelpMobile" class="import-help">الصيغ المقبولة: .xlsx, .xls, .csv</div>
+                                <div class="import-error import-error-file d-none">يرجى اختيار ملف صالح.</div>
+                            </div>
 
-                        <div class="col-12">
-                            <label class="form-label">طريقة الاستيراد</label>
-                            {{-- Mobile option cards (grid layout) --}}
-                            <div class="row g-3">
-                                <div class="col-12">
+                            <div class="import-stack-item">
+                                <label class="form-label">طريقة الاستيراد</label>
+                                <div class="import-options-stack">
                                     <label class="import-option-mobile" for="dublicate-mobile">
                                         <input type="radio" id="dublicate-mobile" name="check" value="dublicate" class="import-option-input" checked>
                                         <div class="import-option-content">
@@ -1011,9 +1026,7 @@
                                             <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
                                         </div>
                                     </label>
-                                </div>
 
-                                <div class="col-12">
                                     <label class="import-option-mobile option-danger" for="replace-mobile">
                                         <input type="radio" id="replace-mobile" name="check" value="replace" class="import-option-input">
                                         <div class="import-option-content">
@@ -1021,8 +1034,7 @@
                                             <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
                                         </div>
                                     </label>
-                                </div>
-                                <div class="col-12">
+
                                     <label class="import-option-mobile" for="status-mobile">
                                         <input type="radio" id="status-mobile" name="check" value="status" class="import-option-input">
                                         <div class="import-option-content">
@@ -1032,26 +1044,26 @@
                                     </label>
                                 </div>
 
+                                <div id="importModeHelpMobile" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
+                                <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
+                                <div class="import-error import-error-mode d-none">يرجى اختيار طريقة الاستيراد.</div>
                             </div>
 
-                            <div id="importModeHelpMobile" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
-                            <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
-                            <div class="import-error import-error-mode d-none">يرجى اختيار طريقة الاستيراد.</div>
-                        </div>
-
-                        <div class="col-12 d-flex flex-column gap-3">
-                            <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
-                            <button type="submit" class="btn btn-custom px-4 import-submit w-100">
-                                <span class="submit-text">بدء الاستيراد</span>
-                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
-                            </button>
-                        </div>
-                        <div class="col-12">
-                            <div class="import-progress d-none">
-                                <div class="import-progress-bar"></div>
+                            <div class="import-stack-item">
+                                <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
+                                <button type="submit" class="btn btn-custom px-4 import-submit w-100">
+                                    <span class="submit-text">بدء الاستيراد</span>
+                                    <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                                </button>
                             </div>
-                            <div class="import-help import-progress-text mt-2 d-none">جاري رفع الملف...</div>
-                            <div class="import-error import-error-submit d-none">حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
+
+                            <div class="import-stack-item">
+                                <div class="import-progress d-none">
+                                    <div class="import-progress-bar"></div>
+                                </div>
+                                <div class="import-help import-progress-text mt-2 d-none">جاري رفع الملف...</div>
+                                <div class="import-error import-error-submit d-none">حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
+                            </div>
                         </div>
                     </form>
                 </div>
