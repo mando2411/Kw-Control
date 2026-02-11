@@ -32,7 +32,8 @@
                                 
                                 <div class="col-12 mb-3">
                                     <div class="card border-danger text-center fw-bold">
-                                    <span style="color:red; font-weight: bold;padding: 1%;">يُرجى التاكد من اضافه عمود للمتعهد الفرعى فى النموذج الخاص باضافه ناخبين  فى حاله عدم اختيار متعهد فرعى</span>                                    </div>
+                                        <span style="color:red; font-weight: bold;padding: 1%;">يرجى اختيار المتعهد الفرعي من النموذج قبل الرفع.</span>
+                                    </div>
                                 </div>
                                 
                                 <div class="col-12 col-md-6 mb-3">
