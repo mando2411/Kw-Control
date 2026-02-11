@@ -220,7 +220,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
 
             if($add_voter_to_contract){
                 Log::info('add voter to contractor done');
-                // $this->success_count++;
+                $this->success_count++;
                 $status='success';   
             }else{
                 // ($loop)?$this->failed_count++:'';

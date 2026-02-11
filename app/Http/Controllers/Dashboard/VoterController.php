@@ -284,7 +284,11 @@ class VoterController extends Controller
                     'success_count' => $import->getSuccessCount(),
                     'failed_count'  => $import->getFailedCount(),
                     'repeat_count'  => $import->getRepeatedCount(),
-                    'msg'           => ($import->getMsg()!='') ? $import->getMsg() : 'تاكد من ادراج ناخبين متواجدين بالفعل ضمن الانتخابات الخاصه بالمرشح',
+                    'msg'           => ($import->getMsg() != '')
+                        ? $import->getMsg()
+                        : (($import->getSuccessCount() > 0 || $import->getRepeatedCount() > 0 || $import->getFailedCount() > 0)
+                            ? 'تمت اضافة الناخبين بنجاح'
+                            : 'تاكد من ادراج ناخبين متواجدين بالفعل ضمن الانتخابات الخاصه بالمرشح'),
                 ]
             ]);
         } catch (\Exception $e) {
