@@ -1194,6 +1194,7 @@
     document.querySelectorAll('.summary-modal-close').forEach((button) => {
         button.addEventListener('click', (event) => {
             event.preventDefault();
+            event.stopPropagation();
             if (summaryModal) {
                 summaryModal.hide();
             }
