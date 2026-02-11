@@ -32,7 +32,7 @@
                                 
                                 <div class="col-12 mb-3">
                                     <div class="card border-danger text-center fw-bold">
-                                        <span style="color:red; font-weight: bold;padding: 1%;">يرجى اختيار المتعهد الفرعي من النموذج قبل الرفع.</span>
+                                        <span style="color:red; font-weight: bold;padding: 1%;">يرجى اختيار المتعهد الرئيسي من النموذج قبل الرفع.</span>
                                     </div>
                                 </div>
                                 

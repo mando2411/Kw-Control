@@ -274,7 +274,10 @@ class VoterController extends Controller
     //=====================================================================
     public function importVotersFotContractor(ImportContractorVotersRequest $request){
         try {
-            $import = new ContractorVotersImport($request->sub_contractor);
+            $contractorId = ($request->sub_contractor && $request->sub_contractor != 0)
+                ? $request->sub_contractor
+                : $request->main_contractor;
+            $import = new ContractorVotersImport($contractorId);
             Excel::import($import, $request->file('import'));
             
             return response()->json([

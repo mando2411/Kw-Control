@@ -14,7 +14,8 @@ class ImportContractorVotersRequest extends FormRequest
     public function rules(): array{
         $rules = [
             'import'            => 'required|mimes:xlsx,xls,csv',
-            'sub_contractor'    => 'required|exists:contractors,id|not_in:0',
+            'main_contractor'   => 'required|exists:contractors,id',
+            'sub_contractor'    => 'nullable|exists:contractors,id',
         ];
         return $rules;
     }
@@ -22,7 +23,8 @@ class ImportContractorVotersRequest extends FormRequest
     public function attributes(): array{
         $attributes = [
             "import"            => "File",
-            "sub_contractor"    => "Contractor",
+            "main_contractor"   => "Main Contractor",
+            "sub_contractor"    => "Sub Contractor",
         ];
         return $attributes;
     }
