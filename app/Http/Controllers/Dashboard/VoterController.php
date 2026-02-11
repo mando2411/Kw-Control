@@ -113,9 +113,23 @@ class VoterController extends Controller
 
         ini_set('max_execution_time', 300); // 5 minutes
         if(request('check')=="status"){
-            Excel::import(new VoterCheck($request->election), $request->file('import'));
+            $import = new VoterCheck($request->election);
+            Excel::import($import, $request->file('import'));
+            session()->flash('import_summary', [
+                'mode' => 'status',
+                'success' => $import->getSuccessCount(),
+                'skipped' => $import->getSkippedCount(),
+                'failed' => $import->getFailedCount(),
+            ]);
         }else{
-            Excel::import(new VotersImport($request->election), $request->file('import'));
+            $import = new VotersImport($request->election);
+            Excel::import($import, $request->file('import'));
+            session()->flash('import_summary', [
+                'mode' => request('check'),
+                'success' => $import->getSuccessCount(),
+                'skipped' => $import->getSkippedCount(),
+                'failed' => $import->getFailedCount(),
+            ]);
         }
         // dd($request->all());
         return redirect()->back();

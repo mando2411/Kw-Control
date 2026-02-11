@@ -16,6 +16,9 @@ use Carbon\Carbon;
 class VotersImport implements ToCollection, WithHeadingRow
 {
     private $election;
+    private int $successCount = 0;
+    private int $skippedCount = 0;
+    private int $failedCount = 0;
 
     public function __construct($election)
     {
@@ -30,18 +33,43 @@ class VotersImport implements ToCollection, WithHeadingRow
         DB::transaction(function () use ($rows) {
             foreach ($rows as $i=>$row) {
                     if (empty($row['alasm'])) {
+                        $this->skippedCount++;
                         Log::warning('Missing data in row:', $row->toArray());
                         continue;
                     }
-    
-                    $voter = $this->processVoter($row->toArray());
-                    $this->processSelection($row->toArray());
-    
-                    if (!$voter->election()->where('election_id', $this->election->id)->exists()) {
-                        $voter->election()->attach($this->election->id);
+
+                    try {
+                        $voter = $this->processVoter($row->toArray());
+                        $this->processSelection($row->toArray());
+
+                        if (!$voter->election()->where('election_id', $this->election->id)->exists()) {
+                            $voter->election()->attach($this->election->id);
+                        }
+                        $this->successCount++;
+                    } catch (\Throwable $exception) {
+                        $this->failedCount++;
+                        Log::error('Voter import failed:', [
+                            'row' => $row->toArray(),
+                            'error' => $exception->getMessage(),
+                        ]);
                     }
             }
         });
+    }
+
+    public function getSuccessCount(): int
+    {
+        return $this->successCount;
+    }
+
+    public function getSkippedCount(): int
+    {
+        return $this->skippedCount;
+    }
+
+    public function getFailedCount(): int
+    {
+        return $this->failedCount;
     }
 
     private function processVoter(array $row)

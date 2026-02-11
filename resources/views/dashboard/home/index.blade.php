@@ -600,6 +600,17 @@
                 </div>
                 <div class="p-4">
                     <x-dashboard.partials.message-alert />
+                    @if (session('import_summary'))
+                        @php
+                            $summary = session('import_summary');
+                        @endphp
+                        <div class="alert alert-info" role="alert">
+                            <div class="fw-bold mb-1">ملخص الاستيراد</div>
+                            <div>تمت المعالجة بنجاح: {{ $summary['success'] ?? 0 }}</div>
+                            <div>تم تخطيها: {{ $summary['skipped'] ?? 0 }}</div>
+                            <div>فشلت: {{ $summary['failed'] ?? 0 }}</div>
+                        </div>
+                    @endif
 
                     <div class="import-warning mb-4" role="alert">
                         <strong>تنبيه:</strong> خيار <strong>استبدال البيانات</strong> يحذف البيانات القديمة قبل الاستيراد. استخدمه فقط عند الحاجة.
