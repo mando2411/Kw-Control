@@ -718,35 +718,42 @@ $("#submit-form").on("click", function (e) {
 
 // Deadline date
 
-// Get Start Date and Time
-let startDate = document.getElementById('startDate').value; // Example: "2025-06-30"
-let startTime = document.getElementById('startTime').value; // Example: "15:28:00"
+// Get Start/End Date and Time if elements exist on the page
+const startDateEl = document.getElementById('startDate');
+const startTimeEl = document.getElementById('startTime');
+const endDateEl = document.getElementById('endDate');
+const endTimeEl = document.getElementById('endTime');
 
-// Get End Date and Time
-let endDate = document.getElementById('endDate').value; // Example: "2024-06-30"
-let endTime = document.getElementById('endTime').value; // Example: "15:28:10"
+if (startDateEl && startTimeEl && endDateEl && endTimeEl) {
+  // Get Start Date and Time
+  let startDate = startDateEl.value; // Example: "2025-06-30"
+  let startTime = startTimeEl.value; // Example: "15:28:00"
 
-// Create valid Date objects
-let targetDate = new Date(`${startDate}T${startTime}`);
-if (isNaN(targetDate.getTime())) {
+  // Get End Date and Time
+  let endDate = endDateEl.value; // Example: "2024-06-30"
+  let endTime = endTimeEl.value; // Example: "15:28:10"
+
+  // Create valid Date objects
+  let targetDate = new Date(`${startDate}T${startTime}`);
+  if (isNaN(targetDate.getTime())) {
     console.error("Invalid Start Date or Time");
-}
-targetDate = targetDate.getTime();
+  }
+  targetDate = targetDate.getTime();
 
-let endTargetDate = new Date(`${endDate}T${endTime}`);
-if (isNaN(endTargetDate.getTime())) {
+  let endTargetDate = new Date(`${endDate}T${endTime}`);
+  if (isNaN(endTargetDate.getTime())) {
     console.error("Invalid End Date or Time");
-}
-endTargetDate = endTargetDate.getTime();
+  }
+  endTargetDate = endTargetDate.getTime();
 
-// Countdown Timer
-(function updateTime() {
+  // Countdown Timer
+  (function updateTime() {
     const currentDate = new Date().getTime();
     const timeDifference = targetDate - currentDate;
 
     const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
     const hours = Math.floor(
-        (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
     );
     const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
@@ -757,7 +764,7 @@ endTargetDate = endTargetDate.getTime();
     $("#seconds").text(formatTime(seconds));
 
     if (targetDate <= currentDate) {
-        $("#election_start").addClass('d-none')
+      $("#election_start").addClass('d-none')
         $("#election_end").removeClass('d-none')
         $(".time-election").text("باقى على انتهاء الانتخابات");
         targetDate = endTargetDate; // Switch to end date
@@ -773,6 +780,8 @@ endTargetDate = endTargetDate.getTime();
     }
     setTimeout(updateTime, 1000);
 })();
+
+}
 
 // Convert numbers to Arabic numerals
 function toArabicNumerals(number) {
