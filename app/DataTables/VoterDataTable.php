@@ -56,7 +56,7 @@ class VoterDataTable extends DataTable
             Column::make('albtn'),
             Column::make('type'),
             Column::make('age'),
-            Column::make('phone'),
+            Column::make('phone1')->title('phone'),
             Column::make('region'),
             Column::make('alfraa'),
             Column::make('btn_almoyhy'),
