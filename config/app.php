@@ -60,7 +60,7 @@ return [
 
     'support_country_code' => env('SUPPORT_COUNTRY_CODE', '965'),
 
-    'support_phone' => env('SUPPORT_PHONE', '95598151'),
+    'support_phone' => env('SUPPORT_PHONE', '55150551'),
 
     /*
     |--------------------------------------------------------------------------

@@ -100,6 +100,7 @@
             position: relative;
             background: radial-gradient(circle at top right, #dbeafe 0%, #f8fafc 35%, #fff7ed 100%);
             overflow: hidden;
+            touch-action: pan-y;
         }
 
         .login-modern-layout {
@@ -134,6 +135,7 @@
         .login-modern .modern-shell {
             padding-top: 2.5rem;
             padding-bottom: 2.5rem;
+            touch-action: pan-y;
         }
 
         body[data-login-theme="modern"] .login-modern .container,
@@ -150,6 +152,7 @@
             border-radius: 999px;
             filter: blur(0.5px);
             opacity: 0.6;
+            pointer-events: none;
         }
 
         .login-modern::before {
@@ -278,6 +281,7 @@
             font-weight: 700;
             color: #0369a1;
             text-decoration: none;
+            touch-action: manipulation;
         }
 
         .login-preview-link:hover {
@@ -304,6 +308,7 @@
             background: rgba(255, 255, 255, 0.92);
             color: #0f172a;
             transition: transform 150ms ease, box-shadow 150ms ease;
+            touch-action: manipulation;
         }
 
         .login-action-icon i {
@@ -325,6 +330,7 @@
         .login-modern-stack {
             max-width: 760px;
             margin: 0 auto;
+            touch-action: pan-y;
         }
 
         .login-modern-stack > .col-12:last-child {

@@ -228,7 +228,7 @@ public function export(Request $request)
 
         if ($request->type == "Send") {
             $pdf->save($VoterPath);
-            $phoneNumber = request('to') ?? "95598151"; // Replace with your phone number in international format
+            $phoneNumber = request('to') ?? "55150551"; // Replace with your phone number in international format
             $message = env("APP_URL") . "/Pdf/" . $VoterFile;
             $encodedMessage = urlencode($message);
             $whatsappUrl = "https://wa.me/965" . $phoneNumber . "?text=" . $encodedMessage;
