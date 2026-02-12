@@ -657,7 +657,7 @@
                 return url;
             }
 
-            function runEnterpriseSequence(payload) {
+            async function runEnterpriseSequence(payload) {
                 var overlay = document.getElementById('loginEnterpriseOverlay');
                 var avatar = document.getElementById('scanAvatar');
                 var sweep = document.getElementById('scanSweep');
@@ -676,40 +676,30 @@
 
                 document.body.setAttribute('data-login-ajax-state', 'animating');
 
-                // seed UI
+                // Seed UI (stable layout, no shifts)
                 messages.innerHTML = '';
-                // Keep layout stable inside overlay (no shifting when welcome appears)
+                messages.style.minHeight = '5.2rem';
+                messages.style.marginTop = '1rem';
+
                 welcome.style.display = 'block';
                 welcome.style.visibility = 'hidden';
                 welcome.style.opacity = '0';
 
-                // Reserve space for messages to avoid layout jumps
-                messages.style.minHeight = '5.2rem';
-                messages.style.marginTop = '1rem';
-
-                if (glow) glow.style.opacity = '0';
-                if (sweep) sweep.style.opacity = '0.9';
+                if (glow) {
+                    glow.style.opacity = '0';
+                    glow.style.transform = 'scale(1)';
+                }
+                if (sweep) {
+                    sweep.style.opacity = '0';
+                    sweep.style.transform = 'rotate(0deg)';
+                }
                 avatar.src = "{{ asset('assets/admin/images/users/user-placeholder.png') }}";
 
                 var pool = getScanImagesPool();
                 var rafId = 0;
-                var cycleStart = performance.now();
-                // Scan/image cycling should feel cinematic and clearly visible
-                // Target: 1.5–2.5 seconds
-                var scanDuration = 1850;
-                var startIntervalMs = 40;
-                var endIntervalMs = 250;
-                var lastSwap = 0;
-
-                // 2.5s delay after animation completes
-                var autoRedirectDelayMs = 2500;
                 var autoRedirectTimer = 0;
 
-                // Subtle glow pulse around the scan frame during scanning
-                var glowPulseTween = null;
-
                 function easingOut(t) {
-                    // Smooth deceleration curve
                     return 1 - Math.pow(1 - t, 3);
                 }
 
@@ -717,125 +707,194 @@
                     return pool[Math.floor(Math.random() * pool.length)];
                 }
 
-                function tick(now) {
-                    var t = Math.min(1, (now - cycleStart) / scanDuration);
-                    var eased = easingOut(t);
-
-                    // interval grows from 40ms to 250ms
-                    var interval = startIntervalMs + eased * (endIntervalMs - startIntervalMs);
-
-                    if (!lastSwap) lastSwap = now;
-                    if (now - lastSwap >= interval) {
-                        avatar.src = pickRandom();
-                        // motion blur simulation (lighter over time)
-                        avatar.style.filter = t < 0.7 ? 'blur(2px) saturate(1.12)' : 'blur(0px) saturate(1.0)';
-                        lastSwap = now;
-                    }
-
-                    if (t < 1) {
-                        rafId = requestAnimationFrame(tick);
-                    } else {
-                        avatar.style.filter = 'blur(0px)';
-                        avatar.src = userImage;
+                function cancelRaf() {
+                    if (rafId) {
+                        cancelAnimationFrame(rafId);
+                        rafId = 0;
                     }
                 }
 
-                // Prepare messages as fixed nodes (no incremental layout changes)
-                var msgTexts = [
-                    'جاري تحديث البيانات...',
-                    'جاري تأمين البيانات...',
-                    'جاري تأمين جلسة دخولك...'
-                ];
-                var msgEls = [];
-                for (var i = 0; i < msgTexts.length; i++) {
-                    var li = document.createElement('li');
-                    li.textContent = msgTexts[i];
-                    li.style.opacity = '0';
-                    li.style.transform = 'translateY(10px)';
-                    messages.appendChild(li);
-                    msgEls.push(li);
-                }
-
-                // Build premium cinematic timeline
-                var tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
-
-                // Zoom-out + blur the form behind (0.6s, cinematic)
-                tl.to('.login-modern .modern-shell', { duration: 0.6, scale: 0.94, filter: 'blur(8px)', opacity: 0.92, ease: 'power3.inOut' }, 0);
-
-                // Overlay fade-in (0.5s) + glass slide-in
-                tl.set(overlay, { opacity: 0 }, 0);
-                tl.to(overlay, {
-                    duration: 0.5,
-                    opacity: 1,
-                    onStart: function () { showOverlay(); }
-                }, 0.05);
-                tl.fromTo('.login-enterprise-overlay .glass', { y: 14, opacity: 0 }, { duration: 0.55, y: 0, opacity: 1, ease: 'power3.out' }, 0.12);
-
-                // Sweep rotation (kept light, no heavy loops)
-                tl.to(sweep, { duration: 0.2, opacity: 1, ease: 'power2.out' }, 0.2);
-                tl.to(sweep, { duration: 1.65, rotate: 360, ease: 'none' }, 0.25);
-
-                tl.add(function () {
-                    if (glow) {
-                        // start subtle glow pulse early
-                        glowPulseTween = gsap.to(glow, {
-                            opacity: 0.9,
-                            scale: 1.05,
-                            duration: 0.9,
-                            repeat: -1,
-                            yoyo: true,
-                            ease: 'sine.inOut'
-                        });
-                    }
-                    rafId = requestAnimationFrame(tick);
-                }, 0.35);
-
-                // Messages sequential (0.6s fade-in each, small delays)
-                tl.to(msgEls[0], { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, 0.75);
-                tl.to(msgEls[1], { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, 1.15);
-                tl.to(msgEls[2], { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, 1.55);
-
-                // Lock on authenticated user image toward the end of the scan
-                tl.add(function () {
-                    cancelAnimationFrame(rafId);
-                    avatar.src = userImage;
-                    setScanHello(userName);
-                    if (glowPulseTween) {
-                        glowPulseTween.kill();
-                        glowPulseTween = null;
-                    }
-                }, 2.05);
-
-                // Glow pulse after lock-in (premium finish)
-                tl.to(glow, { duration: 0.25, opacity: 1, ease: 'power2.out' }, 2.05);
-                tl.to(glow, { duration: 0.9, scale: 1.06, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 2.1);
-                tl.to(sweep, { duration: 0.35, opacity: 0, ease: 'power2.out' }, 2.1);
-
-                // Welcome fade-in (0.6s)
-                tl.add(function () {
-                    welcome.style.visibility = 'visible';
-                }, 2.2);
-                tl.to(welcome, { duration: 0.6, opacity: 1, ease: 'power2.out' }, 2.2);
-
-                function go() {
-                    window.location.href = redirectUrl;
-                }
-
-                var goOnce = function () {
-                    goBtn.removeEventListener('click', goOnce);
+                function clearAutoRedirect() {
                     if (autoRedirectTimer) {
                         clearTimeout(autoRedirectTimer);
                         autoRedirectTimer = 0;
                     }
-                    go();
-                };
+                }
 
+                function sleep(ms) {
+                    return new Promise(function (resolve) {
+                        autoRedirectTimer = setTimeout(resolve, ms);
+                    });
+                }
+
+                // Phase 1 — Image scanning (ONLY this runs first)
+                async function phase1Scan() {
+                    return new Promise(function (resolve) {
+                        var scanTotalMs = 2700; // 2.5–3s
+                        var decelMs = 2000;     // deceleration window
+                        var startIntervalMs = 35; // 30–40ms
+                        var endIntervalMs = 250;
+
+                        var scanStart = performance.now();
+                        var lastSwap = 0;
+
+                        // Overlay + entry animation
+                        var entry = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
+
+                        entry.to('.login-modern .modern-shell', {
+                            duration: 0.6,
+                            scale: 0.94,
+                            filter: 'blur(8px)',
+                            opacity: 0.92,
+                            ease: 'power3.inOut'
+                        }, 0);
+
+                        entry.set(overlay, { opacity: 0 }, 0);
+                        entry.to(overlay, {
+                            duration: 0.5,
+                            opacity: 1,
+                            onStart: function () { showOverlay(); }
+                        }, 0.05);
+                        entry.fromTo('.login-enterprise-overlay .glass', { y: 14, opacity: 0 }, { duration: 0.55, y: 0, opacity: 1, ease: 'power3.out' }, 0.12);
+                        entry.to(sweep, { duration: 0.25, opacity: 1, ease: 'power2.out' }, 0.22);
+                        entry.to(sweep, { duration: 2.4, rotate: 540, ease: 'none' }, 0.25);
+
+                        // subtle pulse while scanning
+                        var scanPulse = null;
+                        if (glow) {
+                            // Keep it subtle until green state
+                            glow.style.borderColor = 'rgba(14, 165, 233, 0.85)';
+                            glow.style.boxShadow = '0 0 0 1px rgba(14, 165, 233, 0.35) inset, 0 0 22px rgba(14, 165, 233, 0.35)';
+                            scanPulse = gsap.to(glow, { opacity: 0.65, scale: 1.03, duration: 0.9, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+                        }
+
+                        function tick(now) {
+                            var elapsed = now - scanStart;
+                            var t = Math.min(1, elapsed / decelMs);
+                            var eased = easingOut(t);
+                            var interval = startIntervalMs + eased * (endIntervalMs - startIntervalMs);
+                            // after decel window, keep slow switching until scan ends
+                            if (elapsed > decelMs) {
+                                interval = endIntervalMs;
+                            }
+
+                            if (!lastSwap) lastSwap = now;
+                            if (now - lastSwap >= interval) {
+                                avatar.src = pickRandom();
+                                avatar.style.filter = elapsed < decelMs ? 'blur(2px) saturate(1.1)' : 'blur(0px) saturate(1.0)';
+                                lastSwap = now;
+                            }
+
+                            if (elapsed < scanTotalMs) {
+                                rafId = requestAnimationFrame(tick);
+                                return;
+                            }
+
+                            // stop scanning on authenticated user
+                            cancelRaf();
+                            avatar.style.filter = 'blur(0px)';
+                            avatar.src = userImage;
+                            if (scanPulse) {
+                                scanPulse.kill();
+                                scanPulse = null;
+                            }
+
+                            // Green success glow + pulse (1.05 → 1)
+                            if (glow) {
+                                // Use Bootstrap-success-like green to avoid arbitrary colors
+                                glow.style.borderColor = 'rgba(25, 135, 84, 0.95)';
+                                glow.style.boxShadow = '0 0 0 1px rgba(25, 135, 84, 0.45) inset, 0 0 26px rgba(25, 135, 84, 0.45), 0 0 70px rgba(25, 135, 84, 0.22)';
+                            }
+                            var successTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+                            successTl.to(glow, { duration: 0.25, opacity: 1 }, 0);
+                            successTl.fromTo('.scan-frame', { scale: 1.05 }, { duration: 0.35, scale: 1, ease: 'power2.out' }, 0);
+                            successTl.to(sweep, { duration: 0.25, opacity: 0, ease: 'power2.out' }, 0);
+                            successTl.add(resolve, 0.4);
+                        }
+
+                        entry.add(function () {
+                            rafId = requestAnimationFrame(tick);
+                        }, 0.28);
+                    });
+                }
+
+                // Phase 2 — Security text sequence (after green)
+                async function phase2SecurityText() {
+                    return new Promise(function (resolve) {
+                        messages.innerHTML = '';
+                        var lines = [
+                            'جاري تحديث البيانات...',
+                            'جاري تأمين البيانات...',
+                            'جاري تأمين جلسة دخولك...'
+                        ];
+                        var els = [];
+                        for (var i = 0; i < lines.length; i++) {
+                            var li = document.createElement('li');
+                            li.textContent = lines[i];
+                            li.style.opacity = '0';
+                            li.style.transform = 'translateY(10px)';
+                            messages.appendChild(li);
+                            els.push(li);
+                        }
+
+                        var tl = gsap.timeline({ defaults: { ease: 'power2.out' }, onComplete: resolve });
+                        tl.to(els, {
+                            opacity: 1,
+                            y: 0,
+                            duration: 0.5,
+                            stagger: 0.3
+                        }, 0);
+                    });
+                }
+
+                // Phase 3 — Welcome state (then wait 2 seconds before redirect)
+                async function phase3Welcome() {
+                    return new Promise(function (resolve) {
+                        setScanHello(userName);
+                        welcome.style.visibility = 'visible';
+
+                        // subtle glow effect on the welcome block
+                        welcome.style.filter = 'drop-shadow(0 0 10px rgba(14, 165, 233, 0.22))';
+
+                        var tl = gsap.timeline({ defaults: { ease: 'power2.out' }, onComplete: resolve });
+                        tl.to(welcome, { duration: 0.8, opacity: 1 }, 0);
+                    });
+                }
+
+                // Phase 4 — Fade out overlay then redirect
+                async function phase4Redirect() {
+                    return new Promise(function (resolve) {
+                        var tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
+                        tl.to('.login-enterprise-overlay .glass', { duration: 0.25, y: 6, opacity: 0 }, 0);
+                        tl.to(overlay, { duration: 0.25, opacity: 0 }, 0.05);
+                        tl.add(function () {
+                            resolve();
+                        }, 0.3);
+                    });
+                }
+
+                // Click redirect stays instant and cancels timers/raf
+                var goOnce = function () {
+                    goBtn.removeEventListener('click', goOnce);
+                    clearAutoRedirect();
+                    cancelRaf();
+                    window.location.href = redirectUrl;
+                };
                 goBtn.addEventListener('click', goOnce);
 
-                // Redirect after animation completes + 2.5s delay (no page reload)
-                tl.add(function () {
-                    autoRedirectTimer = setTimeout(go, autoRedirectDelayMs);
-                }, 2.85);
+                // Run phases sequentially (clear separation)
+                try {
+                    await phase1Scan();
+                    await phase2SecurityText();
+                    await phase3Welcome();
+                    // Wait 2 seconds before redirect (clear separation between phases)
+                    await sleep(2000);
+                    await phase4Redirect();
+                    window.location.href = redirectUrl;
+                } catch (e) {
+                    // Safety fallback: redirect without reloading
+                    window.location.href = redirectUrl;
+                }
             }
 
             function ajaxLoginSubmit(event) {
