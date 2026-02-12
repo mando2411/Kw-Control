@@ -347,15 +347,19 @@
                     event.preventDefault();
                     event.stopPropagation();
 
+                    // Primary: mimic admin.js behavior directly (most reliable)
+                    var sidebar = document.querySelector('.page-sidebar');
+                    var header = document.querySelector('.page-main-header');
+                    if (sidebar) sidebar.classList.toggle('open');
+                    if (header) header.classList.toggle('open');
+
+                    // Fallback: try triggering the legacy handler as well (if bound)
                     var classicIcon = document.getElementById('sidebar-toggle');
                     if (!classicIcon) return;
-
-                    // admin.js binds the handler directly to $('#sidebar-toggle')
                     if (window.jQuery) {
-                        window.jQuery(classicIcon).trigger('click');
+                        window.jQuery(classicIcon).triggerHandler('click');
                         return;
                     }
-
                     classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                 });
             }
