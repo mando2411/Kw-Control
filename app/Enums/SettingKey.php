@@ -20,6 +20,9 @@ enum SettingKey: string
     case RESULT_CONTROL             = 'result_control';
     case RESULT_CONTROL_CANDIDATE   = 'result_control_candidate';
 
+    // Global UI policy: user_choice | modern | classic
+    case UI_MODE_POLICY             = 'ui_mode_policy';
+
 
 
 

@@ -22,12 +22,21 @@ class SettingController extends Controller
     public function update(SettingsRequest $request)
     {
         foreach (SettingKey::all() as $key) {
-            Setting::where('option_key', $key)->updateOrCreate([
-                'option_key' => $key,
-            ], [
-                'option_key' => $key,
-                'option_value' => $request->get($key)
-            ]);
+            $presentKey = $key . '__present';
+
+            // If the key is not included in this form submission, do not overwrite it.
+            // Some pages submit only a subset of settings.
+            if (!$request->has($key) && !$request->has($presentKey)) {
+                continue;
+            }
+
+            // If a key is marked as present but missing, treat it as explicitly cleared.
+            $value = $request->has($key) ? $request->get($key) : [];
+
+            Setting::where('option_key', $key)->updateOrCreate(
+                ['option_key' => $key],
+                ['option_key' => $key, 'option_value' => $value]
+            );
         }
         session()->flash('message', 'Settings Updated Successfully!');
         session()->flash('type', 'success');

@@ -441,7 +441,13 @@
     </style>
 </head>
 
-<body data-login-theme="legacy">
+@php
+    $uiPolicy = setting(\App\Enums\SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
+    $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
+    $loginForcedTheme = $uiPolicy === 'modern' ? 'modern' : ($uiPolicy === 'classic' ? 'legacy' : 'legacy');
+@endphp
+
+<body data-login-theme="{{ $loginForcedTheme }}">
 
     @if (session('success'))
         <div class="alert alert-success" style="color: #25a421;">
@@ -452,12 +458,14 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <div class="login-theme-toggle">
-        <div class="form-check form-switch m-0">
-            <input class="form-check-input" type="checkbox" id="loginThemeToggle" aria-pressed="false">
-            <label class="form-check-label" for="loginThemeToggle">الشكل الحديث</label>
+    @if ($uiPolicy === 'user_choice')
+        <div class="login-theme-toggle">
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="loginThemeToggle" aria-pressed="false">
+                <label class="form-check-label" for="loginThemeToggle">الشكل الحديث</label>
+            </div>
         </div>
-    </div>
+    @endif
 
     <section class="pt-5 login vh-100 login-legacy">
         <!-- Use container-fluid instead of container -->
@@ -602,6 +610,7 @@
             var uiModePendingKey = "ui_mode_pending";
             var toggleButton = document.getElementById("loginThemeToggle");
             var backToLegacy = document.getElementById("backToLegacy");
+            var UI_POLICY = {!! json_encode($uiPolicy) !!};
 
             function applyTheme(theme) {
                 document.body.setAttribute("data-login-theme", theme);
@@ -612,6 +621,13 @@
             }
 
             function getInitialTheme() {
+                if (UI_POLICY === 'modern') {
+                    return 'modern';
+                }
+                if (UI_POLICY === 'classic') {
+                    return 'legacy';
+                }
+
                 var theme = sessionStorage.getItem(storageKey);
                 if (theme === "modern" || theme === "legacy") {
                     return theme;
@@ -631,6 +647,13 @@
             }
 
             function setTheme(theme) {
+                if (UI_POLICY === 'modern') {
+                    theme = 'modern';
+                }
+                if (UI_POLICY === 'classic') {
+                    theme = 'legacy';
+                }
+
                 sessionStorage.setItem(storageKey, theme);
                 applyTheme(theme);
 
@@ -638,7 +661,11 @@
                 // Mark as pending so the first authenticated page can persist it to DB.
                 try {
                     localStorage.setItem(uiModeKey, theme === 'modern' ? 'modern' : 'classic');
-                    localStorage.setItem(uiModePendingKey, '1');
+                    if (UI_POLICY !== 'modern' && UI_POLICY !== 'classic') {
+                        localStorage.setItem(uiModePendingKey, '1');
+                    } else {
+                        localStorage.removeItem(uiModePendingKey);
+                    }
                 } catch (e) {
                     // ignore
                 }
@@ -646,13 +673,13 @@
 
             applyTheme(getInitialTheme());
 
-            if (toggleButton) {
+            if (toggleButton && UI_POLICY === 'user_choice') {
                 toggleButton.addEventListener("change", function (event) {
                     setTheme(event.target.checked ? "modern" : "legacy");
                 });
             }
 
-            if (backToLegacy) {
+            if (backToLegacy && UI_POLICY === 'user_choice') {
                 backToLegacy.addEventListener("click", function () {
                     setTheme("legacy");
                 });

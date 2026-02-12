@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 @php
+    $uiPolicy = setting(\App\Enums\SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
+    $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
+
     $uiModeServer = auth()->check() ? (auth()->user()->ui_mode ?? 'classic') : null;
     $uiModeServer = in_array($uiModeServer, ['classic', 'modern'], true) ? $uiModeServer : 'classic';
+    if ($uiPolicy === 'modern' || $uiPolicy === 'classic') {
+        $uiModeServer = $uiPolicy;
+    }
     $isHomepage = request()->routeIs('dashboard');
 @endphp
 
@@ -20,12 +26,25 @@
         // UI mode bootstrap (runs before paint): prevents flicker and syncs localStorage
         (function () {
             var SERVER_MODE = {!! json_encode($uiModeServer) !!};
+            var UI_POLICY = {!! json_encode($uiPolicy) !!};
             var IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
             var IS_HOMEPAGE = {{ $isHomepage ? 'true' : 'false' }};
             var STORAGE_KEY = 'ui_mode';
             var PENDING_KEY = 'ui_mode_pending';
             var mode = SERVER_MODE || 'classic';
             var pending = null;
+
+            // Global UI policy can force the mode regardless of stored user preference
+            if (UI_POLICY === 'modern' || UI_POLICY === 'classic') {
+                mode = UI_POLICY;
+                pending = null;
+                try {
+                    localStorage.setItem(STORAGE_KEY, mode);
+                    localStorage.removeItem(PENDING_KEY);
+                } catch (e) {
+                    // ignore
+                }
+            }
 
             try {
                 pending = localStorage.getItem(PENDING_KEY);
@@ -45,6 +64,7 @@
 
             window.__UI_MODE_SERVER__ = SERVER_MODE;
             window.__UI_MODE_EFFECTIVE__ = mode;
+            window.__UI_MODE_POLICY__ = UI_POLICY;
             window.__UI_MODE_IS_AUTH__ = IS_AUTH;
             window.__UI_MODE_IS_HOMEPAGE__ = IS_HOMEPAGE;
 
@@ -701,6 +721,7 @@
 
             var mode = window.__UI_MODE_EFFECTIVE__ || 'classic';
             var server = window.__UI_MODE_SERVER__ || 'classic';
+            var policy = window.__UI_MODE_POLICY__ || 'user_choice';
 
             document.body.classList.remove('ui-modern', 'ui-classic');
             document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
@@ -714,6 +735,17 @@
             }
 
             if (!pending && server === mode) {
+                return;
+            }
+
+            // If the global policy forces the UI, don't overwrite per-user preference in DB.
+            if (policy === 'modern' || policy === 'classic') {
+                try {
+                    localStorage.setItem('ui_mode', policy);
+                    localStorage.removeItem('ui_mode_pending');
+                } catch (e) {
+                    // ignore
+                }
                 return;
             }
 

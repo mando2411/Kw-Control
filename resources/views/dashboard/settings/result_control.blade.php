@@ -144,6 +144,8 @@
                                                 <!-- legacy note placeholder -->
                                             </div>
                                         </div>
+
+                                    <input type="hidden" name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}__present" value="1">
                                     <x-dashboard.form.input-checkbox error-key="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}" name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}[]" id="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}"
                                         label-title="عرض النتائج العامه"
                                         :value="old(\App\Enums\SettingKey::RESULT_CONTROL->value.'.0', $settings->firstWhere('option_key', \App\Enums\SettingKey::RESULT_CONTROL->value)?->option_value[0] ?? '')"
@@ -220,6 +222,8 @@
                             <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
                                 @csrf
                                 @method('PUT')
+
+                                <input type="hidden" name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}__present" value="1">
 
                                 <x-dashboard.form.input-checkbox
                                     error-key="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}"

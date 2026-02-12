@@ -19,12 +19,18 @@
             </div>
         </div>
 
-        <div class="sidebar-ui-mode" dir="rtl">
-            <div class="form-check form-switch m-0">
-                <input class="form-check-input" type="checkbox" id="sidebarUiModeToggle" aria-pressed="false">
-                <label class="form-check-label" for="sidebarUiModeToggle">الشكل الحديث</label>
+        @php
+            $uiPolicy = setting(\App\Enums\SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
+            $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
+        @endphp
+        @if ($uiPolicy === 'user_choice')
+            <div class="sidebar-ui-mode" dir="rtl">
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" id="sidebarUiModeToggle" aria-pressed="false">
+                    <label class="form-check-label" for="sidebarUiModeToggle">الشكل الحديث</label>
+                </div>
             </div>
-        </div>
+        @endif
         <ul class="sidebar-menu">
             <x-dashboard.sidebar.single-link title="الصفحه الرئيسيه" link="{{ route('dashboard') }}" icon="home" />
 
