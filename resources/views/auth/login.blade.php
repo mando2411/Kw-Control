@@ -625,6 +625,11 @@
                 if (!overlay) return;
                 overlay.classList.add('is-visible');
                 overlay.setAttribute('aria-hidden', 'false');
+
+                // Subtle background blur without touching CSS structure
+                overlay.style.background = 'rgba(2, 6, 23, 0.18)';
+                overlay.style.backdropFilter = 'blur(8px)';
+                overlay.style.webkitBackdropFilter = 'blur(8px)';
             }
 
             function setScanHello(userName) {
@@ -673,17 +678,38 @@
 
                 // seed UI
                 messages.innerHTML = '';
-                welcome.style.display = 'none';
+                // Keep layout stable inside overlay (no shifting when welcome appears)
+                welcome.style.display = 'block';
+                welcome.style.visibility = 'hidden';
+                welcome.style.opacity = '0';
+
+                // Reserve space for messages to avoid layout jumps
+                messages.style.minHeight = '5.2rem';
+                messages.style.marginTop = '1rem';
+
                 if (glow) glow.style.opacity = '0';
                 if (sweep) sweep.style.opacity = '0.9';
                 avatar.src = "{{ asset('assets/admin/images/users/user-placeholder.png') }}";
 
                 var pool = getScanImagesPool();
                 var rafId = 0;
-                var start = performance.now();
-                var duration = 1350;
+                var cycleStart = performance.now();
+                // Scan/image cycling should feel cinematic and clearly visible
+                // Target: 1.5–2.5 seconds
+                var scanDuration = 1850;
+                var startIntervalMs = 40;
+                var endIntervalMs = 250;
+                var lastSwap = 0;
+
+                // 2.5s delay after animation completes
+                var autoRedirectDelayMs = 2500;
+                var autoRedirectTimer = 0;
+
+                // Subtle glow pulse around the scan frame during scanning
+                var glowPulseTween = null;
 
                 function easingOut(t) {
+                    // Smooth deceleration curve
                     return 1 - Math.pow(1 - t, 3);
                 }
 
@@ -692,17 +718,18 @@
                 }
 
                 function tick(now) {
-                    var t = Math.min(1, (now - start) / duration);
+                    var t = Math.min(1, (now - cycleStart) / scanDuration);
                     var eased = easingOut(t);
-                    // interval grows from ~30ms to ~170ms
-                    var interval = 30 + eased * 140;
 
-                    if (!tick.last) tick.last = now;
-                    if (now - tick.last >= interval) {
+                    // interval grows from 40ms to 250ms
+                    var interval = startIntervalMs + eased * (endIntervalMs - startIntervalMs);
+
+                    if (!lastSwap) lastSwap = now;
+                    if (now - lastSwap >= interval) {
                         avatar.src = pickRandom();
-                        // motion blur simulation
-                        avatar.style.filter = t < 0.65 ? 'blur(2.2px) saturate(1.15)' : 'blur(0px) saturate(1.0)';
-                        tick.last = now;
+                        // motion blur simulation (lighter over time)
+                        avatar.style.filter = t < 0.7 ? 'blur(2px) saturate(1.12)' : 'blur(0px) saturate(1.0)';
+                        lastSwap = now;
                     }
 
                     if (t < 1) {
@@ -713,46 +740,82 @@
                     }
                 }
 
-                var tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+                // Prepare messages as fixed nodes (no incremental layout changes)
+                var msgTexts = [
+                    'جاري تحديث البيانات...',
+                    'جاري تأمين البيانات...',
+                    'جاري تأمين جلسة دخولك...'
+                ];
+                var msgEls = [];
+                for (var i = 0; i < msgTexts.length; i++) {
+                    var li = document.createElement('li');
+                    li.textContent = msgTexts[i];
+                    li.style.opacity = '0';
+                    li.style.transform = 'translateY(10px)';
+                    messages.appendChild(li);
+                    msgEls.push(li);
+                }
 
-                // Zoom-out + blur the page behind
-                tl.to('.login-modern .modern-shell', { duration: 0.8, scale: 0.92, filter: 'blur(6px)', opacity: 0.92 }, 0);
-                tl.to(overlay, { duration: 0.25, onStart: function () { showOverlay(); } }, 0.12);
-                tl.fromTo('.login-enterprise-overlay .glass', { y: 10, opacity: 0 }, { duration: 0.35, y: 0, opacity: 1 }, 0.2);
-                tl.to(sweep, { duration: 0.2, opacity: 1 }, 0.25);
-                tl.to(sweep, { duration: 1.4, rotate: 360, ease: 'none', repeat: 1 }, 0.25);
+                // Build premium cinematic timeline
+                var tl = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
+
+                // Zoom-out + blur the form behind (0.6s, cinematic)
+                tl.to('.login-modern .modern-shell', { duration: 0.6, scale: 0.94, filter: 'blur(8px)', opacity: 0.92, ease: 'power3.inOut' }, 0);
+
+                // Overlay fade-in (0.5s) + glass slide-in
+                tl.set(overlay, { opacity: 0 }, 0);
+                tl.to(overlay, {
+                    duration: 0.5,
+                    opacity: 1,
+                    onStart: function () { showOverlay(); }
+                }, 0.05);
+                tl.fromTo('.login-enterprise-overlay .glass', { y: 14, opacity: 0 }, { duration: 0.55, y: 0, opacity: 1, ease: 'power3.out' }, 0.12);
+
+                // Sweep rotation (kept light, no heavy loops)
+                tl.to(sweep, { duration: 0.2, opacity: 1, ease: 'power2.out' }, 0.2);
+                tl.to(sweep, { duration: 1.65, rotate: 360, ease: 'none' }, 0.25);
 
                 tl.add(function () {
+                    if (glow) {
+                        // start subtle glow pulse early
+                        glowPulseTween = gsap.to(glow, {
+                            opacity: 0.9,
+                            scale: 1.05,
+                            duration: 0.9,
+                            repeat: -1,
+                            yoyo: true,
+                            ease: 'sine.inOut'
+                        });
+                    }
                     rafId = requestAnimationFrame(tick);
                 }, 0.35);
 
-                function pushMessage(text) {
-                    var li = document.createElement('li');
-                    li.textContent = text;
-                    messages.appendChild(li);
-                    gsap.fromTo(li, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22 });
-                }
+                // Messages sequential (0.6s fade-in each, small delays)
+                tl.to(msgEls[0], { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, 0.75);
+                tl.to(msgEls[1], { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, 1.15);
+                tl.to(msgEls[2], { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, 1.55);
 
-                tl.add(function () { pushMessage('جاري تحليل البيانات...'); }, 0.55);
-                tl.add(function () { pushMessage('جاري التحقق من الهوية...'); }, 0.78);
-                tl.add(function () { pushMessage('جاري تأمين الاتصال...'); }, 1.02);
-                tl.add(function () { pushMessage('جاري إنشاء جلسة آمنة...'); }, 1.26);
-                tl.add(function () { pushMessage('تم التحقق بنجاح ✓'); }, 1.5);
-
+                // Lock on authenticated user image toward the end of the scan
                 tl.add(function () {
                     cancelAnimationFrame(rafId);
                     avatar.src = userImage;
                     setScanHello(userName);
-                }, 1.65);
-
-                tl.to(glow, { duration: 0.18, opacity: 1 }, 1.72);
-                tl.to(glow, { duration: 0.9, scale: 1.04, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 1.72);
-                tl.to(sweep, { duration: 0.25, opacity: 0 }, 1.9);
-
-                tl.add(function () {
-                    welcome.style.display = 'block';
-                    gsap.fromTo(welcome, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.24 });
+                    if (glowPulseTween) {
+                        glowPulseTween.kill();
+                        glowPulseTween = null;
+                    }
                 }, 2.05);
+
+                // Glow pulse after lock-in (premium finish)
+                tl.to(glow, { duration: 0.25, opacity: 1, ease: 'power2.out' }, 2.05);
+                tl.to(glow, { duration: 0.9, scale: 1.06, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 2.1);
+                tl.to(sweep, { duration: 0.35, opacity: 0, ease: 'power2.out' }, 2.1);
+
+                // Welcome fade-in (0.6s)
+                tl.add(function () {
+                    welcome.style.visibility = 'visible';
+                }, 2.2);
+                tl.to(welcome, { duration: 0.6, opacity: 1, ease: 'power2.out' }, 2.2);
 
                 function go() {
                     window.location.href = redirectUrl;
@@ -760,11 +823,19 @@
 
                 var goOnce = function () {
                     goBtn.removeEventListener('click', goOnce);
+                    if (autoRedirectTimer) {
+                        clearTimeout(autoRedirectTimer);
+                        autoRedirectTimer = 0;
+                    }
                     go();
                 };
 
                 goBtn.addEventListener('click', goOnce);
-                setTimeout(go, 1500);
+
+                // Redirect after animation completes + 2.5s delay (no page reload)
+                tl.add(function () {
+                    autoRedirectTimer = setTimeout(go, autoRedirectDelayMs);
+                }, 2.85);
             }
 
             function ajaxLoginSubmit(event) {
