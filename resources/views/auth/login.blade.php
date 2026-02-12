@@ -1315,12 +1315,19 @@
                 // PHASE 4 — EXIT
                 async function phase4Redirect() {
                     return new Promise(function (resolve) {
-                        var tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
-                        tl.to('.login-enterprise-overlay .glass', { duration: 0.35, opacity: 0 }, 0);
-                        tl.to(overlay, { duration: 0.45, opacity: 0, ease: 'power2.inOut' }, 0.05);
-                        tl.add(function () {
-                            resolve();
-                        }, 0.3);
+                        var nodes = getWelcomeNodes();
+                        if (nodes.sub) {
+                            nodes.sub.textContent = 'جاري فتح لوحة التحكم...';
+                        }
+
+                        // Keep overlay fully visible and stable until navigation starts.
+                        overlay.style.opacity = '1';
+                        var glass = overlay.querySelector('.glass');
+                        if (glass) {
+                            glass.style.opacity = '1';
+                        }
+
+                        resolve();
                     });
                 }
 
@@ -1330,12 +1337,12 @@
                     await phase1SecureScan();
                     await phase2SecuritySteps();
                     await phase3Welcome();
-                    await sleep(2000);
+                    await sleep(1200);
                     await phase4Redirect();
-                    window.location.href = redirectUrl;
+                    window.location.replace(redirectUrl);
                 } catch (e) {
                     // Safety fallback: redirect without reloading
-                    window.location.href = redirectUrl;
+                    window.location.replace(redirectUrl);
                 }
             }
 
