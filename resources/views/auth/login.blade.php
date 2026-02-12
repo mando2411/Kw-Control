@@ -116,7 +116,9 @@
             overflow-y: auto !important;
             overflow-x: hidden !important;
             -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
+            overscroll-behavior-y: auto;
+            height: auto !important;
+            min-height: 100dvh;
         }
 
         html {
@@ -132,6 +134,13 @@
         .login-modern .modern-shell {
             padding-top: 2.5rem;
             padding-bottom: 2.5rem;
+        }
+
+        body[data-login-theme="modern"] .login-modern .container,
+        body[data-login-theme="modern"] .login-modern .row,
+        body[data-login-theme="modern"] .login-modern [class*="col-"] {
+            overflow: visible !important;
+            min-height: 0;
         }
 
         .login-modern::before,
@@ -352,7 +361,7 @@
 
             .login-modern .modern-shell {
                 padding-top: max(1.25rem, env(safe-area-inset-top));
-                padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+                padding-bottom: calc(2rem + env(safe-area-inset-bottom));
             }
 
             .login-modern .modern-card {
@@ -360,7 +369,7 @@
             }
 
             .login-modern {
-                scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+                scroll-padding-bottom: calc(2rem + env(safe-area-inset-bottom));
             }
 
             body[data-login-theme="modern"] {
