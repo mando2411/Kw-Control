@@ -38,11 +38,9 @@
                 </a>
                 @if (auth()->user()->hasRole("Administrator"))
                 <span class="media-body text-end switch-sm mx-2">
-                    <label class="switch">
-                        <a href="javascript:void(0)" class="btn btn-outline-secondary">
-                            <i id="sidebar-toggle" data-feather="align-left"></i>
-                        </a>
-                    </label>
+                    <button type="button" id="sidebar-toggle" class="btn btn-outline-secondary" aria-label="Toggle sidebar">
+                        <i data-feather="align-left"></i>
+                    </button>
                 </span>
                 @endif
             </div>
