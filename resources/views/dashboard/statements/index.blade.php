@@ -43,7 +43,7 @@
                <tbody>
 
                  <tr>
-                    <td>منطقه {{ auth()->user()->election->name }}</td>
+                    <td>منطقه {{ auth()->user()->election?->name ?? 'غير محدد' }}</td>
                     <td class="table-primary">{{$voters->where('type','ذكر')->count()}}</td>
                     <td class="table-danger">{{$voters->where('type', '!=', 'ذكر')->count()}}</td>
                     <td>{{$voters->count()}}</td>
