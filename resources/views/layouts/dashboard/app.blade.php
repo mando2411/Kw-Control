@@ -504,6 +504,15 @@
                 margin: 0;
                 border-radius: 0;
                 height: 100vh;
+                z-index: 1040 !important;
+            }
+        }
+
+        /* Mobile: ensure sidebar content isn't hidden behind the bottom bar */
+        @media (max-width: 991px) {
+            html.ui-modern .page-sidebar .sidebar,
+            body.ui-modern .page-sidebar .sidebar {
+                padding-bottom: var(--dashboard-mobilebar-offset, 104px) !important;
             }
         }
 
