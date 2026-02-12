@@ -486,8 +486,8 @@
         }
 
         .scan-frame {
-            width: clamp(160px, 28vw, 210px);
-            height: clamp(160px, 28vw, 210px);
+            width: clamp(80px, 14vw, 105px);
+            height: clamp(80px, 14vw, 105px);
             margin: 0 auto -6px;
             border-radius: 999px;
             position: relative;
@@ -525,8 +525,8 @@
         }
 
         .scan-avatar {
-            width: clamp(52px, 10vw, 73px);
-            height: clamp(52px, 10vw, 73px);
+            width: clamp(120px, 22vw, 168px);
+            height: clamp(120px, 22vw, 168px);
             border-radius: 999px;
             object-fit: cover;
             border: 1px solid rgba(255, 255, 255, 0.18);
