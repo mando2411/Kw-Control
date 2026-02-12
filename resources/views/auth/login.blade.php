@@ -488,7 +488,7 @@
         .scan-frame {
             width: clamp(160px, 28vw, 210px);
             height: clamp(160px, 28vw, 210px);
-            margin: 0 auto;
+            margin: 0 auto 0.2rem;
             border-radius: 999px;
             position: relative;
             display: grid;
@@ -559,7 +559,7 @@
         }
 
         .scan-status {
-            margin-top: 0.75rem;
+            margin-top: 0.2rem;
             text-align: center;
             padding-inline: 0.35rem;
         }
@@ -574,7 +574,7 @@
 
         .scan-messages {
             list-style: none;
-            margin: 0.6rem 0 0;
+            margin: 0.42rem 0 0;
             padding: 0;
             display: grid;
             gap: 0.42rem;
@@ -594,7 +594,7 @@
 
         .scan-welcome {
             display: none;
-            margin-top: 0.75rem;
+            margin-top: 0.45rem;
             text-align: center;
         }
 
@@ -628,7 +628,7 @@
 
         @media (max-width: 576px) {
             .scan-status {
-                margin-top: 0.6rem;
+                margin-top: 0.12rem;
             }
 
             .scan-messages {
@@ -640,7 +640,7 @@
             }
 
             .scan-welcome {
-                margin-top: 0.62rem;
+                margin-top: 0.36rem;
             }
         }
 
