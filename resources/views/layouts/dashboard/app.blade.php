@@ -100,6 +100,18 @@
                 // ignore
             }
         })();
+
+        // Keep a loading mask visible right after login until dashboard is ready
+        (function () {
+            try {
+                var showPostLoginLoading = sessionStorage.getItem('post_login_loading') === '1';
+                if (showPostLoginLoading) {
+                    document.documentElement.classList.add('post-login-loading');
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
     </script>
     {{--    <link rel="icon" href="assets/images/dashboard/favicon.png" type="image/x-icon"> --}}
     {{--    <link rel="shortcut icon" href="assets/images/dashboard/favicon.png" type="image/x-icon"> --}}
@@ -137,6 +149,47 @@
         .dark .accordion-button.collapsed {
             color: #fff !important;
             border: 1px solid #fff;
+        }
+
+        #postLoginLoadingMask {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.94) 45%, rgba(2, 6, 23, 0.98));
+            color: #e2e8f0;
+        }
+
+        html.post-login-loading #postLoginLoadingMask {
+            display: flex;
+        }
+
+        .post-login-loading__content {
+            text-align: center;
+            padding: 1.2rem 1.4rem;
+        }
+
+        .post-login-loading__spinner {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 0.95rem;
+            border-radius: 999px;
+            border: 3px solid rgba(226, 232, 240, 0.2);
+            border-top-color: rgba(14, 165, 233, 0.95);
+            animation: postLoginSpin 0.9s linear infinite;
+        }
+
+        .post-login-loading__text {
+            font-weight: 800;
+            font-size: 1rem;
+            letter-spacing: 0.2px;
+        }
+
+        @keyframes postLoginSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         /* === UI Modern Palette (single source of truth) === */
@@ -826,6 +879,13 @@
 </head>
 
 <body class="ui-{{ $uiModeServer }}" data-ui-mode="{{ $uiModeServer }}">
+    <div id="postLoginLoadingMask" aria-hidden="true">
+        <div class="post-login-loading__content">
+            <div class="post-login-loading__spinner"></div>
+            <div class="post-login-loading__text">جاري فتح لوحة التحكم...</div>
+        </div>
+    </div>
+
     <!-- page-wrapper Start-->
     <div class="page-wrapper">
 
@@ -952,6 +1012,23 @@
                 });
             }).catch(function () {
                 // ignore
+            });
+        })();
+    </script>
+
+    <script>
+        (function () {
+            function clearPostLoginLoading() {
+                try {
+                    sessionStorage.removeItem('post_login_loading');
+                } catch (e) {
+                    // ignore
+                }
+                document.documentElement.classList.remove('post-login-loading');
+            }
+
+            window.addEventListener('load', function () {
+                setTimeout(clearPostLoginLoading, 120);
             });
         })();
     </script>

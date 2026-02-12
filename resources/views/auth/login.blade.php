@@ -1327,6 +1327,12 @@
                             glass.style.opacity = '1';
                         }
 
+                        try {
+                            sessionStorage.setItem('post_login_loading', '1');
+                        } catch (e) {
+                            // ignore
+                        }
+
                         resolve();
                     });
                 }
