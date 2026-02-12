@@ -535,11 +535,13 @@
         opacity: 0;
     }
 
-    body[data-ui-mode="modern"] #homepage-classic {
+    body.ui-modern #homepage-classic,
+    html.ui-modern body #homepage-classic {
         display: none;
     }
 
-    body[data-ui-mode="modern"] #homepage-modern {
+    body.ui-modern #homepage-modern,
+    html.ui-modern body #homepage-modern {
         display: block;
     }
 
@@ -548,28 +550,7 @@
     }
 </style>
 
-<script>
-    (function () {
-        try {
-            var key = 'ui_mode';
-            var mode = localStorage.getItem(key) || 'classic';
-            document.body.setAttribute('data-ui-mode', mode);
-
-            if (mode === 'modern') {
-                var id = 'homeModernCss';
-                if (!document.getElementById(id)) {
-                    var link = document.createElement('link');
-                    link.id = id;
-                    link.rel = 'stylesheet';
-                    link.href = "{{ asset('assets/css/home-modern.css') }}";
-                    document.head.appendChild(link);
-                }
-            }
-        } catch (e) {
-            // ignore
-        }
-    })();
-</script>
+{{-- ui_mode is bootstrapped early in the dashboard layout to prevent flicker --}}
 
 <div class="home-ui-toggle" dir="rtl">
     <div class="form-check form-switch m-0">
@@ -1189,14 +1170,24 @@
 <script>
     (function () {
         var STORAGE_KEY = 'ui_mode';
+        var PENDING_KEY = 'ui_mode_pending';
         var MODERN_HREF = "{{ asset('assets/css/home-modern.css') }}";
+        var PERSIST_URL = "{{ route('ui-mode.update') }}";
 
-        function getMode() {
-            try {
-                return localStorage.getItem(STORAGE_KEY) || 'classic';
-            } catch (e) {
-                return 'classic';
-            }
+        function getEffectiveModeFromDom() {
+            if (document.body.classList.contains('ui-modern')) return 'modern';
+            if (document.documentElement.classList.contains('ui-modern')) return 'modern';
+            return 'classic';
+        }
+
+        function applyBodyMode(mode) {
+            document.body.classList.remove('ui-modern', 'ui-classic');
+            document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+            document.body.setAttribute('data-ui-mode', mode);
+
+            document.documentElement.classList.remove('ui-modern', 'ui-classic');
+            document.documentElement.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+            document.documentElement.setAttribute('data-ui-mode', mode);
         }
 
         function setModeValue(mode) {
@@ -1205,38 +1196,86 @@
             } catch (e) {
                 // ignore
             }
-            document.body.setAttribute('data-ui-mode', mode);
+            // Do NOT force apply here; applyBodyMode is called when safe (after CSS load)
         }
 
         function ensureModernCss(shouldLoad) {
             var id = 'homeModernCss';
             var link = document.getElementById(id);
             if (shouldLoad) {
-                if (link) return;
-                link = document.createElement('link');
-                link.id = id;
-                link.rel = 'stylesheet';
-                link.href = MODERN_HREF;
-                document.head.appendChild(link);
-                return;
+                return new Promise(function (resolve) {
+                    if (link && link.sheet) {
+                        resolve(true);
+                        return;
+                    }
+
+                    var isNew = false;
+                    if (!link) {
+                        isNew = true;
+                        link = document.createElement('link');
+                        link.id = id;
+                        link.rel = 'stylesheet';
+                        link.href = MODERN_HREF;
+                        document.head.appendChild(link);
+                    }
+
+                    var done = false;
+                    function finish() {
+                        if (done) return;
+                        done = true;
+                        resolve(true);
+                    }
+
+                    link.addEventListener('load', finish, { once: true });
+                    link.addEventListener('error', finish, { once: true });
+
+                    // If link existed but is already loading/loaded, resolve quickly
+                    if (!isNew) {
+                        setTimeout(finish, 120);
+                    }
+                });
             }
 
             if (link && link.parentNode) {
                 link.parentNode.removeChild(link);
             }
+
+            return Promise.resolve(true);
+        }
+
+        function persistModeToServer(mode) {
+            if (!(window.__UI_MODE_IS_AUTH__ === true || window.__UI_MODE_IS_AUTH__ === 'true')) {
+                return;
+            }
+
+            var csrf = document.querySelector('meta[name="csrf-token"]');
+            var token = csrf ? csrf.getAttribute('content') : '';
+            fetch(PERSIST_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': token
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ mode: mode })
+            }).catch(function () {
+                // ignore
+            });
         }
 
         function raf(cb) {
             return (window.requestAnimationFrame || function (fn) { return setTimeout(fn, 0); })(cb);
         }
 
-        function switchMode(nextMode, animate) {
+        async function switchMode(nextMode, animate) {
             var toggle = document.getElementById('homeUiModeToggle');
             var classic = document.getElementById('homepage-classic');
             var modern = document.getElementById('homepage-modern');
             if (!classic || !modern) return;
 
-            var current = document.body.getAttribute('data-ui-mode') || 'classic';
+            var current = getEffectiveModeFromDom();
             if (nextMode === current) {
                 if (toggle) {
                     toggle.checked = nextMode === 'modern';
@@ -1255,22 +1294,34 @@
 
             if (!animate) {
                 if (nextMode === 'modern') {
-                    ensureModernCss(true);
+                    await ensureModernCss(true);
+                    applyBodyMode('modern');
                     classic.style.display = 'none';
                     modern.style.display = 'block';
                 } else {
+                    applyBodyMode('classic');
                     modern.style.display = 'none';
                     classic.style.display = 'block';
                     ensureModernCss(false);
                 }
                 document.body.classList.remove('ui-mode-switching');
+                persistModeToServer(nextMode);
                 return;
             }
 
             var durationMs = 240;
 
             if (nextMode === 'modern') {
-                ensureModernCss(true);
+                // Keep classic visible until modern CSS is ready (prevents white flash)
+                classic.style.display = 'block';
+                classic.style.opacity = '1';
+                modern.style.display = 'none';
+
+                await ensureModernCss(true);
+
+                // Apply mode only after CSS is loaded
+                applyBodyMode('modern');
+
                 modern.style.display = 'block';
                 classic.style.display = 'block';
                 modern.style.opacity = '0';
@@ -1286,11 +1337,13 @@
                     classic.style.opacity = '';
                     modern.style.opacity = '';
                     document.body.classList.remove('ui-mode-switching');
+                    persistModeToServer('modern');
                 }, durationMs);
                 return;
             }
 
             // switching to classic
+            applyBodyMode('classic');
             modern.style.display = 'block';
             classic.style.display = 'block';
             classic.style.opacity = '0';
@@ -1307,12 +1360,13 @@
                 classic.style.opacity = '';
                 ensureModernCss(false);
                 document.body.classList.remove('ui-mode-switching');
+                persistModeToServer('classic');
             }, durationMs);
         }
 
         document.addEventListener('DOMContentLoaded', function () {
             var toggle = document.getElementById('homeUiModeToggle');
-            var initial = getMode();
+            var initial = window.__UI_MODE_EFFECTIVE__ || getEffectiveModeFromDom();
 
             // Ensure DOM matches stored state (no animation on load)
             switchMode(initial, false);
@@ -1322,6 +1376,12 @@
             toggle.setAttribute('aria-pressed', toggle.checked ? 'true' : 'false');
 
             toggle.addEventListener('change', function (e) {
+                // Mark pending so other pages can sync instantly if navigation happens
+                try {
+                    localStorage.setItem(PENDING_KEY, '1');
+                } catch (err) {
+                    // ignore
+                }
                 switchMode(e.target.checked ? 'modern' : 'classic', true);
             });
         });

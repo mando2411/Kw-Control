@@ -598,6 +598,8 @@
     <script>
         (function () {
             var storageKey = "loginTheme";
+            var uiModeKey = "ui_mode";
+            var uiModePendingKey = "ui_mode_pending";
             var toggleButton = document.getElementById("loginThemeToggle");
             var backToLegacy = document.getElementById("backToLegacy");
 
@@ -610,12 +612,36 @@
             }
 
             function getInitialTheme() {
-                return sessionStorage.getItem(storageKey) || "legacy";
+                var theme = sessionStorage.getItem(storageKey);
+                if (theme === "modern" || theme === "legacy") {
+                    return theme;
+                }
+
+                // Fall back to global ui_mode so homepage/dashboard stays consistent
+                try {
+                    var ui = localStorage.getItem(uiModeKey);
+                    if (ui === 'modern') {
+                        return 'modern';
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                return "legacy";
             }
 
             function setTheme(theme) {
                 sessionStorage.setItem(storageKey, theme);
                 applyTheme(theme);
+
+                // Keep global ui_mode consistent across login → homepage → dashboard.
+                // Mark as pending so the first authenticated page can persist it to DB.
+                try {
+                    localStorage.setItem(uiModeKey, theme === 'modern' ? 'modern' : 'classic');
+                    localStorage.setItem(uiModePendingKey, '1');
+                } catch (e) {
+                    // ignore
+                }
             }
 
             applyTheme(getInitialTheme());
