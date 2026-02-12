@@ -671,6 +671,25 @@
                 z-index: 2;
             }
 
+            html.ui-modern .dashboard-topbar-mobile #user-menu-wrapper-mobile,
+            body.ui-modern .dashboard-topbar-mobile #user-menu-wrapper-mobile {
+                position: relative;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile,
+            body.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile {
+                left: auto;
+                right: 0;
+                inset-inline-start: auto;
+                inset-inline-end: 0;
+                top: calc(100% + 8px);
+                min-width: 172px;
+                max-width: calc(100vw - 18px);
+                margin: 0;
+                transform: none !important;
+                z-index: 1080;
+            }
+
             html.ui-modern .dashboard-topbar-mobile .dtm-notif,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif,
             html.ui-modern .dashboard-topbar-mobile .dtm-logout,
