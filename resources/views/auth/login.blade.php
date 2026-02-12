@@ -559,9 +559,6 @@
                                 </div>
                                 <button type="submit" class="btn modern-primary" id="modernLoginSubmit">تسجيل دخول</button>
                             </div>
-                            <button type="button" class="btn modern-secondary mt-3 w-100" id="backToLegacy">
-                                الرجوع للشكل القديم
-                            </button>
                         </form>
                     </div>
                 </div>
@@ -609,7 +606,6 @@
             var uiModeKey = "ui_mode";
             var uiModePendingKey = "ui_mode_pending";
             var toggleButton = document.getElementById("loginThemeToggle");
-            var backToLegacy = document.getElementById("backToLegacy");
             var UI_POLICY = {!! json_encode($uiPolicy) !!};
 
             function applyTheme(theme) {
@@ -676,12 +672,6 @@
             if (toggleButton && UI_POLICY === 'user_choice') {
                 toggleButton.addEventListener("change", function (event) {
                     setTheme(event.target.checked ? "modern" : "legacy");
-                });
-            }
-
-            if (backToLegacy && UI_POLICY === 'user_choice') {
-                backToLegacy.addEventListener("click", function () {
-                    setTheme("legacy");
                 });
             }
 
