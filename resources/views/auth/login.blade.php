@@ -233,55 +233,94 @@
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 1.25rem;
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            opacity: 0;
+            will-change: opacity;
         }
 
         .login-enterprise-overlay.is-visible {
             display: flex;
         }
 
+        /* Fullscreen immersive layer (no modal window) */
         .login-enterprise-overlay .glass {
             position: relative;
-            width: min(520px, 92vw);
-            border-radius: 1.75rem;
-            padding: 2rem 1.75rem;
-            background: rgba(15, 23, 42, 0.55);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 40px 90px rgba(2, 6, 23, 0.55);
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            padding: 0;
+            background: linear-gradient(135deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.94) 45%, rgba(2, 6, 23, 0.98));
+            border: 0;
+            backdrop-filter: blur(12px);
+            box-shadow: none;
             overflow: hidden;
             color: #e2e8f0;
+            will-change: transform, opacity;
         }
 
+        /* Moving light gradient */
         .login-enterprise-overlay .glass::before {
             content: "";
             position: absolute;
-            inset: -40%;
-            background: conic-gradient(from 180deg, rgba(14, 165, 233, 0.32), rgba(245, 158, 11, 0.22), rgba(99, 102, 241, 0.25), rgba(14, 165, 233, 0.32));
-            filter: blur(30px);
-            opacity: 0.45;
-            animation: overlaySpin 3.4s linear infinite;
+            inset: -35%;
+            background:
+                radial-gradient(circle at 25% 20%, rgba(14, 165, 233, 0.26), rgba(14, 165, 233, 0) 55%),
+                radial-gradient(circle at 70% 65%, rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0) 60%),
+                radial-gradient(circle at 40% 85%, rgba(99, 102, 241, 0.14), rgba(99, 102, 241, 0) 55%);
+            filter: blur(34px);
+            opacity: 0.55;
+            transform: translate3d(0, 0, 0);
+            animation: overlayDrift 6.5s ease-in-out infinite;
         }
 
-        @keyframes overlaySpin {
-            to {
-                transform: rotate(1turn);
-            }
+        /* Subtle noise layer */
+        .login-enterprise-overlay .glass::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.018) 1px, rgba(255, 255, 255, 0) 2px, rgba(255, 255, 255, 0) 4px);
+            opacity: 0.22;
+            mix-blend-mode: overlay;
+            animation: noiseShift 1.6s steps(2, end) infinite;
+        }
+
+        @keyframes overlayDrift {
+            0% { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+            50% { transform: translate3d(2%, 1%, 0) scale(1.04); }
+            100% { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+        }
+
+        @keyframes noiseShift {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-2%, 1%, 0); }
         }
 
         .login-enterprise-overlay .content {
             position: relative;
             z-index: 1;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 2rem 1.25rem;
+        }
+
+        .login-enterprise-overlay .content > div {
+            width: min(560px, 92vw);
         }
 
         .scan-frame {
-            width: 176px;
-            height: 176px;
+            width: clamp(160px, 28vw, 210px);
+            height: clamp(160px, 28vw, 210px);
             margin: 0 auto;
             border-radius: 999px;
             position: relative;
             display: grid;
             place-items: center;
+            will-change: transform;
         }
 
         .scan-frame .ring {
@@ -299,6 +338,7 @@
                 0 0 22px rgba(14, 165, 233, 0.55),
                 0 0 62px rgba(245, 158, 11, 0.25);
             opacity: 0;
+            will-change: opacity, transform;
         }
 
         .scan-frame .sweep {
@@ -312,13 +352,37 @@
         }
 
         .scan-avatar {
-            width: 132px;
-            height: 132px;
+            width: clamp(120px, 22vw, 168px);
+            height: clamp(120px, 22vw, 168px);
             border-radius: 999px;
             object-fit: cover;
             border: 1px solid rgba(255, 255, 255, 0.18);
             box-shadow: 0 20px 50px rgba(2, 6, 23, 0.55);
             background: rgba(2, 6, 23, 0.25);
+            will-change: filter, transform, opacity;
+        }
+
+        .scan-check {
+            position: absolute;
+            bottom: -10px;
+            right: -6px;
+            width: 54px;
+            height: 54px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.55);
+            opacity: 0;
+            transform: scale(0.9);
+            will-change: transform, opacity;
+        }
+
+        .scan-check i {
+            font-size: 1.6rem;
+            color: rgba(25, 135, 84, 0.95);
+            filter: drop-shadow(0 0 14px rgba(25, 135, 84, 0.35));
         }
 
         .scan-status {
@@ -625,11 +689,6 @@
                 if (!overlay) return;
                 overlay.classList.add('is-visible');
                 overlay.setAttribute('aria-hidden', 'false');
-
-                // Subtle background blur without touching CSS structure
-                overlay.style.background = 'rgba(2, 6, 23, 0.18)';
-                overlay.style.backdropFilter = 'blur(8px)';
-                overlay.style.webkitBackdropFilter = 'blur(8px)';
             }
 
             function setScanHello(userName) {
@@ -665,6 +724,7 @@
                 var messages = document.getElementById('scanMessages');
                 var welcome = document.getElementById('scanWelcome');
                 var goBtn = document.getElementById('goDashboardBtn');
+                var sysTitle = document.getElementById('scanSysTitle');
                 var redirectUrl = payload && payload.redirect ? payload.redirect : "{{ url('/') }}";
                 var userName = payload && payload.user ? payload.user.name : '';
                 var userImage = safeUserImage(payload && payload.user ? payload.user.image : null);
@@ -678,16 +738,27 @@
 
                 // Seed UI (stable layout, no shifts)
                 messages.innerHTML = '';
-                messages.style.minHeight = '5.2rem';
-                messages.style.marginTop = '1rem';
+                messages.style.minHeight = '7.2rem';
+                messages.style.marginTop = '1.1rem';
+
+                // No button in this experience
+                if (goBtn) {
+                    goBtn.style.display = 'none';
+                }
 
                 welcome.style.display = 'block';
                 welcome.style.visibility = 'hidden';
                 welcome.style.opacity = '0';
 
+                if (sysTitle) {
+                    sysTitle.textContent = 'جاري التحقق...';
+                }
+
                 if (glow) {
                     glow.style.opacity = '0';
                     glow.style.transform = 'scale(1)';
+                    glow.style.borderColor = 'rgba(14, 165, 233, 0.85)';
+                    glow.style.boxShadow = '0 0 0 1px rgba(14, 165, 233, 0.35) inset, 0 0 22px rgba(14, 165, 233, 0.35)';
                 }
                 if (sweep) {
                     sweep.style.opacity = '0';
@@ -698,6 +769,27 @@
                 var pool = getScanImagesPool();
                 var rafId = 0;
                 var autoRedirectTimer = 0;
+                var dotsTick = 0;
+                var scanCheck = null;
+
+                // ensure check element exists
+                (function ensureCheck() {
+                    var frame = document.querySelector('.scan-frame');
+                    if (!frame) return;
+                    var existing = frame.querySelector('.scan-check');
+                    if (existing) {
+                        scanCheck = existing;
+                        scanCheck.style.opacity = '0';
+                        scanCheck.style.transform = 'scale(0.9)';
+                        return;
+                    }
+                    var el = document.createElement('div');
+                    el.className = 'scan-check';
+                    el.setAttribute('aria-hidden', 'true');
+                    el.innerHTML = '<i class="bi bi-check2-circle"></i>';
+                    frame.appendChild(el);
+                    scanCheck = el;
+                })();
 
                 function easingOut(t) {
                     return 1 - Math.pow(1 - t, 3);
@@ -727,172 +819,229 @@
                     });
                 }
 
-                // Phase 1 — Image scanning (ONLY this runs first)
-                async function phase1Scan() {
-                    return new Promise(function (resolve) {
-                        // Total scan duration (includes green lock-in pulse)
-                        var scanTotalMs = 2600; // 2.5–3s
-                        var decelMs = 2000;     // deceleration window
-                        var startIntervalMs = 35; // 30–40ms
-                        var endIntervalMs = 250;
+                function setDotsText(base, now) {
+                    if (!sysTitle) return;
+                    // Update dots at ~6fps using rAF time
+                    if (!dotsTick) dotsTick = now;
+                    if (now - dotsTick < 160) return;
+                    var step = Math.floor((now / 420) % 3) + 1; // 1..3
+                    var dots = step === 1 ? '.' : (step === 2 ? '..' : '...');
+                    sysTitle.textContent = base + dots;
+                    dotsTick = now;
+                }
 
-                        // Reserve the last part of Phase 1 for the green success pulse
-                        var successPulseMs = 350;
-                        var cycleEndMs = Math.max(0, scanTotalMs - successPulseMs);
+                function setSys(text) {
+                    if (sysTitle) sysTitle.textContent = text;
+                }
+
+                function getWelcomeNodes() {
+                    return {
+                        hello: document.getElementById('scanHello'),
+                        sub: welcome ? welcome.querySelector('.sub') : null
+                    };
+                }
+
+                // PHASE 0 — FORM EXIT
+                async function phase0FormExit() {
+                    return new Promise(function (resolve) {
+                        var tl = gsap.timeline({ defaults: { ease: 'power3.inOut' }, onComplete: resolve });
+                        tl.to('#modernLoginCard', { duration: 0.6, scale: 0.9, opacity: 0, ease: 'power3.inOut' }, 0);
+                        // show overlay after form exits
+                        tl.add(function () {
+                            showOverlay();
+                        }, 0.6);
+                        tl.to(overlay, { duration: 0.35, opacity: 1, ease: 'power2.out' }, 0.62);
+                    });
+                }
+
+                // PHASE 1 — SECURE SCANNING MODE
+                async function phase1SecureScan() {
+                    return new Promise(function (resolve) {
+                        // Scan targets
+                        var startIntervalMs = 30;
+                        var endIntervalMs = 250;
+                        var decelMs = 2500;
+                        var scanTotalMs = 2500; // 2.5–3s total (scan portion)
 
                         var scanStart = performance.now();
                         var lastSwap = 0;
 
-                        // Overlay + entry animation
-                        var entry = gsap.timeline({ defaults: { ease: 'power3.inOut' } });
+                        // UI prep
+                        setSys('جاري التحقق...');
+                        if (scanCheck) {
+                            scanCheck.style.opacity = '0';
+                            scanCheck.style.transform = 'scale(0.9)';
+                        }
 
-                        entry.to('.login-modern .modern-shell', {
-                            duration: 0.6,
-                            scale: 0.94,
-                            filter: 'blur(8px)',
-                            opacity: 0.92,
-                            ease: 'power3.inOut'
-                        }, 0);
+                        // Heavy blur + brightness reduction while scanning
+                        avatar.style.filter = 'blur(20px) brightness(0.82)';
 
-                        entry.set(overlay, { opacity: 0 }, 0);
-                        entry.to(overlay, {
-                            duration: 0.5,
-                            opacity: 1,
-                            onStart: function () { showOverlay(); }
-                        }, 0.05);
-                        entry.fromTo('.login-enterprise-overlay .glass', { y: 14, opacity: 0 }, { duration: 0.55, y: 0, opacity: 1, ease: 'power3.out' }, 0.12);
-                        entry.to(sweep, { duration: 0.25, opacity: 1, ease: 'power2.out' }, 0.22);
-                        entry.to(sweep, { duration: 2.4, rotate: 540, ease: 'none' }, 0.25);
+                        // subtle sweep visible
+                        if (sweep) {
+                            gsap.to(sweep, { duration: 0.2, opacity: 1, ease: 'power2.out' });
+                            gsap.to(sweep, { duration: 2.5, rotate: 720, ease: 'none' });
+                        }
 
-                        // subtle pulse while scanning
+                        // subtle glow pulse while scanning (blue)
                         var scanPulse = null;
                         if (glow) {
-                            // Keep it subtle until green state
-                            glow.style.borderColor = 'rgba(14, 165, 233, 0.85)';
-                            glow.style.boxShadow = '0 0 0 1px rgba(14, 165, 233, 0.35) inset, 0 0 22px rgba(14, 165, 233, 0.35)';
-                            scanPulse = gsap.to(glow, { opacity: 0.65, scale: 1.03, duration: 0.9, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+                            scanPulse = gsap.to(glow, { opacity: 0.55, scale: 1.03, duration: 0.9, repeat: -1, yoyo: true, ease: 'sine.inOut' });
                         }
 
                         function tick(now) {
                             var elapsed = now - scanStart;
+
+                            // dots animation
+                            setDotsText('جاري التحقق', now);
+
+                            // deceleration curve
                             var t = Math.min(1, elapsed / decelMs);
                             var eased = easingOut(t);
                             var interval = startIntervalMs + eased * (endIntervalMs - startIntervalMs);
-                            // after decel window, keep slow switching until scan ends
-                            if (elapsed > decelMs) {
-                                interval = endIntervalMs;
-                            }
+                            if (elapsed > decelMs) interval = endIntervalMs;
 
                             if (!lastSwap) lastSwap = now;
                             if (now - lastSwap >= interval) {
                                 avatar.src = pickRandom();
-                                avatar.style.filter = elapsed < decelMs ? 'blur(2px) saturate(1.1)' : 'blur(0px) saturate(1.0)';
                                 lastSwap = now;
                             }
 
-                            if (elapsed < cycleEndMs) {
+                            if (elapsed < scanTotalMs) {
                                 rafId = requestAnimationFrame(tick);
                                 return;
                             }
 
-                            // stop scanning on authenticated user
+                            // Lock on correct user
                             cancelRaf();
-                            avatar.style.filter = 'blur(0px)';
-                            avatar.src = userImage;
                             if (scanPulse) {
                                 scanPulse.kill();
                                 scanPulse = null;
                             }
 
-                            // Green success glow + pulse (1.05 → 1)
+                            avatar.src = userImage;
+
+                            // Smoothly remove blur (0.6s)
+                            var lockTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+                            lockTl.to(avatar, { duration: 0.6, filter: 'blur(0px) brightness(1)' }, 0);
+
+                            // Green border + confirmation pulse
                             if (glow) {
-                                // Use Bootstrap-success-like green to avoid arbitrary colors
                                 glow.style.borderColor = 'rgba(25, 135, 84, 0.95)';
-                                glow.style.boxShadow = '0 0 0 1px rgba(25, 135, 84, 0.45) inset, 0 0 26px rgba(25, 135, 84, 0.45), 0 0 70px rgba(25, 135, 84, 0.22)';
+                                glow.style.boxShadow = '0 0 0 1px rgba(25, 135, 84, 0.55) inset, 0 0 30px rgba(25, 135, 84, 0.45), 0 0 80px rgba(25, 135, 84, 0.22)';
+                                lockTl.to(glow, { duration: 0.25, opacity: 1 }, 0.1);
                             }
-                            var successTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-                            successTl.to(glow, { duration: 0.25, opacity: 1 }, 0);
-                            successTl.fromTo('.scan-frame', { scale: 1.05 }, { duration: 0.35, scale: 1, ease: 'power2.out' }, 0);
-                            successTl.to(sweep, { duration: 0.25, opacity: 0, ease: 'power2.out' }, 0);
-                            successTl.add(resolve, successPulseMs / 1000);
+                            lockTl.fromTo('.scan-frame', { scale: 1.05 }, { duration: 0.35, scale: 1 }, 0.1);
+
+                            // Replace text + check icon
+                            lockTl.add(function () {
+                                setSys('تم التحقق');
+                            }, 0.25);
+
+                            if (scanCheck) {
+                                lockTl.to(scanCheck, { duration: 0.25, opacity: 1, scale: 1, ease: 'back.out(1.6)' }, 0.25);
+                            }
+
+                            // Hide sweep
+                            if (sweep) {
+                                lockTl.to(sweep, { duration: 0.25, opacity: 0 }, 0.2);
+                            }
+
+                            // Keep Phase 1 tight: resolve shortly after blur clears
+                            lockTl.add(resolve, 0.65);
                         }
 
-                        entry.add(function () {
-                            rafId = requestAnimationFrame(tick);
-                        }, 0.28);
+                        rafId = requestAnimationFrame(tick);
                     });
                 }
 
-                // Phase 2 — Security text sequence (after green)
-                async function phase2SecurityText() {
+                // PHASE 2 — SECURITY STEPS (Dynamic Completion)
+                async function phase2SecuritySteps() {
                     return new Promise(function (resolve) {
                         messages.innerHTML = '';
-                        var lines = [
-                            'جاري تحديث البيانات...',
-                            'جاري تأمين البيانات...',
-                            'جاري تأمين جلسة دخولك...'
+
+                        var steps = [
+                            { doing: 'جاري تحديث البيانات', done: 'تم تحديث البيانات' },
+                            { doing: 'جاري تأمين البيانات', done: 'تم تأمين البيانات' },
+                            { doing: 'جاري تأمين جلسة دخولك', done: 'تم تأمين جلسة دخولك' }
                         ];
-                        var els = [];
-                        for (var i = 0; i < lines.length; i++) {
+
+                        function createRow(text) {
                             var li = document.createElement('li');
-                            li.textContent = lines[i];
+                            li.style.display = 'flex';
+                            li.style.alignItems = 'center';
+                            li.style.justifyContent = 'center';
+                            li.style.gap = '0.55rem';
                             li.style.opacity = '0';
                             li.style.transform = 'translateY(10px)';
+                            var span = document.createElement('span');
+                            span.textContent = text;
+                            var icon = document.createElement('i');
+                            icon.className = 'bi bi-check2';
+                            icon.style.color = 'rgba(25, 135, 84, 0.95)';
+                            icon.style.opacity = '0';
+                            icon.style.transform = 'scale(0.9)';
+                            icon.style.filter = 'drop-shadow(0 0 12px rgba(25, 135, 84, 0.28))';
+                            li.appendChild(icon);
+                            li.appendChild(span);
                             messages.appendChild(li);
-                            els.push(li);
+                            return { li: li, text: span, icon: icon };
                         }
 
-                        var tl = gsap.timeline({ defaults: { ease: 'power2.out' }, onComplete: resolve });
-                        tl.to(els, {
-                            opacity: 1,
-                            y: 0,
-                            duration: 0.5,
-                            stagger: 0.3
-                        }, 0);
+                        (async function run() {
+                            for (var i = 0; i < steps.length; i++) {
+                                var row = createRow(steps[i].doing);
+                                await new Promise(function (res) {
+                                    gsap.to(row.li, { duration: 0.45, opacity: 1, y: 0, ease: 'power2.out', onComplete: res });
+                                });
+                                await sleep(800);
+                                row.text.textContent = steps[i].done;
+                                await new Promise(function (res) {
+                                    gsap.to(row.icon, { duration: 0.25, opacity: 1, scale: 1, ease: 'back.out(1.6)', onComplete: res });
+                                });
+                                await sleep(150);
+                            }
+                            resolve();
+                        })();
                     });
                 }
 
-                // Phase 3 — Welcome state (then wait 2 seconds before redirect)
+                // PHASE 3 — WELCOME STATE
                 async function phase3Welcome() {
                     return new Promise(function (resolve) {
-                        setScanHello(userName);
-                        welcome.style.visibility = 'visible';
+                        var nodes = getWelcomeNodes();
+                        if (nodes.hello) {
+                            nodes.hello.textContent = 'أهلاً بك ' + (userName || '');
+                        }
+                        if (nodes.sub) {
+                            nodes.sub.textContent = 'جاري تحويلك إلى لوحة التحكم...';
+                        }
 
-                        // subtle glow effect on the welcome block
-                        welcome.style.filter = 'drop-shadow(0 0 10px rgba(14, 165, 233, 0.22))';
+                        welcome.style.visibility = 'visible';
+                        welcome.style.filter = 'drop-shadow(0 0 14px rgba(14, 165, 233, 0.22))';
 
                         var tl = gsap.timeline({ defaults: { ease: 'power2.out' }, onComplete: resolve });
                         tl.to(welcome, { duration: 0.8, opacity: 1 }, 0);
                     });
                 }
 
-                // Phase 4 — Fade out overlay then redirect
+                // PHASE 4 — EXIT
                 async function phase4Redirect() {
                     return new Promise(function (resolve) {
                         var tl = gsap.timeline({ defaults: { ease: 'power2.inOut' } });
-                        tl.to('.login-enterprise-overlay .glass', { duration: 0.25, y: 6, opacity: 0 }, 0);
-                        tl.to(overlay, { duration: 0.25, opacity: 0 }, 0.05);
+                        tl.to('.login-enterprise-overlay .glass', { duration: 0.35, opacity: 0 }, 0);
+                        tl.to(overlay, { duration: 0.45, opacity: 0, ease: 'power2.inOut' }, 0.05);
                         tl.add(function () {
                             resolve();
                         }, 0.3);
                     });
                 }
 
-                // Click redirect stays instant and cancels timers/raf
-                var goOnce = function () {
-                    goBtn.removeEventListener('click', goOnce);
-                    clearAutoRedirect();
-                    cancelRaf();
-                    window.location.href = redirectUrl;
-                };
-                goBtn.addEventListener('click', goOnce);
-
                 // Run phases sequentially (clear separation)
                 try {
-                    await phase1Scan();
-                    await phase2SecurityText();
+                    await phase0FormExit();
+                    await phase1SecureScan();
+                    await phase2SecuritySteps();
                     await phase3Welcome();
-                    // Wait 2 seconds before redirect (clear separation between phases)
                     await sleep(2000);
                     await phase4Redirect();
                     window.location.href = redirectUrl;
