@@ -104,6 +104,30 @@
     <script src="{{ asset('assets/admin/js/admin.js') }}"></script>
 
     <script>
+        (function () {
+            document.addEventListener('click', function (event) {
+                var toggle = event.target.closest('#sidebar-toggle');
+                if (!toggle) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                var sidebar = document.querySelector('.page-sidebar');
+                var header = document.querySelector('.page-main-header');
+
+                if (sidebar) {
+                    sidebar.classList.toggle('open');
+                }
+
+                if (header) {
+                    header.classList.toggle('open');
+                }
+            });
+        })();
+    </script>
+
+    <script>
 
         $(document).keypress(
  function(event){
