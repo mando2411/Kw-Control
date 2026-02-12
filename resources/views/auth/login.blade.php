@@ -525,8 +525,8 @@
         }
 
         .scan-avatar {
-            width: clamp(120px, 22vw, 168px);
-            height: clamp(120px, 22vw, 168px);
+            width: clamp(104px, 19vw, 146px);
+            height: clamp(104px, 19vw, 146px);
             border-radius: 999px;
             object-fit: cover;
             border: 1px solid rgba(255, 255, 255, 0.18);
