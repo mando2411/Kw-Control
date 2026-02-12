@@ -56,8 +56,14 @@
   letter-spacing: 0.2px;
 }
 
+/* Default subtitle tone (for light surfaces/cards) */
 .home-modern-mode .hm-sub {
-  color: rgba(226, 232, 240, 0.82);
+  color: rgba(71, 85, 105, 0.92);
+}
+
+/* Hero is dark → use a lighter subtitle color there only */
+.home-modern-mode .hm-hero .hm-sub {
+  color: rgba(226, 232, 240, 0.86);
 }
 
 .home-modern-mode .hm-status {
@@ -390,8 +396,13 @@
   z-index: 1;
 }
 
+/* Import help text: dark on white body, light inside dark header */
 .home-modern-mode .hm-import-modern .import-help {
-  color: rgba(226, 232, 240, 0.82);
+  color: rgba(71, 85, 105, 0.92);
+}
+
+.home-modern-mode .hm-import-modern .import-header .import-help {
+  color: rgba(226, 232, 240, 0.86);
 }
 
 .home-modern-mode .hm-import-modern .import-warning {
