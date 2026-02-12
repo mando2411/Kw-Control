@@ -106,6 +106,17 @@
             align-items: center;
         }
 
+        .login-modern {
+            height: auto !important;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .login-modern .modern-shell {
+            padding-top: 2.5rem;
+            padding-bottom: 2.5rem;
+        }
+
         .login-modern::before,
         .login-modern::after {
             content: "";
@@ -283,6 +294,21 @@
             color: #128C7E;
             border-color: rgba(18, 140, 126, 0.35);
             background: rgba(37, 211, 102, 0.12);
+        }
+
+        @media (max-width: 991px) {
+            .login-modern-layout {
+                align-items: flex-start;
+            }
+
+            .login-modern .modern-shell {
+                padding-top: max(1.25rem, env(safe-area-inset-top));
+                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            }
+
+            .login-modern .modern-card {
+                padding: 1.2rem;
+            }
         }
 
         /* === Enterprise AJAX Login Overlay (Modern Theme Only) === */
@@ -522,7 +548,6 @@
     $loginForcedTheme = $uiPolicy === 'modern' ? 'modern' : ($uiPolicy === 'classic' ? 'legacy' : 'legacy');
     $supportCountryCode = preg_replace('/\D+/', '', (string) config('app.support_country_code', '965')) ?: '965';
     $supportPhoneDigits = preg_replace('/\D+/', '', (string) config('app.support_phone', '55150551')) ?: '55150551';
-    $supportDisplayPhone = '+' . $supportCountryCode . ' ' . $supportPhoneDigits;
     $supportCallLink = 'tel:+' . $supportCountryCode . $supportPhoneDigits;
     $supportWhatsappLink = 'https://wa.me/' . $supportCountryCode . $supportPhoneDigits . '?text=' . rawurlencode('ممكن استفسر عن https://kw-control.com/');
 @endphp
@@ -578,23 +603,6 @@
                                     <label class="form-check-label" for="rememberMe">تذكرنى</label>
                                 </div>
                                 <button type="submit" class="btn btn-warning mt-2">تسجيل دخول</button>
-                            </div>
-
-                            <div class="login-sponsor-box">
-                                <strong>هذا الموقع برعاية أحمد خلف</strong><br>
-                                للاستفسار (رقم كويتي):
-                                <a href="{{ $supportCallLink }}" class="login-sponsor-phone">{{ $supportDisplayPhone }}</a>
-                                <div class="login-sponsor-actions" aria-label="أزرار التواصل">
-                                    <a href="{{ $supportCallLink }}" class="login-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
-                                        <i class="bi bi-telephone-fill"></i>
-                                    </a>
-                                    <a href="{{ $supportWhatsappLink }}" target="_blank" rel="noopener" class="login-action-icon whatsapp" aria-label="تواصل واتساب" title="تواصل واتساب">
-                                        <i class="bi bi-whatsapp"></i>
-                                    </a>
-                                </div>
-                                <br>
-                                لرؤية النظام من الداخل ومعرفة شكله ومميزاته
-                                <a href="{{ route('landing.control') }}" class="login-preview-link">اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
                             </div>
                         </form>
                     </div>
@@ -659,8 +667,7 @@
 
                             <div class="login-sponsor-box">
                                 <strong>هذا الموقع برعاية أحمد خلف</strong><br>
-                                للاستفسار (رقم كويتي):
-                                <a href="{{ $supportCallLink }}" class="login-sponsor-phone">{{ $supportDisplayPhone }}</a>
+                                للاستفسار:
                                 <div class="login-sponsor-actions" aria-label="أزرار التواصل">
                                     <a href="{{ $supportCallLink }}" class="login-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
                                         <i class="bi bi-telephone-fill"></i>
