@@ -41,12 +41,12 @@
             @endif
 
             @if ($election && !$isAdmin)
-                <div class="hm-section hm-anim hm-card-anim mt-3" style="--hm-delay: 120ms;">
+                <div class="hm-section hm-section-compact hm-anim hm-card-anim mt-3" style="--hm-delay: 120ms;">
                     <div class="hm-section-title">
                         <i class="bi bi-hourglass-split"></i>
                         الوقت المتبقي
                     </div>
-                    <div class="hm-card hm-countdown" id="hmCountdown">
+                    <div class="hm-card hm-countdown hm-countdown-compact" id="hmCountdown">
                         <input type="hidden" id="hmStartDate" value="{{ \Carbon\Carbon::parse($election->start_date)->format('Y-m-d') }}">
                         <input type="hidden" id="hmStartTime" value="{{ \Carbon\Carbon::parse($election->start_time)->format('H:i:s') }}">
                         <input type="hidden" id="hmEndDate" value="{{ \Carbon\Carbon::parse($election->end_date)->format('Y-m-d') }}">
