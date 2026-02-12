@@ -105,6 +105,24 @@
 
     <script>
         (function () {
+            window.toggleDashboardUserMenu = function (event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                var userMenuPanel = document.querySelector('#user-menu-panel');
+                var userMenuToggle = document.querySelector('#user-menu-dropdown');
+
+                if (!userMenuPanel || !userMenuToggle) {
+                    return;
+                }
+
+                var isOpen = userMenuPanel.classList.contains('show');
+                userMenuPanel.classList.toggle('show', !isOpen);
+                userMenuToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+            };
+
             document.addEventListener('click', function (event) {
                 var toggle = event.target.closest('#sidebar-toggle');
                 if (toggle) {
@@ -124,23 +142,11 @@
                     return;
                 }
 
-                var userMenuToggle = event.target.closest('#user-menu-toggle');
                 var userMenuPanel = document.querySelector('#user-menu-panel');
-
-                if (userMenuToggle && userMenuPanel) {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    var isOpen = userMenuPanel.classList.contains('show');
-                    userMenuPanel.classList.toggle('show', !isOpen);
-                    userMenuToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
-                    return;
-                }
-
-                var clickedInsideMenu = event.target.closest('#user-menu-dropdown');
+                var clickedInsideMenu = event.target.closest('#user-menu-wrapper');
                 if (!clickedInsideMenu && userMenuPanel && userMenuPanel.classList.contains('show')) {
                     userMenuPanel.classList.remove('show');
-                    var toggleButton = document.querySelector('#user-menu-toggle');
+                    var toggleButton = document.querySelector('#user-menu-dropdown');
                     if (toggleButton) {
                         toggleButton.setAttribute('aria-expanded', 'false');
                     }

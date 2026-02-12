@@ -17,8 +17,8 @@
     
         <div class=" py-2 text-end ">
             <div class="d-flex navControll">
-                                <div class="dropdown me-1" id="user-menu-dropdown">
-                                        <button id="user-menu-toggle" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-toggle="dropdown" aria-expanded="false">
+                                <div class="dropdown me-1" id="user-menu-wrapper">
+                                    <button id="user-menu-dropdown" class="btn btn-secondary dropdown-toggle" type="button" onclick="toggleDashboardUserMenu(event)" aria-expanded="false">
                         <i class="fa fa-user ms-1"></i>
                         <span class="font-sm text-capitalize">                 {{auth()->user()->name}}
                         </span>
