@@ -1026,8 +1026,8 @@
 
                 // Seed UI (stable layout, no shifts)
                 messages.innerHTML = '';
-                messages.style.minHeight = '4.2rem';
-                messages.style.marginTop = '0.25rem';
+                messages.style.minHeight = '0';
+                messages.style.marginTop = '0';
 
                 // No button in this experience
                 if (goBtn) {
