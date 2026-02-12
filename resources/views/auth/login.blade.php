@@ -57,7 +57,7 @@
         }
 
         body[data-login-theme="modern"] .login-modern {
-            display: flex !important;
+            display: block !important;
             pointer-events: auto;
         }
 
@@ -110,6 +110,17 @@
             height: auto !important;
             min-height: 100dvh;
             overflow: visible;
+        }
+
+        body[data-login-theme="modern"] {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+        }
+
+        html {
+            overflow-y: auto;
         }
 
         html,
@@ -332,7 +343,7 @@
 
         @media (max-width: 991px) {
             .login-modern-layout {
-                align-items: flex-start;
+                align-items: initial;
             }
 
             .login-modern .modern-shell {
@@ -345,7 +356,7 @@
             }
 
             body[data-login-theme="modern"] {
-                overflow-y: auto;
+                overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
             }
         }
