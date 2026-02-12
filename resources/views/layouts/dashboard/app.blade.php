@@ -219,12 +219,21 @@
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ mode: mode })
-            }).then(function () {
-                try {
-                    localStorage.removeItem('ui_mode_pending');
-                } catch (e) {
-                    // ignore
+            }).then(function (res) {
+                if (!res || !res.ok) {
+                    return;
                 }
+                return res.json().then(function (data) {
+                    if (data && data.success) {
+                        try {
+                            localStorage.removeItem('ui_mode_pending');
+                        } catch (e) {
+                            // ignore
+                        }
+                    }
+                }).catch(function () {
+                    // ignore
+                });
             }).catch(function () {
                 // ignore
             });

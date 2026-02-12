@@ -1329,6 +1329,7 @@
                 // Apply mode only after CSS is loaded
                 applyBodyMode('modern');
 
+                // Make modern visible BEFORE fading classic out (avoid blank state)
                 modern.style.display = 'block';
                 classic.style.display = 'block';
                 modern.style.opacity = '0';
