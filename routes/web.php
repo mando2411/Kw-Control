@@ -21,6 +21,8 @@ require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/client.php';
 
+Route::view('/about-control', 'landing.control')->name('landing.control');
+
 Route::get('/media-file/{path}', function (string $path) {
     $mediaRoot = realpath(storage_path('app/public/media'));
 

@@ -210,6 +210,44 @@
             border-radius: 0.9rem;
         }
 
+        .login-sponsor-box {
+            margin-top: 0.9rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: rgba(255, 255, 255, 0.86);
+            color: #334155;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        .login-sponsor-box strong {
+            color: #0f172a;
+        }
+
+        .login-sponsor-phone {
+            direction: ltr;
+            unicode-bidi: plaintext;
+            font-weight: 800;
+            color: #075985;
+            text-decoration: none;
+        }
+
+        .login-preview-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.45rem;
+            font-weight: 700;
+            color: #0369a1;
+            text-decoration: none;
+        }
+
+        .login-preview-link:hover {
+            color: #0c4a6e;
+            text-decoration: underline;
+        }
+
         /* === Enterprise AJAX Login Overlay (Modern Theme Only) === */
         .login-modern {
             position: relative;
@@ -499,6 +537,15 @@
                                 </div>
                                 <button type="submit" class="btn btn-warning mt-2">تسجيل دخول</button>
                             </div>
+
+                            <div class="login-sponsor-box">
+                                <strong>هذا الموقع برعاية أحمد خلف</strong><br>
+                                للاستفسار (رقم كويتي):
+                                <a href="tel:+96555150551" class="login-sponsor-phone">+965 55150551</a>
+                                <br>
+                                لرؤية النظام من الداخل ومعرفة شكله ومميزاته
+                                <a href="{{ route('landing.control') }}" class="login-preview-link">اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -558,6 +605,15 @@
                                     <label class="form-check-label" for="rememberMeModern">تذكرني</label>
                                 </div>
                                 <button type="submit" class="btn modern-primary" id="modernLoginSubmit">تسجيل دخول</button>
+                            </div>
+
+                            <div class="login-sponsor-box">
+                                <strong>هذا الموقع برعاية أحمد خلف</strong><br>
+                                للاستفسار (رقم كويتي):
+                                <a href="tel:+96555150551" class="login-sponsor-phone">+965 55150551</a>
+                                <br>
+                                لرؤية النظام من الداخل ومعرفة شكله ومميزاته
+                                <a href="{{ route('landing.control') }}" class="login-preview-link">اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
                             </div>
                         </form>
                     </div>
