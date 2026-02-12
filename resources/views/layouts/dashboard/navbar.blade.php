@@ -90,10 +90,12 @@
             <i class="bi bi-house"></i>
             <span>الرئيسية</span>
         </a>
-        <a href="{{ route('dashboard.settings.result') }}" class="dmb-item" aria-label="الإعدادات">
-            <i class="bi bi-sliders"></i>
-            <span>الإعدادات</span>
-        </a>
+        @if (auth()->user()->hasRole("Administrator"))
+            <a href="{{ route('dashboard.settings.result') }}" class="dmb-item" aria-label="الإعدادات">
+                <i class="bi bi-sliders"></i>
+                <span>الإعدادات</span>
+            </a>
+        @endif
         <a href="{{ route('profile.edit') }}" class="dmb-item" aria-label="الملف الشخصي">
             <i class="bi bi-person"></i>
             <span>حسابي</span>
