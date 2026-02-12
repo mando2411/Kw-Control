@@ -166,6 +166,17 @@
             display: none;
         }
 
+        /* Modern-only components must stay hidden by default (especially in classic mode) */
+        .dashboard-topbar-mobile,
+        .dashboard-mobilebar,
+        .hm-sidebar-toggle--mobile,
+        .dashboard-topbar-mobile .dtm-actions,
+        .dashboard-topbar-mobile .dtm-user,
+        .dashboard-topbar-mobile .dtm-logout,
+        .dashboard-topbar-mobile .dtm-avatar {
+            display: none;
+        }
+
         html.ui-modern .sidebar-toggle-classic,
         body.ui-modern .sidebar-toggle-classic {
             display: none !important;
