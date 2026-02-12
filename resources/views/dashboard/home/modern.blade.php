@@ -42,12 +42,12 @@
         </div>
 
         @if ($election)
-            <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 140ms;">
+            <div class="hm-section hm-countdown-section hm-anim hm-card-anim" style="--hm-delay: 140ms;">
                 <div class="hm-section-title">
                     <i class="bi bi-hourglass-split"></i>
                     الوقت المتبقي
                 </div>
-                <div class="hm-card hm-countdown" id="hmCountdown">
+                <div class="hm-card hm-countdown hm-countdown-card" id="hmCountdown">
                     <input type="hidden" id="hmStartDate" value="{{ \Carbon\Carbon::parse($election->start_date)->format('Y-m-d') }}">
                     <input type="hidden" id="hmStartTime" value="{{ \Carbon\Carbon::parse($election->start_time)->format('H:i:s') }}">
                     <input type="hidden" id="hmEndDate" value="{{ \Carbon\Carbon::parse($election->end_date)->format('Y-m-d') }}">
