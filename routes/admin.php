@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\Dashboard\AutoTranslationController;
+use App\Http\Controllers\Dashboard\NotificationController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SettingController;
 use App\Http\Controllers\Dashboard\UserController;
@@ -31,6 +32,9 @@ Route::group(['prefix' => 'dashboard',
     'as' => 'dashboard.'],
     function () {
         Route::post('translate'  , [AutoTranslationController::class, 'translate'])->name('model.auto.translate');
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+        Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::get('toggle-theme', [ProfileController::class, 'toggleTheme'])->name('toggle-theme');
         Route::resource('users', UserController::class)->except('show');
         Route::resource('roles', RoleController::class)->except('show');

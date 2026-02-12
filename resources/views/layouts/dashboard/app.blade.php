@@ -228,6 +228,8 @@
         .dashboard-topbar-mobile .dtm-actions,
         .dashboard-topbar-mobile .dtm-user,
         .dashboard-topbar-mobile .dtm-notif,
+        .dashboard-topbar-mobile .dtm-notif-badge,
+        .dashboard-topbar-mobile .dtm-notif-panel,
         .dashboard-topbar-mobile .dtm-logout,
         .dashboard-topbar-mobile .dtm-avatar {
             display: none;
@@ -694,6 +696,11 @@
                 position: relative;
             }
 
+            html.ui-modern .dashboard-topbar-mobile #notif-menu-wrapper-mobile,
+            body.ui-modern .dashboard-topbar-mobile #notif-menu-wrapper-mobile {
+                position: relative;
+            }
+
             html.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile {
                 left: 0;
@@ -728,6 +735,31 @@
             html.ui-modern .dashboard-topbar-mobile .dtm-notif,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif {
                 color: var(--ui-ink);
+                position: relative;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-badge,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-badge {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                min-width: 18px;
+                height: 18px;
+                line-height: 18px;
+                border-radius: 999px;
+                text-align: center;
+                padding: 0 4px;
+                background: var(--ui-danger);
+                color: #fff;
+                font-size: 0.68rem;
+                font-weight: 800;
+                border: 1px solid rgba(255, 255, 255, 0.7);
+                display: inline-block;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-badge[hidden],
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-badge[hidden] {
+                display: none;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-logout i,

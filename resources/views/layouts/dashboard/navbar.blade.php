@@ -85,9 +85,21 @@
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
 
-                <button type="button" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات">
-                    <i class="bi bi-bell"></i>
-                </button>
+                <div class="dropdown" id="notif-menu-wrapper-mobile">
+                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" onclick="toggleDashboardNotifMenuMobile(event)" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="dtm-notif-badge" id="dtmNotifBadgeMobile" hidden>0</span>
+                    </button>
+                    <div id="notif-menu-panel-mobile" class="dropdown-menu dtm-notif-panel">
+                        <div class="dtm-notif-head">
+                            <strong>الإشعارات</strong>
+                            <button type="button" class="dtm-notif-read-all" id="dtmNotifReadAllMobile">تعليم الكل كمقروء</button>
+                        </div>
+                        <div class="dtm-notif-list" id="dtmNotifListMobile">
+                            <div class="dtm-notif-empty">لا توجد إشعارات حالياً.</div>
+                        </div>
+                    </div>
+                </div>
 
                 @if (auth()->user()->hasRole("Administrator"))
                     <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">

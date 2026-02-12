@@ -7,6 +7,7 @@ use App\Models\Currency;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\Voter;
+use App\Notifications\SystemNotification;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -103,4 +104,26 @@ if (!function_exists('setting')) {
         return $options ?? [];
     }
 
+}
+
+if (!function_exists('send_system_notification')) {
+    /**
+     * Send a database notification to one user or a collection of users.
+     *
+     * @param User|Collection<int, User>|array<int, User> $users
+     */
+    function send_system_notification(User|Collection|array $users, array $payload): void
+    {
+        if ($users instanceof User) {
+            $users->notify(new SystemNotification($payload));
+
+            return;
+        }
+
+        foreach ($users as $user) {
+            if ($user instanceof User) {
+                $user->notify(new SystemNotification($payload));
+            }
+        }
+    }
 }
