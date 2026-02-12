@@ -747,6 +747,7 @@
                     </div>
                 </div>
 
+                    <!--
                 <div class="col-12">
                     <div class="modern-card h-100">
                         <span class="modern-badge">
@@ -764,6 +765,7 @@
                         </ul>
                     </div>
                 </div>
+                        -->
             </div>
         </div>
     </section>
