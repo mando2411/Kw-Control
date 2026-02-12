@@ -730,10 +730,15 @@
                 // Phase 1 — Image scanning (ONLY this runs first)
                 async function phase1Scan() {
                     return new Promise(function (resolve) {
-                        var scanTotalMs = 2700; // 2.5–3s
+                        // Total scan duration (includes green lock-in pulse)
+                        var scanTotalMs = 2600; // 2.5–3s
                         var decelMs = 2000;     // deceleration window
                         var startIntervalMs = 35; // 30–40ms
                         var endIntervalMs = 250;
+
+                        // Reserve the last part of Phase 1 for the green success pulse
+                        var successPulseMs = 350;
+                        var cycleEndMs = Math.max(0, scanTotalMs - successPulseMs);
 
                         var scanStart = performance.now();
                         var lastSwap = 0;
@@ -785,7 +790,7 @@
                                 lastSwap = now;
                             }
 
-                            if (elapsed < scanTotalMs) {
+                            if (elapsed < cycleEndMs) {
                                 rafId = requestAnimationFrame(tick);
                                 return;
                             }
@@ -809,7 +814,7 @@
                             successTl.to(glow, { duration: 0.25, opacity: 1 }, 0);
                             successTl.fromTo('.scan-frame', { scale: 1.05 }, { duration: 0.35, scale: 1, ease: 'power2.out' }, 0);
                             successTl.to(sweep, { duration: 0.25, opacity: 0, ease: 'power2.out' }, 0);
-                            successTl.add(resolve, 0.4);
+                            successTl.add(resolve, successPulseMs / 1000);
                         }
 
                         entry.add(function () {
