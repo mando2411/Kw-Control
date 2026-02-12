@@ -1,5 +1,11 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+@php
+    $uiModeServer = auth()->check() ? (auth()->user()->ui_mode ?? 'classic') : null;
+    $uiModeServer = in_array($uiModeServer, ['classic', 'modern'], true) ? $uiModeServer : 'classic';
+    $isHomepage = request()->routeIs('dashboard');
+@endphp
+
+<html lang="{{ app()->getLocale() }}" class="ui-{{ $uiModeServer }}" data-ui-mode="{{ $uiModeServer }}">
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -9,6 +15,72 @@
     <meta name="keywords" content="admin dashboard, New vision, web app">
     <meta name="author" content="Ahmed Nasr">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <script>
+        // UI mode bootstrap (runs before paint): prevents flicker and syncs localStorage
+        (function () {
+            var SERVER_MODE = {!! json_encode($uiModeServer) !!};
+            var IS_AUTH = {{ auth()->check() ? 'true' : 'false' }};
+            var IS_HOMEPAGE = {{ $isHomepage ? 'true' : 'false' }};
+            var STORAGE_KEY = 'ui_mode';
+            var PENDING_KEY = 'ui_mode_pending';
+            var mode = SERVER_MODE || 'classic';
+            var pending = null;
+
+            try {
+                pending = localStorage.getItem(PENDING_KEY);
+                var local = localStorage.getItem(STORAGE_KEY);
+                if (pending && (local === 'classic' || local === 'modern')) {
+                    mode = local;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            // Apply early to <html> (and later we also set on <body>)
+            var root = document.documentElement;
+            root.classList.remove('ui-modern', 'ui-classic');
+            root.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+            root.setAttribute('data-ui-mode', mode);
+
+            window.__UI_MODE_SERVER__ = SERVER_MODE;
+            window.__UI_MODE_EFFECTIVE__ = mode;
+            window.__UI_MODE_IS_AUTH__ = IS_AUTH;
+            window.__UI_MODE_IS_HOMEPAGE__ = IS_HOMEPAGE;
+
+            // Preload homepage modern css (fetch only, no apply)
+            if (IS_HOMEPAGE) {
+                var preloadId = 'homeModernCssPreload';
+                if (!document.getElementById(preloadId)) {
+                    var preload = document.createElement('link');
+                    preload.id = preloadId;
+                    preload.rel = 'preload';
+                    preload.as = 'style';
+                    preload.href = "{{ asset('assets/css/home-modern.css') }}";
+                    document.head.appendChild(preload);
+                }
+
+                // If mode is modern, apply stylesheet early to avoid white flash
+                if (mode === 'modern') {
+                    var cssId = 'homeModernCss';
+                    if (!document.getElementById(cssId)) {
+                        var link = document.createElement('link');
+                        link.id = cssId;
+                        link.rel = 'stylesheet';
+                        link.href = "{{ asset('assets/css/home-modern.css') }}";
+                        document.head.appendChild(link);
+                    }
+                }
+            }
+
+            // Keep localStorage in sync for instant loads
+            try {
+                localStorage.setItem(STORAGE_KEY, mode);
+            } catch (e) {
+                // ignore
+            }
+        })();
+    </script>
     {{--    <link rel="icon" href="assets/images/dashboard/favicon.png" type="image/x-icon"> --}}
     {{--    <link rel="shortcut icon" href="assets/images/dashboard/favicon.png" type="image/x-icon"> --}}
     <title>{{ setting(\App\Enums\SettingKey::SITE_TITLE->value, true) }} | Dashboard</title>
@@ -49,7 +121,7 @@
     </style>
 </head>
 
-<body class="">
+<body class="ui-{{ $uiModeServer }}" data-ui-mode="{{ $uiModeServer }}">
     <!-- page-wrapper Start-->
     <div class="page-wrapper">
 
@@ -102,6 +174,62 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 
     <script src="{{ asset('assets/admin/js/admin.js') }}"></script>
+
+    <script>
+        // Persist effective UI mode to DB (cross-device) and finalize <body> classes
+        (function () {
+            var IS_AUTH = !!window.__UI_MODE_IS_AUTH__;
+            if (!IS_AUTH) {
+                // still ensure body mirrors <html>
+                var mode = window.__UI_MODE_EFFECTIVE__ || 'classic';
+                document.body.classList.remove('ui-modern', 'ui-classic');
+                document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+                document.body.setAttribute('data-ui-mode', mode);
+                return;
+            }
+
+            var mode = window.__UI_MODE_EFFECTIVE__ || 'classic';
+            var server = window.__UI_MODE_SERVER__ || 'classic';
+
+            document.body.classList.remove('ui-modern', 'ui-classic');
+            document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+            document.body.setAttribute('data-ui-mode', mode);
+
+            var pending = null;
+            try {
+                pending = localStorage.getItem('ui_mode_pending');
+            } catch (e) {
+                // ignore
+            }
+
+            if (!pending && server === mode) {
+                return;
+            }
+
+            var csrf = document.querySelector('meta[name="csrf-token"]');
+            var token = csrf ? csrf.getAttribute('content') : '';
+
+            fetch("{{ route('ui-mode.update') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': token
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ mode: mode })
+            }).then(function () {
+                try {
+                    localStorage.removeItem('ui_mode_pending');
+                } catch (e) {
+                    // ignore
+                }
+            }).catch(function () {
+                // ignore
+            });
+        })();
+    </script>
 
     <script>
         (function () {

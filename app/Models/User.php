@@ -33,6 +33,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'image',
+        'ui_mode',
         'last_login_at',
         'last_active_at',
         'creator_id',
