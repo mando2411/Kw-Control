@@ -224,6 +224,7 @@
         .dashboard-mobilebar,
         .hm-sidebar-toggle--mobile,
         .dashboard-topbar-mobile .dtm-left,
+        .dashboard-topbar-mobile .dtm-center,
         .dashboard-topbar-mobile .dtm-actions,
         .dashboard-topbar-mobile .dtm-user,
         .dashboard-topbar-mobile .dtm-notif,
@@ -619,12 +620,12 @@
             html.ui-modern .dashboard-topbar-mobile .dtm-inner,
             body.ui-modern .dashboard-topbar-mobile .dtm-inner {
                 height: 60px;
-                position: relative;
-                display: flex;
+                display: grid;
+                grid-template-columns: auto 1fr auto;
                 align-items: center;
-                justify-content: space-between;
                 gap: 10px;
                 padding: 10px 12px;
+                direction: ltr;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-brand,
@@ -644,9 +645,13 @@
                 align-items: center;
                 gap: 10px;
                 direction: ltr;
-                margin-inline-start: auto;
                 position: relative;
                 z-index: 2;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-center,
+            body.ui-modern .dashboard-topbar-mobile .dtm-center {
+                min-width: 0;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-title,
@@ -679,6 +684,7 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
+                justify-self: end;
                 position: relative;
                 z-index: 2;
             }
@@ -690,10 +696,10 @@
 
             html.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile {
-                left: auto;
-                right: 0;
-                inset-inline-start: auto;
-                inset-inline-end: 0;
+                left: 0;
+                right: auto;
+                inset-inline-start: 0;
+                inset-inline-end: auto;
                 top: calc(100% + 8px);
                 min-width: 172px;
                 max-width: calc(100vw - 18px);

@@ -62,22 +62,6 @@
     <!-- Modern Mobile Header (ui-modern only via CSS) -->
     <div class="dashboard-topbar-mobile fixed-top" dir="rtl" aria-label="Mobile Header">
         <div class="dtm-inner">
-            <div class="dtm-actions">
-                @if (auth()->user()->hasRole("Administrator"))
-                    <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
-                        <i class="bi bi-layout-sidebar-inset"></i>
-                    </button>
-                @endif
-
-                <button type="button" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات">
-                    <i class="bi bi-bell"></i>
-                </button>
-
-                <a href="{{ route('logout') }}" class="dtm-logout" aria-label="تسجيل خروج">
-                    <i class="bi bi-box-arrow-right"></i>
-                </a>
-            </div>
-
             <div class="dtm-left">
                 <div class="dropdown" id="user-menu-wrapper-mobile">
                     <button id="user-menu-dropdown-mobile" class="dtm-user" type="button" onclick="toggleDashboardUserMenuMobile(event)" aria-expanded="false" aria-label="حساب المستخدم">
@@ -92,6 +76,24 @@
                 <a href="{{ route('dashboard') }}" class="dtm-brand" aria-label="الرئيسية">
                     <span class="dtm-title">{{ config('app.name', 'كنترول') }}</span>
                 </a>
+            </div>
+
+            <div class="dtm-center" aria-hidden="true"></div>
+
+            <div class="dtm-actions">
+                <a href="{{ route('logout') }}" class="dtm-logout" aria-label="تسجيل خروج">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+
+                <button type="button" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات">
+                    <i class="bi bi-bell"></i>
+                </button>
+
+                @if (auth()->user()->hasRole("Administrator"))
+                    <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
+                        <i class="bi bi-layout-sidebar-inset"></i>
+                    </button>
+                @endif
             </div>
 
         </div>
