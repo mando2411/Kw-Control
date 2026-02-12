@@ -118,6 +118,66 @@
             color: #fff !important;
             border: 1px solid #fff;
         }
+
+        /* Modern sidebar toggle (UI mode) */
+        .sidebar-toggle-modern {
+            display: none;
+        }
+
+        html.ui-modern .sidebar-toggle-classic,
+        body.ui-modern .sidebar-toggle-classic {
+            display: none !important;
+        }
+
+        html.ui-modern .sidebar-toggle-modern,
+        body.ui-modern .sidebar-toggle-modern {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .hm-sidebar-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.16);
+            background: rgba(255, 255, 255, 0.92);
+            color: rgba(15, 23, 42, 0.92);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.10);
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+            will-change: transform;
+        }
+
+        .hm-sidebar-toggle i {
+            font-size: 1.05rem;
+            color: rgba(14, 165, 233, 0.95);
+        }
+
+        .hm-sidebar-toggle-text {
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        .hm-sidebar-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(2, 6, 23, 0.14);
+            border-color: rgba(14, 165, 233, 0.28);
+        }
+
+        .hm-sidebar-toggle:active {
+            transform: translateY(0px);
+        }
+
+        @media (max-width: 576px) {
+            .hm-sidebar-toggle-text {
+                display: none;
+            }
+
+            .hm-sidebar-toggle {
+                padding: 0.55rem 0.75rem;
+            }
+        }
     </style>
 </head>
 
@@ -271,6 +331,39 @@
                     }
                 }
             });
+        })();
+    </script>
+
+    <script>
+        // Modern sidebar toggle delegates to the existing #sidebar-toggle behavior
+        (function () {
+            function bind() {
+                var modernBtn = document.getElementById('sidebar-toggle-modern');
+                if (!modernBtn) return;
+                if (modernBtn.dataset.bound === '1') return;
+                modernBtn.dataset.bound = '1';
+
+                modernBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    var classicIcon = document.getElementById('sidebar-toggle');
+                    if (!classicIcon) return;
+
+                    var classicTrigger = classicIcon.closest('a,button');
+                    if (classicTrigger) {
+                        classicTrigger.click();
+                    } else {
+                        classicIcon.click();
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bind, { once: true });
+            } else {
+                bind();
+            }
         })();
     </script>
 

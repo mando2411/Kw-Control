@@ -37,12 +37,19 @@
                 </button>
                 </a>
                 @if (auth()->user()->hasRole("Administrator"))
-                <span class="media-body text-end switch-sm mx-2">
+                <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
                     <label class="switch">
-                        <a href="javascript:void(0)" class="btn btn-outline-secondary">
+                        <a href="javascript:void(0)" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
                             <i id="sidebar-toggle" data-feather="align-left"></i>
                         </a>
                     </label>
+                </span>
+
+                <span class="media-body text-end mx-2 sidebar-toggle-modern">
+                    <button type="button" class="hm-sidebar-toggle" id="sidebar-toggle-modern" aria-label="القائمة الجانبية">
+                        <i class="bi bi-layout-sidebar-inset"></i>
+                        <span class="hm-sidebar-toggle-text">القائمة</span>
+                    </button>
                 </span>
                 @endif
             </div>
