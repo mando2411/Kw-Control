@@ -636,6 +636,7 @@
 
             html.ui-modern .dashboard-topbar-mobile .dtm-avatar,
             body.ui-modern .dashboard-topbar-mobile .dtm-avatar {
+                display: block !important;
                 width: 38px;
                 height: 38px;
                 border-radius: 999px;
