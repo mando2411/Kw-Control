@@ -1,5 +1,6 @@
 <?php if(auth()->user()){ ?>
-    <div class="nav dashboard-topbar d-flex justify-content-between align-items-center px-2 bg-dark fixed-top w-100 flex-wrap">
+    <!-- Desktop header (kept as-is, modern gets a separate mobile header) -->
+    <div class="nav dashboard-topbar dashboard-topbar-desktop d-flex justify-content-between align-items-center px-2 bg-dark fixed-top w-100 flex-wrap">
         <div class="f-nav d-flex pt-2 align-items-center " >
             <a href="">
                 <figure class="rounded-circle overflow-hidden me-2"><img src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" class="w-100 h-100" alt="user image"></figure>
@@ -57,4 +58,45 @@
         </div>
     
     </div>
+
+    <!-- Modern Mobile Header (ui-modern only via CSS) -->
+    <div class="dashboard-topbar-mobile fixed-top" dir="rtl" aria-label="Mobile Header">
+        <div class="dtm-inner">
+            @if (auth()->user()->hasRole("Administrator"))
+                <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </button>
+            @endif
+
+            <a href="{{ route('dashboard') }}" class="dtm-brand" aria-label="الرئيسية">
+                <span class="dtm-title">Control</span>
+            </a>
+
+            <div class="dropdown" id="user-menu-wrapper-mobile">
+                <button id="user-menu-dropdown-mobile" class="dtm-user" type="button" onclick="toggleDashboardUserMenuMobile(event)" aria-expanded="false" aria-label="حساب المستخدم">
+                    <img class="dtm-avatar" src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
+                </button>
+                <ul id="user-menu-panel-mobile" class="dropdown-menu">
+                    <li><a class="dropdown-item px-2" style="font-size:12px" href="{{ route('profile.edit') }}">تحرير الملف الشخصي</a></li>
+                    <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Mobile Bottom Bar (ui-modern only via CSS) -->
+    <nav class="dashboard-mobilebar" dir="rtl" aria-label="Mobile Bar">
+        <a href="{{ route('dashboard') }}" class="dmb-item" aria-label="الرئيسية">
+            <i class="bi bi-house"></i>
+            <span>الرئيسية</span>
+        </a>
+        <a href="{{ route('dashboard.settings.result') }}" class="dmb-item" aria-label="الإعدادات">
+            <i class="bi bi-sliders"></i>
+            <span>الإعدادات</span>
+        </a>
+        <a href="{{ route('profile.edit') }}" class="dmb-item" aria-label="الملف الشخصي">
+            <i class="bi bi-person"></i>
+            <span>حسابي</span>
+        </a>
+    </nav>
 <?php } ?>
