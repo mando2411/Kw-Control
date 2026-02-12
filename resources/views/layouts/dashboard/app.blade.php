@@ -643,6 +643,7 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 10px;
+                direction: ltr;
                 margin-inline-start: auto;
                 position: relative;
                 z-index: 2;
