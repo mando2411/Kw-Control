@@ -43,7 +43,7 @@
                     @endif
 
                     @if ($election && !$isAdmin)
-                        <div class="hm-section hm-section-compact hm-section-mini hm-anim hm-card-anim" style="--hm-delay: 90ms;">
+                        <div class="hm-section hm-section-compact hm-section-mini hm-anim hm-card-anim" style="--hm-delay: 160ms;">
                             <div class="hm-section-title">
                                 <i class="bi bi-hourglass-split"></i>
                                 الوقت المتبقي
