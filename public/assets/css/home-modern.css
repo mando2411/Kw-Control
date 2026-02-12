@@ -7,11 +7,17 @@
 .home-modern-mode {
   direction: rtl;
   text-align: right;
-  --hm-ink: rgba(15, 23, 42, 0.92);
-  --hm-muted: rgba(71, 85, 105, 0.92);
-  --hm-surface: rgba(255, 255, 255, 0.86);
-  --hm-border: rgba(15, 23, 42, 0.08);
+  /* Align with the shared ui-modern palette when available */
+  --hm-ink: var(--ui-ink, rgba(15, 23, 42, 0.92));
+  --hm-muted: var(--ui-muted, rgba(71, 85, 105, 0.92));
+  --hm-surface: var(--ui-surface, rgba(255, 255, 255, 0.92));
+  --hm-border: var(--ui-border, rgba(15, 23, 42, 0.10));
   --hm-shadow: 0 18px 40px rgba(2, 6, 23, 0.10);
+  --hm-accent: var(--ui-accent, rgba(14, 165, 233, 0.95));
+  --hm-accent-soft: var(--ui-accent-soft, rgba(14, 165, 233, 0.12));
+  --hm-warm: var(--ui-warm, rgba(245, 158, 11, 0.92));
+  --hm-warm-soft: var(--ui-warm-soft, rgba(245, 158, 11, 0.10));
+  --hm-success: var(--ui-success, rgba(25, 135, 84, 0.95));
 }
 
 .home-modern-mode .hm-shell {
@@ -87,8 +93,8 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: rgba(34, 197, 94, 0.95);
-  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.12);
+  background: var(--hm-success);
+  box-shadow: 0 0 0 6px rgba(25, 135, 84, 0.12);
 }
 
 .home-modern-mode .hm-avatar {
@@ -156,7 +162,7 @@
   gap: 0.45rem;
   padding: 0.35rem 0.85rem;
   border-radius: 999px;
-  background: rgba(14, 165, 233, 0.10);
+  background: var(--hm-accent-soft);
   color: rgba(3, 105, 161, 0.92);
   font-weight: 700;
   font-size: 0.9rem;
@@ -192,7 +198,7 @@
 }
 
 .home-modern-mode .hm-section-title i {
-  color: rgba(14, 165, 233, 0.9);
+  color: var(--hm-accent);
 }
 
 .home-modern-mode .hm-actions {
@@ -246,7 +252,7 @@
   border-radius: 14px;
   display: grid;
   place-items: center;
-  background: rgba(14, 165, 233, 0.10);
+  background: var(--hm-accent-soft);
   color: rgba(3, 105, 161, 0.92);
 }
 
@@ -330,8 +336,8 @@
 }
 
 .home-modern-mode .hm-presence.on {
-  background: rgba(34, 197, 94, 0.95);
-  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.10);
+  background: var(--hm-success);
+  box-shadow: 0 0 0 6px rgba(25, 135, 84, 0.10);
 }
 
 .home-modern-mode .hm-presence.off {
@@ -406,7 +412,7 @@
 }
 
 .home-modern-mode .hm-import-modern .import-warning {
-  background: rgba(245, 158, 11, 0.10);
+  background: var(--hm-warm-soft);
   border: 1px solid rgba(245, 158, 11, 0.22);
   color: rgba(120, 53, 15, 0.92);
   border-radius: 14px;
