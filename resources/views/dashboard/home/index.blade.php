@@ -543,6 +543,12 @@
     body.ui-modern #homepage-modern,
     html.ui-modern body #homepage-modern {
         display: block;
+        opacity: 1;
+    }
+
+    body.ui-modern #homepage-classic,
+    html.ui-modern body #homepage-classic {
+        opacity: 0;
     }
 
     body.ui-mode-switching {
