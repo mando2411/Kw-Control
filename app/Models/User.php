@@ -16,6 +16,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use function parse_url;
 
 class User extends Authenticatable
 {
@@ -71,6 +72,31 @@ class User extends Authenticatable
         return Attribute::make(
             get: fn($value, $attributes) => Str::of($attributes['name'])->upper()->explode(' ')[0],
         );
+    }
+
+    public function getImageAttribute($value)
+    {
+        if (!$value) {
+            return $value;
+        }
+
+        if (Str::contains($value, '/media-file/')) {
+            return $value;
+        }
+
+        $urlPath = parse_url($value, PHP_URL_PATH) ?: $value;
+
+        if (Str::contains($urlPath, '/storage/media/')) {
+            $relativePath = Str::after($urlPath, '/storage/media/');
+            return url('/media-file/' . ltrim($relativePath, '/'));
+        }
+
+        if (Str::contains($urlPath, 'storage/media/')) {
+            $relativePath = Str::after($urlPath, 'storage/media/');
+            return url('/media-file/' . ltrim($relativePath, '/'));
+        }
+
+        return $value;
     }
 
 

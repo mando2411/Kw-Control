@@ -20,6 +20,26 @@ require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/client.php';
 
+Route::get('/media-file/{path}', function (string $path) {
+    $mediaRoot = realpath(storage_path('app/public/media'));
+
+    if ($mediaRoot === false) {
+        abort(404);
+    }
+
+    $requestedFile = realpath($mediaRoot . DIRECTORY_SEPARATOR . $path);
+
+    if (
+        $requestedFile === false ||
+        !Str::startsWith($requestedFile, $mediaRoot . DIRECTORY_SEPARATOR) ||
+        !File::isFile($requestedFile)
+    ) {
+        abort(404);
+    }
+
+    return response()->file($requestedFile);
+})->where('path', '.*');
+
 Route::get('/storage/media/{path}', function (string $path) {
     $mediaRoot = realpath(storage_path('app/public/media'));
 
