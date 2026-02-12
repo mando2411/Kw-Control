@@ -715,6 +715,96 @@
                 z-index: 1080;
             }
 
+            html.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile,
+            body.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile {
+                left: auto;
+                right: 0;
+                inset-inline-start: auto;
+                inset-inline-end: 0;
+                top: calc(100% + 8px);
+                min-width: 290px;
+                max-width: min(92vw, 360px);
+                margin: 0;
+                transform: none !important;
+                z-index: 1081;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-head,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--ui-border);
+                background: rgba(248, 250, 252, 0.85);
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all {
+                border: 0;
+                background: transparent;
+                color: var(--ui-accent);
+                font-size: 0.75rem;
+                font-weight: 800;
+                padding: 0;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-list,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-list {
+                max-height: 320px;
+                overflow: auto;
+                padding: 6px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-item,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-item {
+                display: block;
+                text-decoration: none;
+                color: var(--ui-ink);
+                border: 1px solid transparent;
+                border-radius: 10px;
+                padding: 9px 10px;
+                margin-bottom: 6px;
+                background: rgba(255, 255, 255, 0.76);
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-item.unread,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-item.unread {
+                background: rgba(14, 165, 233, 0.08);
+                border-color: rgba(14, 165, 233, 0.22);
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-title,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-title {
+                font-weight: 800;
+                font-size: 0.84rem;
+                margin-bottom: 2px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-body,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-body {
+                font-size: 0.76rem;
+                color: var(--ui-muted);
+                margin-bottom: 3px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-time,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-time {
+                font-size: 0.7rem;
+                color: rgba(100, 116, 139, 0.95);
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-empty,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-empty {
+                text-align: center;
+                color: var(--ui-muted);
+                font-size: 0.82rem;
+                padding: 12px 10px;
+            }
+
             html.ui-modern .dashboard-topbar-mobile .dtm-notif,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif,
             html.ui-modern .dashboard-topbar-mobile .dtm-logout,
@@ -1185,6 +1275,188 @@
                     }
                 }
             });
+        })();
+    </script>
+
+    <script>
+        (function () {
+            var notifPanel = document.getElementById('notif-menu-panel-mobile');
+            var notifToggle = document.getElementById('notif-menu-dropdown-mobile');
+            var notifList = document.getElementById('dtmNotifListMobile');
+            var notifBadge = document.getElementById('dtmNotifBadgeMobile');
+            var readAllBtn = document.getElementById('dtmNotifReadAllMobile');
+
+            if (!notifPanel || !notifToggle || !notifList || !notifBadge || !readAllBtn) {
+                return;
+            }
+
+            function csrfToken() {
+                var meta = document.querySelector('meta[name="csrf-token"]');
+                return meta ? meta.getAttribute('content') : '';
+            }
+
+            function renderBadge(count) {
+                var unread = Number(count || 0);
+                if (unread > 0) {
+                    notifBadge.hidden = false;
+                    notifBadge.textContent = unread > 99 ? '99+' : String(unread);
+                } else {
+                    notifBadge.hidden = true;
+                    notifBadge.textContent = '0';
+                }
+            }
+
+            function renderItems(items) {
+                function esc(value) {
+                    return String(value || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                }
+
+                function safeUrl(value) {
+                    var url = String(value || '');
+                    if (!url || url === '#') {
+                        return 'javascript:void(0)';
+                    }
+
+                    if (url.indexOf('/') === 0 || url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
+                        return url;
+                    }
+
+                    return 'javascript:void(0)';
+                }
+
+                if (!Array.isArray(items) || items.length === 0) {
+                    notifList.innerHTML = '<div class="dtm-notif-empty">لا توجد إشعارات حالياً.</div>';
+                    return;
+                }
+
+                notifList.innerHTML = items.map(function (item) {
+                    var itemUrl = safeUrl(item.url);
+                    var unreadClass = item.read_at ? '' : ' unread';
+
+                    return '' +
+                        '<a href="' + itemUrl + '" class="dtm-notif-item' + unreadClass + '" data-notif-id="' + item.id + '">' +
+                            '<div class="dtm-notif-title">' + esc(item.title || 'إشعار جديد') + '</div>' +
+                            '<div class="dtm-notif-body">' + esc(item.body || '') + '</div>' +
+                            '<div class="dtm-notif-time">' + esc(item.created_at || '') + '</div>' +
+                        '</a>';
+                }).join('');
+            }
+
+            function fetchNotifications() {
+                fetch("{{ route('dashboard.notifications.index') }}", {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch notifications');
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    renderBadge(data.unread_count || 0);
+                    renderItems(data.items || []);
+                })
+                .catch(function () {});
+            }
+
+            function markNotificationAsRead(id) {
+                if (!id) {
+                    return Promise.resolve();
+                }
+
+                return fetch("{{ url('dashboard/notifications') }}/" + id + "/read", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (data && typeof data.unread_count !== 'undefined') {
+                        renderBadge(data.unread_count || 0);
+                    }
+                })
+                .catch(function () {});
+            }
+
+            function markAllAsRead() {
+                fetch("{{ route('dashboard.notifications.read-all') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to mark all as read');
+                    }
+                    return response.json();
+                })
+                .then(function () {
+                    fetchNotifications();
+                })
+                .catch(function () {});
+            }
+
+            window.toggleDashboardNotifMenuMobile = function (event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                var isOpen = notifPanel.classList.contains('show');
+                notifPanel.classList.toggle('show', !isOpen);
+                notifToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+
+                if (!isOpen) {
+                    fetchNotifications();
+                }
+            };
+
+            readAllBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                markAllAsRead();
+            });
+
+            notifList.addEventListener('click', function (event) {
+                var link = event.target.closest('.dtm-notif-item');
+                if (!link) {
+                    return;
+                }
+
+                var id = link.getAttribute('data-notif-id');
+                markNotificationAsRead(id);
+            });
+
+            document.addEventListener('click', function (event) {
+                var clickedInsideNotif = event.target.closest('#notif-menu-wrapper-mobile');
+                if (!clickedInsideNotif && notifPanel.classList.contains('show')) {
+                    notifPanel.classList.remove('show');
+                    notifToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            fetchNotifications();
+            setInterval(fetchNotifications, 30000);
         })();
     </script>
 
