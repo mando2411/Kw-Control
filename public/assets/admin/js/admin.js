@@ -21507,7 +21507,17 @@ $(document).ready(function () {
 
 function fmSetLink($url, target = null, name = null) {
   if ($url && typeof $url === 'string') {
-    $url = $url.replace(/\/media\//g, '/storage/media/');
+    $url = $url.replace(/\\/g, '/');
+
+    if ($url.indexOf('/storage/storage/media/') !== -1) {
+      $url = $url.replace('/storage/storage/media/', '/storage/media/');
+    } else if ($url.indexOf('/storage/media/') === -1) {
+      if ($url.indexOf('/media/') !== -1) {
+        $url = $url.replace('/media/', '/storage/media/');
+      } else if ($url.indexOf('media/') === 0) {
+        $url = '/storage/' + $url;
+      }
+    }
   }
     if (!window.payload.multiple) {
         $(target).find('.card.image-box').remove()    
