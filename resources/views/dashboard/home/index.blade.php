@@ -1401,6 +1401,91 @@
         });
     })();
 </script>
+
+<script>
+    // Modern homepage animations + countdown (lightweight)
+    (function () {
+        function isModernActive() {
+            return document.body.classList.contains('ui-modern') || document.documentElement.classList.contains('ui-modern');
+        }
+
+        function pad2(n) {
+            n = Number(n) || 0;
+            return n < 10 ? ('0' + n) : String(n);
+        }
+
+        function parseDateTime(dateId, timeId) {
+            var d = document.getElementById(dateId);
+            var t = document.getElementById(timeId);
+            if (!d || !t || !d.value || !t.value) return null;
+            // Interpret as local time
+            return new Date(d.value + 'T' + t.value);
+        }
+
+        function startModernCountdown() {
+            var root = document.getElementById('hmCountdown');
+            if (!root) return;
+
+            var startAt = parseDateTime('hmStartDate', 'hmStartTime');
+            var endAt = parseDateTime('hmEndDate', 'hmEndTime');
+            if (!startAt || !endAt) return;
+
+            var daysEl = document.getElementById('hmDays');
+            var hoursEl = document.getElementById('hmHours');
+            var minutesEl = document.getElementById('hmMinutes');
+            var secondsEl = document.getElementById('hmSeconds');
+            var hintEl = document.getElementById('hmCountdownHint');
+
+            function setAll(d, h, m, s) {
+                if (daysEl) daysEl.textContent = String(Math.max(0, d));
+                if (hoursEl) hoursEl.textContent = pad2(h);
+                if (minutesEl) minutesEl.textContent = pad2(m);
+                if (secondsEl) secondsEl.textContent = pad2(s);
+            }
+
+            function tick() {
+                if (!isModernActive()) return;
+                var now = new Date();
+
+                var target = now < startAt ? startAt : endAt;
+                var label = now < startAt ? 'باقي على موعد الانتخابات' : 'باقي على نهاية الانتخابات';
+                if (hintEl) hintEl.textContent = label;
+
+                var diff = target.getTime() - now.getTime();
+                if (diff <= 0) {
+                    setAll(0, 0, 0, 0);
+                } else {
+                    var totalSeconds = Math.floor(diff / 1000);
+                    var days = Math.floor(totalSeconds / 86400);
+                    var rem = totalSeconds % 86400;
+                    var hours = Math.floor(rem / 3600);
+                    rem = rem % 3600;
+                    var minutes = Math.floor(rem / 60);
+                    var seconds = rem % 60;
+                    setAll(days, hours, minutes, seconds);
+                }
+
+                var next = 1000 - (Date.now() % 1000);
+                setTimeout(tick, next);
+            }
+
+            tick();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var root = document.getElementById('homeModernRoot');
+            if (!root) return;
+            if (!isModernActive()) return;
+
+            // Trigger CSS animations smoothly
+            requestAnimationFrame(function () {
+                root.classList.add('hm-ready');
+            });
+
+            startModernCountdown();
+        });
+    })();
+</script>
 <script>
     $('#load-more').on('click', function() {
         var page = $(this).data('page');
