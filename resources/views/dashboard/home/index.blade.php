@@ -1075,6 +1075,10 @@
             }
             if (!component) return;
 
+            // Apply modern skin only when mounted into modern UI
+            component.classList.toggle('hm-import-modern', mode === 'modern');
+            component.classList.toggle('hm-import-classic', mode !== 'modern');
+
             var targetSlot = document.querySelector('[data-voters-import-slot="' + mode + '"]');
             if (!targetSlot) {
                 targetSlot = document.querySelector('[data-voters-import-slot="classic"]');
