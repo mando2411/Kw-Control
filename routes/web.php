@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use App\Models\Setting;
 
 /*
@@ -17,6 +19,26 @@ use App\Models\Setting;
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/client.php';
+
+Route::get('/storage/media/{path}', function (string $path) {
+    $mediaRoot = realpath(storage_path('app/public/media'));
+
+    if ($mediaRoot === false) {
+        abort(404);
+    }
+
+    $requestedFile = realpath($mediaRoot . DIRECTORY_SEPARATOR . $path);
+
+    if (
+        $requestedFile === false ||
+        !Str::startsWith($requestedFile, $mediaRoot . DIRECTORY_SEPARATOR) ||
+        !File::isFile($requestedFile)
+    ) {
+        abort(404);
+    }
+
+    return response()->file($requestedFile);
+})->where('path', '.*');
 
 
 Route::get('/', function () {
