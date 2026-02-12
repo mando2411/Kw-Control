@@ -296,6 +296,34 @@
             background: rgba(37, 211, 102, 0.12);
         }
 
+        .login-modern-stack {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .modern-sponsor-card {
+            border: 1px solid rgba(14, 165, 233, 0.24);
+            background: linear-gradient(130deg, rgba(14, 165, 233, 0.12), rgba(255, 255, 255, 0.92));
+        }
+
+        .sponsor-bounce {
+            display: inline-flex;
+            animation: sponsorBounce 1.6s ease-in-out infinite;
+            transform-origin: center bottom;
+        }
+
+        @keyframes sponsorBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-5px);
+            }
+            60% {
+                transform: translateY(-2px);
+            }
+        }
+
         @media (max-width: 991px) {
             .login-modern-layout {
                 align-items: flex-start;
@@ -613,25 +641,32 @@
 
     <section class="login-modern login-modern-layout vh-100">
         <div class="container modern-shell">
-            <div class="row align-items-center g-4">
-                <div class="col-12 col-lg-6">
-                    <div class="modern-card h-100">
-                        <span class="modern-badge">
-                            <i class="bi bi-stars"></i>
-                            تجربة محدثة
-                        </span>
-                        <h1 class="modern-title mt-3">كنترول الانتخابات بشكل مستقبلي وواضح</h1>
-                        <p class="modern-subtitle mt-3">
-                            دخول آمن، واجهة خفيفة، وتفاصيل تساعدك تركز على الشغل من أول لحظة.
-                        </p>
-                        <ul class="modern-list">
-                            <li><i class="bi bi-shield-check"></i> خصوصية أعلى مع تصميم هادئ للعين.</li>
-                            <li><i class="bi bi-speedometer2"></i> وصول أسرع لأدوات التحكم.</li>
-                            <li><i class="bi bi-sun"></i> ألوان متوازنة تعكس التطوير المستمر.</li>
-                        </ul>
+            <div class="row g-4 login-modern-stack">
+                <div class="col-12">
+                    <div class="modern-card modern-sponsor-card">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <span class="modern-badge sponsor-bounce">
+                                    <i class="bi bi-megaphone-fill"></i>
+                                    رعاية ودعم
+                                </span>
+                                <h5 class="modern-title mt-2 mb-1">هذا الموقع برعاية أحمد خلف</h5>
+                                <p class="modern-subtitle mb-1">للاستفسار:</p>
+                                <div class="login-sponsor-actions" aria-label="أزرار التواصل">
+                                    <a href="{{ $supportCallLink }}" class="login-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
+                                        <i class="bi bi-telephone-fill"></i>
+                                    </a>
+                                    <a href="{{ $supportWhatsappLink }}" target="_blank" rel="noopener" class="login-action-icon whatsapp" aria-label="تواصل واتساب" title="تواصل واتساب">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <a href="{{ route('landing.control') }}" class="login-preview-link">لرؤية النظام من الداخل اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
+                        </div>
                     </div>
                 </div>
-                <div class="col-12 col-lg-6">
+
+                <div class="col-12">
                     <div class="modern-card modern-form" id="modernLoginCard">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
@@ -664,23 +699,25 @@
                                 </div>
                                 <button type="submit" class="btn modern-primary" id="modernLoginSubmit">تسجيل دخول</button>
                             </div>
-
-                            <div class="login-sponsor-box">
-                                <strong>هذا الموقع برعاية أحمد خلف</strong><br>
-                                للاستفسار:
-                                <div class="login-sponsor-actions" aria-label="أزرار التواصل">
-                                    <a href="{{ $supportCallLink }}" class="login-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
-                                        <i class="bi bi-telephone-fill"></i>
-                                    </a>
-                                    <a href="{{ $supportWhatsappLink }}" target="_blank" rel="noopener" class="login-action-icon whatsapp" aria-label="تواصل واتساب" title="تواصل واتساب">
-                                        <i class="bi bi-whatsapp"></i>
-                                    </a>
-                                </div>
-                                <br>
-                                لرؤية النظام من الداخل ومعرفة شكله ومميزاته
-                                <a href="{{ route('landing.control') }}" class="login-preview-link">اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
-                            </div>
                         </form>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="modern-card h-100">
+                        <span class="modern-badge">
+                            <i class="bi bi-stars"></i>
+                            تجربة محدثة
+                        </span>
+                        <h1 class="modern-title mt-3">كنترول الانتخابات</h1>
+                        <p class="modern-subtitle mt-3">
+                            دخول آمن، واجهة خفيفة، وتفاصيل تساعدك تركز على الشغل من أول لحظة.
+                        </p>
+                        <ul class="modern-list">
+                            <li><i class="bi bi-shield-check"></i> خصوصية أعلى مع تصميم هادئ للعين.</li>
+                            <li><i class="bi bi-speedometer2"></i> وصول أسرع لأدوات التحكم.</li>
+                            <li><i class="bi bi-sun"></i> ألوان متوازنة تعكس التطوير المستمر.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
