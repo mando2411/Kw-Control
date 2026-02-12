@@ -545,8 +545,32 @@
                         replaceConfirmed = false;
                     }
                     validateForm(form);
+
+                    // Selected-state styling (scoped, no IDs)
+                    var labels = form.querySelectorAll('.import-option, .import-option-mobile');
+                    Array.prototype.forEach.call(labels, function (lb) {
+                        lb.classList.remove('is-selected');
+                    });
+                    var checked = form.querySelector('[data-field="mode"]:checked');
+                    if (checked) {
+                        var parentLabel = checked.closest('label');
+                        if (parentLabel) parentLabel.classList.add('is-selected');
+                    }
                 });
             });
+
+            // Initial selected-state
+            (function initSelected() {
+                var labels = form.querySelectorAll('.import-option, .import-option-mobile');
+                Array.prototype.forEach.call(labels, function (lb) {
+                    lb.classList.remove('is-selected');
+                });
+                var checked = form.querySelector('[data-field="mode"]:checked');
+                if (checked) {
+                    var parentLabel = checked.closest('label');
+                    if (parentLabel) parentLabel.classList.add('is-selected');
+                }
+            })();
 
             updateViewDataLink(form);
             });

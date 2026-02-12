@@ -1079,6 +1079,14 @@
             component.classList.toggle('hm-import-modern', mode === 'modern');
             component.classList.toggle('hm-import-classic', mode !== 'modern');
 
+            // Re-trigger modern mount animation every time it moves into modern
+            component.classList.remove('hm-import-mounted');
+            if (mode === 'modern') {
+                requestAnimationFrame(function () {
+                    component.classList.add('hm-import-mounted');
+                });
+            }
+
             var targetSlot = document.querySelector('[data-voters-import-slot="' + mode + '"]');
             if (!targetSlot) {
                 targetSlot = document.querySelector('[data-voters-import-slot="classic"]');
