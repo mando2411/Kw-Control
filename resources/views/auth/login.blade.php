@@ -594,7 +594,7 @@
 
         .scan-welcome {
             display: none;
-            margin-top: 0.2rem;
+            margin-top: 0.1rem;
             text-align: center;
         }
 
