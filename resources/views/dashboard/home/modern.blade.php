@@ -246,18 +246,26 @@
                         @endforelse
                     </div>
                 </div>
-                <div class="hm-sub mt-2">ملاحظة: نموذج استيراد الناخبين متاح في الشكل الكلاسيكي حالياً.</div>
+                @can('import-voters')
+                    <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 430ms;">
+                        <div class="hm-section-title">
+                            <i class="bi bi-upload"></i>
+                            استيراد الناخبين
+                        </div>
+                        <div data-voters-import-slot="modern"></div>
+                    </div>
+                @endcan
             </div>
         @else
-            <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 320ms;">
-                <div class="hm-section-title">
-                    <i class="bi bi-info-circle"></i>
-                    ملاحظة
+            @can('import-voters')
+                <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 320ms;">
+                    <div class="hm-section-title">
+                        <i class="bi bi-upload"></i>
+                        استيراد الناخبين
+                    </div>
+                    <div data-voters-import-slot="modern"></div>
                 </div>
-                <div class="hm-card p-3">
-                    <div class="hm-sub">استيراد الناخبين متاح حالياً في الشكل الكلاسيكي لتجنب تكرار النماذج والـ IDs.</div>
-                </div>
-            </div>
+            @endcan
         @endif
     </div>
 </div>

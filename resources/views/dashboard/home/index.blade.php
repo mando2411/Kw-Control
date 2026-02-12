@@ -946,222 +946,7 @@
         @endif
 
         @can('import-voters')
-        <div class="container import-section" >
-            <div class="import-card p-0">
-                <div class="import-header p-4">
-                    <h2 class="h4 mb-2">استيراد الناخبين</h2>
-                    <p class="import-help mb-0">استخدم هذا النموذج لرفع ملف الناخبين حسب القالب المعتمد. جميع الحقول موضحة بالأسفل.</p>
-                </div>
-                <div class="p-4">
-                    <x-dashboard.partials.message-alert />
-
-                    <div class="import-warning mb-4" role="alert">
-                        <strong>تنبيه:</strong> خيار <strong>استبدال البيانات</strong> يحذف البيانات القديمة قبل الاستيراد. استخدمه فقط عند الحاجة.
-                    </div>
-
-                    {{-- Desktop import form (hidden on small screens) --}}
-                    <form id="voters-import-form-desktop" action="{{ route('dashboard.import-voters') }}" class="row g-4 voters-import-form import-form-desktop" enctype="multipart/form-data" method="POST" novalidate>
-                        @csrf
-                        <div class="col-12 col-lg-6">
-                            <label for="election-desktop" class="form-label">الانتخابات</label>
-                            @php
-                            $elections=App\Models\Election::select('id','name')->get();
-                            @endphp
-                            <select name="election" id="election-desktop" class="form-select import-field" required aria-describedby="electionHelpDesktop" aria-invalid="false">
-                                <option value="" selected disabled>اختر الانتخابات</option>
-                                @foreach ($elections as $election )
-                                <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
-                                @endforeach
-                            </select>
-                            <div id="electionHelpDesktop" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
-                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                <a href="#" class="btn btn-outline-secondary btn-sm import-view-data disabled" data-base-url="{{ route('dashboard.import-voters-data') }}" aria-disabled="true">عرض الداتا</a>
-                            </div>
-                            <div class="import-error import-error-election d-none">يرجى اختيار الانتخابات.</div>
-                        </div>
-
-                        <div class="col-12 col-lg-6">
-                            <label for="import-desktop" class="form-label">ملف الاستيراد</label>
-                            <input type="file" class="form-control import-field" id="import-desktop" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelpDesktop" aria-invalid="false">
-                            <div id="fileHelpDesktop" class="import-help">الصيغ المقبولة: .xlsx, .xls, .csv</div>
-                            <div class="import-error import-error-file d-none">يرجى اختيار ملف صالح.</div>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label">طريقة الاستيراد</label>
-                            {{-- Desktop option cards --}}
-                            <div class="row g-3">
-
-                                <div class="col-12 col-md-4">
-                                    <label class="import-option" for="dublicate-desktop">
-                                        <div class="import-option-wrapper">
-                                            <input type="radio" id="dublicate-desktop" name="check" value="dublicate" class="import-option-input" checked>
-                                            <div class="import-option-content">
-                                                <div class="option-title">إضافة</div>
-                                                <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div class="col-12 col-md-4">
-                                    <label class="import-option option-danger" for="replace-desktop">
-                                        <div class="import-option-wrapper">
-                                            <input type="radio" id="replace-desktop" name="check" value="replace" class="import-option-input">
-                                            <div class="import-option-content">
-                                                <div class="option-title">استبدال</div>
-                                                <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div class="col-12 col-md-4">
-                                    <label class="import-option" for="status-desktop">
-                                        <div class="import-option-wrapper">
-                                            <input type="radio" id="status-desktop" name="check" value="status" class="import-option-input">
-                                            <div class="import-option-content">
-                                                <div class="option-title">تحديث الحالة</div>
-                                                <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-
-                            </div>
-
-                            <div id="importModeHelpDesktop" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
-                            <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
-                            <div class="import-error import-error-mode d-none">يرجى اختيار طريقة الاستيراد.</div>
-                        </div>
-
-                        <div class="col-12 d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-center">
-                            <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
-                            <button type="submit" class="btn btn-custom px-4 import-submit w-100 w-md-auto">
-                                <span class="submit-text">بدء الاستيراد</span>
-                                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
-                            </button>
-                        </div>
-                        <div class="col-12">
-                            <div class="import-progress d-none">
-                                <div class="import-progress-bar"></div>
-                            </div>
-                            <div class="import-help import-progress-text mt-2 d-none">جاري رفع الملف...</div>
-                            <div class="import-error import-error-submit d-none">حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
-                        </div>
-                    </form>
-                    {{-- Mobile import form (shown on small screens) --}}
-                    <form id="voters-import-form-mobile" action="{{ route('dashboard.import-voters') }}" class="voters-import-form import-form-mobile" enctype="multipart/form-data" method="POST" novalidate>
-                        @csrf
-                        <div class="import-stack">
-                            <div class="import-stack-item">
-                                <label for="election-mobile" class="form-label">الانتخابات</label>
-                                <select name="election" id="election-mobile" class="form-select import-field" required aria-describedby="electionHelpMobile" aria-invalid="false">
-                                    <option value="" selected disabled>اختر الانتخابات</option>
-                                    @foreach ($elections as $election )
-                                    <option value="{{$election->id}}"> {{$election->name . "(".$election->id .")" }} </option>
-                                    @endforeach
-                                </select>
-                                <div id="electionHelpMobile" class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
-                                <div class="d-flex flex-wrap gap-2 mt-2">
-                                    <a href="#" class="btn btn-outline-secondary btn-sm import-view-data disabled" data-base-url="{{ route('dashboard.import-voters-data') }}" aria-disabled="true">عرض الداتا</a>
-                                </div>
-                                <div class="import-error import-error-election d-none">يرجى اختيار الانتخابات.</div>
-                            </div>
-
-                            <div class="import-stack-item">
-                                <label for="import-mobile" class="form-label">ملف الاستيراد</label>
-                                <input type="file" class="form-control import-field" id="import-mobile" name="import" accept=".xlsx,.xls,.csv" required aria-describedby="fileHelpMobile" aria-invalid="false">
-                                <div id="fileHelpMobile" class="import-help">الصيغ المقبولة: .xlsx, .xls, .csv</div>
-                                <div class="import-error import-error-file d-none">يرجى اختيار ملف صالح.</div>
-                            </div>
-
-                            <div class="import-stack-item">
-                                <label class="form-label">طريقة الاستيراد</label>
-                                <div class="import-options-stack">
-                                    <label class="import-option-mobile" for="dublicate-mobile">
-                                        <input type="radio" id="dublicate-mobile" name="check" value="dublicate" class="import-option-input" checked>
-                                        <div class="import-option-content">
-                                            <div class="option-title">إضافة</div>
-                                            <div class="option-desc">يضيف السجلات الجديدة دون حذف البيانات الحالية.</div>
-                                        </div>
-                                    </label>
-
-                                    <label class="import-option-mobile option-danger" for="replace-mobile">
-                                        <input type="radio" id="replace-mobile" name="check" value="replace" class="import-option-input">
-                                        <div class="import-option-content">
-                                            <div class="option-title">استبدال</div>
-                                            <div class="option-desc">يحذف البيانات القديمة أولاً ثم يستورد الملف الجديد.</div>
-                                        </div>
-                                    </label>
-
-                                    <label class="import-option-mobile" for="status-mobile">
-                                        <input type="radio" id="status-mobile" name="check" value="status" class="import-option-input">
-                                        <div class="import-option-content">
-                                            <div class="option-title">تحديث الحالة</div>
-                                            <div class="option-desc">يحدّث حالة الحضور حسب الملف دون استيراد كامل البيانات.</div>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div id="importModeHelpMobile" class="import-help mt-2">اختر طريقة الاستيراد المناسبة لملفك.</div>
-                                <div class="import-help mt-1">تحذير: خيار الاستبدال يمسح البيانات الحالية.</div>
-                                <div class="import-error import-error-mode d-none">يرجى اختيار طريقة الاستيراد.</div>
-                            </div>
-
-                            <div class="import-stack-item">
-                                <div class="import-help">تأكد من توافق الملف مع القالب قبل الإرسال.</div>
-                                <button type="submit" class="btn btn-custom px-4 import-submit w-100">
-                                    <span class="submit-text">بدء الاستيراد</span>
-                                    <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
-                                </button>
-                            </div>
-
-                            <div class="import-stack-item">
-                                <div class="import-progress d-none">
-                                    <div class="import-progress-bar"></div>
-                                </div>
-                                <div class="import-help import-progress-text mt-2 d-none">جاري رفع الملف...</div>
-                                <div class="import-error import-error-submit d-none">حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        <div class="modal fade" id="replaceConfirmModal" tabindex="-1" aria-labelledby="replaceConfirmLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="replaceConfirmLabel">تأكيد استبدال البيانات</h5>
-                        <button type="button" class="btn-close summary-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
-                    </div>
-                    <div class="modal-body">
-                        هذا الخيار سيحذف البيانات القديمة قبل استيراد الملف الجديد. هل تريد المتابعة؟
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
-                        <button type="button" class="btn btn-danger" id="confirmReplace">نعم، استبدل البيانات</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="importSummaryModal" tabindex="-1" aria-labelledby="importSummaryLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="importSummaryLabel">نتيجة الاستيراد</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
-                    </div>
-                    <div class="modal-body" id="importSummaryModalBody">
-                        تم استلام نتيجة الاستيراد.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary summary-modal-close" data-bs-dismiss="modal">إغلاق</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
+            <div data-voters-import-slot="classic"></div>
         @endcan
     </main>
 </div>
@@ -1170,6 +955,13 @@
 <div id="homepage-modern">
     @include('dashboard.home.modern')
 </div>
+
+@can('import-voters')
+    {{-- Single shared component rendered once, moved between classic/modern slots by JS --}}
+    <div data-voters-import-shared style="display:none;">
+        @include('dashboard.partials.voters-import')
+    </div>
+@endcan
 
 @endsection
 @push('js')
@@ -1275,6 +1067,25 @@
             return (window.requestAnimationFrame || function (fn) { return setTimeout(fn, 0); })(cb);
         }
 
+        function mountVotersImport(mode) {
+            var sharedHost = document.querySelector('[data-voters-import-shared]');
+            var component = document.querySelector('[data-voters-import-root]');
+            if (!component && sharedHost) {
+                component = sharedHost.querySelector('[data-voters-import-root]');
+            }
+            if (!component) return;
+
+            var targetSlot = document.querySelector('[data-voters-import-slot="' + mode + '"]');
+            if (!targetSlot) {
+                targetSlot = document.querySelector('[data-voters-import-slot="classic"]');
+            }
+            if (!targetSlot) return;
+
+            // Ensure visible when mounted
+            component.style.display = '';
+            targetSlot.appendChild(component);
+        }
+
         async function switchMode(nextMode, animate) {
             var toggle = document.getElementById('homeUiModeToggle');
             var classic = document.getElementById('homepage-classic');
@@ -1302,10 +1113,12 @@
                 if (nextMode === 'modern') {
                     await ensureModernCss(true);
                     applyBodyMode('modern');
+                    mountVotersImport('modern');
                     classic.style.display = 'none';
                     modern.style.display = 'block';
                 } else {
                     applyBodyMode('classic');
+                    mountVotersImport('classic');
                     modern.style.display = 'none';
                     classic.style.display = 'block';
                     ensureModernCss(false);
@@ -1335,6 +1148,9 @@
                 // Apply mode only after CSS is loaded
                 applyBodyMode('modern');
 
+                // Move shared import component into modern slot before showing it
+                mountVotersImport('modern');
+
                 // Make modern visible BEFORE fading classic out (avoid blank state)
                 modern.style.display = 'block';
                 classic.style.display = 'block';
@@ -1358,6 +1174,7 @@
 
             // switching to classic
             applyBodyMode('classic');
+            mountVotersImport('classic');
             modern.style.display = 'block';
             classic.style.display = 'block';
             classic.style.opacity = '0';
@@ -1384,6 +1201,9 @@
 
             // Ensure DOM matches stored state (no animation on load)
             switchMode(initial, false);
+
+            // Ensure shared component is mounted on initial load
+            mountVotersImport(initial);
 
             if (!toggle) return;
             toggle.checked = initial === 'modern';
@@ -1580,313 +1400,6 @@
             }
         });
     }, 120000);
-
-    const importForms = document.querySelectorAll('.voters-import-form');
-    const replaceModalElement = document.getElementById('replaceConfirmModal');
-    const summaryModalElement = document.getElementById('importSummaryModal');
-    const confirmReplaceButton = document.getElementById('confirmReplace');
-    const replaceModal = replaceModalElement ? new bootstrap.Modal(replaceModalElement) : null;
-    const summaryModal = summaryModalElement ? new bootstrap.Modal(summaryModalElement) : null;
-    const summaryModalBody = document.getElementById('importSummaryModalBody');
-    let pendingConfirm = null;
-
-    document.querySelectorAll('.summary-modal-close').forEach((button) => {
-        button.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (summaryModal) {
-                summaryModal.hide();
-            }
-        });
-    });
-
-    const renderSummary = (summary) => {
-        if (!summary) return;
-        const lines = [];
-        if (summary.total !== undefined && summary.total !== null) {
-            lines.push(`إجمالي الصفوف: ${summary.total ?? 0}`);
-        }
-        lines.push(`تمت المعالجة بنجاح: ${summary.success ?? 0}`);
-        if (summary.created !== undefined && summary.created !== null) {
-            lines.push(`سجلات جديدة: ${summary.created ?? 0}`);
-        }
-        if (summary.existing !== undefined && summary.existing !== null) {
-            lines.push(`سجلات موجودة: ${summary.existing ?? 0}`);
-        }
-        if (summary.updated !== undefined && summary.updated !== null) {
-            lines.push(`تم تحديثها: ${summary.updated ?? 0}`);
-        }
-        if (summary.duplicate_skipped !== undefined && summary.duplicate_skipped !== null) {
-            lines.push(`مكررات تم تخطيها: ${summary.duplicate_skipped ?? 0}`);
-        }
-        lines.push(`تم تخطيها: ${summary.skipped ?? 0}`);
-        lines.push(`فشلت: ${summary.failed ?? 0}`);
-        const summaryHtml = `
-            <div class="alert alert-info" role="alert">
-                <div class="fw-bold mb-1">ملخص الاستيراد</div>
-                ${lines.map((line) => `<div>${line}</div>`).join('')}
-            </div>
-        `;
-        if (summaryModalBody) {
-            summaryModalBody.innerHTML = summaryHtml;
-        }
-        if (summaryModal) {
-            summaryModal.show();
-        }
-    };
-
-    if (confirmReplaceButton) {
-        confirmReplaceButton.addEventListener('click', function() {
-            if (!pendingConfirm) return;
-            const confirmAction = pendingConfirm;
-            pendingConfirm = null;
-            if (replaceModal) {
-                replaceModal.hide();
-            }
-            confirmAction();
-        });
-    }
-
-    if (importForms.length) {
-        importForms.forEach((importForm) => {
-            const electionField = importForm.querySelector('select[name="election"]');
-            const fileField = importForm.querySelector('input[name="import"]');
-            const modeFields = importForm.querySelectorAll('input[name="check"]');
-            const replaceField = importForm.querySelector('input[name="check"][value="replace"]');
-            let replaceConfirmed = false;
-            let isSubmitting = false;
-
-            const submitButton = importForm.querySelector('.import-submit');
-            const viewDataButton = importForm.querySelector('.import-view-data');
-            const submitText = submitButton ? submitButton.querySelector('.submit-text') : null;
-            const submitSpinner = submitButton ? submitButton.querySelector('.spinner-border') : null;
-            const progressWrap = importForm.querySelector('.import-progress');
-            const progressBar = importForm.querySelector('.import-progress-bar');
-            const progressText = importForm.querySelector('.import-progress-text');
-            const submitError = importForm.querySelector('.import-error-submit');
-
-            const electionError = importForm.querySelector('.import-error-election');
-            const fileError = importForm.querySelector('.import-error-file');
-            const modeError = importForm.querySelector('.import-error-mode');
-
-            if (!electionField || !fileField || !modeFields.length) {
-                return;
-            }
-
-            const updateViewDataLink = () => {
-                if (!viewDataButton) return;
-                const baseUrl = viewDataButton.dataset.baseUrl;
-                if (!electionField.value) {
-                    viewDataButton.classList.add('disabled');
-                    viewDataButton.setAttribute('aria-disabled', 'true');
-                    viewDataButton.setAttribute('href', '#');
-                    return;
-                }
-                viewDataButton.classList.remove('disabled');
-                viewDataButton.setAttribute('aria-disabled', 'false');
-                viewDataButton.setAttribute('href', `${baseUrl}?election=${electionField.value}`);
-            };
-
-            const setFieldState = (field, isValid) => {
-                field.classList.remove('is-valid', 'is-invalid');
-                field.classList.add(isValid ? 'is-valid' : 'is-invalid');
-                field.setAttribute('aria-invalid', String(!isValid));
-            };
-
-            const toggleError = (node, show) => {
-                if (!node) return;
-                node.classList.toggle('d-none', !show);
-            };
-
-            const setErrorText = (node, text) => {
-                if (!node || !text) return;
-                node.textContent = text;
-            };
-
-            const setLoadingState = (isLoading) => {
-                if (!submitButton) return;
-                submitButton.disabled = isLoading;
-                submitButton.classList.toggle('is-loading', isLoading);
-                if (submitSpinner) {
-                    submitSpinner.classList.toggle('d-none', !isLoading);
-                }
-                if (submitText) {
-                    submitText.textContent = isLoading ? 'جاري الاستيراد...' : 'بدء الاستيراد';
-                }
-            };
-
-            const showProgress = (percent) => {
-                if (progressWrap) {
-                    progressWrap.classList.remove('d-none');
-                }
-                if (progressText) {
-                    progressText.classList.remove('d-none');
-                    progressText.textContent = percent < 100 ? `جاري رفع الملف... ${percent}%` : 'تم رفع الملف، جاري المعالجة...';
-                }
-                if (progressBar) {
-                    progressBar.style.width = `${percent}%`;
-                }
-            };
-
-            const resetProgress = () => {
-                if (progressWrap) {
-                    progressWrap.classList.add('d-none');
-                }
-                if (progressText) {
-                    progressText.classList.add('d-none');
-                }
-                if (progressBar) {
-                    progressBar.style.width = '0%';
-                }
-            };
-
-            const submitWithProgress = () => {
-                if (isSubmitting) return;
-                isSubmitting = true;
-                toggleError(submitError, false);
-                setLoadingState(true);
-                showProgress(0);
-
-                const formData = new FormData(importForm);
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', importForm.action, true);
-                xhr.setRequestHeader('Accept', 'application/json');
-
-                xhr.upload.addEventListener('progress', function(event) {
-                    if (event.lengthComputable) {
-                        const percent = Math.round((event.loaded / event.total) * 100);
-                        showProgress(percent);
-                    }
-                });
-
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState !== XMLHttpRequest.DONE) return;
-
-                    let responseJson = null;
-                    try {
-                        responseJson = xhr.responseText ? JSON.parse(xhr.responseText) : null;
-                    } catch (error) {
-                        responseJson = null;
-                    }
-
-                    if (xhr.status >= 200 && xhr.status < 400) {
-                        if (responseJson && responseJson.summary) {
-                            renderSummary(responseJson.summary);
-                        }
-                        setLoadingState(false);
-                        resetProgress();
-                        isSubmitting = false;
-                        fileField.value = '';
-                        replaceConfirmed = false;
-                        return;
-                    }
-
-                    if (xhr.status === 422 && responseJson && responseJson.errors) {
-                        const errors = responseJson.errors;
-                        if (errors.election) {
-                            setFieldState(electionField, false);
-                            setErrorText(electionError, errors.election[0]);
-                            toggleError(electionError, true);
-                        }
-                        if (errors.import) {
-                            setFieldState(fileField, false);
-                            setErrorText(fileError, errors.import[0]);
-                            toggleError(fileError, true);
-                        }
-                        if (errors.check) {
-                            setErrorText(modeError, errors.check[0]);
-                            toggleError(modeError, true);
-                        }
-                        setLoadingState(false);
-                        resetProgress();
-                        isSubmitting = false;
-                        return;
-                    }
-
-                    if (responseJson && responseJson.message) {
-                        setErrorText(submitError, responseJson.message);
-                    }
-                    toggleError(submitError, true);
-                    setLoadingState(false);
-                    resetProgress();
-                    isSubmitting = false;
-                };
-
-                xhr.onerror = function() {
-                    toggleError(submitError, true);
-                    setLoadingState(false);
-                    resetProgress();
-                    isSubmitting = false;
-                };
-
-                xhr.send(formData);
-            };
-
-            const validateImportForm = () => {
-                let valid = true;
-
-                if (!electionField.value) {
-                    setFieldState(electionField, false);
-                    toggleError(electionError, true);
-                    valid = false;
-                } else {
-                    setFieldState(electionField, true);
-                    toggleError(electionError, false);
-                }
-
-                if (!fileField.files.length) {
-                    setFieldState(fileField, false);
-                    toggleError(fileError, true);
-                    valid = false;
-                } else {
-                    const validExt = /\.(xlsx|xls|csv)$/i.test(fileField.files[0].name);
-                    setFieldState(fileField, validExt);
-                    toggleError(fileError, !validExt);
-                    valid = valid && validExt;
-                }
-
-                const modeSelected = Array.from(modeFields).some((field) => field.checked);
-                toggleError(modeError, !modeSelected);
-                if (!modeSelected) {
-                    valid = false;
-                }
-
-                return valid;
-            };
-
-            importForm.addEventListener('submit', function(event) {
-                if (!validateImportForm()) {
-                    event.preventDefault();
-                    return;
-                }
-
-                if (replaceField && replaceField.checked && !replaceConfirmed && replaceModal) {
-                    event.preventDefault();
-                    pendingConfirm = () => {
-                        replaceConfirmed = true;
-                        submitWithProgress();
-                    };
-                    replaceModal.show();
-                    return;
-                }
-
-                event.preventDefault();
-                submitWithProgress();
-            });
-
-            electionField.addEventListener('change', validateImportForm);
-            electionField.addEventListener('change', updateViewDataLink);
-            fileField.addEventListener('change', validateImportForm);
-            modeFields.forEach((field) => field.addEventListener('change', () => {
-                if (!replaceField || !replaceField.checked) {
-                    replaceConfirmed = false;
-                }
-                validateImportForm();
-            }));
-
-            updateViewDataLink();
-        });
-    }
 </script>
 
 
