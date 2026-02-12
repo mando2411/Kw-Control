@@ -72,14 +72,20 @@
                 <span class="dtm-title">Control</span>
             </a>
 
-            <div class="dropdown" id="user-menu-wrapper-mobile">
-                <button id="user-menu-dropdown-mobile" class="dtm-user" type="button" onclick="toggleDashboardUserMenuMobile(event)" aria-expanded="false" aria-label="حساب المستخدم">
-                    <img class="dtm-avatar" src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
-                </button>
-                <ul id="user-menu-panel-mobile" class="dropdown-menu">
-                    <li><a class="dropdown-item px-2" style="font-size:12px" href="{{ route('profile.edit') }}">تحرير الملف الشخصي</a></li>
-                    <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
-                </ul>
+            <div class="dtm-actions">
+                <a href="{{ route('logout') }}" class="dtm-logout" aria-label="تسجيل خروج">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+
+                <div class="dropdown" id="user-menu-wrapper-mobile">
+                    <button id="user-menu-dropdown-mobile" class="dtm-user" type="button" onclick="toggleDashboardUserMenuMobile(event)" aria-expanded="false" aria-label="حساب المستخدم">
+                        <img class="dtm-avatar" src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
+                    </button>
+                    <ul id="user-menu-panel-mobile" class="dropdown-menu">
+                        <li><a class="dropdown-item px-2" style="font-size:12px" href="{{ route('profile.edit') }}">تحرير الملف الشخصي</a></li>
+                        <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

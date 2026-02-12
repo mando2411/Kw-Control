@@ -595,6 +595,34 @@
                 padding: 0;
             }
 
+            html.ui-modern .dashboard-topbar-mobile .dtm-actions,
+            body.ui-modern .dashboard-topbar-mobile .dtm-actions {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-logout,
+            body.ui-modern .dashboard-topbar-mobile .dtm-logout {
+                width: 42px;
+                height: 42px;
+                border-radius: 999px;
+                border: 1px solid var(--ui-border);
+                background: var(--ui-surface-2);
+                color: var(--ui-danger);
+                box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-logout i,
+            body.ui-modern .dashboard-topbar-mobile .dtm-logout i {
+                font-size: 1rem;
+                color: var(--ui-danger);
+            }
+
             html.ui-modern .dashboard-topbar-mobile .dtm-avatar,
             body.ui-modern .dashboard-topbar-mobile .dtm-avatar {
                 width: 38px;
