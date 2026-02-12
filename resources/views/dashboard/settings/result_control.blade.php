@@ -139,6 +139,28 @@
                                     id="{{ 'settings-0' }}" role="tabpanel"
                                     aria-labelledby="{{ 'settings-0' }}-tab">
 
+                                        @php
+                                            $policyCurrent = old(\App\Enums\SettingKey::UI_MODE_POLICY->value.'.0',
+                                                $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODE_POLICY->value)?->option_value[0] ?? 'user_choice');
+                                            $policyCurrent = in_array($policyCurrent, ['user_choice', 'modern', 'classic'], true) ? $policyCurrent : 'user_choice';
+                                        @endphp
+
+                                        <div class="col-12 mb-3">
+                                            <div class="card border-info" style="padding: 12px; border-radius: 12px;">
+                                                <div class="fw-bold" style="margin-bottom: 6px;">اختيار تصميم الموقع</div>
+                                                <div style="color: #6c757d; font-weight: 600;">
+                                                    هذا الإعداد يحدد هل المستخدم يقدر يختار الشكل (سويتش ظاهر في السلايدر واللوجن) أو يتم إجبار الجميع على تصميم واحد.
+                                                </div>
+                                                <div style="margin-top: 10px;">
+                                                    <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODE_POLICY->value }}[]" id="ui_mode_policy_rc">
+                                                        <option value="user_choice" @selected($policyCurrent === 'user_choice')>اجعل المستخدم يحدد (السويتش ظاهر)</option>
+                                                        <option value="modern" @selected($policyCurrent === 'modern')>التصميم الحديث (إجباري)</option>
+                                                        <option value="classic" @selected($policyCurrent === 'classic')>التصميم القديم (إجباري)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="col-12 mb-3">
                                             <div class="card border-danger text-center fw-bold">
                                                 <!-- legacy note placeholder -->
@@ -206,6 +228,41 @@
                 <div class="col-12 mb-3">
                     <h3 class="sm-page-title">الإعدادات</h3>
                     <p class="sm-page-subtitle">تحكم سريع وآمن في عرض النتائج العامة وتصفير الحضور للانتخابات.</p>
+                </div>
+
+                @php
+                    $policyCurrent = old(\App\Enums\SettingKey::UI_MODE_POLICY->value.'.0',
+                        $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODE_POLICY->value)?->option_value[0] ?? 'user_choice');
+                    $policyCurrent = in_array($policyCurrent, ['user_choice', 'modern', 'classic'], true) ? $policyCurrent : 'user_choice';
+                @endphp
+
+                <div class="sm-card mb-3">
+                    <div class="sm-card-h">
+                        <h5>تصميم الواجهة</h5>
+                        <p>حدد سياسة التصميم: هل المستخدم يختار بنفسه، أم يتم اعتماد تصميم واحد للجميع.</p>
+                    </div>
+                    <div class="sm-card-b">
+                        <div class="sm-help">
+                            عند اختيار <strong>اجعل المستخدم يحدد</strong> سيظهر سويتش الواجهة الحديثة في السلايدر وصفحة تسجيل الدخول.
+                            أما عند اختيار تصميم إجباري فسيتم تطبيقه تلقائيًا وإخفاء السويتش.
+                        </div>
+
+                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            <label class="form-label fw-bold">اختيار تصميم الموقع</label>
+                            <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODE_POLICY->value }}[]" id="ui_mode_policy_rc_modern">
+                                <option value="user_choice" @selected($policyCurrent === 'user_choice')>اجعل المستخدم يحدد (السويتش ظاهر)</option>
+                                <option value="modern" @selected($policyCurrent === 'modern')>التصميم الحديث (إجباري)</option>
+                                <option value="classic" @selected($policyCurrent === 'classic')>التصميم القديم (إجباري)</option>
+                            </select>
+
+                            <div class="sm-actions">
+                                <button type="submit" class="btn btn-primary">حفظ الإعداد</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="sm-split">
