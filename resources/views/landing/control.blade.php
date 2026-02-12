@@ -146,8 +146,14 @@
 
         .shot-grid {
             display: grid;
-            grid-template-columns: 1.3fr 1fr;
+            grid-template-columns: 1.35fr 1fr;
             gap: 1rem;
+        }
+
+        .shot-mobile-stack {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 0.8rem;
         }
 
         .shot-card {
@@ -175,6 +181,11 @@
         .shot-mobile {
             aspect-ratio: 9/16;
             max-height: 420px;
+        }
+
+        .shot-mobile-small {
+            aspect-ratio: 9/16;
+            max-height: 205px;
         }
 
         .contact-strip {
@@ -254,6 +265,15 @@
             .shot-mobile {
                 max-height: 340px;
             }
+
+            .shot-mobile-stack {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto;
+            }
+
+            .shot-mobile-small {
+                max-height: 260px;
+            }
         }
     </style>
 </head>
@@ -272,10 +292,10 @@
             <div class="row g-4 align-items-center">
                 <div class="col-12 col-lg-7 reveal">
                     <span class="hero-badge"><i class="bi bi-stars"></i> منصة انتخابية احترافية</span>
-                    <h1 class="mt-3">تابع حملتك الانتخابية بذكاء، وخلّ القرار أسرع وأدق.</h1>
+                    <h1 class="mt-3">شغّل حملتك بثقة كاملة، وخلّ القرار الانتخابي أسرع، أدق، وأكثر تأثيرًا.</h1>
                     <p class="mt-3 mb-4">
-                        كنترول يمنحك رؤية موحدة للحملة: إدارة فريق العمل، متابعة اللجان، تحليل النتائج، وتتبع الأداء الميداني لحظة بلحظة،
-                        بواجهة عربية واضحة وسريعة على الكمبيوتر والموبايل.
+                        كنترول يجمع كل ما تحتاجه في منصة واحدة: متابعة الميدان لحظيًا، إدارة اللجان والفرق، قراءة مؤشرات الأداء فورًا،
+                        وتحويل البيانات إلى قرارات عملية ترفع كفاءة الحملة وتزيد فرص الفوز.
                     </p>
 
                     <div class="d-flex flex-wrap gap-2">
@@ -301,13 +321,19 @@
 
                 <div class="col-12 col-lg-5 reveal">
                     <div class="glass-card shot-card">
-                        <h5 class="fw-bold mb-3">نظرة سريعة على النظام</h5>
+                        <h5 class="fw-bold mb-2">نظرة احترافية على النظام</h5>
+                        <p class="text-muted small mb-3">عرض حقيقي للواجهة على سطح المكتب والموبايل، مع تجربة دخول آمنة تعزز الثقة من أول لحظة.</p>
                         <div class="shot-grid">
                             <div class="shot-frame shot-desktop">
-                                <img src="{{ asset('assets/admin/images/13.png') }}" alt="لقطة من لوحة التحكم على الكمبيوتر">
+                                <img src="{{ asset('about-sec/Screenshot 2026-02-12 141830.png') }}" alt="واجهة كنترول على سطح المكتب">
                             </div>
-                            <div class="shot-frame shot-mobile">
-                                <img src="{{ asset('assets/admin/images/16.png') }}" alt="لقطة من النظام على الموبايل">
+                            <div class="shot-mobile-stack">
+                                <div class="shot-frame shot-mobile-small">
+                                    <img src="{{ asset('about-sec/WhatsApp Image 2026-02-12 at 2.16.47 PM.jpeg') }}" alt="واجهة كنترول على الموبايل">
+                                </div>
+                                <div class="shot-frame shot-mobile-small">
+                                    <img src="{{ asset('about-sec/WhatsApp Image 2026-02-12 at 2.17.36 PM.jpeg') }}" alt="شاشة تسجيل دخول آمنة في كنترول">
+                                </div>
                             </div>
                         </div>
                     </div>
