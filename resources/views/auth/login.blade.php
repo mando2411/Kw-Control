@@ -482,7 +482,7 @@
         }
 
         .login-enterprise-overlay .content > div {
-            width: min(310px, 50vw);
+            width: min(280px, 40vw);
         }
 
         .scan-frame {
