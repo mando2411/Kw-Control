@@ -8,9 +8,6 @@
         </div>
     </div>
     <div class="sidebar custom-scrollbar">
-        <a href="javascript:void(0)" class="sidebar-back d-lg-none d-block">
-            <i class="fa fa-times" aria-hidden="true"></i>
-        </a>
         <div class="sidebar-user">
             <img class="img-60" src="{{ admin()->image ? admin()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
             <div>

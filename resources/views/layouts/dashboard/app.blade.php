@@ -308,17 +308,6 @@
             background: transparent;
         }
 
-        html.ui-modern .page-sidebar .sidebar-back,
-        body.ui-modern .page-sidebar .sidebar-back {
-            margin: 10px 12px 0;
-            padding: 8px 10px;
-            border-radius: 12px;
-            background: var(--ui-surface);
-            border: 1px solid var(--ui-border);
-            color: var(--ui-ink);
-            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.06);
-        }
-
         html.ui-modern .page-sidebar .sidebar-user,
         body.ui-modern .page-sidebar .sidebar-user {
             padding: 14px 14px;
