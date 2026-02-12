@@ -12,7 +12,7 @@
             <i class="fa fa-times" aria-hidden="true"></i>
         </a>
         <div class="sidebar-user">
-            <img class="img-60" src="{{ logo()}}" alt="#">
+            <img class="img-60" src="{{ admin()->image ? admin()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
             <div>
                 <h6 class="f-14">{{ admin()->first_name }}</h6>
                 <p>{{ admin()->role }}</p>
