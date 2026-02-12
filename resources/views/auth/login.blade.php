@@ -47,11 +47,18 @@
         }
 
         body[data-login-theme="legacy"] .login-modern {
-            display: none;
+            display: none !important;
+            pointer-events: none;
         }
 
         body[data-login-theme="modern"] .login-legacy {
-            display: none;
+            display: none !important;
+            pointer-events: none;
+        }
+
+        body[data-login-theme="modern"] .login-modern {
+            display: flex !important;
+            pointer-events: auto;
         }
 
         .login-theme-toggle {
@@ -93,6 +100,10 @@
             position: relative;
             background: radial-gradient(circle at top right, #dbeafe 0%, #f8fafc 35%, #fff7ed 100%);
             overflow: hidden;
+        }
+
+        .login-modern-layout {
+            align-items: center;
         }
 
         .login-modern::before,
@@ -258,7 +269,7 @@
         </div>
     </section>
 
-    <section class="login-modern vh-100 d-flex align-items-center">
+    <section class="login-modern login-modern-layout vh-100">
         <div class="container modern-shell">
             <div class="row align-items-center g-4">
                 <div class="col-12 col-lg-6">
