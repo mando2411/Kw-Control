@@ -318,6 +318,10 @@
             margin: 0 auto;
         }
 
+        .login-modern-stack > .col-12:last-child {
+            margin-bottom: 1.25rem;
+        }
+
         .modern-sponsor-card {
             border: 1px solid rgba(14, 165, 233, 0.24);
             background: linear-gradient(130deg, rgba(14, 165, 233, 0.12), rgba(255, 255, 255, 0.92));
@@ -348,11 +352,15 @@
 
             .login-modern .modern-shell {
                 padding-top: max(1.25rem, env(safe-area-inset-top));
-                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+                padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
             }
 
             .login-modern .modern-card {
                 padding: 1.2rem;
+            }
+
+            .login-modern {
+                scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom));
             }
 
             body[data-login-theme="modern"] {
