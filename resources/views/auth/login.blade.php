@@ -59,13 +59,33 @@
             top: 1.25rem;
             left: 1.25rem;
             z-index: 20;
-            border: 1px solid rgba(15, 23, 42, 0.2);
-            background: rgba(255, 255, 255, 0.85);
-            color: #0f172a;
-            padding: 0.4rem 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.45rem 0.9rem;
             border-radius: 999px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(15, 23, 42, 0.2);
+            color: #0f172a;
             font-size: 0.9rem;
             backdrop-filter: blur(6px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        .login-theme-toggle .form-check-input {
+            width: 2.6rem;
+            height: 1.4rem;
+            cursor: pointer;
+        }
+
+        .login-theme-toggle .form-check-input:checked {
+            background-color: #0ea5e9;
+            border-color: #0ea5e9;
+        }
+
+        .login-theme-toggle .form-check-label {
+            cursor: pointer;
+            font-weight: 600;
         }
 
         .login-modern {
@@ -192,9 +212,12 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <button type="button" class="login-theme-toggle" id="loginThemeToggle" aria-pressed="false">
-        تبديل الشكل
-    </button>
+    <div class="login-theme-toggle">
+        <div class="form-check form-switch m-0">
+            <input class="form-check-input" type="checkbox" id="loginThemeToggle" aria-pressed="false">
+            <label class="form-check-label" for="loginThemeToggle">الشكل الحديث</label>
+        </div>
+    </div>
 
     <section class="pt-5 login vh-100 login-legacy">
         <!-- Use container-fluid instead of container -->
@@ -310,6 +333,7 @@
             function applyTheme(theme) {
                 document.body.setAttribute("data-login-theme", theme);
                 if (toggleButton) {
+                    toggleButton.checked = theme === "modern";
                     toggleButton.setAttribute("aria-pressed", theme === "modern" ? "true" : "false");
                 }
             }
@@ -326,9 +350,8 @@
             applyTheme(getInitialTheme());
 
             if (toggleButton) {
-                toggleButton.addEventListener("click", function () {
-                    var next = document.body.getAttribute("data-login-theme") === "modern" ? "legacy" : "modern";
-                    setTheme(next);
+                toggleButton.addEventListener("change", function (event) {
+                    setTheme(event.target.checked ? "modern" : "legacy");
                 });
             }
 
