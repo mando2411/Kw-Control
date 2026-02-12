@@ -605,8 +605,7 @@
 
             html.ui-modern .dashboard-mobilebar,
             body.ui-modern .dashboard-mobilebar {
-                display: grid;
-                grid-template-columns: 1fr 1fr 1fr;
+                display: flex;
                 gap: 10px;
                 position: fixed;
                 left: 12px;
@@ -624,6 +623,7 @@
             body.ui-modern .dashboard-mobilebar .dmb-item {
                 text-decoration: none;
                 color: var(--ui-muted);
+                flex: 1 1 0;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
