@@ -119,6 +119,28 @@
             border: 1px solid #fff;
         }
 
+        /* === UI Modern Palette (single source of truth) === */
+        html.ui-modern,
+        body.ui-modern {
+            --ui-ink: rgba(15, 23, 42, 0.92);
+            --ui-muted: rgba(71, 85, 105, 0.92);
+            --ui-surface: rgba(255, 255, 255, 0.92);
+            --ui-surface-2: rgba(255, 255, 255, 0.70);
+            --ui-border: rgba(15, 23, 42, 0.10);
+            --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.16);
+
+            --ui-accent: rgba(14, 165, 233, 0.95);
+            --ui-accent-soft: rgba(14, 165, 233, 0.12);
+            --ui-warm: rgba(245, 158, 11, 0.92);
+            --ui-warm-soft: rgba(245, 158, 11, 0.10);
+            --ui-success: rgba(25, 135, 84, 0.95);
+            --ui-danger: rgba(220, 53, 69, 0.95);
+
+            --ui-dark-1: rgba(2, 6, 23, 0.94);
+            --ui-dark-2: rgba(15, 23, 42, 0.88);
+            --ui-dark-border: rgba(255, 255, 255, 0.10);
+        }
+
         /* Modern sidebar toggle (UI mode) */
         .sidebar-toggle-modern {
             display: none;
@@ -141,9 +163,9 @@
             gap: 0.55rem;
             padding: 0.55rem 0.9rem;
             border-radius: 999px;
-            border: 1px solid rgba(15, 23, 42, 0.16);
-            background: rgba(255, 255, 255, 0.92);
-            color: rgba(15, 23, 42, 0.92);
+            border: 1px solid var(--ui-border, rgba(15, 23, 42, 0.16));
+            background: var(--ui-surface, rgba(255, 255, 255, 0.92));
+            color: var(--ui-ink, rgba(15, 23, 42, 0.92));
             box-shadow: 0 10px 24px rgba(2, 6, 23, 0.10);
             transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
             will-change: transform;
@@ -151,7 +173,7 @@
 
         .hm-sidebar-toggle i {
             font-size: 1.05rem;
-            color: rgba(14, 165, 233, 0.95);
+            color: var(--ui-accent, rgba(14, 165, 233, 0.95));
         }
 
         .hm-sidebar-toggle-text {
@@ -182,10 +204,10 @@
         /* === Modern Sidebar Skin (only in ui-modern) === */
         html.ui-modern .page-sidebar,
         body.ui-modern .page-sidebar {
-            background: rgba(255, 255, 255, 0.70);
-            border: 1px solid rgba(15, 23, 42, 0.10);
+            background: var(--ui-surface-2);
+            border: 1px solid var(--ui-border);
             border-radius: 18px;
-            box-shadow: 0 24px 60px rgba(2, 6, 23, 0.16);
+            box-shadow: var(--ui-shadow);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
             overflow: hidden;
@@ -208,8 +230,8 @@
             padding: 14px 14px;
             margin: 12px 12px 8px;
             border-radius: 16px;
-            background: linear-gradient(135deg, rgba(2, 6, 23, 0.92), rgba(15, 23, 42, 0.86));
-            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: linear-gradient(135deg, var(--ui-dark-1), var(--ui-dark-2));
+            border: 1px solid var(--ui-dark-border);
             box-shadow: 0 18px 44px rgba(2, 6, 23, 0.22);
             display: flex;
             align-items: center;
@@ -253,9 +275,9 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.82);
             border: 1px solid rgba(15, 23, 42, 0.08);
-            color: rgba(15, 23, 42, 0.88);
+            color: var(--ui-ink);
             box-shadow: 0 10px 22px rgba(2, 6, 23, 0.06);
             transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
             will-change: transform;
@@ -263,7 +285,7 @@
 
         html.ui-modern .page-sidebar a.sidebar-header i[data-feather],
         body.ui-modern .page-sidebar a.sidebar-header i[data-feather] {
-            color: rgba(14, 165, 233, 0.95);
+            color: var(--ui-accent);
         }
 
         html.ui-modern .page-sidebar a.sidebar-header span,
@@ -282,7 +304,7 @@
         html.ui-modern .page-sidebar li.active-temp > a.sidebar-header,
         body.ui-modern .page-sidebar li.active-temp > a.sidebar-header {
             border-color: rgba(14, 165, 233, 0.30);
-            background: linear-gradient(90deg, rgba(14, 165, 233, 0.16), rgba(245, 158, 11, 0.10));
+            background: linear-gradient(90deg, var(--ui-accent-soft), var(--ui-warm-soft));
             box-shadow: 0 18px 44px rgba(14, 165, 233, 0.10);
         }
 
@@ -296,7 +318,7 @@
             margin: 8px 6px 0;
             padding: 10px 8px;
             border-radius: 14px;
-            background: rgba(255, 255, 255, 0.60);
+            background: rgba(255, 255, 255, 0.62);
             border: 1px solid rgba(15, 23, 42, 0.07);
         }
 
