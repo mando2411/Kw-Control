@@ -55,13 +55,25 @@
                                 <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
 
                                 <div class="hm-count-inline" aria-label="الوقت المتبقي">
-                                    <span class="hm-count-num" id="hmDays">0</span>
+                                    <div class="hm-count-item">
+                                        <span class="hm-count-cap">اليوم</span>
+                                        <span class="hm-count-num" id="hmDays">0</span>
+                                    </div>
                                     <span class="hm-count-sep" aria-hidden="true">:</span>
-                                    <span class="hm-count-num" id="hmHours">0</span>
+                                    <div class="hm-count-item">
+                                        <span class="hm-count-cap">الساعة</span>
+                                        <span class="hm-count-num" id="hmHours">0</span>
+                                    </div>
                                     <span class="hm-count-sep" aria-hidden="true">:</span>
-                                    <span class="hm-count-num" id="hmMinutes">0</span>
+                                    <div class="hm-count-item">
+                                        <span class="hm-count-cap">الدقيقة</span>
+                                        <span class="hm-count-num" id="hmMinutes">0</span>
+                                    </div>
                                     <span class="hm-count-sep" aria-hidden="true">:</span>
-                                    <span class="hm-count-num" id="hmSeconds">0</span>
+                                    <div class="hm-count-item">
+                                        <span class="hm-count-cap">الثانية</span>
+                                        <span class="hm-count-num" id="hmSeconds">0</span>
+                                    </div>
                                 </div>
 
                                 <div class="hm-sub mt-2" id="hmCountdownHint"></div>
