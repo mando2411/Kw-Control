@@ -1,0 +1,102 @@
+/*
+  Modern Homepage UI (scoped)
+  Loaded only when ui_mode === "modern".
+  IMPORTANT: All rules must be scoped to avoid touching global Bootstrap.
+*/
+
+.home-modern-mode {
+  direction: rtl;
+  text-align: right;
+}
+
+.home-modern-mode .hm-shell {
+  min-height: calc(100vh - 2rem);
+  padding: 2.25rem 1.25rem;
+}
+
+.home-modern-mode .hm-hero {
+  border-radius: 1.25rem;
+  padding: 1.5rem 1.5rem;
+  background: linear-gradient(135deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.92) 50%, rgba(2, 6, 23, 0.98));
+  color: rgba(248, 250, 252, 0.96);
+  overflow: hidden;
+  position: relative;
+}
+
+.home-modern-mode .hm-hero::before {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(14, 165, 233, 0.22), rgba(14, 165, 233, 0) 55%),
+    radial-gradient(circle at 70% 70%, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0) 60%),
+    radial-gradient(circle at 42% 85%, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0) 55%);
+  filter: blur(26px);
+  opacity: 0.7;
+  transform: translate3d(0, 0, 0);
+}
+
+.home-modern-mode .hm-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.home-modern-mode .hm-title {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.home-modern-mode .hm-sub {
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.home-modern-mode .hm-card {
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.10);
+  backdrop-filter: blur(10px);
+}
+
+.home-modern-mode .hm-card .hm-card-title {
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.home-modern-mode .hm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.10);
+  color: rgba(3, 105, 161, 0.92);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.home-modern-mode .hm-kpi {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.home-modern-mode .hm-kpi .value {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.home-modern-mode .hm-kpi .label {
+  font-size: 0.95rem;
+  color: rgba(71, 85, 105, 0.92);
+}
+
+@media (max-width: 576px) {
+  .home-modern-mode .hm-shell {
+    padding: 1.25rem 0.9rem;
+  }
+
+  .home-modern-mode .hm-hero {
+    padding: 1.15rem 1.05rem;
+  }
+}

@@ -486,6 +486,99 @@
         }
     }
 </style>
+
+{{-- Dual UI mode (classic/modern) - architecture only, classic layout untouched --}}
+<style>
+    .home-ui-toggle {
+        position: fixed;
+        top: 1.25rem;
+        left: 1.25rem;
+        z-index: 10060;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.45rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(15, 23, 42, 0.18);
+        color: #0f172a;
+        font-size: 0.9rem;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    .home-ui-toggle .form-check-input {
+        width: 2.6rem;
+        height: 1.4rem;
+        cursor: pointer;
+    }
+
+    .home-ui-toggle .form-check-input:checked {
+        background-color: #0ea5e9;
+        border-color: #0ea5e9;
+    }
+
+    .home-ui-toggle .form-check-label {
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    #homepage-classic,
+    #homepage-modern {
+        transition: opacity 220ms ease;
+        will-change: opacity;
+    }
+
+    /* Default: keep modern hidden unless JS enables it */
+    #homepage-modern {
+        display: none;
+        opacity: 0;
+    }
+
+    body[data-ui-mode="modern"] #homepage-classic {
+        display: none;
+    }
+
+    body[data-ui-mode="modern"] #homepage-modern {
+        display: block;
+    }
+
+    body.ui-mode-switching {
+        cursor: progress;
+    }
+</style>
+
+<script>
+    (function () {
+        try {
+            var key = 'ui_mode';
+            var mode = localStorage.getItem(key) || 'classic';
+            document.body.setAttribute('data-ui-mode', mode);
+
+            if (mode === 'modern') {
+                var id = 'homeModernCss';
+                if (!document.getElementById(id)) {
+                    var link = document.createElement('link');
+                    link.id = id;
+                    link.rel = 'stylesheet';
+                    link.href = "{{ asset('assets/css/home-modern.css') }}";
+                    document.head.appendChild(link);
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
+    })();
+</script>
+
+<div class="home-ui-toggle" dir="rtl">
+    <div class="form-check form-switch m-0">
+        <input class="form-check-input" type="checkbox" id="homeUiModeToggle" aria-pressed="false">
+        <label class="form-check-label" for="homeUiModeToggle">الشكل الحديث</label>
+    </div>
+</div>
+
+<div id="homepage-classic">
 <div class="projectContainer mx-auto">
     <!-- banner -->
     @if (auth()->user()->candidate()->exists())
@@ -1085,8 +1178,155 @@
         @endcan
     </main>
 </div>
+</div>
+
+<div id="homepage-modern">
+    @include('dashboard.home.modern')
+</div>
+
 @endsection
 @push('js')
+<script>
+    (function () {
+        var STORAGE_KEY = 'ui_mode';
+        var MODERN_HREF = "{{ asset('assets/css/home-modern.css') }}";
+
+        function getMode() {
+            try {
+                return localStorage.getItem(STORAGE_KEY) || 'classic';
+            } catch (e) {
+                return 'classic';
+            }
+        }
+
+        function setModeValue(mode) {
+            try {
+                localStorage.setItem(STORAGE_KEY, mode);
+            } catch (e) {
+                // ignore
+            }
+            document.body.setAttribute('data-ui-mode', mode);
+        }
+
+        function ensureModernCss(shouldLoad) {
+            var id = 'homeModernCss';
+            var link = document.getElementById(id);
+            if (shouldLoad) {
+                if (link) return;
+                link = document.createElement('link');
+                link.id = id;
+                link.rel = 'stylesheet';
+                link.href = MODERN_HREF;
+                document.head.appendChild(link);
+                return;
+            }
+
+            if (link && link.parentNode) {
+                link.parentNode.removeChild(link);
+            }
+        }
+
+        function raf(cb) {
+            return (window.requestAnimationFrame || function (fn) { return setTimeout(fn, 0); })(cb);
+        }
+
+        function switchMode(nextMode, animate) {
+            var toggle = document.getElementById('homeUiModeToggle');
+            var classic = document.getElementById('homepage-classic');
+            var modern = document.getElementById('homepage-modern');
+            if (!classic || !modern) return;
+
+            var current = document.body.getAttribute('data-ui-mode') || 'classic';
+            if (nextMode === current) {
+                if (toggle) {
+                    toggle.checked = nextMode === 'modern';
+                    toggle.setAttribute('aria-pressed', toggle.checked ? 'true' : 'false');
+                }
+                return;
+            }
+
+            if (toggle) {
+                toggle.checked = nextMode === 'modern';
+                toggle.setAttribute('aria-pressed', toggle.checked ? 'true' : 'false');
+            }
+
+            document.body.classList.add('ui-mode-switching');
+            setModeValue(nextMode);
+
+            if (!animate) {
+                if (nextMode === 'modern') {
+                    ensureModernCss(true);
+                    classic.style.display = 'none';
+                    modern.style.display = 'block';
+                } else {
+                    modern.style.display = 'none';
+                    classic.style.display = 'block';
+                    ensureModernCss(false);
+                }
+                document.body.classList.remove('ui-mode-switching');
+                return;
+            }
+
+            var durationMs = 240;
+
+            if (nextMode === 'modern') {
+                ensureModernCss(true);
+                modern.style.display = 'block';
+                classic.style.display = 'block';
+                modern.style.opacity = '0';
+                classic.style.opacity = '1';
+
+                raf(function () {
+                    modern.style.opacity = '1';
+                    classic.style.opacity = '0';
+                });
+
+                setTimeout(function () {
+                    classic.style.display = 'none';
+                    classic.style.opacity = '';
+                    modern.style.opacity = '';
+                    document.body.classList.remove('ui-mode-switching');
+                }, durationMs);
+                return;
+            }
+
+            // switching to classic
+            modern.style.display = 'block';
+            classic.style.display = 'block';
+            classic.style.opacity = '0';
+            modern.style.opacity = '1';
+
+            raf(function () {
+                classic.style.opacity = '1';
+                modern.style.opacity = '0';
+            });
+
+            setTimeout(function () {
+                modern.style.display = 'none';
+                modern.style.opacity = '';
+                classic.style.opacity = '';
+                ensureModernCss(false);
+                document.body.classList.remove('ui-mode-switching');
+            }, durationMs);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var toggle = document.getElementById('homeUiModeToggle');
+            var initial = getMode();
+
+            // Ensure DOM matches stored state (no animation on load)
+            switchMode(initial, false);
+
+            if (!toggle) return;
+            toggle.checked = initial === 'modern';
+            toggle.setAttribute('aria-pressed', toggle.checked ? 'true' : 'false');
+
+            toggle.addEventListener('change', function (e) {
+                switchMode(e.target.checked ? 'modern' : 'classic', true);
+            });
+        });
+    })();
+</script>
 <script>
     $('#load-more').on('click', function() {
         var page = $(this).data('page');
