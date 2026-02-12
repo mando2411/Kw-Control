@@ -1223,7 +1223,7 @@
                     function finish() {
                         if (done) return;
                         done = true;
-                        resolve(true);
+                        resolve(!!(link && link.sheet));
                     }
 
                     link.addEventListener('load', finish, { once: true });
@@ -1317,7 +1317,14 @@
                 classic.style.opacity = '1';
                 modern.style.display = 'none';
 
-                await ensureModernCss(true);
+                var loaded = await ensureModernCss(true);
+                if (!loaded) {
+                    // If modern CSS fails, keep classic (never blank)
+                    setModeValue('classic');
+                    applyBodyMode('classic');
+                    document.body.classList.remove('ui-mode-switching');
+                    return;
+                }
 
                 // Apply mode only after CSS is loaded
                 applyBodyMode('modern');
