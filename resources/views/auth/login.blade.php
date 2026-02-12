@@ -209,6 +209,171 @@
             border: none;
             border-radius: 0.9rem;
         }
+
+        /* === Enterprise AJAX Login Overlay (Modern Theme Only) === */
+        .login-modern {
+            position: relative;
+        }
+
+        body[data-login-ajax-state="submitting"] .login-modern,
+        body[data-login-ajax-state="animating"] .login-modern {
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .login-modern .modern-form.is-frozen {
+            opacity: 0.92;
+            filter: grayscale(0.12);
+        }
+
+        .login-enterprise-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+        }
+
+        .login-enterprise-overlay.is-visible {
+            display: flex;
+        }
+
+        .login-enterprise-overlay .glass {
+            position: relative;
+            width: min(520px, 92vw);
+            border-radius: 1.75rem;
+            padding: 2rem 1.75rem;
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 40px 90px rgba(2, 6, 23, 0.55);
+            overflow: hidden;
+            color: #e2e8f0;
+        }
+
+        .login-enterprise-overlay .glass::before {
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background: conic-gradient(from 180deg, rgba(14, 165, 233, 0.32), rgba(245, 158, 11, 0.22), rgba(99, 102, 241, 0.25), rgba(14, 165, 233, 0.32));
+            filter: blur(30px);
+            opacity: 0.45;
+            animation: overlaySpin 3.4s linear infinite;
+        }
+
+        @keyframes overlaySpin {
+            to {
+                transform: rotate(1turn);
+            }
+        }
+
+        .login-enterprise-overlay .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .scan-frame {
+            width: 176px;
+            height: 176px;
+            margin: 0 auto;
+            border-radius: 999px;
+            position: relative;
+            display: grid;
+            place-items: center;
+        }
+
+        .scan-frame .ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            border: 2px solid rgba(226, 232, 240, 0.35);
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.65) inset;
+        }
+
+        .scan-frame .ring.glow {
+            border-color: rgba(14, 165, 233, 0.85);
+            box-shadow:
+                0 0 0 1px rgba(14, 165, 233, 0.35) inset,
+                0 0 22px rgba(14, 165, 233, 0.55),
+                0 0 62px rgba(245, 158, 11, 0.25);
+            opacity: 0;
+        }
+
+        .scan-frame .sweep {
+            position: absolute;
+            inset: -8px;
+            border-radius: 999px;
+            background: conic-gradient(from 0deg, rgba(14, 165, 233, 0) 0deg, rgba(14, 165, 233, 0.0) 210deg, rgba(14, 165, 233, 0.55) 260deg, rgba(14, 165, 233, 0) 320deg, rgba(14, 165, 233, 0) 360deg);
+            filter: blur(0.2px);
+            opacity: 0.85;
+            mix-blend-mode: screen;
+        }
+
+        .scan-avatar {
+            width: 132px;
+            height: 132px;
+            border-radius: 999px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 20px 50px rgba(2, 6, 23, 0.55);
+            background: rgba(2, 6, 23, 0.25);
+        }
+
+        .scan-status {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .scan-status .sys {
+            font-weight: 700;
+            color: rgba(226, 232, 240, 0.92);
+        }
+
+        .scan-messages {
+            list-style: none;
+            margin: 1rem 0 0;
+            padding: 0;
+            display: grid;
+            gap: 0.4rem;
+            text-align: center;
+            color: rgba(226, 232, 240, 0.82);
+            font-size: 0.98rem;
+        }
+
+        .scan-welcome {
+            display: none;
+            margin-top: 1.25rem;
+            text-align: center;
+        }
+
+        .scan-welcome .hello {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #f8fafc;
+        }
+
+        .scan-welcome .sub {
+            margin-top: 0.35rem;
+            color: rgba(226, 232, 240, 0.78);
+        }
+
+        .scan-welcome .go {
+            margin-top: 1.15rem;
+            width: 100%;
+            border: 0;
+            border-radius: 1rem;
+            padding: 0.85rem 1rem;
+            font-weight: 800;
+            color: #0b1220;
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.95), rgba(245, 158, 11, 0.95));
+            box-shadow: 0 18px 40px rgba(14, 165, 233, 0.22);
+        }
+
+        .scan-welcome .go:active {
+            transform: translateY(1px);
+        }
     </style>
 </head>
 
@@ -290,7 +455,7 @@
                     </div>
                 </div>
                 <div class="col-12 col-lg-6">
-                    <div class="modern-card modern-form">
+                    <div class="modern-card modern-form" id="modernLoginCard">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
                                 <h4 class="modern-title mb-1">تسجيل الدخول</h4>
@@ -298,7 +463,10 @@
                             </div>
                             <span class="modern-badge">نسخة جديدة</span>
                         </div>
-                        <form method="POST" action="{{ route('login') }}">
+
+                        <div class="alert alert-danger d-none" id="modernAjaxError" role="alert"></div>
+
+                        <form method="POST" action="{{ route('login') }}" id="modernLoginForm" novalidate>
                             @csrf
                             <div class="mb-3">
                                 <label class="form-label">رقم الهاتف او الايميل</label>
@@ -314,10 +482,10 @@
                             </div>
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="rememberMeModern">
+                                    <input class="form-check-input" type="checkbox" id="rememberMeModern" name="remember" value="1">
                                     <label class="form-check-label" for="rememberMeModern">تذكرني</label>
                                 </div>
-                                <button type="submit" class="btn modern-primary">تسجيل دخول</button>
+                                <button type="submit" class="btn modern-primary" id="modernLoginSubmit">تسجيل دخول</button>
                             </div>
                             <button type="button" class="btn modern-secondary mt-3 w-100" id="backToLegacy">
                                 الرجوع للشكل القديم
@@ -329,8 +497,36 @@
         </div>
     </section>
 
+    <!-- Enterprise login overlay (AJAX success sequence) -->
+    <div class="login-enterprise-overlay" id="loginEnterpriseOverlay" aria-hidden="true">
+        <div class="glass">
+            <div class="content">
+                <div class="scan-frame">
+                    <div class="ring"></div>
+                    <div class="ring glow" id="scanGlowRing"></div>
+                    <div class="sweep" id="scanSweep"></div>
+                    <img class="scan-avatar" id="scanAvatar" src="{{ asset('assets/admin/images/users/user-placeholder.png') }}" alt="profile">
+                </div>
+
+                <div class="scan-status">
+                    <div class="sys" id="scanSysTitle">جاري بدء التحقق...</div>
+                    <ul class="scan-messages" id="scanMessages" aria-live="polite"></ul>
+                </div>
+
+                <div class="scan-welcome" id="scanWelcome">
+                    <div class="hello" id="scanHello">أهلاً بك</div>
+                    <div class="sub">تم تسجيل دخولك بنجاح</div>
+                    <button type="button" class="go" id="goDashboardBtn">دخول لوحة التحكم</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Include Bootstrap JS Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- GSAP (animation engine) -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
     <!-- Include your custom JS files if needed -->
     <script src="{{ asset('assets/admin/js/main.js') }}"></script>
@@ -370,6 +566,267 @@
                 backToLegacy.addEventListener("click", function () {
                     setTheme("legacy");
                 });
+            }
+
+            function canUseAjaxLogin() {
+                return !!(window.fetch && window.Promise && window.gsap);
+            }
+
+            function getModernForm() {
+                return document.getElementById('modernLoginForm');
+            }
+
+            function freezeModernForm() {
+                var card = document.getElementById('modernLoginCard');
+                var form = getModernForm();
+                var submit = document.getElementById('modernLoginSubmit');
+                if (card) card.classList.add('is-frozen');
+                if (submit) submit.setAttribute('disabled', 'disabled');
+                if (form) {
+                    Array.prototype.forEach.call(form.querySelectorAll('input, button'), function (el) {
+                        if (el.id === 'goDashboardBtn') return;
+                        el.setAttribute('disabled', 'disabled');
+                    });
+                }
+                document.body.setAttribute('data-login-ajax-state', 'submitting');
+            }
+
+            function unfreezeModernForm() {
+                var card = document.getElementById('modernLoginCard');
+                var form = getModernForm();
+                var submit = document.getElementById('modernLoginSubmit');
+                if (card) card.classList.remove('is-frozen');
+                if (submit) submit.removeAttribute('disabled');
+                if (form) {
+                    Array.prototype.forEach.call(form.querySelectorAll('input, button'), function (el) {
+                        if (el.id === 'goDashboardBtn') return;
+                        el.removeAttribute('disabled');
+                    });
+                }
+                document.body.removeAttribute('data-login-ajax-state');
+            }
+
+            function setAjaxError(message) {
+                var box = document.getElementById('modernAjaxError');
+                if (!box) return;
+                box.textContent = message || 'تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.';
+                box.classList.remove('d-none');
+            }
+
+            function clearAjaxError() {
+                var box = document.getElementById('modernAjaxError');
+                if (!box) return;
+                box.textContent = '';
+                box.classList.add('d-none');
+            }
+
+            function showOverlay() {
+                var overlay = document.getElementById('loginEnterpriseOverlay');
+                if (!overlay) return;
+                overlay.classList.add('is-visible');
+                overlay.setAttribute('aria-hidden', 'false');
+            }
+
+            function setScanHello(userName) {
+                var hello = document.getElementById('scanHello');
+                if (hello) {
+                    hello.textContent = 'أهلاً بك ' + (userName || '');
+                }
+            }
+
+            function getScanImagesPool() {
+                return [
+                    "{{ asset('assets/admin/images/0.png') }}",
+                    "{{ asset('assets/admin/images/3.png') }}",
+                    "{{ asset('assets/admin/images/5.png') }}",
+                    "{{ asset('assets/admin/images/9.png') }}",
+                    "{{ asset('assets/admin/images/13.png') }}",
+                    "{{ asset('assets/admin/images/16.png') }}",
+                    "{{ asset('assets/admin/images/17.png') }}",
+                    "{{ asset('assets/admin/images/users/user-placeholder.png') }}"
+                ];
+            }
+
+            function safeUserImage(url) {
+                if (!url || typeof url !== 'string') return "{{ asset('assets/admin/images/users/user-placeholder.png') }}";
+                return url;
+            }
+
+            function runEnterpriseSequence(payload) {
+                var overlay = document.getElementById('loginEnterpriseOverlay');
+                var avatar = document.getElementById('scanAvatar');
+                var sweep = document.getElementById('scanSweep');
+                var glow = document.getElementById('scanGlowRing');
+                var messages = document.getElementById('scanMessages');
+                var welcome = document.getElementById('scanWelcome');
+                var goBtn = document.getElementById('goDashboardBtn');
+                var redirectUrl = payload && payload.redirect ? payload.redirect : "{{ url('/') }}";
+                var userName = payload && payload.user ? payload.user.name : '';
+                var userImage = safeUserImage(payload && payload.user ? payload.user.image : null);
+
+                if (!overlay || !avatar || !messages || !welcome || !goBtn) {
+                    window.location.href = redirectUrl;
+                    return;
+                }
+
+                document.body.setAttribute('data-login-ajax-state', 'animating');
+
+                // seed UI
+                messages.innerHTML = '';
+                welcome.style.display = 'none';
+                if (glow) glow.style.opacity = '0';
+                if (sweep) sweep.style.opacity = '0.9';
+                avatar.src = "{{ asset('assets/admin/images/users/user-placeholder.png') }}";
+
+                var pool = getScanImagesPool();
+                var rafId = 0;
+                var start = performance.now();
+                var duration = 1350;
+
+                function easingOut(t) {
+                    return 1 - Math.pow(1 - t, 3);
+                }
+
+                function pickRandom() {
+                    return pool[Math.floor(Math.random() * pool.length)];
+                }
+
+                function tick(now) {
+                    var t = Math.min(1, (now - start) / duration);
+                    var eased = easingOut(t);
+                    // interval grows from ~30ms to ~170ms
+                    var interval = 30 + eased * 140;
+
+                    if (!tick.last) tick.last = now;
+                    if (now - tick.last >= interval) {
+                        avatar.src = pickRandom();
+                        // motion blur simulation
+                        avatar.style.filter = t < 0.65 ? 'blur(2.2px) saturate(1.15)' : 'blur(0px) saturate(1.0)';
+                        tick.last = now;
+                    }
+
+                    if (t < 1) {
+                        rafId = requestAnimationFrame(tick);
+                    } else {
+                        avatar.style.filter = 'blur(0px)';
+                        avatar.src = userImage;
+                    }
+                }
+
+                var tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+
+                // Zoom-out + blur the page behind
+                tl.to('.login-modern .modern-shell', { duration: 0.8, scale: 0.92, filter: 'blur(6px)', opacity: 0.92 }, 0);
+                tl.to(overlay, { duration: 0.25, onStart: function () { showOverlay(); } }, 0.12);
+                tl.fromTo('.login-enterprise-overlay .glass', { y: 10, opacity: 0 }, { duration: 0.35, y: 0, opacity: 1 }, 0.2);
+                tl.to(sweep, { duration: 0.2, opacity: 1 }, 0.25);
+                tl.to(sweep, { duration: 1.4, rotate: 360, ease: 'none', repeat: 1 }, 0.25);
+
+                tl.add(function () {
+                    rafId = requestAnimationFrame(tick);
+                }, 0.35);
+
+                function pushMessage(text) {
+                    var li = document.createElement('li');
+                    li.textContent = text;
+                    messages.appendChild(li);
+                    gsap.fromTo(li, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: 0.22 });
+                }
+
+                tl.add(function () { pushMessage('جاري تحليل البيانات...'); }, 0.55);
+                tl.add(function () { pushMessage('جاري التحقق من الهوية...'); }, 0.78);
+                tl.add(function () { pushMessage('جاري تأمين الاتصال...'); }, 1.02);
+                tl.add(function () { pushMessage('جاري إنشاء جلسة آمنة...'); }, 1.26);
+                tl.add(function () { pushMessage('تم التحقق بنجاح ✓'); }, 1.5);
+
+                tl.add(function () {
+                    cancelAnimationFrame(rafId);
+                    avatar.src = userImage;
+                    setScanHello(userName);
+                }, 1.65);
+
+                tl.to(glow, { duration: 0.18, opacity: 1 }, 1.72);
+                tl.to(glow, { duration: 0.9, scale: 1.04, yoyo: true, repeat: 1, ease: 'sine.inOut' }, 1.72);
+                tl.to(sweep, { duration: 0.25, opacity: 0 }, 1.9);
+
+                tl.add(function () {
+                    welcome.style.display = 'block';
+                    gsap.fromTo(welcome, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.24 });
+                }, 2.05);
+
+                function go() {
+                    window.location.href = redirectUrl;
+                }
+
+                var goOnce = function () {
+                    goBtn.removeEventListener('click', goOnce);
+                    go();
+                };
+
+                goBtn.addEventListener('click', goOnce);
+                setTimeout(go, 1500);
+            }
+
+            function ajaxLoginSubmit(event) {
+                var form = getModernForm();
+                if (!form) return;
+                if (!canUseAjaxLogin()) return;
+
+                event.preventDefault();
+
+                clearAjaxError();
+                var formData = new FormData(form);
+                freezeModernForm();
+                var csrf = document.querySelector('meta[name="csrf-token"]');
+                var csrfToken = csrf ? csrf.getAttribute('content') : '';
+
+                fetch(form.getAttribute('action'), {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(function (res) {
+                    if (!res.ok) {
+                        return res.json().then(function (data) {
+                            throw data;
+                        });
+                    }
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (data && data.success) {
+                        runEnterpriseSequence(data);
+                        return;
+                    }
+                    unfreezeModernForm();
+                    setAjaxError('حدث خطأ غير متوقع. حاول مرة أخرى.');
+                })
+                .catch(function (err) {
+                    var msg = 'تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.';
+                    if (err) {
+                        if (typeof err.message === 'string' && err.message.trim()) {
+                            msg = err.message;
+                        } else if (err.errors) {
+                            var firstKey = Object.keys(err.errors)[0];
+                            if (firstKey && err.errors[firstKey] && err.errors[firstKey][0]) {
+                                msg = err.errors[firstKey][0];
+                            }
+                        }
+                    }
+                    unfreezeModernForm();
+                    setAjaxError(msg);
+                });
+            }
+
+            // Bind AJAX only for modern theme form
+            var modernForm = getModernForm();
+            if (modernForm) {
+                modernForm.addEventListener('submit', ajaxLoginSubmit);
             }
         })();
     </script>

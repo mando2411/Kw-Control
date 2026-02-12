@@ -43,6 +43,18 @@ class AuthenticatedSessionController extends Controller
                 auth('client_web')->user()->createToken('api')->accessToken,
                 now()->addHours(2)->unix()
             );
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'name' => auth('client_web')->user()->name,
+                        'image' => auth('client_web')->user()->image,
+                    ],
+                    'redirect' => url('/api/documentation'),
+                ]);
+            }
+
             return redirect()->intended('/api/documentation');
         }
 
