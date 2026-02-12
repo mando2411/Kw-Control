@@ -731,6 +731,11 @@
                 overflow: hidden;
             }
 
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show {
+                display: block !important;
+            }
+
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-head,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-head {
                 display: flex;
@@ -1280,6 +1285,13 @@
 
     <script>
         (function () {
+            window.toggleDashboardNotifMenuMobile = function (event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            };
+
             var notifPanel = document.getElementById('notif-menu-panel-mobile');
             var notifToggle = document.getElementById('notif-menu-dropdown-mobile');
             var notifList = document.getElementById('dtmNotifListMobile');
