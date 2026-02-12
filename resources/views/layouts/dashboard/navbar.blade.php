@@ -63,15 +63,11 @@
     <div class="dashboard-topbar-mobile fixed-top" dir="rtl" aria-label="Mobile Header">
         <div class="dtm-inner">
             <div class="dtm-actions">
-                <div class="dropdown" id="user-menu-wrapper-mobile">
-                    <button id="user-menu-dropdown-mobile" class="dtm-user" type="button" onclick="toggleDashboardUserMenuMobile(event)" aria-expanded="false" aria-label="حساب المستخدم">
-                        <img class="dtm-avatar" src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
+                @if (auth()->user()->hasRole("Administrator"))
+                    <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
+                        <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
-                    <ul id="user-menu-panel-mobile" class="dropdown-menu">
-                        <li><a class="dropdown-item px-2" style="font-size:12px" href="{{ route('profile.edit') }}">تحرير الملف الشخصي</a></li>
-                        <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
-                    </ul>
-                </div>
+                @endif
 
                 <button type="button" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات">
                     <i class="bi bi-bell"></i>
@@ -82,15 +78,22 @@
                 </a>
             </div>
 
-            @if (auth()->user()->hasRole("Administrator"))
-                <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
-                    <i class="bi bi-layout-sidebar-inset"></i>
-                </button>
-            @endif
+            <div class="dtm-left">
+                <div class="dropdown" id="user-menu-wrapper-mobile">
+                    <button id="user-menu-dropdown-mobile" class="dtm-user" type="button" onclick="toggleDashboardUserMenuMobile(event)" aria-expanded="false" aria-label="حساب المستخدم">
+                        <img class="dtm-avatar" src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" alt="user image">
+                    </button>
+                    <ul id="user-menu-panel-mobile" class="dropdown-menu">
+                        <li><a class="dropdown-item px-2" style="font-size:12px" href="{{ route('profile.edit') }}">تحرير الملف الشخصي</a></li>
+                        <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
+                    </ul>
+                </div>
 
-            <a href="{{ route('dashboard') }}" class="dtm-brand" aria-label="الرئيسية">
-                <span class="dtm-title">{{ config('app.name', 'كنترول') }}</span>
-            </a>
+                <a href="{{ route('dashboard') }}" class="dtm-brand" aria-label="الرئيسية">
+                    <span class="dtm-title">{{ config('app.name', 'كنترول') }}</span>
+                </a>
+            </div>
+
         </div>
     </div>
 
