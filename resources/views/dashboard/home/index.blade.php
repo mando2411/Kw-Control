@@ -558,13 +558,6 @@
 
 {{-- ui_mode is bootstrapped early in the dashboard layout to prevent flicker --}}
 
-<div class="home-ui-toggle" dir="rtl">
-    <div class="form-check form-switch m-0">
-        <input class="form-check-input" type="checkbox" id="homeUiModeToggle" aria-pressed="false">
-        <label class="form-check-label" for="homeUiModeToggle">الشكل الحديث</label>
-    </div>
-</div>
-
 <div id="homepage-classic">
 <div class="projectContainer mx-auto">
     <!-- banner -->

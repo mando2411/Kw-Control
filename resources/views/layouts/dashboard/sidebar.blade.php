@@ -18,6 +18,13 @@
                 <p>{{ admin()->role }}</p>
             </div>
         </div>
+
+        <div class="sidebar-ui-mode" dir="rtl">
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="sidebarUiModeToggle" aria-pressed="false">
+                <label class="form-check-label" for="sidebarUiModeToggle">الشكل الحديث</label>
+            </div>
+        </div>
         <ul class="sidebar-menu">
             <x-dashboard.sidebar.single-link title="الصفحه الرئيسيه" link="{{ route('dashboard') }}" icon="home" />
 
