@@ -486,7 +486,7 @@
         }
 
         .scan-frame {
-            width: clamp(60px, 6vw, 50px);
+            width: clamp(6px, 6vw, 5px);
             height: clamp(160px, 28vw, 210px);
             margin: 0 auto -6px;
             border-radius: 999px;
