@@ -108,8 +108,14 @@
 
         .login-modern {
             height: auto !important;
-            min-height: 100vh;
-            overflow-y: auto;
+            min-height: 100dvh;
+            overflow: visible;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            overflow-x: hidden;
         }
 
         .login-modern .modern-shell {
@@ -336,6 +342,11 @@
 
             .login-modern .modern-card {
                 padding: 1.2rem;
+            }
+
+            body[data-login-theme="modern"] {
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
         }
 
@@ -639,7 +650,7 @@
         </div>
     </section>
 
-    <section class="login-modern login-modern-layout vh-100">
+    <section class="login-modern login-modern-layout">
         <div class="container modern-shell">
             <div class="row g-4 login-modern-stack">
                 <div class="col-12">
