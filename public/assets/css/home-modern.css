@@ -152,6 +152,45 @@
   width: 100%;
 }
 
+.home-modern-mode .hm-hero-mini-row .hm-candidate-mini,
+.home-modern-mode .hm-hero-mini-row .hm-section-mini {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.14), rgba(148, 163, 184, 0.08));
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.22);
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.home-modern-mode .hm-hero-mini-row .hm-candidate-mini {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.home-modern-mode .hm-hero-mini-row .hm-candidate-mini .hm-candidate-title {
+  color: rgba(248, 250, 252, 0.94);
+}
+
+.home-modern-mode .hm-hero-mini-row .hm-candidate-mini .hm-candidate-sub {
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.home-modern-mode .hm-hero-mini-row > * {
+  animation: hmMiniCardIn 420ms cubic-bezier(0.2, 0.75, 0.22, 1) both;
+}
+
+.home-modern-mode .hm-hero-mini-row > *:nth-child(2) {
+  animation-delay: 70ms;
+}
+
 .home-modern-mode .hm-card {
   border-radius: 1.1rem;
   background: var(--hm-surface);
@@ -335,8 +374,8 @@
   gap: 0.28rem;
   padding: 0.5rem 0.45rem;
   border-radius: 0.72rem;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 23, 42, 0.12);
   font-variant-numeric: tabular-nums;
   direction: ltr;
 }
@@ -363,6 +402,17 @@
 
 .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-section-title i {
   color: rgba(3, 105, 161, 0.92);
+}
+
+@keyframes hmMiniCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .home-modern-mode .hm-kpi-grid {
@@ -638,6 +688,10 @@
   .home-modern-mode .hm-anim {
     opacity: 1;
     transform: none;
+    animation: none !important;
+  }
+
+  .home-modern-mode .hm-hero-mini-row > * {
     animation: none !important;
   }
 
