@@ -630,16 +630,11 @@
             body.ui-modern .dashboard-topbar-mobile .dtm-brand {
                 text-decoration: none;
                 color: var(--ui-ink);
-                display: flex;
+                display: inline-flex;
                 align-items: center;
-                justify-content: center;
                 gap: 8px;
                 font-weight: 900;
-                position: absolute;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                top: 50%;
-                z-index: 1;
+                margin-inline-start: auto;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-title,
