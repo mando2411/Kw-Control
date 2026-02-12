@@ -559,7 +559,7 @@
         }
 
         .scan-status {
-            margin-top: 1.35rem;
+            margin-top: 0.75rem;
             text-align: center;
             padding-inline: 0.35rem;
         }
@@ -574,10 +574,10 @@
 
         .scan-messages {
             list-style: none;
-            margin: 1.05rem 0 0;
+            margin: 0.6rem 0 0;
             padding: 0;
             display: grid;
-            gap: 0.62rem;
+            gap: 0.42rem;
             text-align: center;
             color: rgba(226, 232, 240, 0.82);
             font-size: clamp(0.92rem, 2.35vw, 1.02rem);
@@ -585,7 +585,7 @@
         }
 
         .scan-messages li {
-            padding: 0.38rem 0.7rem;
+            padding: 0.28rem 0.62rem;
             border-radius: 999px;
             background: rgba(148, 163, 184, 0.10);
             border: 1px solid rgba(148, 163, 184, 0.16);
@@ -594,7 +594,7 @@
 
         .scan-welcome {
             display: none;
-            margin-top: 1.45rem;
+            margin-top: 0.75rem;
             text-align: center;
         }
 
@@ -607,14 +607,14 @@
         }
 
         .scan-welcome .sub {
-            margin-top: 0.55rem;
+            margin-top: 0.25rem;
             font-size: clamp(0.93rem, 2.25vw, 1rem);
             line-height: 1.65;
             color: rgba(226, 232, 240, 0.78);
         }
 
         .scan-welcome .go {
-            margin-top: 1.3rem;
+            margin-top: 0.75rem;
             width: 100%;
             border: 0;
             border-radius: 1rem;
@@ -628,19 +628,19 @@
 
         @media (max-width: 576px) {
             .scan-status {
-                margin-top: 1.15rem;
+                margin-top: 0.6rem;
             }
 
             .scan-messages {
-                gap: 0.5rem;
+                gap: 0.36rem;
             }
 
             .scan-messages li {
-                padding: 0.34rem 0.6rem;
+                padding: 0.24rem 0.52rem;
             }
 
             .scan-welcome {
-                margin-top: 1.25rem;
+                margin-top: 0.62rem;
             }
         }
 

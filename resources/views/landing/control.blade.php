@@ -369,7 +369,7 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div>
                     <h6 class="fw-bold mb-1">هذا الموقع برعاية أحمد خلف</h6>
-                    <div class="text-muted">للاستفسار (رقم كويتي): <a class="contact-phone" href="{{ $supportCallLink }}">{{ $supportDisplayPhone }}</a></div>
+                    <div class="text-muted">للاستفسار : <a class="contact-phone" href="{{ $supportCallLink }}">{{ $supportDisplayPhone }}</a></div>
                     <div class="contact-actions" aria-label="أزرار التواصل السريع">
                         <a href="{{ $supportCallLink }}" class="contact-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
                             <i class="bi bi-telephone-fill"></i>
