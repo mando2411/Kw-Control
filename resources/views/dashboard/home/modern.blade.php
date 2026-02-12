@@ -54,23 +54,14 @@
                                 <input type="hidden" id="hmEndDate" value="{{ \Carbon\Carbon::parse($election->end_date)->format('Y-m-d') }}">
                                 <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
 
-                                <div class="hm-kpi-grid">
-                                    <div class="hm-kpi">
-                                        <div class="value" id="hmDays">0</div>
-                                        <div class="label">يوم</div>
-                                    </div>
-                                    <div class="hm-kpi">
-                                        <div class="value" id="hmHours">0</div>
-                                        <div class="label">ساعة</div>
-                                    </div>
-                                    <div class="hm-kpi">
-                                        <div class="value" id="hmMinutes">0</div>
-                                        <div class="label">دقيقة</div>
-                                    </div>
-                                    <div class="hm-kpi">
-                                        <div class="value" id="hmSeconds">0</div>
-                                        <div class="label">ثانية</div>
-                                    </div>
+                                <div class="hm-count-inline" aria-label="الوقت المتبقي">
+                                    <span class="hm-count-num" id="hmDays">0</span>
+                                    <span class="hm-count-sep" aria-hidden="true">:</span>
+                                    <span class="hm-count-num" id="hmHours">0</span>
+                                    <span class="hm-count-sep" aria-hidden="true">:</span>
+                                    <span class="hm-count-num" id="hmMinutes">0</span>
+                                    <span class="hm-count-sep" aria-hidden="true">:</span>
+                                    <span class="hm-count-num" id="hmSeconds">0</span>
                                 </div>
 
                                 <div class="hm-sub mt-2" id="hmCountdownHint"></div>
