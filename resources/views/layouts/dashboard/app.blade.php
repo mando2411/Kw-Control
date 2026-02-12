@@ -124,8 +124,8 @@
         body.ui-modern {
             --ui-ink: rgba(15, 23, 42, 0.92);
             --ui-muted: rgba(71, 85, 105, 0.92);
-            --ui-surface: rgba(255, 255, 255, 0.92);
-            --ui-surface-2: rgba(255, 255, 255, 0.70);
+            --ui-surface: rgba(255, 255, 255, 0.98);
+            --ui-surface-2: rgba(255, 255, 255, 0.94);
             --ui-border: rgba(15, 23, 42, 0.10);
             --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.16);
 
@@ -208,11 +208,57 @@
             border: 1px solid var(--ui-border);
             border-radius: 18px;
             box-shadow: var(--ui-shadow);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             overflow: hidden;
             margin: 12px;
             height: calc(100vh - 24px);
+        }
+
+        /* Legacy theme overrides (admin.css uses very high specificity for sidebar) */
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar {
+            background: linear-gradient(180deg, var(--ui-surface), var(--ui-surface-2)) !important;
+            border: 1px solid var(--ui-border) !important;
+            box-shadow: var(--ui-shadow) !important;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .main-header-left,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .main-header-left {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .sidebar,
+        body.ui-modern .page-wrapper .page-body-wrapper .sidebar {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu {
+            padding: 6px 10px 16px !important;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu .sidebar-header,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu .sidebar-header {
+            background: var(--ui-surface) !important;
+            border: 1px solid var(--ui-border) !important;
+            color: var(--ui-ink) !important;
+            border-radius: 14px !important;
+            padding: 10px 12px !important;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu .sidebar-header span,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu .sidebar-header span {
+            color: var(--ui-ink) !important;
+            font-weight: 800 !important;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu .sidebar-header svg,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar .sidebar-menu .sidebar-header svg {
+            stroke: var(--ui-accent) !important;
+            color: var(--ui-accent) !important;
         }
 
         html.ui-modern .page-sidebar .main-header-left,
@@ -258,9 +304,9 @@
             padding: 14px 14px;
             margin: 12px 12px 8px;
             border-radius: 16px;
-            background: linear-gradient(135deg, var(--ui-dark-1), var(--ui-dark-2));
-            border: 1px solid var(--ui-dark-border);
-            box-shadow: 0 18px 44px rgba(2, 6, 23, 0.22);
+            background: linear-gradient(135deg, var(--ui-accent-soft), var(--ui-warm-soft));
+            border: 1px solid var(--ui-border);
+            box-shadow: 0 18px 44px rgba(2, 6, 23, 0.10);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -269,20 +315,20 @@
         html.ui-modern .page-sidebar .sidebar-user img,
         body.ui-modern .page-sidebar .sidebar-user img {
             border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 18px 50px rgba(2, 6, 23, 0.35);
+            border: 1px solid var(--ui-border);
+            box-shadow: 0 18px 50px rgba(2, 6, 23, 0.16);
         }
 
         html.ui-modern .page-sidebar .sidebar-user h6,
         body.ui-modern .page-sidebar .sidebar-user h6 {
-            color: rgba(248, 250, 252, 0.96);
+            color: var(--ui-ink);
             font-weight: 900;
             margin: 0;
         }
 
         html.ui-modern .page-sidebar .sidebar-user p,
         body.ui-modern .page-sidebar .sidebar-user p {
-            color: rgba(226, 232, 240, 0.82);
+            color: var(--ui-muted);
             margin: 2px 0 0;
         }
 
@@ -303,27 +349,32 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            background: var(--ui-surface);
-            border: 1px solid var(--ui-border);
-            color: var(--ui-ink);
+            background: var(--ui-surface) !important;
+            border: 1px solid var(--ui-border) !important;
+            color: var(--ui-ink) !important;
             box-shadow: 0 10px 22px rgba(2, 6, 23, 0.06);
             transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
             will-change: transform;
         }
 
+        html.ui-modern .page-sidebar a.sidebar-header span,
+        body.ui-modern .page-sidebar a.sidebar-header span {
+            color: var(--ui-ink) !important;
+        }
+
         html.ui-modern .page-sidebar a.sidebar-header i[data-feather],
         body.ui-modern .page-sidebar a.sidebar-header i[data-feather] {
-            color: var(--ui-accent);
+            color: var(--ui-accent) !important;
         }
 
         html.ui-modern .page-sidebar a.sidebar-header > i:not(.fa-angle-right),
         body.ui-modern .page-sidebar a.sidebar-header > i:not(.fa-angle-right) {
-            color: var(--ui-accent);
+            color: var(--ui-accent) !important;
         }
 
         html.ui-modern .page-sidebar a.sidebar-header .fa-angle-right,
         body.ui-modern .page-sidebar a.sidebar-header .fa-angle-right {
-            color: var(--ui-muted);
+            color: var(--ui-muted) !important;
             opacity: 0.9;
         }
 
@@ -337,7 +388,7 @@
             transform: translateY(-1px);
             box-shadow: 0 14px 30px rgba(2, 6, 23, 0.10);
             border-color: rgba(14, 165, 233, 0.22);
-            background: var(--ui-surface);
+            background: var(--ui-surface) !important;
         }
 
         html.ui-modern .page-sidebar li.active-temp > a.sidebar-header,
@@ -358,13 +409,13 @@
             margin: 8px 6px 0;
             padding: 10px 8px;
             border-radius: 14px;
-            background: var(--ui-surface-2);
-            border: 1px solid var(--ui-border);
+            background: var(--ui-surface-2) !important;
+            border: 1px solid var(--ui-border) !important;
         }
 
         html.ui-modern .page-sidebar .sidebar-submenu a.sidebar-header,
         body.ui-modern .page-sidebar .sidebar-submenu a.sidebar-header {
-            background: var(--ui-surface);
+            background: var(--ui-surface) !important;
             box-shadow: none;
             padding: 9px 10px;
         }
