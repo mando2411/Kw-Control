@@ -6,7 +6,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'File Manager') }}</title>
+    <title>{{ config('app.name', 'كنترول') }}</title>
 
     <!-- Styles -->
     <link rel="stylesheet" href="{{ asset('vendor/file-manager/css/bootstrap.min.css') }}">

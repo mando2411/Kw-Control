@@ -10,7 +10,7 @@
                 <p class="todayDate fs-4 position-absolute fw-bold">3</p>
             </figure>
             <p class="text-secondary">
-                <strong>Control</strong>
+                <strong>{{ config('app.name', 'كنترول') }}</strong>
                 <br>
                 <strong>9559 8151</strong>
             </p>
@@ -69,7 +69,7 @@
             @endif
 
             <a href="{{ route('dashboard') }}" class="dtm-brand" aria-label="الرئيسية">
-                <span class="dtm-title">Control</span>
+                <span class="dtm-title">{{ config('app.name', 'كنترول') }}</span>
             </a>
 
             <div class="dtm-actions">

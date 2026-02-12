@@ -17,8 +17,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="New vision Dashboard">
-    <meta name="keywords" content="admin dashboard, New vision, web app">
+    <meta name="description" content="كنترول منصة عربية متكاملة لإدارة العمليات والنتائج والتقارير بكفاءة ووضوح.">
+    <meta name="keywords" content="كنترول, لوحة تحكم, إدارة النتائج, إدارة المستخدمين, تقارير">
     <meta name="author" content="Ahmed Nasr">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -103,7 +103,7 @@
     </script>
     {{--    <link rel="icon" href="assets/images/dashboard/favicon.png" type="image/x-icon"> --}}
     {{--    <link rel="shortcut icon" href="assets/images/dashboard/favicon.png" type="image/x-icon"> --}}
-    <title>{{ setting(\App\Enums\SettingKey::SITE_TITLE->value, true) }} | Dashboard</title>
+    <title>{{ setting(\App\Enums\SettingKey::SITE_TITLE->value, true) ?: config('app.name', 'كنترول') }} | لوحة التحكم</title>
 
     <!-- Google font-->
     <link rel="stylesheet"

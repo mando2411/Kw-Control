@@ -3,7 +3,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>{{ setting(\App\Enums\SettingKey::SITE_TITLE->value, true) }}</title>    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="كنترول منصة عربية متكاملة لإدارة العمليات والنتائج والتقارير بكفاءة ووضوح.">
+    <meta name="keywords" content="كنترول, لوحة تحكم, إدارة النتائج, إدارة المستخدمين, تقارير">
+    <title>{{ setting(\App\Enums\SettingKey::SITE_TITLE->value, true) ?: config('app.name', 'كنترول') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- favicon -->
     <link rel=icon href="{{logo()}}" sizes="20x20" type="image/png">
 
