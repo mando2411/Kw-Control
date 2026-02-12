@@ -478,11 +478,11 @@
             height: 100%;
             display: grid;
             place-items: center;
-            padding: 2rem 1.25rem;
+            padding: clamp(1.5rem, 3.5vw, 2.4rem) clamp(1rem, 2.8vw, 1.9rem);
         }
 
         .login-enterprise-overlay .content > div {
-            width: min(560px, 92vw);
+            width: min(620px, 94vw);
         }
 
         .scan-frame {
@@ -559,53 +559,89 @@
         }
 
         .scan-status {
-            margin-top: 1.5rem;
+            margin-top: 1.35rem;
             text-align: center;
+            padding-inline: 0.35rem;
         }
 
         .scan-status .sys {
-            font-weight: 700;
+            font-weight: 800;
+            font-size: clamp(1.02rem, 2.7vw, 1.22rem);
+            line-height: 1.6;
+            letter-spacing: 0.1px;
             color: rgba(226, 232, 240, 0.92);
         }
 
         .scan-messages {
             list-style: none;
-            margin: 1rem 0 0;
+            margin: 1.05rem 0 0;
             padding: 0;
             display: grid;
-            gap: 0.4rem;
+            gap: 0.62rem;
             text-align: center;
             color: rgba(226, 232, 240, 0.82);
-            font-size: 0.98rem;
+            font-size: clamp(0.92rem, 2.35vw, 1.02rem);
+            line-height: 1.7;
+        }
+
+        .scan-messages li {
+            padding: 0.38rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.10);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            backdrop-filter: blur(2px);
         }
 
         .scan-welcome {
             display: none;
-            margin-top: 1.25rem;
+            margin-top: 1.45rem;
             text-align: center;
         }
 
         .scan-welcome .hello {
-            font-size: 1.3rem;
+            font-size: clamp(1.2rem, 3.2vw, 1.52rem);
             font-weight: 800;
+            line-height: 1.45;
+            letter-spacing: 0.15px;
             color: #f8fafc;
         }
 
         .scan-welcome .sub {
-            margin-top: 0.35rem;
+            margin-top: 0.55rem;
+            font-size: clamp(0.93rem, 2.25vw, 1rem);
+            line-height: 1.65;
             color: rgba(226, 232, 240, 0.78);
         }
 
         .scan-welcome .go {
-            margin-top: 1.15rem;
+            margin-top: 1.3rem;
             width: 100%;
             border: 0;
             border-radius: 1rem;
-            padding: 0.85rem 1rem;
+            padding: 0.9rem 1.05rem;
             font-weight: 800;
+            font-size: 0.98rem;
             color: #0b1220;
             background: linear-gradient(90deg, rgba(14, 165, 233, 0.95), rgba(245, 158, 11, 0.95));
             box-shadow: 0 18px 40px rgba(14, 165, 233, 0.22);
+        }
+
+        @media (max-width: 576px) {
+            .scan-status {
+                margin-top: 1.15rem;
+            }
+
+            .scan-messages {
+                gap: 0.5rem;
+            }
+
+            .scan-messages li {
+                padding: 0.34rem 0.6rem;
+            }
+
+            .scan-welcome {
+                margin-top: 1.25rem;
+            }
         }
 
         .scan-welcome .go:active {
