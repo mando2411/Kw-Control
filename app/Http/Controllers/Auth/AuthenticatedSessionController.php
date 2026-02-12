@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -24,7 +25,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request): RedirectResponse|JsonResponse
     {
         $guard = null;
         if ($request->filled('login_as_client')) {
@@ -46,8 +47,31 @@ class AuthenticatedSessionController extends Controller
         }
 
         if(auth()->user()->representatives()->exists() && auth()->user()->representatives()->get()[0]->status == false ){
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'user' => [
+                        'name' => auth()->user()->name,
+                        'image' => auth()->user()->image,
+                    ],
+                    'redirect' => route('change-password'),
+                ]);
+            }
+
             return redirect()->route('change-password');
         }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'user' => [
+                    'name' => auth()->user()->name,
+                    'image' => auth()->user()->image,
+                ],
+                'redirect' => url(RouteServiceProvider::HOME),
+            ]);
+        }
+
         return redirect()->intended(RouteServiceProvider::HOME);
     }
 
