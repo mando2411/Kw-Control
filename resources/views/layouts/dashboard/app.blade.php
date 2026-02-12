@@ -504,6 +504,12 @@
             padding: 10px 12px !important;
         }
 
+        /* Push page content below the fixed modern header (dynamic via --dashboard-topbar-offset) */
+        html.ui-modern .page-wrapper .page-body-wrapper .page-body,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-body {
+            margin-top: var(--dashboard-topbar-offset, 112px) !important;
+        }
+
         html.ui-modern .dashboard-topbar .text-secondary,
         body.ui-modern .dashboard-topbar .text-secondary {
             color: var(--ui-muted) !important;
@@ -869,6 +875,43 @@
             } else {
                 bind();
             }
+        })();
+    </script>
+
+    <script>
+        // Modern header: compute and apply content offset to avoid overlap (handles wrapping on small screens)
+        (function () {
+            function updateOffset() {
+                var root = document.documentElement;
+                if (!root.classList.contains('ui-modern')) return;
+
+                var bar = document.querySelector('.dashboard-topbar');
+                if (!bar) return;
+
+                var rect = bar.getBoundingClientRect();
+                if (!rect || !rect.bottom) return;
+
+                var gap = 12;
+                var offset = Math.ceil(rect.bottom + gap);
+                root.style.setProperty('--dashboard-topbar-offset', offset + 'px');
+            }
+
+            var rafId = 0;
+            function schedule() {
+                if (rafId) cancelAnimationFrame(rafId);
+                rafId = requestAnimationFrame(function () {
+                    rafId = 0;
+                    updateOffset();
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', schedule, { once: true });
+            } else {
+                schedule();
+            }
+
+            window.addEventListener('resize', schedule);
         })();
     </script>
 
