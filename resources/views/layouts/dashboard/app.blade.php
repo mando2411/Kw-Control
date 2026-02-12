@@ -337,6 +337,40 @@
             padding: 6px 10px 16px;
         }
 
+        html.ui-modern .page-sidebar .sidebar-ui-mode,
+        body.ui-modern .page-sidebar .sidebar-ui-mode {
+            margin: 8px 12px 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: var(--ui-surface);
+            border: 1px solid var(--ui-border);
+            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.06);
+        }
+
+        html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-label,
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-label {
+            color: var(--ui-ink);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input,
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input {
+            cursor: pointer;
+        }
+
+        html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:checked,
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:checked {
+            background-color: rgba(14, 165, 233, 0.95);
+            border-color: rgba(14, 165, 233, 0.95);
+        }
+
+        html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:focus,
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:focus {
+            box-shadow: 0 0 0 0.2rem rgba(14, 165, 233, 0.18);
+            border-color: rgba(14, 165, 233, 0.55);
+        }
+
         html.ui-modern .page-sidebar .sidebar-menu > li,
         body.ui-modern .page-sidebar .sidebar-menu > li {
             margin: 6px 0;
@@ -772,6 +806,61 @@
                         return;
                     }
                     classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bind, { once: true });
+            } else {
+                bind();
+            }
+        })();
+    </script>
+
+    <script>
+        // Sidebar UI mode switch (classic/modern) - hosted in page-sidebar
+        (function () {
+            function applyModeClasses(mode) {
+                var root = document.documentElement;
+                root.classList.remove('ui-modern', 'ui-classic');
+                root.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+                root.setAttribute('data-ui-mode', mode);
+
+                if (document.body) {
+                    document.body.classList.remove('ui-modern', 'ui-classic');
+                    document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
+                    document.body.setAttribute('data-ui-mode', mode);
+                }
+            }
+
+            function bind() {
+                var toggle = document.getElementById('sidebarUiModeToggle');
+                if (!toggle) return;
+                if (toggle.dataset.bound === '1') return;
+                toggle.dataset.bound = '1';
+
+                var mode = window.__UI_MODE_EFFECTIVE__ || (document.documentElement.classList.contains('ui-modern') ? 'modern' : 'classic');
+                toggle.checked = mode === 'modern';
+                toggle.setAttribute('aria-pressed', toggle.checked ? 'true' : 'false');
+
+                // On homepage, the page-specific switcher handles animated switching + CSS loading
+                if (window.__UI_MODE_IS_HOMEPAGE__) {
+                    return;
+                }
+
+                toggle.addEventListener('change', function (e) {
+                    var nextMode = e.target && e.target.checked ? 'modern' : 'classic';
+                    toggle.setAttribute('aria-pressed', nextMode === 'modern' ? 'true' : 'false');
+
+                    try {
+                        localStorage.setItem('ui_mode', nextMode);
+                        localStorage.setItem('ui_mode_pending', '1');
+                    } catch (err) {
+                        // ignore
+                    }
+
+                    applyModeClasses(nextMode);
+                    window.location.reload();
                 });
             }
 

@@ -1092,7 +1092,7 @@
         }
 
         async function switchMode(nextMode, animate) {
-            var toggle = document.getElementById('homeUiModeToggle');
+            var toggle = document.getElementById('sidebarUiModeToggle') || document.getElementById('homeUiModeToggle');
             var classic = document.getElementById('homepage-classic');
             var modern = document.getElementById('homepage-modern');
             if (!classic || !modern) return;
@@ -1201,7 +1201,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            var toggle = document.getElementById('homeUiModeToggle');
+            var toggle = document.getElementById('sidebarUiModeToggle') || document.getElementById('homeUiModeToggle');
             var initial = window.__UI_MODE_EFFECTIVE__ || getEffectiveModeFromDom();
 
             // Ensure DOM matches stored state (no animation on load)
