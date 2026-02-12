@@ -2,7 +2,7 @@
     <div class="nav d-flex justify-content-between align-items-center px-2 bg-dark fixed-top w-100 flex-wrap">
         <div class="f-nav d-flex pt-2 align-items-center " >
             <a href="">
-                <figure class="rounded-circle overflow-hidden me-2"><img src="{{auth()->user()->image ? auth()->user()->image : asset("assets/admin/images/users/user-placeholder.png")  }}" class="w-100 h-100" alt="user image"></figure>
+                <figure class="rounded-circle overflow-hidden me-2"><img src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" class="w-100 h-100" alt="user image"></figure>
             </a>
             <figure class="position-relative me-2">
                 <img src="{{asset("assets/admin/images/image3.png")}}" class="w-100 h-100" alt="currennt date image">
