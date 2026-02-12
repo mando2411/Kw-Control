@@ -225,6 +225,7 @@
         .hm-sidebar-toggle--mobile,
         .dashboard-topbar-mobile .dtm-actions,
         .dashboard-topbar-mobile .dtm-user,
+        .dashboard-topbar-mobile .dtm-notif,
         .dashboard-topbar-mobile .dtm-logout,
         .dashboard-topbar-mobile .dtm-avatar {
             display: none;
@@ -617,6 +618,7 @@
             html.ui-modern .dashboard-topbar-mobile .dtm-inner,
             body.ui-modern .dashboard-topbar-mobile .dtm-inner {
                 height: 60px;
+                position: relative;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
@@ -628,10 +630,16 @@
             body.ui-modern .dashboard-topbar-mobile .dtm-brand {
                 text-decoration: none;
                 color: var(--ui-ink);
-                display: inline-flex;
+                display: flex;
                 align-items: center;
+                justify-content: center;
                 gap: 8px;
                 font-weight: 900;
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                top: 50%;
+                z-index: 1;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-title,
@@ -664,8 +672,12 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
+                position: relative;
+                z-index: 2;
             }
 
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif,
             html.ui-modern .dashboard-topbar-mobile .dtm-logout,
             body.ui-modern .dashboard-topbar-mobile .dtm-logout {
                 width: 42px;
@@ -673,18 +685,29 @@
                 border-radius: 999px;
                 border: 1px solid var(--ui-border);
                 background: var(--ui-surface-2);
-                color: var(--ui-danger);
                 box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
                 text-decoration: none;
+                padding: 0;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif {
+                color: var(--ui-ink);
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-logout i,
             body.ui-modern .dashboard-topbar-mobile .dtm-logout i {
                 font-size: 1rem;
                 color: var(--ui-danger);
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif i,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif i {
+                font-size: 1rem;
+                color: var(--ui-ink);
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-avatar,
