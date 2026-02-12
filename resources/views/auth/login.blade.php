@@ -478,7 +478,7 @@
             height: 100%;
             display: grid;
             place-items: center;
-            padding: clamp(1.5rem, 3.5vw, 2.4rem) clamp(1rem, 2.8vw, 1.9rem);
+            padding: clamp(0.5rem, 1.5vw, 1.4rem) clamp(0.1rem, 1.8vw, 0.9rem);
         }
 
         .login-enterprise-overlay .content > div {
