@@ -107,21 +107,43 @@
         (function () {
             document.addEventListener('click', function (event) {
                 var toggle = event.target.closest('#sidebar-toggle');
-                if (!toggle) {
+                if (toggle) {
+                    event.preventDefault();
+
+                    var sidebar = document.querySelector('.page-sidebar');
+                    var header = document.querySelector('.page-main-header');
+
+                    if (sidebar) {
+                        sidebar.classList.toggle('open');
+                    }
+
+                    if (header) {
+                        header.classList.toggle('open');
+                    }
+
                     return;
                 }
 
-                event.preventDefault();
+                var userMenuToggle = event.target.closest('#user-menu-toggle');
+                var userMenuPanel = document.querySelector('#user-menu-panel');
 
-                var sidebar = document.querySelector('.page-sidebar');
-                var header = document.querySelector('.page-main-header');
+                if (userMenuToggle && userMenuPanel) {
+                    event.preventDefault();
+                    event.stopPropagation();
 
-                if (sidebar) {
-                    sidebar.classList.toggle('open');
+                    var isOpen = userMenuPanel.classList.contains('show');
+                    userMenuPanel.classList.toggle('show', !isOpen);
+                    userMenuToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+                    return;
                 }
 
-                if (header) {
-                    header.classList.toggle('open');
+                var clickedInsideMenu = event.target.closest('#user-menu-dropdown');
+                if (!clickedInsideMenu && userMenuPanel && userMenuPanel.classList.contains('show')) {
+                    userMenuPanel.classList.remove('show');
+                    var toggleButton = document.querySelector('#user-menu-toggle');
+                    if (toggleButton) {
+                        toggleButton.setAttribute('aria-expanded', 'false');
+                    }
                 }
             });
         })();

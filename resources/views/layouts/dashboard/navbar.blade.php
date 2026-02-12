@@ -17,13 +17,13 @@
     
         <div class=" py-2 text-end ">
             <div class="d-flex navControll">
-                <div class="dropdown me-1">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="dropdown me-1" id="user-menu-dropdown">
+                                        <button id="user-menu-toggle" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-toggle="dropdown" aria-expanded="false">
                         <i class="fa fa-user ms-1"></i>
                         <span class="font-sm text-capitalize">                 {{auth()->user()->name}}
                         </span>
                     </button>
-                    <ul class="dropdown-menu ">
+                                        <ul id="user-menu-panel" class="dropdown-menu ">
                       <li><a class="dropdown-item px-2" style="font-size:12px" href="{{ route('profile.edit') }}" >تحرير الملف الشخصي</a></li>
                       <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
                     </ul>
