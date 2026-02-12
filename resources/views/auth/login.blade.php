@@ -487,8 +487,8 @@
 
         .scan-frame {
             width: clamp(80px, 14vw, 105px);
-            height: clamp(80px, 14vw, 105px);
-            margin: 0 auto -6px;
+            height: clamp(200px, 14vw, 105px);
+            margin: 0 auto 6px;
             border-radius: 999px;
             position: relative;
             display: grid;
