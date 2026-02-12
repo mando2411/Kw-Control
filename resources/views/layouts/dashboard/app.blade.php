@@ -223,6 +223,7 @@
         .dashboard-topbar-mobile,
         .dashboard-mobilebar,
         .hm-sidebar-toggle--mobile,
+        .dashboard-topbar-mobile .dtm-left,
         .dashboard-topbar-mobile .dtm-actions,
         .dashboard-topbar-mobile .dtm-user,
         .dashboard-topbar-mobile .dtm-notif,
@@ -634,7 +635,17 @@
                 align-items: center;
                 gap: 8px;
                 font-weight: 900;
+                margin: 0;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-left,
+            body.ui-modern .dashboard-topbar-mobile .dtm-left {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
                 margin-inline-start: auto;
+                position: relative;
+                z-index: 2;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-title,
