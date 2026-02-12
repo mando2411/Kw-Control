@@ -99,8 +99,7 @@
             font-family: "Cairo", "Segoe UI", Tahoma, Arial, sans-serif;
             position: relative;
             background: radial-gradient(circle at top right, #dbeafe 0%, #f8fafc 35%, #fff7ed 100%);
-            overflow: hidden;
-            touch-action: pan-y;
+            overflow: visible;
         }
 
         .login-modern-layout {
@@ -109,7 +108,7 @@
 
         .login-modern {
             height: auto !important;
-            min-height: 100dvh;
+            min-height: 100svh;
             overflow: visible;
         }
 
@@ -119,7 +118,7 @@
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-y: auto;
             height: auto !important;
-            min-height: 100dvh;
+            min-height: 100%;
         }
 
         html {
@@ -135,7 +134,6 @@
         .login-modern .modern-shell {
             padding-top: 2.5rem;
             padding-bottom: 2.5rem;
-            touch-action: pan-y;
         }
 
         body[data-login-theme="modern"] .login-modern .container,
@@ -281,7 +279,6 @@
             font-weight: 700;
             color: #0369a1;
             text-decoration: none;
-            touch-action: manipulation;
         }
 
         .login-preview-link:hover {
@@ -308,7 +305,6 @@
             background: rgba(255, 255, 255, 0.92);
             color: #0f172a;
             transition: transform 150ms ease, box-shadow 150ms ease;
-            touch-action: manipulation;
         }
 
         .login-action-icon i {
@@ -330,7 +326,6 @@
         .login-modern-stack {
             max-width: 760px;
             margin: 0 auto;
-            touch-action: pan-y;
         }
 
         .login-modern-stack > .col-12:last-child {
@@ -381,6 +376,10 @@
             body[data-login-theme="modern"] {
                 overflow-y: auto !important;
                 -webkit-overflow-scrolling: touch;
+            }
+
+            body[data-login-theme="modern"] .login-theme-toggle {
+                position: absolute;
             }
         }
 
