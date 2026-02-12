@@ -15,9 +15,19 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name' => ['string', 'max:255'],
-            'email' => ['email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
+        $rules = [
+            'email' => ['nullable', 'email', 'max:255', Rule::unique(User::class)->ignore($this->user()->id)],
+            'phone' => ['nullable', 'string', 'max:25', Rule::unique(User::class)->ignore($this->user()->id)],
+            'image' => ['nullable', 'image', 'max:4096'],
+            'remove_image' => ['nullable', 'boolean'],
         ];
+
+        if ($this->user() && $this->user()->hasRole('Administrator')) {
+            $rules['roles'] = ['nullable', 'array'];
+            $rules['roles.*'] = ['nullable', Rule::exists('roles', 'id')];
+            $rules['roles_present'] = ['nullable', 'boolean'];
+        }
+
+        return $rules;
     }
 }

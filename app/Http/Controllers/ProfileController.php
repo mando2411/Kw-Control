@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -61,8 +64,13 @@ class ProfileController extends Controller
 
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $isAdmin = $user->hasRole('Administrator');
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'isAdmin' => $isAdmin,
+            'roles' => $isAdmin ? Role::query()->orderBy('name')->get() : collect(),
         ]);
     }
 
@@ -71,15 +79,65 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if (array_key_exists('email', $validated)) {
+            $user->email = $validated['email'];
         }
 
-        $request->user()->save();
+        if (array_key_exists('phone', $validated)) {
+            $user->phone = $validated['phone'];
+        }
+
+        if ($request->boolean('remove_image')) {
+            $this->deleteUserImageFromMediaDisk($user->getRawOriginal('image'));
+            $user->image = null;
+        }
+
+        if ($request->hasFile('image')) {
+            $this->deleteUserImageFromMediaDisk($user->getRawOriginal('image'));
+            $file = $request->file('image');
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->storeAs('', $filename, 'media');
+            $user->image = rtrim(config('app.url'), '/') . '/storage/media/' . $filename;
+        }
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($user->hasRole('Administrator') && ($request->has('roles') || $request->boolean('roles_present'))) {
+            $user->syncRoles($request->input('roles', []));
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    private function deleteUserImageFromMediaDisk(?string $imageUrl): void
+    {
+        if (!$imageUrl) {
+            return;
+        }
+
+        $path = parse_url($imageUrl, PHP_URL_PATH) ?: $imageUrl;
+        $relative = null;
+
+        if (Str::contains($path, '/storage/media/')) {
+            $relative = ltrim(Str::after($path, '/storage/media/'), '/');
+        } elseif (Str::contains($path, 'storage/media/')) {
+            $relative = ltrim(Str::after($path, 'storage/media/'), '/');
+        } elseif (Str::contains($path, '/media-file/')) {
+            $relative = ltrim(Str::after($path, '/media-file/'), '/');
+        }
+
+        if (!$relative) {
+            return;
+        }
+
+        Storage::disk('media')->delete($relative);
     }
 
     /**
