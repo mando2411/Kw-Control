@@ -350,12 +350,13 @@
                     var classicIcon = document.getElementById('sidebar-toggle');
                     if (!classicIcon) return;
 
-                    var classicTrigger = classicIcon.closest('a,button');
-                    if (classicTrigger) {
-                        classicTrigger.click();
-                    } else {
-                        classicIcon.click();
+                    // admin.js binds the handler directly to $('#sidebar-toggle')
+                    if (window.jQuery) {
+                        window.jQuery(classicIcon).trigger('click');
+                        return;
                     }
+
+                    classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                 });
             }
 
