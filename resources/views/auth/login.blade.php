@@ -475,18 +475,18 @@
         .login-enterprise-overlay .content {
             position: relative;
             z-index: 1;
-            height: 60%;
+            height: 70%;
             display: grid;
             place-items: center;
             padding: clamp(1.5rem, 3.5vw, 2.4rem) clamp(1rem, 2.8vw, 1.9rem);
         }
 
         .login-enterprise-overlay .content > div {
-            width: min(280px, 40vw);
+            width: min(620px, 94vw);
         }
 
         .scan-frame {
-            width: clamp(6px, 6vw, 5px);
+            width: clamp(160px, 28vw, 210px);
             height: clamp(160px, 28vw, 210px);
             margin: 0 auto -6px;
             border-radius: 999px;
@@ -1026,8 +1026,8 @@
 
                 // Seed UI (stable layout, no shifts)
                 messages.innerHTML = '';
-                messages.style.minHeight = '0';
-                messages.style.marginTop = '0';
+                messages.style.minHeight = '4.2rem';
+                messages.style.marginTop = '0.25rem';
 
                 // No button in this experience
                 if (goBtn) {
