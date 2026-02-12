@@ -143,6 +143,15 @@
   color: rgba(226, 232, 240, 0.78);
 }
 
+.home-modern-mode .hm-hero-mini-row {
+  margin-top: 1rem;
+}
+
+.home-modern-mode .hm-hero-mini-row .hm-candidate-mini,
+.home-modern-mode .hm-hero-mini-row .hm-section-mini {
+  width: 100%;
+}
+
 .home-modern-mode .hm-card {
   border-radius: 1.1rem;
   background: var(--hm-surface);
@@ -616,6 +625,63 @@
 
   .home-modern-mode .hm-hero {
     padding: 1.15rem 1.05rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row {
+    margin-top: 0.72rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    align-items: stretch;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-candidate-mini,
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini {
+    margin-top: 0;
+    min-height: 140px;
+    height: 100%;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-candidate-mini {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-section-title {
+    margin-bottom: 0.35rem;
+    font-size: 0.86rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-section-title i {
+    font-size: 0.82rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact {
+    padding: 0.42rem 0.45rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact .hm-kpi-grid {
+    gap: 0.34rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact .hm-kpi {
+    padding: 0.38rem 0.32rem;
+    border-radius: 0.68rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact .hm-kpi .value {
+    font-size: 0.9rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact .hm-kpi .label {
+    font-size: 0.68rem;
+  }
+
+  .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-countdown.hm-countdown-compact #hmCountdownHint {
+    margin-top: 0.3rem !important;
+    font-size: 0.69rem;
+    line-height: 1.15;
   }
 
   .home-modern-mode .hm-actions {

@@ -33,46 +33,50 @@
                 </div>
             </div>
 
-            @if ($user && $user->candidate()->exists())
-                <div class="hm-candidate hm-anim hm-card-anim" style="--hm-delay: 90ms;">
-                    <div class="hm-candidate-title">الملف</div>
-                    <div class="hm-candidate-sub">مرشح — {{ $election?->name }}</div>
-                </div>
-            @endif
+            @if (($user && $user->candidate()->exists()) || ($election && !$isAdmin))
+                <div class="hm-hero-mini-row">
+                    @if ($user && $user->candidate()->exists())
+                        <div class="hm-candidate hm-candidate-mini hm-anim hm-card-anim" style="--hm-delay: 90ms;">
+                            <div class="hm-candidate-title">الملف</div>
+                            <div class="hm-candidate-sub">مرشح — {{ $election?->name }}</div>
+                        </div>
+                    @endif
 
-            @if ($election && !$isAdmin)
-                <div class="hm-section hm-section-compact hm-anim hm-card-anim mt-3" style="--hm-delay: 120ms;">
-                    <div class="hm-section-title">
-                        <i class="bi bi-hourglass-split"></i>
-                        الوقت المتبقي
-                    </div>
-                    <div class="hm-card hm-countdown hm-countdown-compact" id="hmCountdown">
-                        <input type="hidden" id="hmStartDate" value="{{ \Carbon\Carbon::parse($election->start_date)->format('Y-m-d') }}">
-                        <input type="hidden" id="hmStartTime" value="{{ \Carbon\Carbon::parse($election->start_time)->format('H:i:s') }}">
-                        <input type="hidden" id="hmEndDate" value="{{ \Carbon\Carbon::parse($election->end_date)->format('Y-m-d') }}">
-                        <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
+                    @if ($election && !$isAdmin)
+                        <div class="hm-section hm-section-compact hm-section-mini hm-anim hm-card-anim" style="--hm-delay: 120ms;">
+                            <div class="hm-section-title">
+                                <i class="bi bi-hourglass-split"></i>
+                                الوقت المتبقي
+                            </div>
+                            <div class="hm-card hm-countdown hm-countdown-compact" id="hmCountdown">
+                                <input type="hidden" id="hmStartDate" value="{{ \Carbon\Carbon::parse($election->start_date)->format('Y-m-d') }}">
+                                <input type="hidden" id="hmStartTime" value="{{ \Carbon\Carbon::parse($election->start_time)->format('H:i:s') }}">
+                                <input type="hidden" id="hmEndDate" value="{{ \Carbon\Carbon::parse($election->end_date)->format('Y-m-d') }}">
+                                <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
 
-                        <div class="hm-kpi-grid">
-                            <div class="hm-kpi">
-                                <div class="value" id="hmDays">0</div>
-                                <div class="label">يوم</div>
-                            </div>
-                            <div class="hm-kpi">
-                                <div class="value" id="hmHours">0</div>
-                                <div class="label">ساعة</div>
-                            </div>
-                            <div class="hm-kpi">
-                                <div class="value" id="hmMinutes">0</div>
-                                <div class="label">دقيقة</div>
-                            </div>
-                            <div class="hm-kpi">
-                                <div class="value" id="hmSeconds">0</div>
-                                <div class="label">ثانية</div>
+                                <div class="hm-kpi-grid">
+                                    <div class="hm-kpi">
+                                        <div class="value" id="hmDays">0</div>
+                                        <div class="label">يوم</div>
+                                    </div>
+                                    <div class="hm-kpi">
+                                        <div class="value" id="hmHours">0</div>
+                                        <div class="label">ساعة</div>
+                                    </div>
+                                    <div class="hm-kpi">
+                                        <div class="value" id="hmMinutes">0</div>
+                                        <div class="label">دقيقة</div>
+                                    </div>
+                                    <div class="hm-kpi">
+                                        <div class="value" id="hmSeconds">0</div>
+                                        <div class="label">ثانية</div>
+                                    </div>
+                                </div>
+
+                                <div class="hm-sub mt-2" id="hmCountdownHint"></div>
                             </div>
                         </div>
-
-                        <div class="hm-sub mt-2" id="hmCountdownHint"></div>
-                    </div>
+                    @endif
                 </div>
             @endif
         </div>
