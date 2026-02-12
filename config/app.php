@@ -58,6 +58,10 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
+    'support_country_code' => env('SUPPORT_COUNTRY_CODE', '965'),
+
+    'support_phone' => env('SUPPORT_PHONE', '55150551'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

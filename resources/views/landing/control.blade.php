@@ -190,6 +190,43 @@
             text-decoration: none;
         }
 
+        .contact-actions {
+            margin-top: 0.6rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .contact-action-icon {
+            width: 2.35rem;
+            height: 2.35rem;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.12);
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .contact-action-icon i {
+            font-size: 1rem;
+        }
+
+        .contact-action-icon:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+        }
+
+        .contact-action-icon.whatsapp {
+            color: #128C7E;
+            border-color: rgba(18, 140, 126, 0.35);
+            background: rgba(37, 211, 102, 0.12);
+        }
+
         .reveal {
             opacity: 0;
             transform: translateY(16px);
@@ -222,6 +259,14 @@
 </head>
 
 <body>
+    @php
+        $supportCountryCode = preg_replace('/\D+/', '', (string) config('app.support_country_code', '965')) ?: '965';
+        $supportPhoneDigits = preg_replace('/\D+/', '', (string) config('app.support_phone', '55150551')) ?: '55150551';
+        $supportDisplayPhone = '+' . $supportCountryCode . ' ' . $supportPhoneDigits;
+        $supportCallLink = 'tel:+' . $supportCountryCode . $supportPhoneDigits;
+        $supportWhatsappLink = 'https://wa.me/' . $supportCountryCode . $supportPhoneDigits . '?text=' . rawurlencode('ممكن استفسر عن https://kw-control.com/');
+    @endphp
+
     <div class="container">
         <section class="hero">
             <div class="row g-4 align-items-center">
@@ -324,7 +369,15 @@
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <div>
                     <h6 class="fw-bold mb-1">هذا الموقع برعاية أحمد خلف</h6>
-                    <div class="text-muted">للاستفسار (رقم كويتي): <a class="contact-phone" href="tel:+96555150551">+965 55150551</a></div>
+                    <div class="text-muted">للاستفسار (رقم كويتي): <a class="contact-phone" href="{{ $supportCallLink }}">{{ $supportDisplayPhone }}</a></div>
+                    <div class="contact-actions" aria-label="أزرار التواصل السريع">
+                        <a href="{{ $supportCallLink }}" class="contact-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
+                            <i class="bi bi-telephone-fill"></i>
+                        </a>
+                        <a href="{{ $supportWhatsappLink }}" target="_blank" rel="noopener" class="contact-action-icon whatsapp" aria-label="تواصل واتساب" title="تواصل واتساب">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                    </div>
                 </div>
                 <a href="{{ route('login') }}" class="cta-btn primary text-decoration-none">دخول النظام</a>
             </div>

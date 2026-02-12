@@ -248,6 +248,43 @@
             text-decoration: underline;
         }
 
+        .login-sponsor-actions {
+            margin-top: 0.55rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .login-action-icon {
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            border: 1px solid rgba(15, 23, 42, 0.14);
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            transition: transform 150ms ease, box-shadow 150ms ease;
+        }
+
+        .login-action-icon i {
+            font-size: 1rem;
+        }
+
+        .login-action-icon:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+        }
+
+        .login-action-icon.whatsapp {
+            color: #128C7E;
+            border-color: rgba(18, 140, 126, 0.35);
+            background: rgba(37, 211, 102, 0.12);
+        }
+
         /* === Enterprise AJAX Login Overlay (Modern Theme Only) === */
         .login-modern {
             position: relative;
@@ -483,6 +520,11 @@
     $uiPolicy = setting(\App\Enums\SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
     $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
     $loginForcedTheme = $uiPolicy === 'modern' ? 'modern' : ($uiPolicy === 'classic' ? 'legacy' : 'legacy');
+    $supportCountryCode = preg_replace('/\D+/', '', (string) config('app.support_country_code', '965')) ?: '965';
+    $supportPhoneDigits = preg_replace('/\D+/', '', (string) config('app.support_phone', '55150551')) ?: '55150551';
+    $supportDisplayPhone = '+' . $supportCountryCode . ' ' . $supportPhoneDigits;
+    $supportCallLink = 'tel:+' . $supportCountryCode . $supportPhoneDigits;
+    $supportWhatsappLink = 'https://wa.me/' . $supportCountryCode . $supportPhoneDigits . '?text=' . rawurlencode('ممكن استفسر عن https://kw-control.com/');
 @endphp
 
 <body data-login-theme="{{ $loginForcedTheme }}">
@@ -541,7 +583,15 @@
                             <div class="login-sponsor-box">
                                 <strong>هذا الموقع برعاية أحمد خلف</strong><br>
                                 للاستفسار (رقم كويتي):
-                                <a href="tel:+96555150551" class="login-sponsor-phone">+965 55150551</a>
+                                <a href="{{ $supportCallLink }}" class="login-sponsor-phone">{{ $supportDisplayPhone }}</a>
+                                <div class="login-sponsor-actions" aria-label="أزرار التواصل">
+                                    <a href="{{ $supportCallLink }}" class="login-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
+                                        <i class="bi bi-telephone-fill"></i>
+                                    </a>
+                                    <a href="{{ $supportWhatsappLink }}" target="_blank" rel="noopener" class="login-action-icon whatsapp" aria-label="تواصل واتساب" title="تواصل واتساب">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                </div>
                                 <br>
                                 لرؤية النظام من الداخل ومعرفة شكله ومميزاته
                                 <a href="{{ route('landing.control') }}" class="login-preview-link">اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
@@ -610,7 +660,15 @@
                             <div class="login-sponsor-box">
                                 <strong>هذا الموقع برعاية أحمد خلف</strong><br>
                                 للاستفسار (رقم كويتي):
-                                <a href="tel:+96555150551" class="login-sponsor-phone">+965 55150551</a>
+                                <a href="{{ $supportCallLink }}" class="login-sponsor-phone">{{ $supportDisplayPhone }}</a>
+                                <div class="login-sponsor-actions" aria-label="أزرار التواصل">
+                                    <a href="{{ $supportCallLink }}" class="login-action-icon" aria-label="اتصال مباشر" title="اتصال مباشر">
+                                        <i class="bi bi-telephone-fill"></i>
+                                    </a>
+                                    <a href="{{ $supportWhatsappLink }}" target="_blank" rel="noopener" class="login-action-icon whatsapp" aria-label="تواصل واتساب" title="تواصل واتساب">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                </div>
                                 <br>
                                 لرؤية النظام من الداخل ومعرفة شكله ومميزاته
                                 <a href="{{ route('landing.control') }}" class="login-preview-link">اضغط هنا <i class="bi bi-arrow-left-circle"></i></a>
