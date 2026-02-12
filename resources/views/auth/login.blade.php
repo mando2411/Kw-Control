@@ -559,7 +559,7 @@
         }
 
         .scan-status {
-            margin-top: 0.02rem;
+            margin-top: 10px;
             text-align: center;
             padding-inline: 0.35rem;
         }
@@ -628,7 +628,7 @@
 
         @media (max-width: 576px) {
             .scan-status {
-                margin-top: 0.12rem;
+                margin-top: 10px;
             }
 
             .scan-messages {
