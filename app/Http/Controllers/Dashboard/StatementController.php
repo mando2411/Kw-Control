@@ -86,14 +86,8 @@ class StatementController extends Controller
 
        public function query(Request $request)
        {
-        if(auth()->user()->hasRole("Administrator")){
-            $contractors=Contractor::Children()->get();
-        }else{
-            $contractors = auth()->user()->contractors()->Children()->get();
-        }
-
         $effectiveFilters = collect($request->all())
-            ->except(['page', '_token'])
+            ->except(['page', '_token', 'per_page', 'search_limit'])
             ->filter(function ($value, $key) {
                 if (is_array($value)) {
                     return collect($value)->filter(function ($nested) {
@@ -108,12 +102,22 @@ class StatementController extends Controller
                 return !is_null($value) && $value !== '';
             });
 
+        $perPage = (int) ($request->input('per_page') ?: $request->input('search_limit', 100));
+        $perPage = max(25, min($perPage, 500));
+
         if ($effectiveFilters->isEmpty()) {
-            $voters = collect();
+            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect(),
+                0,
+                $perPage,
+                (int) $request->input('page', 1),
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+
             session()->flash('message', 'لم يتم ادخال اي بيانات للبحث');
             session()->flash('type', 'danger');
         } else {
-            $voters = Voter::Filter();
+            $paginator = Voter::FilterQuery()->paginate($perPage)->appends($request->query());
         }
 
 
@@ -125,7 +129,13 @@ class StatementController extends Controller
             ->log('بحث عن ناخبين');
 
            return response()->json([
-               'voters' => collect($voters)->values(),
+               'voters' => collect($paginator->items())->values(),
+               'pagination' => [
+                   'current_page' => $paginator->currentPage(),
+                   'last_page' => $paginator->lastPage(),
+                   'per_page' => $paginator->perPage(),
+                   'total' => $paginator->total(),
+               ],
                'message' => 'Search completed successfully',
            ]);
        }

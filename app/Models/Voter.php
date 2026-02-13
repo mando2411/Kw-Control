@@ -84,8 +84,8 @@ class Voter extends Model
             return $this->belongsToMany(Election::class, 'election_voter');
         }
 
-    public static function Filter(){
-        return  $voters= app(Pipeline::class)
+    public static function FilterQuery(){
+        return app(Pipeline::class)
         ->send(Voter::query())
         ->through([
             \App\Filters\Name::class,
@@ -93,6 +93,7 @@ class Voter extends Model
             \App\Filters\Elbtn::class,
             \App\Filters\Phone::class,
             \App\Filters\Family::class,
+            \App\Filters\Committee::class,
             \App\Filters\Search::class,
             \App\Filters\Second_Name::class,
             \App\Filters\Siblings::class,
@@ -110,13 +111,15 @@ class Voter extends Model
             \App\Filters\Box::class,
             \App\Filters\Age::class,
             \App\Filters\Restricted::class,
-            \App\Filters\Search_Limit::class,
 
         ])
         ->thenReturn()
         ->orderBy('name',"asc")
-            ->with('family','contractors')
-        ->get();
+            ->with('family','contractors');
+    }
+
+    public static function Filter(){
+        return static::FilterQuery()->get();
     }
 
     public static function Madamen(){

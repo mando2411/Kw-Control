@@ -486,6 +486,19 @@
 
 
                 </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="labelStyle mb-0" for="searchPerPage">عدد النتائج</label>
+                        <select id="searchPerPage" class="form-control py-1" style="min-width: 120px;">
+                            <option value="50">50</option>
+                            <option value="100" selected>100</option>
+                            <option value="200">200</option>
+                            <option value="500">500</option>
+                        </select>
+                    </div>
+                    <div id="queryPagination" class="d-flex flex-wrap gap-1"></div>
+                </div>
             </div>
         </section>
 
@@ -1045,10 +1058,8 @@
     <script>
         
         $(document).ready(function () {
-            let voters = [];        // Will hold all voter data
-            let currentChunkIndex = 0;
-            const chunkSize = 2000; // Adjust based on performance
-            let loadingAllComplete = false;
+            let lastSearchParams = null;
+            let lastActionUrl = null;
 
             // Create overlay if it doesn't exist
             if ($("#loading-overlay").length === 0) {
@@ -1061,6 +1072,133 @@
             display: none;
           "></div>
         `);
+            }
+
+            function renderRows(voters) {
+                const $voterList = $("#voter-list");
+                $voterList.empty();
+
+                voters.forEach((voter, i) => {
+                    let icon = "";
+                    if (voter.contractors && voter.contractors.length > 0) {
+                        icon = `<i class="fa-solid fa-check-double text-success fs-6 mx-3">${voter.contractors.length}</i>`;
+                    }
+
+                    const familyName = voter.family && voter.family.name ? voter.family.name : "--";
+
+                    $voterList.append(`
+                <tr class="${voter.status == 1 ? "table-success" : ""}">
+                    <input type="hidden" id="voter_id" value="${voter.id}">
+                    <td>
+                        <input type="checkbox" class="check" name="voter[]" value="${voter.id}" />
+                    </td>
+                    <td>
+                        <div class="row">
+                        <p class="mb-0 fw-bold text-dark ${voter.restricted != 'فعال' ? "line" : ""}">${voter.name} ${icon}</p>
+                <span style="color:red"> ${voter.restricted != 'فعال' ? " غير فعال" : ""} </span>
+
+                            </div>
+                        <span class="text-secondary">${voter.age || ''} عام</span>
+                        ${
+                            voter.status == 1
+                                ? `<p class="my-1">
+                                <span><i class="fa fa-check-square text-success ms-1"></i>تم التصويت </span>
+                                <span>${new Date(voter.updated_at).toLocaleDateString("en-CA")}</span>
+                              </p>`
+                                : ""
+                        }
+                    </td>
+                    <td>${familyName}</td>
+                    <td>
+                        <div class="d-flex row justify-content-center align-items-center">
+                            <form class="d-flex justify-content-center align-items-center Query-Form"
+                                  id="Siblings-form-${i}"
+                                  action="{{ route('dashboard.statement.query') }}" method="GET">
+                                <i data-bs-toggle="modal" data-bs-target="#voterData"
+                                   class="cPointer fa fa-info p-2 px-3 rounded-circle bg-warning"
+                                   data-target-id="${voter.id}"></i>
+                                <select name="siblings" id="siblings-${i}"
+                                        class="form-control py-1 mt-1 me-2 text-center w60" onchange="Search(this)">
+                                    <option value="" disabled>أختر</option>
+                                    <option value="" hidden class="">بحث</option>
+                                    <option value='${JSON.stringify({ father: voter.father })}'>أقارب من الدرجة الاولى</option>
+                                    <option value='${JSON.stringify({ grand: voter.grand })}'>أقارب من الدرجة التانية</option>
+                                    <option value="بحث موسع">بحث موسع</option>
+                                </select>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            `);
+                });
+            }
+
+            function renderPagination(meta) {
+                const $pagination = $("#queryPagination");
+                $pagination.empty();
+
+                if (!meta || !meta.last_page || meta.last_page <= 1) {
+                    return;
+                }
+
+                const current = Number(meta.current_page || 1);
+                const last = Number(meta.last_page || 1);
+
+                const prevDisabled = current <= 1 ? 'disabled' : '';
+                $pagination.append(`<button type="button" class="btn btn-sm btn-outline-secondary" data-page="${current - 1}" ${prevDisabled}>السابق</button>`);
+
+                const start = Math.max(1, current - 2);
+                const end = Math.min(last, current + 2);
+                for (let page = start; page <= end; page++) {
+                    const activeClass = page === current ? 'btn-primary' : 'btn-outline-primary';
+                    $pagination.append(`<button type="button" class="btn btn-sm ${activeClass}" data-page="${page}">${page}</button>`);
+                }
+
+                const nextDisabled = current >= last ? 'disabled' : '';
+                $pagination.append(`<button type="button" class="btn btn-sm btn-outline-secondary" data-page="${current + 1}" ${nextDisabled}>التالي</button>`);
+            }
+
+            function runSearch(page) {
+                if (!lastSearchParams || !lastActionUrl) {
+                    return;
+                }
+
+                const params = {
+                    ...lastSearchParams,
+                    page: page || 1,
+                    per_page: $("#searchPerPage").val() || 100,
+                };
+
+                showSpinner();
+                showOverlay();
+
+                axios.get(lastActionUrl, { params })
+                    .then(response => {
+                        const payload = response.data || {};
+                        if (!Array.isArray(payload.voters)) {
+                            throw new Error("Invalid data. Expected an array of voters.");
+                        }
+
+                        const voters = payload.voters;
+                        $("#Query-Table").removeClass("d-none");
+                        $("#search_count").text(payload.pagination?.total ?? voters.length).css("color", "#fff");
+
+                        renderRows(voters);
+                        renderPagination(payload.pagination || null);
+
+                        if (!voters.length && payload.message) {
+                            toastr.warning(payload.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        const message = error?.response?.data?.message || "حدث خطأ أثناء تنفيذ البحث.";
+                        toastr.error(message);
+                    })
+                    .finally(() => {
+                        hideSpinner();
+                        hideOverlay();
+                    });
             }
 
             // Delegate form submission for dynamically added forms
@@ -1077,139 +1215,25 @@
                     params[key] = value;
                 });
 
-                // Show spinner and overlay immediately on form submit
-                showSpinner();
-                showOverlay();
-
-                // Send AJAX request
-                axios
-                    .get(actionUrl, { params })
-                    .then(response => {
-                        const payload = response.data || {};
-                        if (!Array.isArray(payload.voters)) {
-                            throw new Error("Invalid data. Expected an array of voters.");
-                        }
-
-                        voters = payload.voters;
-                        const $voterList = $("#voter-list");
-                        $voterList.empty();
-                        $("#Query-Table").removeClass("d-none");
-                        $("#search_count").text(voters.length).css("color", "#fff");
-
-                        if (!voters.length && payload.message) {
-                            toastr.warning(payload.message);
-                        }
-
-                        // Reset chunk index and flags
-                        currentChunkIndex = 0;
-                        loadingAllComplete = false;
-
-                        // Start chunked rendering of all voters
-                        renderAllVotersInChunks(voters, $voterList);
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        const message = error?.response?.data?.message || "حدث خطأ أثناء تنفيذ البحث.";
-                        toastr.error(message);
-                        // If an error happens, hide spinner/overlay and enable interaction
-                        hideSpinner();
-                        hideOverlay();
-                    });
+                lastSearchParams = params;
+                lastActionUrl = actionUrl;
+                runSearch(1);
             });
 
-            // Render all voters in chunks
-            function renderAllVotersInChunks(voters, $voterList) {
-                function renderChunk() {
-                    if (loadingAllComplete) {
-                        // All done
-                        hideSpinner();
-                        hideOverlay();
-                        return;
-                    }
-
-                    loadNextChunk(voters, $voterList);
-
-                    // If more chunks remain, request another frame to process next chunk
-                    if ((currentChunkIndex * chunkSize) < voters.length) {
-                        requestAnimationFrame(renderChunk);
-                    } else {
-                        // All chunks rendered
-                        loadingAllComplete = true;
-                        hideSpinner();
-                        hideOverlay();
-                    }
-                }
-
-                // Start rendering asynchronously
-                requestAnimationFrame(renderChunk);
-            }
-
-            // Load next chunk of voters
-            function loadNextChunk(voters, $voterList) {
-                const start = currentChunkIndex * chunkSize;
-                const end = start + chunkSize;
-                const voterChunk = voters.slice(start, end);
-
-                if (voterChunk.length === 0) {
-                    loadingAllComplete = true;
+            $(document).on('click', '#queryPagination [data-page]', function () {
+                const targetPage = Number($(this).data('page'));
+                if (!targetPage || targetPage < 1) {
                     return;
                 }
+                runSearch(targetPage);
+            });
 
-                voterChunk.forEach((voter, i) => {
-                console.log(voter);
-                let icon = ""; 
-if (voter.contractors.length > 0) {
-    icon = `<i class="fa-solid fa-check-double text-success fs-6 mx-3">${voter.contractors.length}</i>`;
-}
-                
-                    $voterList.append(`
-                <tr class="${voter.status == 1 ? "table-success" : ""}">
-                    <input type="hidden" id="voter_id" value="${voter.id}">
-                    <td>
-                        <input type="checkbox" class="check" name="voter[]" value="${voter.id}" />
-                    </td>
-                    <td>
-                        <div class="row">
-                        <p class="mb-0 fw-bold text-dark ${voter.restricted != 'فعال' ? "line" : ""}">${voter.name} ${icon}</p>
-                <span style="color:red"> ${voter.restricted != 'فعال' ? " غير فعال" : ""} </span>
-
-                            </div>
-                        <span class="text-secondary">${voter.age} عام</span>
-                        ${
-                        voter.status == 1
-                            ? `<p class="my-1">
-                                <span><i class="fa fa-check-square text-success ms-1"></i>تم التصويت </span>
-                                <span>${new Date(voter.updated_at).toLocaleDateString("en-CA")}</span>
-                              </p>`
-                            : ""
-                    }
-                    </td>
-                    <td>${voter.family?.name}</td>
-                    <td>
-                        <div class="d-flex row justify-content-center align-items-center">
-                            <form class="d-flex justify-content-center align-items-center Query-Form"
-                                  id="Siblings-form-${start + i}"
-                                  action="{{ route('dashboard.statement.query') }}" method="GET">
-                                <i data-bs-toggle="modal" data-bs-target="#voterData"
-                                   class="cPointer fa fa-info p-2 px-3 rounded-circle bg-warning"
-                                   data-target-id="${voter.id}"></i>
-                                <select name="siblings" id="siblings-${start + i}"
-                                        class="form-control py-1 mt-1 me-2 text-center w60" onchange="Search(this)">
-                                    <option value="" disabled>أختر</option>
-                                    <option value="" hidden class="">بحث</option>
-                                    <option value='${JSON.stringify({ father: voter.father })}'>أقارب من الدرجة الاولى</option>
-                                    <option value='${JSON.stringify({ grand: voter.grand })}'>أقارب من الدرجة التانية</option>
-                                    <option value="بحث موسع">بحث موسع</option>
-                                </select>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            `);
-                });
-
-                currentChunkIndex++;
-            }
+            $('#searchPerPage').on('change', function () {
+                if (!lastSearchParams) {
+                    return;
+                }
+                runSearch(1);
+            });
 
             // Show the spinner
             function showSpinner() {
