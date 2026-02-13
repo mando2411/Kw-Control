@@ -730,13 +730,14 @@
 
             html.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile {
-                left: auto;
-                right: 0;
-                inset-inline-start: auto;
-                inset-inline-end: 0;
+                left: 8px;
+                right: 8px;
+                inset-inline-start: 8px;
+                inset-inline-end: 8px;
                 top: calc(100% + 8px);
-                min-width: 290px;
-                max-width: min(92vw, 360px);
+                min-width: 0;
+                width: auto;
+                max-width: calc(100vw - 16px);
                 margin: 0;
                 transform: none !important;
                 z-index: 1081;
