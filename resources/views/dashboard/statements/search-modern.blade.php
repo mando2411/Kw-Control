@@ -159,6 +159,29 @@
         justify-content: center;
     }
 
+    .sm-export-bar {
+        margin-bottom: 12px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity .22s ease, transform .22s ease;
+    }
+
+    .sm-export-bar.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .sm-export-meta {
+        color: var(--ui-muted, #64748b);
+        font-size: .84rem;
+        font-weight: 700;
+    }
+
     .sm-loading {
         display: none;
         position: fixed;
@@ -414,6 +437,13 @@
         </form>
     </div>
 
+    <div class="sm-card sm-export-bar d-none" id="smExportBar">
+        <div class="sm-export-meta">اختر الناخبين من النتائج ثم استخرج كشفًا بنفس إعدادات النسخة الكلاسيكية.</div>
+        <button type="button" class="btn btn-info" id="smOpenExport" data-bs-toggle="modal" data-bs-target="#smExportModal">
+            استخراج كشوف
+        </button>
+    </div>
+
     <div class="sm-card">
         <div class="sm-result-head">
             <div class="sm-result-meta">
@@ -426,6 +456,9 @@
             <table class="table sm-table text-center align-middle">
                 <thead>
                 <tr>
+                    <th style="width:42px;">
+                        <input type="checkbox" id="smCheckAll" aria-label="تحديد الكل">
+                    </th>
                     <th>الاسم</th>
                     <th>العائلة</th>
                     <th>العمر</th>
@@ -435,11 +468,62 @@
                 </tr>
                 </thead>
                 <tbody id="smResultsBody">
-                <tr><td colspan="6" class="sm-empty">ابدأ البحث لعرض النتائج.</td></tr>
+                <tr><td colspan="7" class="sm-empty">ابدأ البحث لعرض النتائج.</td></tr>
                 </tbody>
             </table>
         </div>
         <div id="smPagination" class="sm-pagination"></div>
+    </div>
+</div>
+
+<div class="modal fade rtl" id="smExportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title">استخراج الكشوف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ route('export') }}" method="GET" id="smExportForm">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" checked disabled type="checkbox" value="name"><label class="form-check-label">اسم الناخب</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="family"><label class="form-check-label">العائلة</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="age"><label class="form-check-label">العمر</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="phone"><label class="form-check-label">الهاتف</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="type"><label class="form-check-label">الجنس</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="madrasa"><label class="form-check-label">مدرسة الانتخاب</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="restricted"><label class="form-check-label">حالة القيد</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="created_at"><label class="form-check-label">تاريخ القيد</label></div></div>
+                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="checked_time"><label class="form-check-label">وقت التصويت</label></div></div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold">ترتيب</label>
+                        <select name="sorted" class="form-select">
+                            <option value="asc">أبجدي</option>
+                            <option value="phone">الهاتف</option>
+                            <option value="commitment">الالتزام</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" name="type" id="smExportType">
+
+                    <div class="d-flex gap-2 flex-wrap my-3">
+                        <button type="button" class="btn btn-primary sm-export-action" value="PDF">PDF</button>
+                        <button type="button" class="btn btn-success sm-export-action" value="Excel">Excel</button>
+                        <button type="button" class="btn btn-secondary sm-export-action" value="print">طباعة</button>
+                        <button type="button" class="btn btn-secondary sm-export-action" value="show">عرض</button>
+                    </div>
+
+                    <p class="text-danger small mb-2">* ملاحظة: لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
+
+                    <div class="d-flex gap-2 align-items-center">
+                        <input type="number" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
+                        <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -458,6 +542,11 @@
         const totalCount = document.getElementById('smTotalCount');
         const currentPage = document.getElementById('smCurrentPage');
         const resetBtn = document.getElementById('smResetBtn');
+        const exportBar = document.getElementById('smExportBar');
+        const checkAll = document.getElementById('smCheckAll');
+        const exportForm = document.getElementById('smExportForm');
+        const exportType = document.getElementById('smExportType');
+        const selectedVoterIds = new Set();
 
         let lastParams = null;
         let currentRequestId = 0;
@@ -509,7 +598,26 @@
         }
 
         function setEmpty(text) {
-            resultsBody.innerHTML = `<tr><td colspan="6" class="sm-empty">${text}</td></tr>`;
+            resultsBody.innerHTML = `<tr><td colspan="7" class="sm-empty">${text}</td></tr>`;
+            if (checkAll) {
+                checkAll.checked = false;
+            }
+        }
+
+        function updateExportBarVisibility(total) {
+            const shouldShow = Number(total || 0) > 0;
+            if (!exportBar) return;
+
+            if (!shouldShow) {
+                exportBar.classList.remove('is-visible');
+                exportBar.classList.add('d-none');
+                return;
+            }
+
+            if (exportBar.classList.contains('d-none')) {
+                exportBar.classList.remove('d-none');
+                requestAnimationFrame(() => exportBar.classList.add('is-visible'));
+            }
         }
 
         function renderRows(items) {
@@ -529,6 +637,9 @@
 
                 return `
                     <tr>
+                        <td>
+                            <input type="checkbox" class="sm-check" value="${voter?.id || ''}" ${selectedVoterIds.has(String(voter?.id || '')) ? 'checked' : ''}>
+                        </td>
                         <td class="fw-bold text-dark">${voter?.name || '--'}</td>
                         <td>${familyName}</td>
                         <td>${voter?.age || '--'}</td>
@@ -573,6 +684,7 @@
         function updateMeta(meta) {
             totalCount.textContent = String(meta?.total || 0);
             currentPage.textContent = String(meta?.current_page || 1);
+            updateExportBarVisibility(meta?.total || 0);
         }
 
         function runSearch(page) {
@@ -589,6 +701,9 @@
                     renderRows(payload.voters || []);
                     renderPagination(payload.pagination || {});
                     updateMeta(payload.pagination || {});
+                    if (checkAll) {
+                        checkAll.checked = false;
+                    }
                 })
                 .catch((error) => {
                     if (requestId !== currentRequestId) return;
@@ -715,13 +830,114 @@
             runSearch(1);
         });
 
+        resultsBody.addEventListener('change', function (event) {
+            const checkbox = event.target.closest('.sm-check');
+            if (!checkbox) return;
+
+            const id = String(checkbox.value || '');
+            if (!id) return;
+
+            if (checkbox.checked) {
+                selectedVoterIds.add(id);
+            } else {
+                selectedVoterIds.delete(id);
+            }
+        });
+
+        if (checkAll) {
+            checkAll.addEventListener('change', function () {
+                const checked = !!checkAll.checked;
+                resultsBody.querySelectorAll('.sm-check').forEach((item) => {
+                    item.checked = checked;
+                    const id = String(item.value || '');
+                    if (!id) return;
+                    if (checked) {
+                        selectedVoterIds.add(id);
+                    } else {
+                        selectedVoterIds.delete(id);
+                    }
+                });
+            });
+        }
+
+        document.querySelectorAll('.sm-export-action').forEach((button) => {
+            button.addEventListener('click', function () {
+                const actionType = button.value;
+                exportType.value = actionType;
+
+                exportForm.querySelectorAll('input[name="voter[]"]').forEach((input) => input.remove());
+                Array.from(selectedVoterIds).forEach((id) => {
+                    const hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'voter[]';
+                    hidden.value = id;
+                    exportForm.appendChild(hidden);
+                });
+
+                const submitBtn = button;
+                submitBtn.disabled = true;
+
+                const formData = new FormData(exportForm);
+                const queryData = {};
+                formData.forEach((value, key) => {
+                    if (Object.prototype.hasOwnProperty.call(queryData, key)) {
+                        if (!Array.isArray(queryData[key])) {
+                            queryData[key] = [queryData[key]];
+                        }
+                        queryData[key].push(value || '');
+                    } else {
+                        queryData[key] = value || '';
+                    }
+                });
+
+                axios.get(exportForm.action, {
+                    params: queryData,
+                    responseType: actionType === 'Excel' || actionType === 'PDF' ? 'blob' : 'json',
+                })
+                    .then((res) => {
+                        if (actionType === 'Excel' || actionType === 'PDF') {
+                            const fileUrl = window.URL.createObjectURL(new Blob([res.data]));
+                            const link = document.createElement('a');
+                            link.href = fileUrl;
+                            link.setAttribute('download', actionType === 'Excel' ? 'Voters.xlsx' : 'Voters.pdf');
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
+                            return;
+                        }
+
+                        if (actionType === 'Send' && res.data?.Redirect_Url) {
+                            const newTab = window.open();
+                            newTab.document.open();
+                            newTab.location.href = res.data.Redirect_Url;
+                            newTab.document.close();
+                            return;
+                        }
+
+                        const newTab = window.open();
+                        newTab.document.open();
+                        newTab.document.write(res.data);
+                        newTab.document.close();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        toastr.error(error.response?.data?.error || 'حدث خطأ غير متوقع');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                    });
+            });
+        });
+
         resetBtn.addEventListener('click', function () {
             form.reset();
             lastParams = null;
+            selectedVoterIds.clear();
             setEmpty('تمت إعادة التعيين. ابدأ البحث لعرض النتائج.');
             totalCount.textContent = '0';
             currentPage.textContent = '1';
             pagination.innerHTML = '';
+            updateExportBarVisibility(0);
             refreshDynamicFilters();
         });
 
