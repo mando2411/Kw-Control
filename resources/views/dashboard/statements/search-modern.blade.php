@@ -804,7 +804,7 @@
                     <h5 class="sm-export-title">استخراج الكشوف</h5>
                     <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" id="smExportCloseBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="{{ route('export') }}" method="GET" id="smExportForm">
@@ -925,6 +925,8 @@
         const checkAll = document.getElementById('smCheckAll');
         const exportForm = document.getElementById('smExportForm');
         const exportType = document.getElementById('smExportType');
+        const exportModalElement = document.getElementById('smExportModal');
+        const exportCloseBtn = document.getElementById('smExportCloseBtn');
         const selectedVoterIds = new Set();
         const exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
 
@@ -948,6 +950,34 @@
 
         function showLoading() {
             loading.classList.add('show');
+        }
+
+        function closeExportModal() {
+            if (!exportModalElement) return;
+
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modalInstance = window.bootstrap.Modal.getInstance
+                    ? window.bootstrap.Modal.getInstance(exportModalElement)
+                    : (window.bootstrap.Modal.getOrCreateInstance
+                        ? window.bootstrap.Modal.getOrCreateInstance(exportModalElement)
+                        : null);
+
+                if (modalInstance && typeof modalInstance.hide === 'function') {
+                    modalInstance.hide();
+                    return;
+                }
+            }
+
+            if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
+                window.jQuery(exportModalElement).modal('hide');
+                return;
+            }
+
+            exportModalElement.classList.remove('show');
+            exportModalElement.style.display = 'none';
+            exportModalElement.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
         }
 
         function setAdvancedOpen(open) {
@@ -1296,6 +1326,8 @@
                 });
 
                 if (actionType === 'Excel' || actionType === 'PDF') {
+                    closeExportModal();
+
                     axios.post(exportAsyncUrl, formData, {
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
@@ -1307,27 +1339,6 @@
                             const message = res?.data?.message || 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند الانتهاء.';
                             toastr.success(message);
 
-                            const modalElement = document.getElementById('smExportModal');
-                            if (modalElement) {
-                                if (window.bootstrap && window.bootstrap.Modal) {
-                                    const modalInstance = window.bootstrap.Modal.getInstance
-                                        ? window.bootstrap.Modal.getInstance(modalElement)
-                                        : (window.bootstrap.Modal.getOrCreateInstance
-                                            ? window.bootstrap.Modal.getOrCreateInstance(modalElement)
-                                            : null);
-
-                                    if (modalInstance && typeof modalInstance.hide === 'function') {
-                                        modalInstance.hide();
-                                    }
-                                } else if (window.jQuery && typeof window.jQuery(modalElement).modal === 'function') {
-                                    window.jQuery(modalElement).modal('hide');
-                                } else {
-                                    modalElement.classList.remove('show');
-                                    modalElement.style.display = 'none';
-                                    document.body.classList.remove('modal-open');
-                                    document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
-                                }
-                            }
                         })
                         .catch((error) => {
                             console.error(error);
@@ -1405,6 +1416,20 @@
             moreFiltersBtn.addEventListener('click', function () {
                 const isOpen = advancedFields?.classList.contains('is-open');
                 setAdvancedOpen(!isOpen);
+            });
+        }
+
+        if (exportCloseBtn) {
+            exportCloseBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                closeExportModal();
+            });
+        }
+
+        if (exportForm) {
+            exportForm.addEventListener('submit', function (event) {
+                event.preventDefault();
             });
         }
 
