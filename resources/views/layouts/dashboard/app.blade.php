@@ -737,15 +737,27 @@
                 min-width: 290px;
                 max-width: min(92vw, 360px);
                 margin: 0;
-                transform: none !important;
+                transform: translateY(8px) scale(0.98) !important;
                 z-index: 1081;
                 padding: 0;
                 overflow: hidden;
+                border-radius: 16px;
+                border: 1px solid var(--ui-border);
+                background: var(--ui-surface);
+                box-shadow: 0 20px 44px rgba(2, 6, 23, 0.16);
+                display: block !important;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms ease;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show {
-                display: block !important;
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+                transform: translateY(0) scale(1) !important;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-head,
@@ -754,26 +766,47 @@
                 align-items: center;
                 justify-content: space-between;
                 gap: 8px;
-                padding: 10px 12px;
+                padding: 11px 12px;
                 border-bottom: 1px solid var(--ui-border);
-                background: rgba(248, 250, 252, 0.85);
+                background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(59, 130, 246, 0.04));
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all {
-                border: 0;
-                background: transparent;
+                border: 1px solid rgba(14, 165, 233, 0.24);
+                background: rgba(14, 165, 233, 0.1);
                 color: var(--ui-accent);
-                font-size: 0.75rem;
+                font-size: 0.73rem;
                 font-weight: 800;
-                padding: 0;
+                padding: 4px 8px;
+                border-radius: 999px;
+                transition: all 160ms ease;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all:hover,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all:hover {
+                transform: translateY(-1px);
+                background: rgba(14, 165, 233, 0.16);
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-list,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-list {
-                max-height: 320px;
+                max-height: 340px;
                 overflow: auto;
-                padding: 6px;
+                padding: 8px;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(14, 165, 233, 0.35) transparent;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-list::-webkit-scrollbar,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-list::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-list::-webkit-scrollbar-thumb,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-list::-webkit-scrollbar-thumb {
+                background: rgba(14, 165, 233, 0.3);
+                border-radius: 999px;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-item,
@@ -782,30 +815,65 @@
                 text-decoration: none;
                 color: var(--ui-ink);
                 border: 1px solid transparent;
-                border-radius: 10px;
-                padding: 9px 10px;
-                margin-bottom: 6px;
-                background: rgba(255, 255, 255, 0.76);
+                border-radius: 12px;
+                padding: 10px;
+                margin-bottom: 7px;
+                background: rgba(255, 255, 255, 0.92);
+                box-shadow: 0 8px 18px rgba(2, 6, 23, 0.04);
+                transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease, background-color 170ms ease;
+                animation: notifCardIn 220ms ease both;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-item.unread,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-item.unread {
-                background: rgba(14, 165, 233, 0.08);
-                border-color: rgba(14, 165, 233, 0.22);
+                background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(255, 255, 255, 0.98));
+                border-color: rgba(14, 165, 233, 0.28);
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-item:hover,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-item:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 26px rgba(2, 6, 23, 0.08);
+                border-color: rgba(14, 165, 233, 0.24);
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-title,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-title {
                 font-weight: 800;
-                font-size: 0.84rem;
-                margin-bottom: 2px;
+                font-size: 0.82rem;
+                line-height: 1.45;
+                margin-bottom: 3px;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-body,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-body {
-                font-size: 0.76rem;
+                font-size: 0.75rem;
+                line-height: 1.5;
                 color: var(--ui-muted);
-                margin-bottom: 3px;
+                margin-bottom: 5px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-meta,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-meta {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-dot,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 999px;
+                background: rgba(14, 165, 233, 0.95);
+                box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+                flex: 0 0 auto;
+            }
+
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-item:not(.unread) .dtm-notif-dot,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-item:not(.unread) .dtm-notif-dot {
+                visibility: hidden;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-time,
@@ -1099,6 +1167,24 @@
             max-width: min(88vw, 380px);
             padding: 0;
             overflow: hidden;
+            border-radius: 16px;
+            border: 1px solid var(--ui-border);
+            background: var(--ui-surface);
+            box-shadow: 0 22px 46px rgba(2, 6, 23, 0.16);
+            transform: translateY(8px) scale(0.98);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            display: block !important;
+            transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms ease;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-panel.show,
+        body.ui-modern .dashboard-topbar .dtm-notif-panel.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-head,
@@ -1107,26 +1193,47 @@
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            padding: 10px 12px;
+            padding: 11px 12px;
             border-bottom: 1px solid var(--ui-border);
-            background: rgba(248, 250, 252, 0.85);
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(59, 130, 246, 0.04));
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-read-all,
         body.ui-modern .dashboard-topbar .dtm-notif-read-all {
-            border: 0;
-            background: transparent;
+            border: 1px solid rgba(14, 165, 233, 0.24);
+            background: rgba(14, 165, 233, 0.1);
             color: var(--ui-accent);
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             font-weight: 800;
-            padding: 0;
+            padding: 4px 8px;
+            border-radius: 999px;
+            transition: all 160ms ease;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-read-all:hover,
+        body.ui-modern .dashboard-topbar .dtm-notif-read-all:hover {
+            transform: translateY(-1px);
+            background: rgba(14, 165, 233, 0.16);
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-list,
         body.ui-modern .dashboard-topbar .dtm-notif-list {
-            max-height: 320px;
+            max-height: 340px;
             overflow: auto;
-            padding: 6px;
+            padding: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(14, 165, 233, 0.35) transparent;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-list::-webkit-scrollbar,
+        body.ui-modern .dashboard-topbar .dtm-notif-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-list::-webkit-scrollbar-thumb,
+        body.ui-modern .dashboard-topbar .dtm-notif-list::-webkit-scrollbar-thumb {
+            background: rgba(14, 165, 233, 0.3);
+            border-radius: 999px;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-item,
@@ -1135,36 +1242,97 @@
             text-decoration: none;
             color: var(--ui-ink);
             border: 1px solid transparent;
-            border-radius: 10px;
-            padding: 9px 10px;
-            margin-bottom: 6px;
-            background: rgba(255, 255, 255, 0.76);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 7px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.04);
+            transition: transform 170ms ease, box-shadow 170ms ease, border-color 170ms ease, background-color 170ms ease;
+            animation: notifCardIn 220ms ease both;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-item.unread,
         body.ui-modern .dashboard-topbar .dtm-notif-item.unread {
-            background: rgba(14, 165, 233, 0.08);
-            border-color: rgba(14, 165, 233, 0.22);
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(255, 255, 255, 0.98));
+            border-color: rgba(14, 165, 233, 0.28);
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-item:hover,
+        body.ui-modern .dashboard-topbar .dtm-notif-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 26px rgba(2, 6, 23, 0.08);
+            border-color: rgba(14, 165, 233, 0.24);
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-title,
         body.ui-modern .dashboard-topbar .dtm-notif-title {
             font-weight: 800;
-            font-size: 0.84rem;
-            margin-bottom: 2px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin-bottom: 3px;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-body,
         body.ui-modern .dashboard-topbar .dtm-notif-body {
-            font-size: 0.76rem;
+            font-size: 0.75rem;
+            line-height: 1.5;
             color: var(--ui-muted);
-            margin-bottom: 3px;
+            margin-bottom: 5px;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-meta,
+        body.ui-modern .dashboard-topbar .dtm-notif-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-dot,
+        body.ui-modern .dashboard-topbar .dtm-notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(14, 165, 233, 0.95);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+            flex: 0 0 auto;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-item:not(.unread) .dtm-notif-dot,
+        body.ui-modern .dashboard-topbar .dtm-notif-item:not(.unread) .dtm-notif-dot {
+            visibility: hidden;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-time,
         body.ui-modern .dashboard-topbar .dtm-notif-time {
             font-size: 0.7rem;
             color: rgba(100, 116, 139, 0.95);
+        }
+
+        @keyframes notifCardIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html.ui-modern .dashboard-topbar .dtm-notif-panel,
+            body.ui-modern .dashboard-topbar .dtm-notif-panel,
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-panel,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-panel,
+            html.ui-modern .dashboard-topbar .dtm-notif-item,
+            body.ui-modern .dashboard-topbar .dtm-notif-item,
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-item,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-item {
+                transition: none !important;
+                animation: none !important;
+            }
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-empty,
@@ -1554,7 +1722,10 @@
                         '<a href="' + itemUrl + '" class="dtm-notif-item' + unreadClass + '" data-notif-id="' + item.id + '">' +
                             '<div class="dtm-notif-title">' + esc(item.title || 'إشعار جديد') + '</div>' +
                             '<div class="dtm-notif-body">' + esc(item.body || '') + '</div>' +
-                            '<div class="dtm-notif-time">' + esc(item.created_at || '') + '</div>' +
+                            '<div class="dtm-notif-meta">' +
+                                '<div class="dtm-notif-time">' + esc(item.created_at || '') + '</div>' +
+                                '<span class="dtm-notif-dot" aria-hidden="true"></span>' +
+                            '</div>' +
                         '</a>';
                 }).join('');
 
