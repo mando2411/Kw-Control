@@ -804,7 +804,7 @@
                     <h5 class="sm-export-title">استخراج الكشوف</h5>
                     <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                 </div>
-                <button type="button" id="smExportCloseBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" id="smExportCloseBtn" class="btn-close" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="{{ route('export') }}" method="GET" id="smExportForm">
@@ -952,6 +952,20 @@
             loading.classList.add('show');
         }
 
+        function forceModalCleanup() {
+            if (!exportModalElement) return;
+
+            exportModalElement.classList.remove('show');
+            exportModalElement.style.display = 'none';
+            exportModalElement.setAttribute('aria-hidden', 'true');
+            exportModalElement.removeAttribute('aria-modal');
+
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('padding-right');
+
+            document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+        }
+
         function closeExportModal() {
             if (!exportModalElement) return;
 
@@ -964,20 +978,20 @@
 
                 if (modalInstance && typeof modalInstance.hide === 'function') {
                     modalInstance.hide();
+                    setTimeout(forceModalCleanup, 50);
+                    setTimeout(forceModalCleanup, 220);
                     return;
                 }
             }
 
             if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
                 window.jQuery(exportModalElement).modal('hide');
+                setTimeout(forceModalCleanup, 50);
+                setTimeout(forceModalCleanup, 220);
                 return;
             }
 
-            exportModalElement.classList.remove('show');
-            exportModalElement.style.display = 'none';
-            exportModalElement.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('modal-open');
-            document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+            forceModalCleanup();
         }
 
         function setAdvancedOpen(open) {
@@ -1424,6 +1438,12 @@
                 event.preventDefault();
                 event.stopPropagation();
                 closeExportModal();
+            });
+        }
+
+        if (exportModalElement) {
+            exportModalElement.addEventListener('hidden.bs.modal', function () {
+                forceModalCleanup();
             });
         }
 
