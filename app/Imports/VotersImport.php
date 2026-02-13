@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\ArabicHelper;
 use App\Models\Election;
 use App\Models\Voter;
 use App\Models\Family;
@@ -134,6 +135,7 @@ class VotersImport implements ToCollection, WithHeadingRow
 
         $voterData = [
             'name'                         => $row['alasm'],
+            'normalized_name'              => ArabicHelper::normalizeArabic((string) ($row['alasm'] ?? '')),
             'almrgaa'                      => $row['mrgaa'] ?? null,
             'albtn'                        => $row['albtn'] ?? null,
             'alfraa'                       => $row['alfraa'] ?? null,
