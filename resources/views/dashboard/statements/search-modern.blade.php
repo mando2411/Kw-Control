@@ -443,12 +443,45 @@
         }
 
         .sm-filter-grid {
+            grid-template-columns: repeat(6, minmax(0, 1fr));
             gap: 8px;
         }
 
-        .sm-col-6 { grid-column: span 12; }
+        .sm-col-6,
         .sm-col-4,
-        .sm-col-3 { grid-column: span 6; }
+        .sm-col-3,
+        .sm-col-12 { grid-column: span 2; }
+
+        .sm-mobile-full { grid-column: 1 / -1; }
+        .sm-mobile-two { grid-column: span 3; }
+
+        .sm-mobile-emphasis {
+            background: rgba(14, 165, 233, .08);
+            border: 1px solid rgba(14, 165, 233, .24);
+            border-radius: 12px;
+            padding: 8px;
+        }
+
+        .sm-order-name { order: 1; }
+        .sm-order-first { order: 2; }
+        .sm-order-civil { order: 3; }
+        .sm-order-box { order: 4; }
+        .sm-order-family { order: 5; }
+        .sm-order-btn { order: 6; }
+        .sm-order-fakhd { order: 7; }
+        .sm-order-faraa { order: 8; }
+        .sm-order-code1 { order: 9; }
+        .sm-order-code2 { order: 10; }
+        .sm-order-code3 { order: 11; }
+        .sm-order-committee { order: 12; }
+        .sm-order-restricted { order: 13; }
+        .sm-order-type { order: 14; }
+        .sm-order-status { order: 15; }
+        .sm-order-agefrom { order: 16; }
+        .sm-order-ageto { order: 17; }
+        .sm-order-more { order: 18; }
+        .sm-order-perpage { order: 19; }
+        .sm-order-bigsearch { order: 20; }
 
         .sm-field label {
             font-size: .76rem;
@@ -471,7 +504,12 @@
             gap: 6px;
         }
 
+        .sm-actions .d-flex {
+            width: 100%;
+        }
+
         .sm-actions .btn {
+            flex: 1 1 auto;
             padding: 8px 10px;
             font-size: .85rem;
         }
@@ -494,24 +532,24 @@
     <div class="sm-card sm-filter-wrap">
         <form id="modernSearchForm" action="{{ route('dashboard.statement.query') }}" method="GET" autocomplete="off">
             <div class="sm-filter-grid">
-                <div class="sm-field sm-col-3">
-                    <label for="smFirstName">الاسم الأول</label>
-                    <input id="smFirstName" name="first_name" type="text" class="form-control" placeholder="مثال: أحمد">
-                </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-full sm-order-name">
                     <label for="smName">الاسم</label>
                     <input id="smName" name="name" type="text" class="form-control" placeholder="أي جزء من الاسم">
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-first">
+                    <label for="smFirstName">الاسم الأول</label>
+                    <input id="smFirstName" name="first_name" type="text" class="form-control" placeholder="مثال: أحمد">
+                </div>
+                <div class="sm-field sm-col-3 sm-order-civil">
                     <label for="smCivilId">الرقم المدني</label>
                     <input id="smCivilId" name="id" type="text" class="form-control" placeholder="الرقم المدني">
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-box">
                     <label for="smBox">الصندوق</label>
                     <input id="smBox" name="box" type="text" class="form-control" placeholder="الصندوق">
                 </div>
 
-                <div class="sm-field sm-col-4">
+                <div class="sm-field sm-col-4 sm-mobile-full sm-order-family">
                     <label for="smFamily">العائلة</label>
                     <select id="smFamily" name="family" class="form-select sm-dynamic-select">
                         <option value="" hidden>العائلة...</option>
@@ -521,7 +559,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-4">
+                <div class="sm-field sm-col-4 sm-mobile-two sm-order-committee">
                     <label for="smCommittee">اللجنة</label>
                     <select id="smCommittee" name="committee" class="form-select">
                         <option value="">كل اللجان</option>
@@ -530,7 +568,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-4">
+                <div class="sm-field sm-col-4 sm-mobile-two sm-order-status">
                     <label for="smStatus">الحالة</label>
                     <select id="smStatus" name="status" class="form-select">
                         <option value="">الكل</option>
@@ -539,7 +577,7 @@
                     </select>
                 </div>
 
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-fakhd">
                     <label for="smFakhd">الفخذ</label>
                     <select id="smFakhd" name="elfa5z" class="form-select sm-dynamic-select">
                         <option value="" hidden>الفخذ...</option>
@@ -549,7 +587,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-faraa">
                     <label for="smFaraa">الفرع</label>
                     <select id="smFaraa" name="elfar3" class="form-select sm-dynamic-select">
                         <option value="" hidden>الفرع...</option>
@@ -559,7 +597,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-btn">
                     <label for="smBtn">البطن</label>
                     <select id="smBtn" name="elbtn" class="form-select sm-dynamic-select">
                         <option value="" hidden>البطن...</option>
@@ -569,7 +607,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-code1">
                     <label for="smCode1">Code 1</label>
                     <select id="smCode1" name="cod1" class="form-select sm-dynamic-select">
                         <option value="" hidden>Code 1...</option>
@@ -579,7 +617,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-code2">
                     <label for="smCode2">Code 2</label>
                     <select id="smCode2" name="cod2" class="form-select sm-dynamic-select">
                         <option value="" hidden>Code 2...</option>
@@ -589,7 +627,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-order-code3">
                     <label for="smCode3">Code 3</label>
                     <select id="smCode3" name="cod3" class="form-select sm-dynamic-select">
                         <option value="" hidden>Code 3...</option>
@@ -599,7 +637,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-two sm-order-type">
                     <label for="smType">النوع</label>
                     <select id="smType" name="type" class="form-select">
                         <option value="all">الكل</option>
@@ -608,7 +646,7 @@
                     </select>
                 </div>
 
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-two sm-order-restricted">
                     <label for="smRestricted">حالة القيد</label>
                     <select id="smRestricted" name="restricted" class="form-select">
                         <option value="">الكل</option>
@@ -616,15 +654,15 @@
                         <option value="غير مقيد">غير مقيد</option>
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-two sm-order-agefrom">
                     <label for="smAgeFrom">العمر من</label>
                     <input id="smAgeFrom" name="age[from]" type="number" class="form-control" placeholder="18">
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-two sm-order-ageto">
                     <label for="smAgeTo">العمر إلى</label>
                     <input id="smAgeTo" name="age[to]" type="number" class="form-control" placeholder="80">
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-perpage">
                     <label for="smPerPage">عدد النتائج</label>
                     <select id="smPerPage" name="per_page" class="form-select">
                         <option value="50">50</option>
@@ -633,7 +671,7 @@
                         <option value="500">500</option>
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
+                <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-bigsearch">
                     <label for="smBigSearch">بحث موسع</label>
                     <select id="smBigSearch" name="search" class="form-select">
                         <option value="">بحث موسع</option>
@@ -704,9 +742,12 @@
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">بحث الآن</button>
                     <button type="button" id="smResetBtn" class="btn btn-outline-secondary">إعادة تعيين</button>
-                    <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info" aria-expanded="false">خيارات بحث أكثر</button>
                 </div>
                 <small class="text-muted">كل النتائج تُحمّل بسرعة عبر Ajax بدون إعادة تحميل الصفحة.</small>
+            </div>
+
+            <div class="sm-field sm-col-12 sm-mobile-full sm-order-more mt-2">
+                <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info w-100" aria-expanded="false">خيارات بحث أكثر</button>
             </div>
         </form>
     </div>
