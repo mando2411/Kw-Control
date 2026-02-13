@@ -79,7 +79,13 @@
     .sm-field .form-select {
         direction: rtl;
         background-position: left .75rem center;
-        appearance: auto;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+    .sm-field .form-select::-ms-expand {
+        display: none;
     }
 
     .sm-actions {
