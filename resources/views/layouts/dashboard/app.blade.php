@@ -591,6 +591,43 @@
             padding: 10px 12px !important;
         }
 
+        html.ui-modern .dashboard-topbar.dashboard-topbar-desktop,
+        body.ui-modern .dashboard-topbar.dashboard-topbar-desktop {
+            direction: rtl;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: nowrap !important;
+            gap: 14px;
+        }
+
+        html.ui-modern .dashboard-topbar.dashboard-topbar-desktop .dashboard-topbar-brand,
+        body.ui-modern .dashboard-topbar.dashboard-topbar-desktop .dashboard-topbar-brand {
+            flex: 1 1 auto;
+            min-width: 0;
+            justify-content: flex-start;
+            padding-top: 0 !important;
+        }
+
+        html.ui-modern .dashboard-topbar.dashboard-topbar-desktop .dashboard-topbar-brand-meta,
+        body.ui-modern .dashboard-topbar.dashboard-topbar-desktop .dashboard-topbar-brand-meta {
+            margin: 0;
+            line-height: 1.2;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        html.ui-modern .dashboard-topbar.dashboard-topbar-desktop .dashboard-topbar-actions,
+        body.ui-modern .dashboard-topbar.dashboard-topbar-desktop .dashboard-topbar-actions {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            padding-top: 0 !important;
+        }
+
         html.ui-modern #toast-container.toast-top-right,
         body.ui-modern #toast-container.toast-top-right {
             top: 92px !important;
@@ -1121,6 +1158,7 @@
         body.ui-modern .dashboard-topbar .navControll {
             gap: 10px;
             align-items: center;
+            flex-wrap: nowrap;
         }
 
         html.ui-modern .dashboard-topbar .btn,
