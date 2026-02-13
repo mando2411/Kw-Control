@@ -959,9 +959,15 @@
             exportModalElement.style.display = 'none';
             exportModalElement.setAttribute('aria-hidden', 'true');
             exportModalElement.removeAttribute('aria-modal');
+            exportModalElement.removeAttribute('role');
 
             document.body.classList.remove('modal-open');
             document.body.style.removeProperty('padding-right');
+            document.body.style.removeProperty('overflow');
+
+            document.documentElement.classList.remove('modal-open');
+            document.documentElement.style.removeProperty('padding-right');
+            document.documentElement.style.removeProperty('overflow');
 
             document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
         }
@@ -1434,12 +1440,27 @@
         }
 
         if (exportCloseBtn) {
+            exportCloseBtn.setAttribute('type', 'button');
             exportCloseBtn.addEventListener('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                event.stopImmediatePropagation();
                 closeExportModal();
             });
         }
+
+        document.addEventListener('click', function (event) {
+            const closeTrigger = event.target.closest('#smExportCloseBtn, #smExportModal .btn-close, #smExportModal [data-bs-dismiss="modal"]');
+            if (!closeTrigger) return;
+
+            event.preventDefault();
+            event.stopPropagation();
+            if (typeof event.stopImmediatePropagation === 'function') {
+                event.stopImmediatePropagation();
+            }
+
+            closeExportModal();
+        }, true);
 
         if (exportModalElement) {
             exportModalElement.addEventListener('hidden.bs.modal', function () {
