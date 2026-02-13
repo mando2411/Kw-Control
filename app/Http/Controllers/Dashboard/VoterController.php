@@ -16,9 +16,11 @@ use App\Services\Attendance;
 use App\Services\VoterService;
 use Illuminate\Http\Request;
 use App\Imports\VotersImport;
+use App\Jobs\ProcessVotersImportJob;
 use App\DataTables\VoterDataTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Scopes\ElectionScope;
 use Maatwebsite\Excel\Facades\Excel;
@@ -92,67 +94,39 @@ class VoterController extends Controller
         $request->validate([
             'import' => 'required|mimes:xlsx,xls,csv',
             'check' => 'required',
-            'election' => 'required'
+            'election' => 'required|exists:elections,id'
 
         ]);
+
+        $mode = (string) $request->input('check');
+        $electionId = (int) $request->input('election');
+        $storedPath = $request->file('import')->store('imports/voters');
+
         try {
-            if (request('check') == "replace") {
-                \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            ProcessVotersImportJob::dispatchAfterResponse(
+                (int) $request->user()->id,
+                $storedPath,
+                $mode,
+                $electionId
+            );
 
-                DB::table('contractor_voter')->truncate();
-                DB::table('group_voter')->truncate();
-                DB::table('election_voter')->truncate();
-                Voter::truncate();
-                Selection::truncate();
-                Family::truncate();
-                Group::truncate();
-
-                \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-            }
-
-            ini_set('memory_limit', '2048M');
-
-            ini_set('max_execution_time', 300); // 5 minutes
-            if (request('check') == "status") {
-                $import = new VoterCheck($request->election);
-                Excel::import($import, $request->file('import'));
-                $summary = [
-                    'mode' => 'status',
-                    'total' => $import->getTotalRows(),
-                    'success' => $import->getSuccessCount(),
-                    'skipped' => $import->getSkippedCount(),
-                    'failed' => $import->getFailedCount(),
-                    'created' => $import->getCreatedCount(),
-                    'existing' => $import->getExistingCount(),
-                    'updated' => $import->getUpdatedCount(),
-                    'duplicate_skipped' => $import->getDuplicateSkippedCount(),
-                ];
-            } else {
-                $import = new VotersImport($request->election);
-                Excel::import($import, $request->file('import'));
-                $summary = [
-                    'mode' => request('check'),
-                    'total' => $import->getTotalRows(),
-                    'success' => $import->getSuccessCount(),
-                    'skipped' => $import->getSkippedCount(),
-                    'failed' => $import->getFailedCount(),
-                    'created' => $import->getCreatedCount(),
-                    'existing' => $import->getExistingCount(),
-                    'updated' => $import->getUpdatedCount(),
-                    'duplicate_skipped' => $import->getDuplicateSkippedCount(),
-                ];
-            }
+            $message = 'تم رفع الملف بنجاح. يمكنك استخدام الموقع بحرية، وسيصلك إشعار عند انتهاء المعالجة.';
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'summary' => $summary,
+                    'processing' => true,
+                    'message' => $message,
                 ]);
             }
 
-            session()->flash('import_summary', $summary);
+            session()->flash('message', $message);
+            session()->flash('type', 'info');
             return redirect()->back();
         } catch (\Throwable $e) {
+            report($e);
+            Storage::disk('local')->delete($storedPath);
+
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -160,7 +134,7 @@ class VoterController extends Controller
                 ], 500);
             }
 
-            throw $e;
+            return back()->with('message', 'حدث خطأ أثناء تجهيز الاستيراد.')->with('type', 'danger');
         }
     }
     //=====================================================================

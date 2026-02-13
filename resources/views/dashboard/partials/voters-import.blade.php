@@ -110,6 +110,9 @@
                         <div class="import-progress-bar" data-progress-bar></div>
                     </div>
                     <div class="import-help import-progress-text mt-2 d-none" data-progress-text>جاري رفع الملف...</div>
+                    <div class="alert alert-info d-none mt-2" role="alert" data-processing-info>
+                        يمكنك استخدام الموقع بحرية، وعند انتهاء المعالجة سيصلك إشعار داخل النظام.
+                    </div>
                     <div class="import-error import-error-submit d-none" data-submit-error>حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
                 </div>
             </form>
@@ -196,6 +199,9 @@
                             <div class="import-progress-bar" data-progress-bar></div>
                         </div>
                         <div class="import-help import-progress-text mt-2 d-none" data-progress-text>جاري رفع الملف...</div>
+                        <div class="alert alert-info d-none mt-2" role="alert" data-processing-info>
+                            يمكنك استخدام الموقع بحرية، وعند انتهاء المعالجة سيصلك إشعار داخل النظام.
+                        </div>
                         <div class="import-error import-error-submit d-none" data-submit-error>حدث خطأ أثناء الاستيراد. يرجى المحاولة مرة أخرى.</div>
                     </div>
                 </div>
@@ -320,6 +326,19 @@
             if (wrap) wrap.classList.add('d-none');
             if (text) text.classList.add('d-none');
             if (bar) bar.style.width = '0%';
+        }
+
+        function showProcessingInfo(form, message) {
+            var info = form.querySelector('[data-processing-info]');
+            if (!info) return;
+            info.textContent = message || 'يمكنك استخدام الموقع بحرية، وعند انتهاء المعالجة سيصلك إشعار داخل النظام.';
+            info.classList.remove('d-none');
+        }
+
+        function hideProcessingInfo(form) {
+            var info = form.querySelector('[data-processing-info]');
+            if (!info) return;
+            info.classList.add('d-none');
         }
 
         function renderSummary(summary) {
@@ -450,6 +469,7 @@
                 if (isSubmitting) return;
                 isSubmitting = true;
                 toggleError(submitError, false);
+                hideProcessingInfo(form);
                 setLoadingState(form, true);
                 showProgress(form, 0);
 
@@ -475,6 +495,16 @@
                     }
 
                     if (xhr.status >= 200 && xhr.status < 400) {
+                        if (responseJson && responseJson.processing) {
+                            showProcessingInfo(form, responseJson.message);
+                            setLoadingState(form, false);
+                            resetProgress(form);
+                            isSubmitting = false;
+                            if (fileField) fileField.value = '';
+                            replaceConfirmed = false;
+                            return;
+                        }
+
                         if (responseJson && responseJson.summary) {
                             renderSummary(responseJson.summary);
                         }
