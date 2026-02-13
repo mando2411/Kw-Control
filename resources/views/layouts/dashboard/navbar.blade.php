@@ -101,12 +101,12 @@
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
 
-                <div id="notif-menu-wrapper-mobile" class="dtm-notif-scope-mobile">
-                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" aria-expanded="false">
+                <div class="dropdown" id="notif-menu-wrapper-mobile">
+                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" onclick="toggleDashboardNotifMenuMobile(event)" aria-expanded="false">
                         <i class="bi bi-bell"></i>
                         <span class="dtm-notif-badge" id="dtmNotifBadgeMobile" hidden>0</span>
                     </button>
-                    <div id="notif-menu-panel-mobile" class="dtm-notif-panel" dir="rtl">
+                    <div id="notif-menu-panel-mobile" class="dropdown-menu dtm-notif-panel" dir="rtl">
                         <div class="dtm-notif-head">
                             <strong>الإشعارات</strong>
                             <button type="button" class="dtm-notif-read-all" id="dtmNotifReadAllMobile">تعليم الكل كمقروء</button>

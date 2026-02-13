@@ -714,13 +714,6 @@
                 z-index: 1085;
             }
 
-            html.ui-modern .dashboard-topbar-mobile .dtm-notif-scope-mobile,
-            body.ui-modern .dashboard-topbar-mobile .dtm-notif-scope-mobile {
-                position: relative;
-                display: inline-flex;
-                align-items: center;
-            }
-
             html.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile {
                 left: 0;
@@ -737,38 +730,29 @@
 
             html.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile {
-                position: fixed !important;
-                left: 10px;
-                right: 10px;
-                inset-inline-start: 10px;
-                inset-inline-end: 10px;
-                top: 70px;
-                min-width: 0;
-                max-width: none;
+                left: auto;
+                right: 0;
+                inset-inline-start: auto;
+                inset-inline-end: 0;
+                top: calc(100% + 8px);
+                min-width: 290px;
+                max-width: min(92vw, 360px);
                 margin: 0;
-                transform: translateY(8px) scale(0.98) !important;
-                z-index: 1120;
+                transform: none !important;
+                z-index: 1081;
                 padding: 0;
                 overflow: hidden;
                 border-radius: 16px;
                 border: 1px solid var(--ui-border);
                 background: var(--ui-surface);
                 box-shadow: 0 20px 44px rgba(2, 6, 23, 0.16);
-                display: block !important;
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
-                transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms ease;
                 direction: rtl;
                 text-align: right;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show {
-                opacity: 1;
-                visibility: visible;
-                pointer-events: auto;
-                transform: translateY(0) scale(1) !important;
+                display: block !important;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-head,
@@ -1676,37 +1660,12 @@
                     event.stopPropagation();
                 }
 
-                if (desktopNotifier && desktopNotifier.notifPanel.classList.contains('show')) {
-                    desktopNotifier.notifPanel.classList.remove('show');
-                    desktopNotifier.notifToggle.setAttribute('aria-expanded', 'false');
-                }
-
-                var mobilePanel = document.getElementById('notif-menu-panel-mobile');
-                var mobileToggle = document.getElementById('notif-menu-dropdown-mobile');
-                if (!mobilePanel || !mobileToggle) {
+                if (!mobileNotifier) {
                     return;
                 }
 
-                var isOpen = mobilePanel.classList.contains('show');
-                mobilePanel.classList.toggle('show', !isOpen);
-                mobileToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
-
-                if (!isOpen) {
-                    renderBadge(0);
-                    markAllAsRead({ refresh: false, optimisticUi: true });
-                    if (!hasFetchedNotifications) {
-                        fetchNotifications();
-                    }
-                }
+                toggleNotifierMenu(mobileNotifier, true);
             };
-
-            var mobileBellButton = document.getElementById('notif-menu-dropdown-mobile');
-            if (mobileBellButton && mobileBellButton.dataset.bound !== '1') {
-                mobileBellButton.dataset.bound = '1';
-                mobileBellButton.addEventListener('click', function (event) {
-                    window.toggleDashboardNotifMenuMobile(event || window.event);
-                });
-            }
 
             function csrfToken() {
                 var meta = document.querySelector('meta[name="csrf-token"]');
