@@ -1,7 +1,7 @@
 <?php if(auth()->user()){ ?>
     <!-- Desktop header (kept as-is, modern gets a separate mobile header) -->
     <div class="nav dashboard-topbar dashboard-topbar-desktop d-flex justify-content-between align-items-center px-2 bg-dark fixed-top w-100 flex-wrap">
-        <div class="f-nav dashboard-topbar-brand d-flex pt-2 align-items-center " >
+        <div class="f-nav d-flex pt-2 align-items-center " >
             <a href="">
                 <figure class="rounded-circle overflow-hidden me-2"><img src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" class="w-100 h-100" alt="user image"></figure>
             </a>
@@ -9,14 +9,14 @@
                 <img src="{{asset("assets/admin/images/image3.png")}}" class="w-100 h-100" alt="currennt date image">
                 <p class="todayDate fs-4 position-absolute fw-bold">3</p>
             </figure>
-            <p class="text-secondary dashboard-topbar-brand-meta">
+            <p class="text-secondary">
                 <strong>{{ config('app.name', 'كنترول') }}</strong>
                 <br>
                 <strong>9559 8151</strong>
             </p>
         </div>
 
-        <div class="py-2 text-end dashboard-topbar-actions">
+        <div class=" py-2 text-end ">
             <div class="d-flex navControll">
                 <div class="dropdown me-1" id="notif-menu-wrapper">
                     <button type="button" id="notif-menu-dropdown" class="btn btn-outline-secondary notif-toggle" aria-label="الإشعارات" title="الإشعارات" onclick="toggleDashboardNotifMenu(event)" aria-expanded="false">
