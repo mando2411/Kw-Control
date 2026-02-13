@@ -466,6 +466,7 @@
 
         const dynamicSelectors = Object.keys(dynamicSelectMap);
         const locationSelectors = ['#smStreet', '#smAlharaa', '#smHome'];
+        const allDynamicSelectors = dynamicSelectors.concat(locationSelectors);
 
         function showLoading() {
             loading.classList.add('show');
@@ -616,8 +617,7 @@
                 return;
             }
 
-            const firstHidden = select.find('option[hidden]').first();
-            const placeholder = firstHidden.length ? firstHidden.text() : '';
+            const placeholder = select.data('placeholder-text') || '';
             const normalized = Object.entries(normalizedSource).map(([key, value]) => {
                 const optionValue = selector === '#smFamily' ? key : value;
                 return [String(optionValue), String(value)];
@@ -660,8 +660,24 @@
             });
         }
 
-        $(dynamicSelectors.concat(locationSelectors).join(',')).on('change', function () {
+        allDynamicSelectors.forEach(function (selector) {
+            const select = $(selector);
+            if (!select.length) return;
+
+            const placeholderOption = select.find('option[hidden]').first();
+            const placeholderText = placeholderOption.length ? placeholderOption.text() : '';
+            select.data('placeholder-text', placeholderText);
+        });
+
+        $(allDynamicSelectors.join(',')).on('change', function () {
             refreshDynamicFilters();
+        });
+
+        $(allDynamicSelectors.join(',')).on('select2:open', function () {
+            const select = $(this);
+            if (select.find('option').length <= 2) {
+                refreshDynamicFilters();
+            }
         });
 
         if (window.jQuery && window.jQuery.fn.select2) {
