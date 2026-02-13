@@ -486,6 +486,7 @@
         .sm-order-more { order: 18; }
         .sm-order-perpage { order: 19; }
         .sm-order-bigsearch { order: 20; }
+        .sm-order-advanced { order: 21; }
 
         .sm-field label {
             font-size: .76rem;
@@ -688,7 +689,7 @@
                     <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info w-100" aria-expanded="false">خيارات بحث أكثر</button>
                 </div>
 
-                <div id="smAdvancedFields" class="sm-advanced-fields">
+                <div id="smAdvancedFields" class="sm-advanced-fields sm-order-advanced">
                     <div class="sm-filter-grid sm-advanced-grid">
                         <div class="sm-field sm-col-3">
                             <label for="smPhone">الهاتف</label>
