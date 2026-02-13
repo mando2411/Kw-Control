@@ -39,12 +39,15 @@ class SelectionController extends Controller
         });
         $selectionIds = [];
         foreach ($selectionData as $key => $values) {
-            if($key != "family_id"){
-                $selectionIds[$key] = Selection::whereIn($key, $values)
-                    ->pluck($key, 'id')
+            if ($key !== 'family_id') {
+                $selectionIds[$key] = collect($values)
+                    ->filter(fn($value) => !is_null($value) && $value !== '')
                     ->unique()
+                    ->sort()
+                    ->values()
+                    ->mapWithKeys(fn($value) => [(string) $value => (string) $value])
                     ->toArray();
-            }else{
+            } else {
                 $selectionIds[$key] = Family::whereIn('id', $values)
                     ->pluck('name', 'id')
                     ->unique()

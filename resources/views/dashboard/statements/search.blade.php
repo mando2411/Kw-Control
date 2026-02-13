@@ -1436,6 +1436,17 @@
 
     <script>
         $(document).ready(function () {
+            const dynamicSelects = ['#alfkhd', '#alfraa', '#albtn', '#code1', '#code2', '#code3', '#familySearch'];
+
+            dynamicSelects.forEach(function (selector) {
+                const select = $(selector);
+                if (!select.length) return;
+
+                const placeholderOption = select.find('option[hidden]').first();
+                const placeholderText = placeholderOption.length ? placeholderOption.text() : '';
+                select.data('placeholder-text', placeholderText);
+            });
+
             function fetchFilteredOptions() {
                 const data = {
                     alfkhd: $('#alfkhd').val(),
@@ -1475,6 +1486,7 @@
             function updateSelectOptions(selector, options) {
                 const select = $(selector);
                 const normalizedOptions = options && typeof options === 'object' ? options : {};
+                const placeholderText = select.data('placeholder-text') || '';
 
                 // Check if the select already has a selected value
                 if (select.val() !== "") {
@@ -1487,7 +1499,11 @@
                 }
 
                 // Clear and repopulate the dropdown if no value is selected
-                select.empty().append('<option value=""> -- </option>'); // Add default empty option
+                select.empty();
+                if (placeholderText) {
+                    select.append(`<option value="" hidden>${placeholderText}</option>`);
+                }
+                select.append('<option value=""> -- </option>'); // Add default empty option
                 if (selector == "#familySearch"){
                     for (const [id, value] of Object.entries(normalizedOptions)) {
                         select.append(`<option value="${id}">${value}</option>`);
@@ -1504,7 +1520,7 @@
                     select.trigger('change.select2');
                 }
             }
-            $('.js-example-basic-single').on('change', fetchFilteredOptions);
+            $(dynamicSelects.join(',')).on('change', fetchFilteredOptions);
         });
 
     </script>
