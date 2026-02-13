@@ -67,10 +67,6 @@ class SelectionController extends Controller
 
         $voters = $query->get();
 
-        if ($voters->isEmpty()) {
-            $voters = Voter::query()->get();
-        }
-
         $selectionData = $filters->mapWithKeys(function ($filter) use ($voters) {
             return [
                 $filter => $voters->pluck($filter)->filter()->unique()->values()->toArray(),

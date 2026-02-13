@@ -596,20 +596,31 @@
 
         function updateDynamicSelect(selector, options) {
             const select = $(selector);
-            if (!select.length || select.val()) return;
-            if (!options || Object.keys(options).length === 0) return;
+            if (!select.length) return;
+            const normalizedSource = options && typeof options === 'object' ? options : {};
 
             const firstHidden = select.find('option[hidden]').first();
             const placeholder = firstHidden.length ? firstHidden.text() : '';
+            const currentValue = (select.val() || '').toString();
+            const normalized = Object.entries(normalizedSource).map(([key, value]) => {
+                const optionValue = selector === '#smFamily' ? key : value;
+                return [String(optionValue), String(value)];
+            });
+            const allowedValues = new Set(normalized.map(([optionValue]) => optionValue));
 
             select.empty();
             if (placeholder) select.append(`<option value="" hidden>${placeholder}</option>`);
             select.append('<option value="">--</option>');
 
-            Object.entries(options).forEach(([key, value]) => {
-                const optionValue = selector === '#smFamily' ? key : value;
-                select.append(`<option value="${optionValue}">${value}</option>`);
+            normalized.forEach(([optionValue, label]) => {
+                select.append(`<option value="${optionValue}">${label}</option>`);
             });
+
+            if (currentValue && allowedValues.has(currentValue)) {
+                select.val(currentValue);
+            } else {
+                select.val('');
+            }
 
             if (select.hasClass('select2-hidden-accessible')) {
                 select.trigger('change.select2');
