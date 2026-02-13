@@ -594,11 +594,7 @@
                 <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-perpage">
                     <label for="smPerPage">عدد النتائج</label>
                     <select id="smPerPage" name="per_page" class="form-select">
-                        <option value="50">50</option>
-                        <option value="100" selected>100</option>
-                        <option value="200">200</option>
-                        <option value="500">500</option>
-                        <option value="all">عرض الكل</option>
+                        <option value="20" selected>20 لكل دفعة</option>
                     </select>
                 </div>
                 <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-bigsearch">
@@ -697,7 +693,7 @@
             </div>
             <small class="text-muted">الترتيب: أبجديًا حسب الاسم</small>
         </div>
-        <div class="sm-result-body table-responsive">
+        <div class="sm-result-body table-responsive" id="smResultScroll">
             <table class="table sm-table text-center align-middle">
                 <thead>
                 <tr>
@@ -841,6 +837,7 @@
         const loading = document.getElementById('smLoading');
         const resultsBody = document.getElementById('smResultsBody');
         const pagination = document.getElementById('smPagination');
+        const resultScroll = document.getElementById('smResultScroll');
         const totalCount = document.getElementById('smTotalCount');
         const currentPage = document.getElementById('smCurrentPage');
         const resetBtn = document.getElementById('smResetBtn');
@@ -857,6 +854,10 @@
 
         let lastParams = null;
         let currentRequestId = 0;
+        let hasMorePages = false;
+        let nextPageToLoad = 2;
+        let isAppending = false;
+        let hasActiveSearch = false;
 
         const dynamicSelectMap = {
             '#smFakhd': 'alfkhd',
@@ -993,13 +994,15 @@
             return Array.from(selectedVoterIds);
         }
 
-        function renderRows(items) {
+        function renderRows(items, append = false) {
             if (!Array.isArray(items) || items.length === 0) {
-                setEmpty('لا توجد نتائج مطابقة.');
+                if (!append) {
+                    setEmpty('لا توجد نتائج مطابقة.');
+                }
                 return;
             }
 
-            resultsBody.innerHTML = items.map((voter) => {
+            const rowsHtml = items.map((voter) => {
                 const familyName = voter?.family?.name || '--';
                 const statusText = Number(voter?.status) === 1 ? 'حضر' : 'لم يحضر';
                 const statusClass = Number(voter?.status) === 1 ? 'text-success' : 'text-muted';
@@ -1029,29 +1032,17 @@
                     </tr>
                 `;
             }).join('');
+
+            if (append) {
+                resultsBody.insertAdjacentHTML('beforeend', rowsHtml);
+                return;
+            }
+
+            resultsBody.innerHTML = rowsHtml;
         }
 
         function renderPagination(meta) {
             pagination.innerHTML = '';
-            if (!meta || Number(meta.last_page) <= 1) {
-                return;
-            }
-
-            const now = Number(meta.current_page || 1);
-            const last = Number(meta.last_page || 1);
-            const start = Math.max(1, now - 2);
-            const end = Math.min(last, now + 2);
-
-            const prevDisabled = now <= 1 ? 'disabled' : '';
-            pagination.insertAdjacentHTML('beforeend', `<button class="btn btn-sm btn-outline-secondary" data-page="${now - 1}" ${prevDisabled}>السابق</button>`);
-
-            for (let p = start; p <= end; p++) {
-                const cls = p === now ? 'btn-primary' : 'btn-outline-primary';
-                pagination.insertAdjacentHTML('beforeend', `<button class="btn btn-sm ${cls}" data-page="${p}">${p}</button>`);
-            }
-
-            const nextDisabled = now >= last ? 'disabled' : '';
-            pagination.insertAdjacentHTML('beforeend', `<button class="btn btn-sm btn-outline-secondary" data-page="${now + 1}" ${nextDisabled}>التالي</button>`);
         }
 
         function updateMeta(meta) {
@@ -1060,20 +1051,38 @@
             updateExportBarVisibility(meta?.total || 0);
         }
 
-        function runSearch(page) {
-            const requestId = ++currentRequestId;
-            const params = lastParams ? { ...lastParams, page: page || 1 } : toParams(page || 1);
-            lastParams = params;
+        function runSearch(page, options = {}) {
+            const append = !!options.append;
 
-            showLoading();
+            if (append) {
+                if (isAppending || !hasMorePages) return;
+                isAppending = true;
+            }
+
+            const requestId = append ? currentRequestId : ++currentRequestId;
+            const params = lastParams ? { ...lastParams, page: page || 1 } : toParams(page || 1);
+            if (!append) {
+                lastParams = params;
+            }
+
+            if (!append) {
+                showLoading();
+            }
+
             axios.get(form.action, { params })
                 .then((response) => {
                     if (requestId !== currentRequestId) return;
 
                     const payload = response?.data || {};
-                    renderRows(payload.voters || []);
+                    renderRows(payload.voters || [], append);
                     renderPagination(payload.pagination || {});
                     updateMeta(payload.pagination || {});
+
+                    const currentPage = Number(payload?.pagination?.current_page || 1);
+                    const lastPage = Number(payload?.pagination?.last_page || 1);
+                    hasMorePages = currentPage < lastPage;
+                    nextPageToLoad = currentPage + 1;
+
                     if (checkAll) {
                         checkAll.checked = false;
                     }
@@ -1081,11 +1090,28 @@
                 .catch((error) => {
                     if (requestId !== currentRequestId) return;
                     console.error(error);
-                    setEmpty('حدث خطأ أثناء جلب النتائج.');
+                    if (!append) {
+                        setEmpty('حدث خطأ أثناء جلب النتائج.');
+                    }
                 })
                 .finally(() => {
-                    if (requestId === currentRequestId) hideLoading();
+                    if (append) {
+                        isAppending = false;
+                    }
+                    if (requestId === currentRequestId && !append) hideLoading();
                 });
+        }
+
+        function maybeLoadNextPage() {
+            if (!hasActiveSearch || !hasMorePages || isAppending) return;
+
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+            const viewport = window.innerHeight || document.documentElement.clientHeight || 0;
+            const fullHeight = document.documentElement.scrollHeight || 0;
+
+            if (scrollTop + viewport >= fullHeight - 220) {
+                runSearch(nextPageToLoad, { append: true });
+            }
         }
 
         function buildDynamicFilterParams() {
@@ -1170,15 +1196,11 @@
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             lastParams = toParams(1);
-            runSearch(1);
-        });
-
-        pagination.addEventListener('click', function (event) {
-            const btn = event.target.closest('[data-page]');
-            if (!btn || btn.disabled) return;
-            const targetPage = Number(btn.getAttribute('data-page'));
-            if (!targetPage || targetPage < 1) return;
-            runSearch(targetPage);
+            hasMorePages = false;
+            nextPageToLoad = 2;
+            isAppending = false;
+            hasActiveSearch = true;
+            runSearch(1, { append: false });
         });
 
         resultsBody.addEventListener('change', function (event) {
@@ -1200,7 +1222,11 @@
             }
 
             lastParams = params;
-            runSearch(1);
+            hasMorePages = false;
+            nextPageToLoad = 2;
+            isAppending = false;
+            hasActiveSearch = true;
+            runSearch(1, { append: false });
         });
 
         resultsBody.addEventListener('change', function (event) {
@@ -1354,8 +1380,14 @@
             pagination.innerHTML = '';
             updateExportBarVisibility(0);
             setAdvancedOpen(false);
+            hasMorePages = false;
+            nextPageToLoad = 2;
+            isAppending = false;
+            hasActiveSearch = false;
             refreshDynamicFilters();
         });
+
+        window.addEventListener('scroll', maybeLoadNextPage, { passive: true });
 
         if (moreFiltersBtn) {
             moreFiltersBtn.addEventListener('click', function () {

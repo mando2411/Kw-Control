@@ -146,7 +146,7 @@ class StatementController extends Controller
         $showAll = is_string($rawPerPage) && strtolower(trim($rawPerPage)) === 'all';
 
         $perPage = (int) $rawPerPage;
-        $perPage = max(25, min($perPage, 500));
+        $perPage = max(20, min($perPage, 500));
 
         $cacheVersion = StatementSearchCache::dataVersion();
         $cacheKey = StatementSearchCache::buildKey('statement-search-query', [
