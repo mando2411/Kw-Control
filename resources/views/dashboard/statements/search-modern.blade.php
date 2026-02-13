@@ -224,7 +224,7 @@
 
                 <div class="sm-field sm-col-4">
                     <label for="smFamily">العائلة</label>
-                    <select id="smFamily" name="family" class="form-control sm-dynamic-select js-example-basic-single">
+                    <select id="smFamily" name="family" class="form-control sm-dynamic-select">
                         <option value="" hidden>العائلة...</option>
                         <option value="">--</option>
                         @foreach ($relations['families'] as $family)
@@ -665,7 +665,13 @@
         });
 
         if (window.jQuery && window.jQuery.fn.select2) {
-            $('.sm-dynamic-select').select2({ width: '100%' });
+            $('.sm-dynamic-select').each(function () {
+                const select = $(this);
+                if (select.hasClass('select2-hidden-accessible')) {
+                    return;
+                }
+                select.select2({ width: '100%' });
+            });
         }
 
         form.addEventListener('submit', function (event) {
