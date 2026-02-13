@@ -711,6 +711,7 @@
             html.ui-modern .dashboard-topbar-mobile #notif-menu-wrapper-mobile,
             body.ui-modern .dashboard-topbar-mobile #notif-menu-wrapper-mobile {
                 position: relative;
+                z-index: 1085;
             }
 
             html.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile,
@@ -729,13 +730,14 @@
 
             html.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile {
-                left: auto;
-                right: 0;
-                inset-inline-start: auto;
-                inset-inline-end: 0;
-                top: calc(100% + 8px);
-                min-width: 290px;
-                max-width: min(92vw, 360px);
+                position: fixed !important;
+                left: 10px;
+                right: 10px;
+                inset-inline-start: 10px;
+                inset-inline-end: 10px;
+                top: 70px;
+                min-width: 0;
+                max-width: none;
                 margin: 0;
                 transform: translateY(8px) scale(0.98) !important;
                 z-index: 1081;
@@ -1594,6 +1596,7 @@
     <script>
         (function () {
             var notifiers = [];
+            var hasFetchedNotifications = false;
 
             function initNotifier(config) {
                 var notifPanel = document.getElementById(config.panelId);
@@ -1749,7 +1752,11 @@
 
                 if (!isOpen && shouldFetch) {
                     renderBadge(0);
-                    markAllAsRead();
+                    markAllAsRead({ refresh: false, optimisticUi: true });
+
+                    if (!hasFetchedNotifications) {
+                        fetchNotifications();
+                    }
                 }
             }
 
@@ -1788,6 +1795,8 @@
                         return;
                     }
 
+                    hasFetchedNotifications = true;
+
                     renderBadge(data.unread_count || 0);
                     renderItems(data.items || []);
                 })
@@ -1821,7 +1830,20 @@
                 .catch(function () {});
             }
 
-            function markAllAsRead() {
+            function markAllAsRead(options) {
+                var opts = options || {};
+                var shouldRefresh = typeof opts.refresh === 'boolean' ? opts.refresh : true;
+                var optimisticUi = typeof opts.optimisticUi === 'boolean' ? opts.optimisticUi : true;
+
+                if (optimisticUi) {
+                    notifiers.forEach(function (entry) {
+                        var unreadItems = entry.notifList.querySelectorAll('.dtm-notif-item.unread');
+                        unreadItems.forEach(function (item) {
+                            item.classList.remove('unread');
+                        });
+                    });
+                }
+
                 fetch("{{ route('dashboard.notifications.read-all') }}", {
                     method: 'POST',
                     headers: {
@@ -1837,7 +1859,10 @@
                     return response.json();
                 })
                 .then(function () {
-                    fetchNotifications();
+                    renderBadge(0);
+                    if (shouldRefresh) {
+                        fetchNotifications();
+                    }
                 })
                 .catch(function () {});
             }
