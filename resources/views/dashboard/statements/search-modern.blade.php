@@ -106,7 +106,7 @@
     }
 
     .sm-advanced-fields.is-open {
-        max-height: 520px;
+        max-height: 1200px;
         opacity: 1;
     }
 
@@ -462,6 +462,10 @@
             padding: 8px;
         }
 
+        .sm-advanced-fields {
+            grid-column: 1 / -1;
+        }
+
         .sm-order-name { order: 1; }
         .sm-order-first { order: 2; }
         .sm-order-civil { order: 3; }
@@ -736,6 +740,10 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="sm-col-12 sm-mobile-full sm-order-more mt-2">
+                    <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info w-100" aria-expanded="false">خيارات بحث أكثر</button>
+                </div>
             </div>
 
             <div class="sm-actions">
@@ -744,10 +752,6 @@
                     <button type="button" id="smResetBtn" class="btn btn-outline-secondary">إعادة تعيين</button>
                 </div>
                 <small class="text-muted">كل النتائج تُحمّل بسرعة عبر Ajax بدون إعادة تحميل الصفحة.</small>
-            </div>
-
-            <div class="sm-field sm-col-12 sm-mobile-full sm-order-more mt-2">
-                <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info w-100" aria-expanded="false">خيارات بحث أكثر</button>
             </div>
         </form>
     </div>
