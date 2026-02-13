@@ -100,16 +100,12 @@
             position: relative;
             background: radial-gradient(circle at top right, #dbeafe 0%, #f8fafc 35%, #fff7ed 100%);
             overflow: visible;
+            height: auto !important;
+            min-height: 100svh;
         }
 
         .login-modern-layout {
             align-items: center;
-        }
-
-        .login-modern {
-            height: auto !important;
-            min-height: 100svh;
-            overflow: visible;
         }
 
         body[data-login-theme="modern"] {
@@ -207,20 +203,6 @@
             font-size: 1rem;
         }
 
-        .modern-list {
-            list-style: none;
-            padding: 0;
-            margin: 1.5rem 0 0;
-        }
-
-        .modern-list li {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            margin-bottom: 0.75rem;
-            color: var(--modern-muted);
-        }
-
         .modern-form .form-control {
             border-radius: 0.9rem;
             border: 1px solid rgba(15, 23, 42, 0.15);
@@ -239,36 +221,6 @@
             font-weight: 700;
             border-radius: 0.9rem;
             padding: 0.65rem 1.4rem;
-        }
-
-        .modern-secondary {
-            background: rgba(14, 165, 233, 0.12);
-            color: #0369a1;
-            border: none;
-            border-radius: 0.9rem;
-        }
-
-        .login-sponsor-box {
-            margin-top: 0.9rem;
-            padding: 0.75rem 0.85rem;
-            border-radius: 0.85rem;
-            border: 1px solid rgba(15, 23, 42, 0.12);
-            background: rgba(255, 255, 255, 0.86);
-            color: #334155;
-            font-size: 0.92rem;
-            line-height: 1.65;
-        }
-
-        .login-sponsor-box strong {
-            color: #0f172a;
-        }
-
-        .login-sponsor-phone {
-            direction: ltr;
-            unicode-bidi: plaintext;
-            font-weight: 800;
-            color: #075985;
-            text-decoration: none;
         }
 
         .login-preview-link {
@@ -384,9 +336,6 @@
         }
 
         /* === Enterprise AJAX Login Overlay (Modern Theme Only) === */
-        .login-modern {
-            position: relative;
-        }
 
         body[data-login-ajax-state="submitting"] .login-modern,
         body[data-login-ajax-state="animating"] .login-modern {
