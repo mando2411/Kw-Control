@@ -246,6 +246,50 @@
         font-size: .86rem;
     }
 
+    .sm-chip-option {
+        display: block;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sm-chip-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+    }
+
+    .sm-chip-pill {
+        display: block;
+        border: 1px solid var(--ui-border, rgba(148,163,184,.24));
+        border-radius: 12px;
+        background: #fff;
+        color: var(--ui-ink, #0f172a);
+        font-weight: 800;
+        font-size: .86rem;
+        padding: 10px 12px;
+        transition: all .2s ease;
+    }
+
+    .sm-chip-option:hover .sm-chip-pill {
+        transform: translateY(-1px);
+        border-color: rgba(14,165,233,.35);
+        box-shadow: 0 8px 16px rgba(14,165,233,.12);
+    }
+
+    .sm-chip-input:checked + .sm-chip-pill {
+        background: rgba(14,165,233,.12);
+        border-color: rgba(14,165,233,.45);
+        color: #0369a1;
+        box-shadow: 0 10px 18px rgba(14,165,233,.16);
+    }
+
+    .sm-chip-input:disabled + .sm-chip-pill {
+        opacity: .72;
+        cursor: not-allowed;
+    }
+
     .sm-export-actions {
         display: flex;
         gap: 8px;
@@ -576,15 +620,60 @@
                     <div class="sm-export-section">
                         <h6 class="sm-export-section-title">أعمدة الكشف</h6>
                         <div class="row g-2">
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" checked disabled type="checkbox" value="name"><label class="form-check-label">اسم الناخب</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="family"><label class="form-check-label">العائلة</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="age"><label class="form-check-label">العمر</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="phone"><label class="form-check-label">الهاتف</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="type"><label class="form-check-label">الجنس</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="madrasa"><label class="form-check-label">مدرسة الانتخاب</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="restricted"><label class="form-check-label">حالة القيد</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="created_at"><label class="form-check-label">تاريخ القيد</label></div></div>
-                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="checked_time"><label class="form-check-label">وقت التصويت</label></div></div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" checked disabled type="checkbox" value="name">
+                                    <span class="sm-chip-pill">اسم الناخب</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" checked type="checkbox" name="columns[]" value="family">
+                                    <span class="sm-chip-pill">العائلة</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" type="checkbox" name="columns[]" value="age">
+                                    <span class="sm-chip-pill">العمر</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" type="checkbox" name="columns[]" value="phone">
+                                    <span class="sm-chip-pill">الهاتف</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" type="checkbox" name="columns[]" value="type">
+                                    <span class="sm-chip-pill">الجنس</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" type="checkbox" name="columns[]" value="madrasa">
+                                    <span class="sm-chip-pill">مدرسة الانتخاب</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" checked type="checkbox" name="columns[]" value="restricted">
+                                    <span class="sm-chip-pill">حالة القيد</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" type="checkbox" name="columns[]" value="created_at">
+                                    <span class="sm-chip-pill">تاريخ القيد</span>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="sm-chip-option">
+                                    <input class="sm-chip-input" type="checkbox" name="columns[]" value="checked_time">
+                                    <span class="sm-chip-pill">وقت التصويت</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
