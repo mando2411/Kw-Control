@@ -207,6 +207,12 @@
                             {{ $isUnread ? 'غير مقروء' : 'مقروء' }}
                         </span>
 
+                        @if (!empty($data['action_url']))
+                            <a href="{{ (string) $data['action_url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
+                                {{ (string) ($data['action_label'] ?? 'تنزيل') }}
+                            </a>
+                        @endif
+
                         @if ($isUnread)
                             <button type="button" class="btn btn-sm btn-outline-primary" data-action="read-one">تعليم كمقروء</button>
                         @else

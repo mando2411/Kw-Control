@@ -21,10 +21,11 @@ class SystemNotification extends Notification implements ShouldQueue
 
     public function toArray($notifiable): array
     {
-        return [
-            'title' => (string) ($this->payload['title'] ?? 'إشعار جديد'),
-            'body' => (string) ($this->payload['body'] ?? ''),
-            'url' => (string) ($this->payload['url'] ?? '#'),
-        ];
+        $data = $this->payload;
+        $data['title'] = (string) ($data['title'] ?? 'إشعار جديد');
+        $data['body'] = (string) ($data['body'] ?? '');
+        $data['url'] = (string) ($data['url'] ?? '#');
+
+        return $data;
     }
 }

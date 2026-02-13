@@ -733,6 +733,7 @@
         const exportForm = document.getElementById('smExportForm');
         const exportType = document.getElementById('smExportType');
         const selectedVoterIds = new Set();
+        const exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
 
         let lastParams = null;
         let currentRequestId = 0;
@@ -1081,6 +1082,37 @@
                         queryData[key] = value || '';
                     }
                 });
+
+                if (actionType === 'Excel' || actionType === 'PDF') {
+                    axios.post(exportAsyncUrl, queryData, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then((res) => {
+                            const message = res?.data?.message || 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند الانتهاء.';
+                            toastr.success(message);
+
+                            const modalElement = document.getElementById('smExportModal');
+                            if (modalElement && window.bootstrap && window.bootstrap.Modal) {
+                                const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                            }
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                            toastr.error(error?.response?.data?.message || 'تعذر بدء تجهيز الملف. حاول مرة أخرى.');
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                        });
+
+                    return;
+                }
 
                 axios.get(exportForm.action, {
                     params: queryData,

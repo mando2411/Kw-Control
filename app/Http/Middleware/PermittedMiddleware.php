@@ -17,6 +17,7 @@ class PermittedMiddleware
         'dashboard.notifications.page',
         'dashboard.notifications.read-all',
         'dashboard.notifications.read',
+        'dashboard.statement.export-async',
     ];
     public function handle(Request $request, Closure $next)
     {

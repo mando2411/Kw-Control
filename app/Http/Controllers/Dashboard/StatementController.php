@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Enums\SettingKey;
 use App\Exports\VotersExport;
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessStatementExportJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\School;
@@ -173,6 +174,43 @@ class StatementController extends Controller
                    'total' => $paginator->total(),
                ],
                'message' => 'Search completed successfully',
+           ]);
+       }
+
+       public function exportAsync(Request $request): JsonResponse
+       {
+           $type = strtoupper((string) $request->input('type'));
+           abort_unless(in_array($type, ['PDF', 'EXCEL'], true), 422, 'نوع التصدير غير مدعوم');
+
+           $voterIds = collect((array) $request->input('voter', []))
+               ->filter(fn ($value) => !is_null($value) && $value !== '')
+               ->map(fn ($value) => (int) $value)
+               ->unique()
+               ->values()
+               ->all();
+
+           if (empty($voterIds)) {
+               return response()->json([
+                   'success' => false,
+                   'message' => 'اختر ناخبًا واحدًا على الأقل قبل البدء.',
+               ], 422);
+           }
+
+           $columns = collect((array) $request->input('columns', []))
+               ->filter(fn ($value) => !is_null($value) && $value !== '')
+               ->values()
+               ->all();
+
+           ProcessStatementExportJob::dispatch(
+               (int) auth()->id(),
+               $type,
+               $voterIds,
+               $columns
+           );
+
+           return response()->json([
+               'success' => true,
+               'message' => 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند انتهاء المعالجة.',
            ]);
        }
 
