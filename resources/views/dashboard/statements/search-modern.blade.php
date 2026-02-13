@@ -684,6 +684,10 @@
                     </select>
                 </div>
 
+                <div class="sm-col-12 sm-mobile-full sm-order-more mt-2">
+                    <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info w-100" aria-expanded="false">خيارات بحث أكثر</button>
+                </div>
+
                 <div id="smAdvancedFields" class="sm-advanced-fields">
                     <div class="sm-filter-grid sm-advanced-grid">
                         <div class="sm-field sm-col-3">
@@ -739,10 +743,6 @@
                             </select>
                         </div>
                     </div>
-                </div>
-
-                <div class="sm-col-12 sm-mobile-full sm-order-more mt-2">
-                    <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info w-100" aria-expanded="false">خيارات بحث أكثر</button>
                 </div>
             </div>
 
