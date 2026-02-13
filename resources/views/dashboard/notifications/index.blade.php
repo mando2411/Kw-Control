@@ -116,6 +116,19 @@
         gap: 8px;
     }
 
+    .notification-action-expired {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #92400e;
+        background: #fffbeb;
+        border: 1px solid rgba(245, 158, 11, .35);
+    }
+
     .notification-status {
         font-size: 0.76rem;
         font-weight: 800;
@@ -187,6 +200,8 @@
                 @php
                     $data = is_array($notification->data ?? null) ? $notification->data : [];
                     $isUnread = is_null($notification->read_at);
+                    $actionExpiresAt = !empty($data['action_expires_at']) ? \Illuminate\Support\Carbon::parse((string) $data['action_expires_at']) : null;
+                    $isActionExpired = $actionExpiresAt ? now()->greaterThan($actionExpiresAt) : false;
                 @endphp
                 <article
                     id="notif-{{ $notification->id }}"
@@ -207,10 +222,14 @@
                             {{ $isUnread ? 'غير مقروء' : 'مقروء' }}
                         </span>
 
-                        @if (!empty($data['action_url']))
+                        @if (!empty($data['action_url']) && !$isActionExpired)
                             <a href="{{ (string) $data['action_url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
                                 {{ (string) ($data['action_label'] ?? 'تنزيل') }}
                             </a>
+                        @elseif (!empty($data['action_url']) && $isActionExpired)
+                            <span class="notification-action-expired" title="انتهت صلاحية الرابط، يرجى إعادة تجهيز الملف من جديد.">
+                                انتهت صلاحية رابط التنزيل — يرجى إعادة استخراج الملف.
+                            </span>
                         @endif
 
                         @if ($isUnread)

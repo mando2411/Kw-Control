@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -72,7 +73,17 @@ class ProcessStatementExportJob implements ShouldQueue
             }
 
             $encodedPath = rtrim(strtr(base64_encode($relativePath), '+/', '-_'), '=');
-            $downloadUrl = route('dashboard.statement.export-download', ['path' => $encodedPath]);
+            $linkTtlMinutes = max(1, (int) config('statement_exports.download_link_ttl_minutes', 20));
+            $fileTtlHours = max(1, (int) config('statement_exports.file_ttl_hours', 24));
+
+            $downloadExpiresAt = now()->addMinutes($linkTtlMinutes);
+            $fileExpiresAt = now()->addHours($fileTtlHours);
+
+            $downloadUrl = URL::temporarySignedRoute(
+                'dashboard.statement.export-download',
+                $downloadExpiresAt,
+                ['path' => $encodedPath]
+            );
 
             send_system_notification($user, [
                 'title' => 'الملف جاهز للتنزيل',
@@ -80,6 +91,8 @@ class ProcessStatementExportJob implements ShouldQueue
                 'url' => route('dashboard.notifications.page'),
                 'action_label' => 'تنزيل الملف',
                 'action_url' => $downloadUrl,
+                'action_expires_at' => $downloadExpiresAt->toDateTimeString(),
+                'file_expires_at' => $fileExpiresAt->toDateTimeString(),
             ]);
         } catch (\Throwable $exception) {
             report($exception);

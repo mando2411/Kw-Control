@@ -229,6 +229,15 @@ class StatementController extends Controller
 
        public function downloadGeneratedExport(Request $request)
        {
+           if (! $request->hasValidSignature()) {
+               $expires = (int) $request->query('expires', 0);
+               if ($expires > 0 && now()->timestamp > $expires) {
+                   abort(410, 'انتهت صلاحية رابط التنزيل. يرجى إعادة إنشاء الملف من صفحة الإشعارات.');
+               }
+
+               abort(403);
+           }
+
            $encodedPath = (string) $request->query('path', '');
            if ($encodedPath === '') {
                abort(404);
@@ -248,6 +257,15 @@ class StatementController extends Controller
 
            if (!Storage::disk('public')->exists($path)) {
                abort(404);
+           }
+
+           $ttlHours = max(1, (int) config('statement_exports.file_ttl_hours', 24));
+           $fileLastModified = (int) Storage::disk('public')->lastModified($path);
+           $expiredAt = now()->subHours($ttlHours)->timestamp;
+
+           if ($fileLastModified > 0 && $fileLastModified < $expiredAt) {
+               Storage::disk('public')->delete($path);
+               abort(410, 'انتهت صلاحية الملف ولم يعد متاحًا للتنزيل. يرجى إعادة استخراج كشف جديد.');
            }
 
            return Storage::disk('public')->download($path);
