@@ -46,14 +46,6 @@
 
     <x-dashboard.partials.message-alert />
 
-    <div class="container mb-2">
-        <div class="d-flex justify-content-end">
-            <a href="{{ route('dashboard.statement.search-modern') }}" class="btn btn-outline-info btn-sm">
-                فتح النسخة الحديثة للبحث
-            </a>
-        </div>
-    </div>
-
     <section class="rtl">
         <div class="container">
             <div class="madameenControl">

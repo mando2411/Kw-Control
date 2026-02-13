@@ -205,9 +205,6 @@
             <h2 class="sm-hero-title">بحث الكشوف - النسخة الحديثة</h2>
             <p class="sm-hero-sub">واجهة سريعة بفلترة مرنة وتحميل نتائج فوري عبر Ajax.</p>
         </div>
-        <div class="sm-hero-actions">
-            <a href="{{ route('dashboard.statement.search') }}" class="btn btn-outline-secondary btn-sm">النسخة الكلاسيك</a>
-        </div>
     </div>
 
     <div class="sm-card sm-filter-wrap">

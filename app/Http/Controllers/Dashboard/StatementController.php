@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Enums\SettingKey;
 use App\Exports\VotersExport;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,27 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class StatementController extends Controller
 {
+    private function resolveStatementSearchView(): string
+    {
+        $uiPolicy = setting(SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
+        $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
+
+        if ($uiPolicy === 'modern') {
+            return 'dashboard.statements.search-modern';
+        }
+
+        if ($uiPolicy === 'classic') {
+            return 'dashboard.statements.search';
+        }
+
+        $uiMode = auth()->check() ? (auth()->user()->ui_mode ?? 'classic') : 'classic';
+        $uiMode = in_array($uiMode, ['classic', 'modern'], true) ? $uiMode : 'classic';
+
+        return $uiMode === 'modern'
+            ? 'dashboard.statements.search-modern'
+            : 'dashboard.statements.search';
+    }
+
     private function buildSearchBootstrapData(): array
     {
         if (auth()->user()->hasRole("Administrator")) {
@@ -87,14 +109,14 @@ class StatementController extends Controller
 
        public function search(Request $request){
         $data = $this->buildSearchBootstrapData();
-        return view('dashboard.statements.search', $data);
+        return view($this->resolveStatementSearchView(), $data);
 
        }
 
        public function searchModern(Request $request)
        {
         $data = $this->buildSearchBootstrapData();
-        return view('dashboard.statements.search-modern', $data);
+        return view($this->resolveStatementSearchView(), $data);
 
        }
 
