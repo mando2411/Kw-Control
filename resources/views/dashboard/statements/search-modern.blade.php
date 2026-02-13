@@ -50,10 +50,10 @@
         margin-bottom: 12px;
         position: relative;
         overflow: hidden;
-        border: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+        border: 1px solid rgba(59,130,246,.22);
         background:
-            radial-gradient(circle at 12% 8%, rgba(14,165,233,.16), transparent 42%),
-            radial-gradient(circle at 88% 14%, rgba(59,130,246,.14), transparent 40%),
+            radial-gradient(circle at 12% 8%, rgba(14,165,233,.12), transparent 42%),
+            radial-gradient(circle at 88% 14%, rgba(59,130,246,.10), transparent 40%),
             linear-gradient(180deg, var(--ui-surface, #fff), var(--ui-surface-2, #f8fafc));
     }
 
@@ -80,15 +80,15 @@
     .sm-field label {
         display: block;
         margin-bottom: 5px;
-        color: var(--ui-muted, #64748b);
+        color: #334155;
         font-size: .82rem;
         font-weight: 800;
         letter-spacing: .1px;
     }
 
     .sm-field {
-        background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,250,252,.92));
-        border: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+        background: #ffffff;
+        border: 1px solid rgba(148,163,184,.35);
         border-radius: 14px;
         padding: 8px 9px;
         transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
@@ -96,8 +96,8 @@
     }
 
     .sm-field:hover {
-        border-color: rgba(14,165,233,.34);
-        box-shadow: 0 10px 24px rgba(14,165,233,.10);
+        border-color: rgba(14,165,233,.42);
+        box-shadow: 0 8px 18px rgba(14,165,233,.10);
         transform: translateY(-1px);
     }
 
@@ -105,8 +105,8 @@
     .sm-field .form-select {
         border-radius: 12px;
         min-height: 42px;
-        border-color: rgba(148,163,184,.28);
-        background: rgba(255,255,255,.96);
+        border-color: rgba(148,163,184,.36);
+        background: #fff;
         color: var(--ui-ink, #0f172a);
         box-shadow: none;
         transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
@@ -114,8 +114,8 @@
 
     .sm-field .form-control:focus,
     .sm-field .form-select:focus {
-        border-color: rgba(14,165,233,.55);
-        box-shadow: 0 0 0 .2rem rgba(14,165,233,.18), 0 10px 20px rgba(14,165,233,.12);
+        border-color: rgba(2,132,199,.72);
+        box-shadow: 0 0 0 .2rem rgba(14,165,233,.20), 0 8px 16px rgba(14,165,233,.10);
         background: #fff;
     }
 
@@ -138,7 +138,7 @@
         justify-content: space-between;
         flex-wrap: wrap;
         margin-top: 12px;
-        border-top: 1px solid rgba(14,165,233,.20);
+        border-top: 1px solid rgba(59,130,246,.22);
         padding-top: 12px;
     }
 
@@ -164,8 +164,8 @@
 
     .sm-advanced-grid {
         padding-top: 8px;
-        background: linear-gradient(180deg, rgba(14,165,233,.08), rgba(59,130,246,.04));
-        border: 1px dashed rgba(14,165,233,.30);
+        background: linear-gradient(180deg, rgba(224,242,254,.76), rgba(239,246,255,.65));
+        border: 1px dashed rgba(2,132,199,.34);
         border-radius: 14px;
         padding: 10px;
     }
@@ -188,14 +188,14 @@
     }
 
     .sm-pill {
-        background: linear-gradient(135deg, rgba(14,165,233,.18), rgba(59,130,246,.10));
-        color: var(--ui-accent, #0284c7);
-        border: 1px solid rgba(14,165,233,.34);
+        background: linear-gradient(135deg, rgba(224,242,254,.95), rgba(219,234,254,.9));
+        color: #0369a1;
+        border: 1px solid rgba(2,132,199,.30);
         border-radius: 999px;
         padding: 4px 10px;
         font-size: .78rem;
         font-weight: 800;
-        box-shadow: 0 6px 14px rgba(14,165,233,.14);
+        box-shadow: 0 4px 10px rgba(14,165,233,.10);
     }
 
     .sm-result-body {
