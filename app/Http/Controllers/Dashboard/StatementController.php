@@ -140,7 +140,10 @@ class StatementController extends Controller
                 return !is_null($value) && $value !== '';
             });
 
-        $perPage = (int) ($request->input('per_page') ?: $request->input('search_limit', 100));
+        $rawPerPage = $request->input('per_page', $request->input('search_limit', 100));
+        $showAll = is_string($rawPerPage) && strtolower(trim($rawPerPage)) === 'all';
+
+        $perPage = (int) $rawPerPage;
         $perPage = max(25, min($perPage, 500));
 
         if ($effectiveFilters->isEmpty()) {
@@ -155,7 +158,14 @@ class StatementController extends Controller
             session()->flash('message', 'لم يتم ادخال اي بيانات للبحث');
             session()->flash('type', 'danger');
         } else {
-            $paginator = Voter::FilterQuery()->paginate($perPage)->appends($request->query());
+            $query = Voter::FilterQuery();
+
+            if ($showAll) {
+                $total = (clone $query)->count();
+                $paginator = $query->paginate(max(1, $total))->appends($request->query());
+            } else {
+                $paginator = $query->paginate($perPage)->appends($request->query());
+            }
         }
 
 

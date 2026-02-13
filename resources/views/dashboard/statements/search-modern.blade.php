@@ -674,6 +674,7 @@
                         <option value="100" selected>100</option>
                         <option value="200">200</option>
                         <option value="500">500</option>
+                        <option value="all">عرض الكل</option>
                     </select>
                 </div>
                 <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-bigsearch">

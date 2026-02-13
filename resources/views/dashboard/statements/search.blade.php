@@ -495,6 +495,7 @@
                             <option value="100" selected>100</option>
                             <option value="200">200</option>
                             <option value="500">500</option>
+                            <option value="all">عرض الكل</option>
                         </select>
                     </div>
                     <div id="queryPagination" class="d-flex flex-wrap gap-1"></div>
