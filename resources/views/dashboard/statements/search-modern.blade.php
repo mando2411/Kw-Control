@@ -55,6 +55,7 @@
             radial-gradient(circle at 12% 8%, rgba(14,165,233,.12), transparent 42%),
             radial-gradient(circle at 88% 14%, rgba(59,130,246,.10), transparent 40%),
             linear-gradient(180deg, var(--ui-surface, #fff), var(--ui-surface-2, #f8fafc));
+        box-shadow: 0 14px 28px rgba(2, 132, 199, .10);
     }
 
     .sm-filter-wrap::before {
@@ -64,6 +65,14 @@
         pointer-events: none;
         background: linear-gradient(120deg, rgba(255,255,255,.28), transparent 28%, transparent 72%, rgba(255,255,255,.16));
         opacity: .7;
+    }
+
+    .sm-filter-wrap::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(14,165,233,.04), transparent 35%);
     }
 
     .sm-filter-grid {
@@ -87,17 +96,18 @@
     }
 
     .sm-field {
-        background: #ffffff;
+        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(240,249,255,.72));
         border: 1px solid rgba(148,163,184,.35);
         border-radius: 14px;
         padding: 8px 9px;
         transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
         backdrop-filter: saturate(120%);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 3px 10px rgba(15,23,42,.05);
     }
 
     .sm-field:hover {
         border-color: rgba(14,165,233,.42);
-        box-shadow: 0 8px 18px rgba(14,165,233,.10);
+        box-shadow: 0 10px 20px rgba(14,165,233,.12), 0 0 0 1px rgba(14,165,233,.12);
         transform: translateY(-1px);
     }
 
@@ -106,7 +116,7 @@
         border-radius: 12px;
         min-height: 42px;
         border-color: rgba(148,163,184,.36);
-        background: #fff;
+        background: rgba(255,255,255,.96);
         color: var(--ui-ink, #0f172a);
         box-shadow: none;
         transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
@@ -115,7 +125,7 @@
     .sm-field .form-control:focus,
     .sm-field .form-select:focus {
         border-color: rgba(2,132,199,.72);
-        box-shadow: 0 0 0 .2rem rgba(14,165,233,.20), 0 8px 16px rgba(14,165,233,.10);
+        box-shadow: 0 0 0 .22rem rgba(14,165,233,.22), 0 10px 18px rgba(14,165,233,.13);
         background: #fff;
     }
 
@@ -168,6 +178,7 @@
         border: 1px dashed rgba(2,132,199,.34);
         border-radius: 14px;
         padding: 10px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
     }
 
     .sm-result-head {
