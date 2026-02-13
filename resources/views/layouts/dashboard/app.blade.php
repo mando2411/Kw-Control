@@ -620,7 +620,6 @@
         html.ui-modern .dashboard-topbar-desktop .desktop-header-right,
         body.ui-modern .dashboard-topbar-desktop .desktop-header-right {
             flex: 0 0 auto;
-            direction: rtl;
         }
 
         html.ui-modern .dashboard-topbar-desktop .desktop-header-center,
