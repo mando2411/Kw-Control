@@ -1107,10 +1107,24 @@
                             toastr.success(message);
 
                             const modalElement = document.getElementById('smExportModal');
-                            if (modalElement && window.bootstrap && window.bootstrap.Modal) {
-                                const modalInstance = window.bootstrap.Modal.getInstance(modalElement);
-                                if (modalInstance) {
-                                    modalInstance.hide();
+                            if (modalElement) {
+                                if (window.bootstrap && window.bootstrap.Modal) {
+                                    const modalInstance = window.bootstrap.Modal.getInstance
+                                        ? window.bootstrap.Modal.getInstance(modalElement)
+                                        : (window.bootstrap.Modal.getOrCreateInstance
+                                            ? window.bootstrap.Modal.getOrCreateInstance(modalElement)
+                                            : null);
+
+                                    if (modalInstance && typeof modalInstance.hide === 'function') {
+                                        modalInstance.hide();
+                                    }
+                                } else if (window.jQuery && typeof window.jQuery(modalElement).modal === 'function') {
+                                    window.jQuery(modalElement).modal('hide');
+                                } else {
+                                    modalElement.classList.remove('show');
+                                    modalElement.style.display = 'none';
+                                    document.body.classList.remove('modal-open');
+                                    document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
                                 }
                             }
                         })

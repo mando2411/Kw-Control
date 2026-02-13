@@ -203,7 +203,7 @@ class StatementController extends Controller
                ->values()
                ->all();
 
-           ProcessStatementExportJob::dispatch(
+           ProcessStatementExportJob::dispatchAfterResponse(
                (int) auth()->id(),
                $type,
                $voterIds,
