@@ -1049,6 +1049,12 @@
         document.querySelectorAll('.sm-export-action').forEach((button) => {
             button.addEventListener('click', function () {
                 const actionType = button.value;
+
+                if (selectedVoterIds.size === 0) {
+                    toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
+                    return;
+                }
+
                 exportType.value = actionType;
 
                 exportForm.querySelectorAll('input[name="voter[]"]').forEach((input) => input.remove());
@@ -1080,8 +1086,16 @@
                     params: queryData,
                     responseType: actionType === 'Excel' || actionType === 'PDF' ? 'blob' : 'json',
                 })
-                    .then((res) => {
+                    .then(async (res) => {
                         if (actionType === 'Excel' || actionType === 'PDF') {
+                            const contentType = String(res?.headers?.['content-type'] || '').toLowerCase();
+                            if (contentType.includes('text/html') || contentType.includes('application/json')) {
+                                const errorText = await res.data.text();
+                                toastr.error('تعذر استخراج الملف. تأكد من تحديد ناخبين صالحين ثم حاول مرة أخرى.');
+                                console.error('Export unexpected payload:', errorText);
+                                return;
+                            }
+
                             const fileUrl = window.URL.createObjectURL(new Blob([res.data]));
                             const link = document.createElement('a');
                             link.href = fileUrl;
@@ -1089,6 +1103,7 @@
                             document.body.appendChild(link);
                             link.click();
                             link.remove();
+                            window.URL.revokeObjectURL(fileUrl);
                             return;
                         }
 
