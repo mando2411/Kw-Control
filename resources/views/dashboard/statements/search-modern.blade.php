@@ -807,6 +807,16 @@
             }
         }
 
+        function getSelectedVoterIdsForExport() {
+            const checkedNow = Array.from(resultsBody.querySelectorAll('.sm-check:checked'))
+                .map((item) => String(item.value || '').trim())
+                .filter((id) => id !== '');
+
+            checkedNow.forEach((id) => selectedVoterIds.add(id));
+
+            return Array.from(selectedVoterIds);
+        }
+
         function renderRows(items) {
             if (!Array.isArray(items) || items.length === 0) {
                 setEmpty('لا توجد نتائج مطابقة.');
@@ -1050,8 +1060,9 @@
         document.querySelectorAll('.sm-export-action').forEach((button) => {
             button.addEventListener('click', function () {
                 const actionType = button.value;
+                const selectedIds = getSelectedVoterIdsForExport();
 
-                if (selectedVoterIds.size === 0) {
+                if (selectedIds.length === 0) {
                     toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
                     return;
                 }
@@ -1059,7 +1070,7 @@
                 exportType.value = actionType;
 
                 exportForm.querySelectorAll('input[name="voter[]"]').forEach((input) => input.remove());
-                Array.from(selectedVoterIds).forEach((id) => {
+                selectedIds.forEach((id) => {
                     const hidden = document.createElement('input');
                     hidden.type = 'hidden';
                     hidden.name = 'voter[]';
