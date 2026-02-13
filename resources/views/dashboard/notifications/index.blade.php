@@ -237,7 +237,7 @@
                         </span>
 
                         @if (!empty($data['action_url']) && !$isActionExpired && !$isActionUsed)
-                            <a href="{{ (string) $data['action_url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
+                            <a href="{{ (string) $data['action_url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-success" data-action="download-once">
                                 {{ (string) ($data['action_label'] ?? 'تنزيل') }}
                             </a>
                         @elseif (!empty($data['action_url']) && $isActionUsed)
@@ -327,8 +327,127 @@
             });
         }
 
+        function extractFilename(contentDisposition) {
+            if (!contentDisposition) return 'statement_export';
+
+            var utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
+            if (utf8Match && utf8Match[1]) {
+                return decodeURIComponent(utf8Match[1]).replace(/\"/g, '');
+            }
+
+            var asciiMatch = /filename=\"?([^\";]+)\"?/i.exec(contentDisposition);
+            if (asciiMatch && asciiMatch[1]) {
+                return asciiMatch[1];
+            }
+
+            return 'statement_export';
+        }
+
+        function replaceDownloadBadge(card, type) {
+            if (!card) return;
+
+            var downloadBtn = card.querySelector('[data-action="download-once"]');
+            if (!downloadBtn) return;
+
+            var badge = document.createElement('span');
+            if (type === 'done') {
+                badge.className = 'notification-action-done';
+                badge.textContent = 'تم تنزيل الملف — تم إغلاق رابط التنزيل لأسباب أمنية.';
+                badge.title = 'تم تنزيل الملف بنجاح وتم إنهاء صلاحية الرابط.';
+            } else {
+                badge.className = 'notification-action-expired';
+                badge.textContent = 'انتهت صلاحية رابط التنزيل — يرجى إعادة استخراج الملف.';
+                badge.title = 'انتهت صلاحية الرابط أو تم استخدامه مسبقًا.';
+            }
+
+            downloadBtn.replaceWith(badge);
+        }
+
+        function downloadOnce(url, card, trigger) {
+            return fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function (response) {
+                if (!response.ok) {
+                    var code = response.status;
+                    if (code === 410 || code === 403 || code === 404) {
+                        replaceDownloadBadge(card, 'expired');
+                        if (window.toastr) {
+                            toastr.warning('رابط التنزيل غير متاح الآن. يرجى إعادة استخراج الملف.');
+                        }
+                        return null;
+                    }
+                    throw new Error('download failed');
+                }
+
+                return Promise.all([
+                    response.blob(),
+                    response.headers.get('Content-Disposition')
+                ]);
+            })
+            .then(function (result) {
+                if (!result) return;
+
+                var blob = result[0];
+                var disposition = result[1];
+                var fileName = extractFilename(disposition);
+
+                var fileUrl = window.URL.createObjectURL(blob);
+                var link = document.createElement('a');
+                link.href = fileUrl;
+                link.setAttribute('download', fileName || 'statement_export');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(fileUrl);
+
+                replaceDownloadBadge(card, 'done');
+
+                if (window.toastr) {
+                    toastr.success('تم تنزيل الملف بنجاح. تم إنهاء صلاحية الرابط تلقائيًا.');
+                }
+            })
+            .catch(function () {
+                if (window.toastr) {
+                    toastr.error('تعذر تنزيل الملف حاليًا. حاول إعادة استخراج الملف.');
+                }
+            })
+            .finally(function () {
+                if (trigger) {
+                    trigger.classList.remove('disabled');
+                    trigger.removeAttribute('aria-disabled');
+                }
+            });
+        }
+
         if (grid) {
             grid.addEventListener('click', function (event) {
+                var downloadBtn = event.target.closest('[data-action="download-once"]');
+                if (downloadBtn) {
+                    event.preventDefault();
+
+                    if (downloadBtn.classList.contains('disabled')) {
+                        return;
+                    }
+
+                    var cardForDownload = downloadBtn.closest('[data-notification-id]');
+                    downloadBtn.classList.add('disabled');
+                    downloadBtn.setAttribute('aria-disabled', 'true');
+
+                    if (cardForDownload && cardForDownload.getAttribute('data-unread') === '1') {
+                        var notifId = cardForDownload.getAttribute('data-notification-id');
+                        if (notifId) {
+                            readOne(notifId, cardForDownload);
+                        }
+                    }
+
+                    downloadOnce(downloadBtn.getAttribute('href'), cardForDownload, downloadBtn);
+                    return;
+                }
+
                 var button = event.target.closest('[data-action="read-one"]');
                 if (!button) return;
 
