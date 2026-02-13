@@ -1693,12 +1693,26 @@
             var mobileBellButton = document.getElementById('notif-menu-dropdown-mobile');
             if (mobileBellButton && mobileBellButton.dataset.bound !== '1') {
                 mobileBellButton.dataset.bound = '1';
-                mobileBellButton.addEventListener('click', function (event) {
+                var mobileBellLastHandledAt = 0;
+                var mobileBellHandler = function (event) {
+                    var nowTs = Date.now();
+                    if (nowTs - mobileBellLastHandledAt < 280) {
+                        if (event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        return;
+                    }
+
+                    mobileBellLastHandledAt = nowTs;
                     window.toggleDashboardNotifMenuMobile(event);
-                });
-                mobileBellButton.addEventListener('touchend', function (event) {
-                    window.toggleDashboardNotifMenuMobile(event);
-                }, { passive: false });
+                };
+
+                if (window.PointerEvent) {
+                    mobileBellButton.addEventListener('pointerup', mobileBellHandler);
+                } else {
+                    mobileBellButton.addEventListener('click', mobileBellHandler);
+                }
             }
 
             function csrfToken() {
