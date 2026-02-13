@@ -1696,6 +1696,9 @@
                 mobileBellButton.addEventListener('click', function (event) {
                     window.toggleDashboardNotifMenuMobile(event);
                 });
+                mobileBellButton.addEventListener('touchend', function (event) {
+                    window.toggleDashboardNotifMenuMobile(event);
+                }, { passive: false });
             }
 
             function csrfToken() {

@@ -102,7 +102,7 @@
                 </a>
 
                 <div class="dropdown" id="notif-menu-wrapper-mobile">
-                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" onclick="toggleDashboardNotifMenuMobile(event)" aria-expanded="false">
+                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" aria-expanded="false">
                         <i class="bi bi-bell"></i>
                         <span class="dtm-notif-badge" id="dtmNotifBadgeMobile" hidden>0</span>
                     </button>
