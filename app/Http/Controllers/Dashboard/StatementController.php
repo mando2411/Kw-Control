@@ -24,6 +24,38 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class StatementController extends Controller
 {
+    private function buildSearchBootstrapData(): array
+    {
+        if (auth()->user()->hasRole("Administrator")) {
+            $contractors = Contractor::Children()->get();
+        } else {
+            $contractors = auth()->user()->contractors()->Children()->get();
+        }
+
+        $relations = [
+            'families' => Family::all(),
+            'committees' => Committee::all(),
+            'contractors' => $contractors,
+        ];
+
+        $filters = collect(['alfkhd', 'alfraa', 'albtn', 'cod1', 'cod2', 'cod3', 'alktaa']);
+        $voters = Voter::whereHas('election', function ($q) {
+            $q->where('election_id', auth()->user()->election_id);
+        });
+
+        $selectionData = $filters->mapWithKeys(function ($filter) use ($voters) {
+            return [
+                $filter => $voters->pluck($filter)->filter()->unique()->values()->toArray(),
+            ];
+        });
+
+        return [
+            'relations' => $relations,
+            'voters' => null,
+            'selectionData' => $selectionData,
+        ];
+    }
+
     public function index(Request $request){
         if ($request->collect()->isNotEmpty()) {
             $family = Family::query();
@@ -54,33 +86,15 @@ class StatementController extends Controller
        }
 
        public function search(Request $request){
-        if(auth()->user()->hasRole("Administrator")){
-            $contractors=Contractor::Children()->get();
-        }else{
-            $contractors = auth()->user()->contractors()->Children()->get();
-        }
-        $relations=[
-            'families'=>Family::all(),
-            'committees' =>Committee::all(),
-            'contractors' =>$contractors,
-        ];
-        $filters = collect(['alfkhd', 'alfraa', 'albtn', 'cod1', 'cod2', 'cod3','alktaa']); // Convert to a collection
-        $voters=Voter::whereHas('election',function($q){
-            $q->where('election_id',auth()->user()->election_id);
-        });
-        $selectionData = $filters->mapWithKeys(function ($filter) use ($voters) {
-            return [
-                $filter => $voters->pluck($filter)->filter()->unique()->values()->toArray(),
-            ];
-        });
-        $cod1 = Selection::select('cod1')
-        ->whereNotNull('cod1')
-        ->distinct()
-        ->get();
+        $data = $this->buildSearchBootstrapData();
+        return view('dashboard.statements.search', $data);
 
+       }
 
-        $voters=null;
-        return view('dashboard.statements.search' , compact('relations','voters','selectionData'));
+       public function searchModern(Request $request)
+       {
+        $data = $this->buildSearchBootstrapData();
+        return view('dashboard.statements.search-modern', $data);
 
        }
 

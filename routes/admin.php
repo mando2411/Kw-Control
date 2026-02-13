@@ -80,6 +80,7 @@ Route::group(['prefix' => 'dashboard',
     Route::get('Statistics',[StatementController::class,'stat'])->name('statistics');
     Route::get('cards/{user?}',[UserController::class,'cards'])->name('cards');
     Route::get('statement/search',[StatementController::class,'search'])->name('statement.search');
+    Route::get('statement/search-modern',[StatementController::class,'searchModern'])->name('statement.search-modern');
     Route::get('statement/query',[StatementController::class,'query'])->name('statement.query');
     Route::get('statement/show',[StatementController::class,'show'])->name('statement.show');
     Route::get('voter/{voter}', [StatementController::class, 'voterDetails'])->name('statement.voter-details');
