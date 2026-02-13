@@ -597,6 +597,73 @@
             right: 16px !important;
         }
 
+        html.ui-modern #toast-container > .toast,
+        body.ui-modern #toast-container > .toast {
+            width: 340px;
+            border-radius: 14px;
+            box-shadow: 0 16px 34px rgba(2, 6, 23, .2);
+            opacity: 1 !important;
+            padding: 12px 14px 12px 48px;
+            background-image: none !important;
+            border: 1px solid rgba(148, 163, 184, .28) !important;
+            color: #0f172a !important;
+            font-weight: 700;
+            animation: uiModernToastIn .2s ease-out;
+            backdrop-filter: none !important;
+        }
+
+        html.ui-modern #toast-container > .toast-success,
+        body.ui-modern #toast-container > .toast-success {
+            background: #ecfdf5 !important;
+            border-color: rgba(16, 185, 129, .45) !important;
+            color: #065f46 !important;
+        }
+
+        html.ui-modern #toast-container > .toast-error,
+        body.ui-modern #toast-container > .toast-error {
+            background: #fef2f2 !important;
+            border-color: rgba(239, 68, 68, .45) !important;
+            color: #991b1b !important;
+        }
+
+        html.ui-modern #toast-container > .toast-warning,
+        body.ui-modern #toast-container > .toast-warning {
+            background: #fffbeb !important;
+            border-color: rgba(245, 158, 11, .45) !important;
+            color: #92400e !important;
+        }
+
+        html.ui-modern #toast-container > .toast-info,
+        body.ui-modern #toast-container > .toast-info {
+            background: #eff6ff !important;
+            border-color: rgba(59, 130, 246, .45) !important;
+            color: #1e3a8a !important;
+        }
+
+        html.ui-modern #toast-container > .toast .toast-message,
+        body.ui-modern #toast-container > .toast .toast-message {
+            color: inherit !important;
+            line-height: 1.55;
+            font-size: .9rem;
+            opacity: 1 !important;
+        }
+
+        html.ui-modern #toast-container > .toast .toast-progress,
+        body.ui-modern #toast-container > .toast .toast-progress {
+            background: rgba(15, 23, 42, .2);
+        }
+
+        html.ui-modern #toast-container > .toast .toast-close-button,
+        body.ui-modern #toast-container > .toast .toast-close-button {
+            color: inherit;
+            opacity: .8;
+        }
+
+        @keyframes uiModernToastIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Modern: desktop header vs mobile header separation */
         html.ui-modern .dashboard-topbar-mobile,
         body.ui-modern .dashboard-topbar-mobile,
