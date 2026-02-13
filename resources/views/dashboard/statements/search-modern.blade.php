@@ -591,12 +591,6 @@
                     <label for="smAgeTo">العمر إلى</label>
                     <input id="smAgeTo" name="age[to]" type="number" class="form-control" placeholder="80">
                 </div>
-                <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-perpage">
-                    <label for="smPerPage">عدد النتائج</label>
-                    <select id="smPerPage" name="per_page" class="form-select">
-                        <option value="20" selected>20 لكل دفعة</option>
-                    </select>
-                </div>
                 <div class="sm-field sm-col-3 sm-mobile-two sm-mobile-emphasis sm-order-bigsearch">
                     <label for="smBigSearch">بحث موسع</label>
                     <select id="smBigSearch" name="search" class="form-select">
@@ -957,7 +951,7 @@
             params.home = document.querySelector('#smHome')?.value || params.home || '';
 
             params.page = page || 1;
-            params.per_page = params.per_page || '100';
+            params.per_page = '20';
             return params;
         }
 
