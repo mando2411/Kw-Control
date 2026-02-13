@@ -484,9 +484,9 @@
         .sm-order-agefrom { order: 16; }
         .sm-order-ageto { order: 17; }
         .sm-order-more { order: 18; }
-        .sm-order-perpage { order: 19; }
-        .sm-order-bigsearch { order: 20; }
-        .sm-order-advanced { order: 21; }
+        .sm-order-advanced { order: 19; }
+        .sm-order-perpage { order: 20; }
+        .sm-order-bigsearch { order: 21; }
 
         .sm-field label {
             font-size: .76rem;
