@@ -1323,6 +1323,10 @@
 
         html.ui-modern .dashboard-topbar .dtm-notif-panel,
         body.ui-modern .dashboard-topbar .dtm-notif-panel {
+            left: auto;
+            right: 0;
+            inset-inline-start: auto;
+            inset-inline-end: 0;
             min-width: 320px;
             max-width: min(88vw, 380px);
             padding: 0;
@@ -1337,8 +1341,8 @@
             pointer-events: none;
             display: block !important;
             transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms ease;
-            direction: rtl;
-            text-align: right;
+            direction: ltr;
+            text-align: left;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-panel.show,
@@ -1358,6 +1362,8 @@
             padding: 11px 12px;
             border-bottom: 1px solid var(--ui-border);
             background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(59, 130, 246, 0.04));
+            direction: rtl;
+            text-align: right;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-read-all,
@@ -1385,6 +1391,8 @@
             padding: 8px;
             scrollbar-width: thin;
             scrollbar-color: rgba(14, 165, 233, 0.35) transparent;
+            direction: rtl;
+            text-align: right;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-list::-webkit-scrollbar,
