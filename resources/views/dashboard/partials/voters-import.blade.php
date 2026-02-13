@@ -274,7 +274,7 @@
 
             var replaceModal = replaceModalEl ? new bootstrap.Modal(replaceModalEl) : null;
             var summaryModal = summaryModalEl ? new bootstrap.Modal(summaryModalEl) : null;
-            var summaryBody = root.querySelector('[data-summary-body]');
+            var summaryBody = summaryModalEl ? summaryModalEl.querySelector('[data-summary-body]') : null;
 
             var pendingConfirm = null;
 
@@ -406,7 +406,7 @@
         }
 
             // Replace confirmation handler (single instance)
-            var confirmReplaceBtn = root.querySelector('[data-action="confirm-replace"]');
+            var confirmReplaceBtn = replaceModalEl ? replaceModalEl.querySelector('[data-action="confirm-replace"]') : null;
 
             if (replaceModalEl) {
                 replaceModalEl.addEventListener('hidden.bs.modal', function () {
