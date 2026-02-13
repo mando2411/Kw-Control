@@ -6,6 +6,7 @@ use App\Enums\SettingKey;
 use App\Exports\VotersExport;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessStatementExportJob;
+use App\Support\StatementSearchCache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -147,26 +148,54 @@ class StatementController extends Controller
         $perPage = (int) $rawPerPage;
         $perPage = max(25, min($perPage, 500));
 
-        if ($effectiveFilters->isEmpty()) {
-            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect(),
-                0,
-                $perPage,
-                (int) $request->input('page', 1),
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
+        $cacheVersion = StatementSearchCache::dataVersion();
+        $cacheKey = StatementSearchCache::buildKey('statement-search-query', [
+            'version' => $cacheVersion,
+            'scope' => StatementSearchCache::userScopeToken(auth()->user()),
+            'query' => collect($request->query())->except(['_token'])->toArray(),
+            'per_page' => $perPage,
+            'show_all' => $showAll,
+            'page' => (int) $request->input('page', 1),
+        ]);
 
+        $payload = Cache::remember($cacheKey, now()->addHours(6), function () use ($effectiveFilters, $perPage, $request, $showAll) {
+            if ($effectiveFilters->isEmpty()) {
+                $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                    collect(),
+                    0,
+                    $perPage,
+                    (int) $request->input('page', 1),
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+            } else {
+                $query = Voter::FilterQuery();
+
+                if ($showAll) {
+                    $total = (clone $query)->count();
+                    $paginator = $query->paginate(max(1, $total))->appends($request->query());
+                } else {
+                    $paginator = $query->paginate($perPage)->appends($request->query());
+                }
+            }
+
+            return [
+                'voters' => collect($paginator->items())
+                    ->values()
+                    ->map(fn ($item) => method_exists($item, 'toArray') ? $item->toArray() : (array) $item)
+                    ->all(),
+                'pagination' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                ],
+                'message' => 'Search completed successfully',
+            ];
+        });
+
+        if ($effectiveFilters->isEmpty()) {
             session()->flash('message', 'لم يتم ادخال اي بيانات للبحث');
             session()->flash('type', 'danger');
-        } else {
-            $query = Voter::FilterQuery();
-
-            if ($showAll) {
-                $total = (clone $query)->count();
-                $paginator = $query->paginate(max(1, $total))->appends($request->query());
-            } else {
-                $paginator = $query->paginate($perPage)->appends($request->query());
-            }
         }
 
 
@@ -177,16 +206,7 @@ class StatementController extends Controller
             ->event('Search')
             ->log('بحث عن ناخبين');
 
-           return response()->json([
-               'voters' => collect($paginator->items())->values(),
-               'pagination' => [
-                   'current_page' => $paginator->currentPage(),
-                   'last_page' => $paginator->lastPage(),
-                   'per_page' => $paginator->perPage(),
-                   'total' => $paginator->total(),
-               ],
-               'message' => 'Search completed successfully',
-           ]);
+           return response()->json($payload);
        }
 
        public function exportAsync(Request $request): JsonResponse

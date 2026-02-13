@@ -10,102 +10,115 @@ use App\Models\Election;
 use App\Models\Family;
 use App\Models\Selection;
 use App\Models\Voter;
+use App\Support\StatementSearchCache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SelectionController extends Controller
 {
     public function filter(Request $request)
     {
-        // Step 1: Initialize the query on the Voter model
-        $query = Voter::query();
+        $cacheKey = StatementSearchCache::buildKey('statement-selection-filter', [
+            'version' => StatementSearchCache::dataVersion(),
+            'scope' => StatementSearchCache::userScopeToken(auth()->user()),
+            'query' => collect($request->query())->except(['_token'])->toArray(),
+        ]);
 
-        $filters = collect(['alfkhd', 'alfraa', 'albtn', 'cod1', 'cod2', 'cod3', 'alktaa', 'family_id']);
-        foreach ($filters as $filter) {
-            if ($request->filled($filter)) {
-                $query->where($filter, $request->get($filter));
+        $payload = Cache::remember($cacheKey, now()->addHours(6), function () use ($request) {
+            // Step 1: Initialize the query on the Voter model
+            $query = Voter::query();
+
+            $filters = collect(['alfkhd', 'alfraa', 'albtn', 'cod1', 'cod2', 'cod3', 'alktaa', 'family_id']);
+            foreach ($filters as $filter) {
+                if ($request->filled($filter)) {
+                    $query->where($filter, $request->get($filter));
+                }
             }
-        }
 
-        if ($request->filled('street')) {
-            $street = $request->get('street');
-            $query->whereExists(function ($exists) use ($street) {
-                $exists->selectRaw('1')
-                    ->from('selections')
-                    ->where('selections.street', $street)
-                    ->whereColumn('selections.alfkhd', 'voters.alfkhd')
-                    ->whereColumn('selections.alfraa', 'voters.alfraa')
-                    ->whereColumn('selections.albtn', 'voters.albtn')
-                    ->whereColumn('selections.alktaa', 'voters.alktaa');
+            if ($request->filled('street')) {
+                $street = $request->get('street');
+                $query->whereExists(function ($exists) use ($street) {
+                    $exists->selectRaw('1')
+                        ->from('selections')
+                        ->where('selections.street', $street)
+                        ->whereColumn('selections.alfkhd', 'voters.alfkhd')
+                        ->whereColumn('selections.alfraa', 'voters.alfraa')
+                        ->whereColumn('selections.albtn', 'voters.albtn')
+                        ->whereColumn('selections.alktaa', 'voters.alktaa');
+                });
+            }
+
+            if ($request->filled('alharaa')) {
+                $alharaa = $request->get('alharaa');
+                $query->whereExists(function ($exists) use ($alharaa) {
+                    $exists->selectRaw('1')
+                        ->from('selections')
+                        ->where('selections.alharaa', $alharaa)
+                        ->whereColumn('selections.alfkhd', 'voters.alfkhd')
+                        ->whereColumn('selections.alfraa', 'voters.alfraa')
+                        ->whereColumn('selections.albtn', 'voters.albtn')
+                        ->whereColumn('selections.alktaa', 'voters.alktaa');
+                });
+            }
+
+            if ($request->filled('home')) {
+                $home = $request->get('home');
+                $query->whereExists(function ($exists) use ($home) {
+                    $exists->selectRaw('1')
+                        ->from('selections')
+                        ->where('selections.home', $home)
+                        ->whereColumn('selections.alfkhd', 'voters.alfkhd')
+                        ->whereColumn('selections.alfraa', 'voters.alfraa')
+                        ->whereColumn('selections.albtn', 'voters.albtn')
+                        ->whereColumn('selections.alktaa', 'voters.alktaa');
+                });
+            }
+
+            $voters = $query->get();
+
+            $selectionData = $filters->mapWithKeys(function ($filter) use ($voters) {
+                return [
+                    $filter => $voters->pluck($filter)->filter()->unique()->values()->toArray(),
+                ];
             });
-        }
+            $selectionIds = [];
+            foreach ($selectionData as $key => $values) {
+                if ($key !== 'family_id') {
+                    $selectionIds[$key] = collect($values)
+                        ->filter(fn($value) => !is_null($value) && $value !== '')
+                        ->unique()
+                        ->sort()
+                        ->values()
+                        ->mapWithKeys(fn($value) => [(string) $value => (string) $value])
+                        ->toArray();
+                } else {
+                    $selectionIds[$key] = Family::whereIn('id', $values)
+                        ->pluck('name', 'id')
+                        ->unique()
+                        ->toArray();
+                }
+            }
 
-        if ($request->filled('alharaa')) {
-            $alharaa = $request->get('alharaa');
-            $query->whereExists(function ($exists) use ($alharaa) {
-                $exists->selectRaw('1')
-                    ->from('selections')
-                    ->where('selections.alharaa', $alharaa)
-                    ->whereColumn('selections.alfkhd', 'voters.alfkhd')
-                    ->whereColumn('selections.alfraa', 'voters.alfraa')
-                    ->whereColumn('selections.albtn', 'voters.albtn')
-                    ->whereColumn('selections.alktaa', 'voters.alktaa');
-            });
-        }
+            $selectionScope = Selection::query();
+            foreach (['alfkhd', 'alfraa', 'albtn', 'cod1', 'cod2', 'cod3', 'alktaa'] as $column) {
+                if ($request->filled($column)) {
+                    $selectionScope->where($column, $request->get($column));
+                }
+            }
 
-        if ($request->filled('home')) {
-            $home = $request->get('home');
-            $query->whereExists(function ($exists) use ($home) {
-                $exists->selectRaw('1')
-                    ->from('selections')
-                    ->where('selections.home', $home)
-                    ->whereColumn('selections.alfkhd', 'voters.alfkhd')
-                    ->whereColumn('selections.alfraa', 'voters.alfraa')
-                    ->whereColumn('selections.albtn', 'voters.albtn')
-                    ->whereColumn('selections.alktaa', 'voters.alktaa');
-            });
-        }
+            $locationOptions = [
+                'street' => (clone $selectionScope)->whereNotNull('street')->pluck('street', 'street')->toArray(),
+                'alharaa' => (clone $selectionScope)->whereNotNull('alharaa')->pluck('alharaa', 'alharaa')->toArray(),
+                'home' => (clone $selectionScope)->whereNotNull('home')->pluck('home', 'home')->toArray(),
+            ];
 
-        $voters = $query->get();
-
-        $selectionData = $filters->mapWithKeys(function ($filter) use ($voters) {
             return [
-                $filter => $voters->pluck($filter)->filter()->unique()->values()->toArray(),
+                'selectionIds' => $selectionIds,
+                'locationOptions' => $locationOptions,
             ];
         });
-        $selectionIds = [];
-        foreach ($selectionData as $key => $values) {
-            if ($key !== 'family_id') {
-                $selectionIds[$key] = collect($values)
-                    ->filter(fn($value) => !is_null($value) && $value !== '')
-                    ->unique()
-                    ->sort()
-                    ->values()
-                    ->mapWithKeys(fn($value) => [(string) $value => (string) $value])
-                    ->toArray();
-            } else {
-                $selectionIds[$key] = Family::whereIn('id', $values)
-                    ->pluck('name', 'id')
-                    ->unique()
-                    ->toArray();
-            }
-        }
-        $selectionScope = Selection::query();
-        foreach (['alfkhd', 'alfraa', 'albtn', 'cod1', 'cod2', 'cod3', 'alktaa'] as $column) {
-            if ($request->filled($column)) {
-                $selectionScope->where($column, $request->get($column));
-            }
-        }
 
-        $locationOptions = [
-            'street' => (clone $selectionScope)->whereNotNull('street')->pluck('street', 'street')->toArray(),
-            'alharaa' => (clone $selectionScope)->whereNotNull('alharaa')->pluck('alharaa', 'alharaa')->toArray(),
-            'home' => (clone $selectionScope)->whereNotNull('home')->pluck('home', 'home')->toArray(),
-        ];
-
-        return response()->json([
-            'selectionIds' => $selectionIds,
-            'locationOptions' => $locationOptions,
-        ]);
+        return response()->json($payload);
     }
 
     public function reportFilter(Request $request)
