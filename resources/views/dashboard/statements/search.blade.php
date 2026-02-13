@@ -49,7 +49,7 @@
     <section class="rtl">
         <div class="container">
             <div class="madameenControl">
-                <form action="{{ route('dashboard.statement.query') }}" class="Query-Form" method="GET">
+                <form action="{{ route('dashboard.statement.query') }}" class="Query-Form" method="GET" autocomplete="off">
 
                     <!-- First Name Input -->
                     <div class="d-flex align-items-center">
@@ -58,6 +58,7 @@
                             type="text"
                             name="first_name"
                             id="firstNameSearch"
+                            autocomplete="off"
                             value=""
                             class="form-control py-1"
                             placeholder="حصر النتائج حسب الاسم الاول"
@@ -71,6 +72,7 @@
                             type="text"
                             name="name"
                             id="mandoobNameSearch"
+                            autocomplete="off"
                             value=""
                             class="form-control py-1"
                             placeholder="البحث عن أي جزء من الأسم"
@@ -94,27 +96,33 @@
                     <!-- Contact Information Inputs -->
                     <div class="d-flex align-items-center">
                         {{-- <label class="labelStyle" for="contactInfo">معلومات الاتصال</label> --}}
+                        <label class="visually-hidden" for="phoneSearch">الهاتف</label>
                         <input
                             type="text"
                             class="form-control py-1"
                             name="phone"
                             id="phoneSearch"
+                            autocomplete="off"
                             value=""
                             placeholder="الهاتف"
                         />
+                        <label class="visually-hidden" for="idSearch">الرقم المدني</label>
                         <input
                             type="text"
                             class="form-control py-1"
                             name="id"
                             id="idSearch"
+                            autocomplete="off"
                             value=""
                             placeholder="الرقم المدني"
                         />
+                        <label class="visually-hidden" for="boxSearch">الصندوق</label>
                         <input
                             type="text"
                             class="form-control py-1"
                             name="box"
                             id="boxSearch"
+                            autocomplete="off"
                             value=""
                             placeholder="الصندوق"
                         />
@@ -134,6 +142,7 @@
                                     placeholder="الأسم الثاني"
                                     name="second_name"
                                     id="secondName"
+                                    autocomplete="off"
                                 />
                                 <input
                                     type="text"
@@ -141,6 +150,7 @@
                                     placeholder="الأسم الثالث"
                                     name="third_name"
                                     id="thirdName"
+                                    autocomplete="off"
                                 />
                                 <input
                                     type="text"
@@ -148,6 +158,7 @@
                                     placeholder="الأسم الرابع"
                                     name="fourth_name"
                                     id="fourthName"
+                                    autocomplete="off"
                                 />
                             </div>
 
@@ -752,7 +763,7 @@
                         <hr />
                         <div class="d-flex align-items-center mb-1 mb-3 widthOn3">
                             <div class="d-flex align-items-center mb-1">
-                                <label class="labelStyle" class="" for="alfkhd">فخذ </label>
+                                <label class="labelStyle" for="alfkhdd">فخذ </label>
                                 <input
                                     type="text"
                                     readonly
@@ -763,7 +774,7 @@
                                 />
                             </div>
                             <div class="d-flex align-items-center mb-1">
-                                <label class="labelStyle" class="" for="alfraa">فرع </label>
+                                <label class="labelStyle" for="alfraaa">فرع </label>
                                 <input
                                     type="text"
                                     readonly
@@ -1239,8 +1250,13 @@ if (voter.contractors.length > 0) {
             let id=$(this).attr("data-target-id");
             console.log(id);
 
-            var url = '/voter/' + id ;
-            axios.get(url)
+            var url = "{{ url('dashboard/voter') }}/" + id;
+            axios.get(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
                 .then(function (response) {
                     console.log('Success:', response);
                     $("#id").val(response.data.voter.alrkm_almd_yn)

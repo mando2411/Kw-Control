@@ -82,6 +82,7 @@ Route::group(['prefix' => 'dashboard',
     Route::get('statement/search',[StatementController::class,'search'])->name('statement.search');
     Route::get('statement/query',[StatementController::class,'query'])->name('statement.query');
     Route::get('statement/show',[StatementController::class,'show'])->name('statement.show');
+    Route::get('voter/{voter}', [StatementController::class, 'voterDetails'])->name('statement.voter-details');
     Route::get('committee/home',[CommitteeController::class,'home'])->name('committee.home');
     Route::resource('schools', SchoolController::class)->except('show');
     Route::resource('families', FamilyController::class)->except('show');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Exports\VotersExport;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\School;
 use App\Models\Family;
@@ -126,6 +127,20 @@ class StatementController extends Controller
            return response()->json([
                'voters' => collect($voters)->values(),
                'message' => 'Search completed successfully',
+           ]);
+       }
+
+       public function voterDetails(Voter $voter): JsonResponse
+       {
+           $voter->load(['family', 'committee.school', 'attend', 'contractors.user']);
+
+           return response()->json([
+               'voter' => $voter,
+               'family' => optional($voter->family)->name,
+               'committee' => optional($voter->committee)->name,
+               'school' => optional(optional($voter->committee)->school)->name,
+               'attend' => $voter->attend,
+               'contractors' => $voter->contractors,
            ]);
        }
 public function stat(Request $request)
