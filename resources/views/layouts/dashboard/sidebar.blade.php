@@ -28,6 +28,12 @@
                 </div>
             </div>
         @endif
+        <div class="sidebar-color-mode" dir="rtl">
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="sidebarColorModeToggle" aria-pressed="false">
+                <label class="form-check-label" for="sidebarColorModeToggle">دارك مود</label>
+            </div>
+        </div>
         <ul class="sidebar-menu">
             <x-dashboard.sidebar.single-link title="الصفحه الرئيسيه" link="{{ route('dashboard') }}" icon="home" />
 

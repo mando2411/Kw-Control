@@ -31,7 +31,9 @@
             var IS_HOMEPAGE = {{ $isHomepage ? 'true' : 'false' }};
             var STORAGE_KEY = 'ui_mode';
             var PENDING_KEY = 'ui_mode_pending';
+            var COLOR_STORAGE_KEY = 'ui_color_mode';
             var mode = SERVER_MODE || 'classic';
+            var colorMode = 'light';
             var pending = null;
 
             // Global UI policy can force the mode regardless of stored user preference
@@ -52,8 +54,17 @@
                 if (pending && (local === 'classic' || local === 'modern')) {
                     mode = local;
                 }
+
+                var storedColor = localStorage.getItem(COLOR_STORAGE_KEY);
+                if (storedColor === 'dark' || storedColor === 'light') {
+                    colorMode = storedColor;
+                }
             } catch (e) {
                 // ignore
+            }
+
+            if (mode !== 'modern') {
+                colorMode = 'light';
             }
 
             // Apply early to <html> (and later we also set on <body>)
@@ -61,12 +72,17 @@
             root.classList.remove('ui-modern', 'ui-classic');
             root.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
             root.setAttribute('data-ui-mode', mode);
+            root.classList.remove('ui-dark', 'ui-light');
+            root.classList.add(colorMode === 'dark' ? 'ui-dark' : 'ui-light');
+            root.setAttribute('data-ui-color-mode', colorMode);
+            root.setAttribute('data-bs-theme', (mode === 'modern' && colorMode === 'dark') ? 'dark' : 'light');
 
             window.__UI_MODE_SERVER__ = SERVER_MODE;
             window.__UI_MODE_EFFECTIVE__ = mode;
             window.__UI_MODE_POLICY__ = UI_POLICY;
             window.__UI_MODE_IS_AUTH__ = IS_AUTH;
             window.__UI_MODE_IS_HOMEPAGE__ = IS_HOMEPAGE;
+            window.__UI_COLOR_MODE_EFFECTIVE__ = colorMode;
 
             // Preload homepage modern css (fetch only, no apply)
             if (IS_HOMEPAGE) {
@@ -96,6 +112,7 @@
             // Keep localStorage in sync for instant loads
             try {
                 localStorage.setItem(STORAGE_KEY, mode);
+                localStorage.setItem(COLOR_STORAGE_KEY, colorMode);
             } catch (e) {
                 // ignore
             }
@@ -212,6 +229,31 @@
             --ui-dark-1: rgba(2, 6, 23, 0.94);
             --ui-dark-2: rgba(15, 23, 42, 0.88);
             --ui-dark-border: rgba(255, 255, 255, 0.10);
+        }
+
+        html.ui-modern.ui-dark,
+        body.ui-modern.ui-dark {
+            --ui-ink: rgba(241, 245, 249, 0.96);
+            --ui-muted: rgba(203, 213, 225, 0.88);
+            --ui-surface: rgba(15, 23, 42, 0.94);
+            --ui-surface-2: rgba(30, 41, 59, 0.88);
+            --ui-border: rgba(148, 163, 184, 0.28);
+            --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.48);
+            --ui-accent: rgba(56, 189, 248, 0.98);
+            --ui-accent-soft: rgba(56, 189, 248, 0.16);
+            --ui-warm: rgba(251, 191, 36, 0.96);
+            --ui-warm-soft: rgba(251, 191, 36, 0.14);
+            --ui-success: rgba(74, 222, 128, 0.95);
+            --ui-danger: rgba(248, 113, 113, 0.95);
+            color-scheme: dark;
+        }
+
+        html.ui-modern.ui-dark,
+        body.ui-modern.ui-dark,
+        html.ui-modern.ui-dark .page-body,
+        body.ui-modern.ui-dark .page-body {
+            background: radial-gradient(circle at 12% 0%, rgba(56, 189, 248, 0.14), transparent 35%), radial-gradient(circle at 88% 0%, rgba(251, 191, 36, 0.10), transparent 38%), linear-gradient(180deg, #020617 0%, #0f172a 100%);
+            color: var(--ui-ink);
         }
 
         /* Modern sidebar toggle (UI mode) */
@@ -416,7 +458,9 @@
         }
 
         html.ui-modern .page-sidebar .sidebar-ui-mode,
-        body.ui-modern .page-sidebar .sidebar-ui-mode {
+        body.ui-modern .page-sidebar .sidebar-ui-mode,
+        html.ui-modern .page-sidebar .sidebar-color-mode,
+        body.ui-modern .page-sidebar .sidebar-color-mode {
             margin: 8px 12px 10px;
             padding: 10px 12px;
             border-radius: 14px;
@@ -426,25 +470,33 @@
         }
 
         html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-label,
-        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-label {
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-label,
+        html.ui-modern .page-sidebar .sidebar-color-mode .form-check-label,
+        body.ui-modern .page-sidebar .sidebar-color-mode .form-check-label {
             color: var(--ui-ink);
             font-weight: 800;
             cursor: pointer;
         }
 
         html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input,
-        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input {
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input,
+        html.ui-modern .page-sidebar .sidebar-color-mode .form-check-input,
+        body.ui-modern .page-sidebar .sidebar-color-mode .form-check-input {
             cursor: pointer;
         }
 
         html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:checked,
-        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:checked {
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:checked,
+        html.ui-modern .page-sidebar .sidebar-color-mode .form-check-input:checked,
+        body.ui-modern .page-sidebar .sidebar-color-mode .form-check-input:checked {
             background-color: rgba(14, 165, 233, 0.95);
             border-color: rgba(14, 165, 233, 0.95);
         }
 
         html.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:focus,
-        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:focus {
+        body.ui-modern .page-sidebar .sidebar-ui-mode .form-check-input:focus,
+        html.ui-modern .page-sidebar .sidebar-color-mode .form-check-input:focus,
+        body.ui-modern .page-sidebar .sidebar-color-mode .form-check-input:focus {
             box-shadow: 0 0 0 0.2rem rgba(14, 165, 233, 0.18);
             border-color: rgba(14, 165, 233, 0.55);
         }
@@ -1606,19 +1658,29 @@
             if (!IS_AUTH) {
                 // still ensure body mirrors <html>
                 var mode = window.__UI_MODE_EFFECTIVE__ || 'classic';
+                var colorMode = window.__UI_COLOR_MODE_EFFECTIVE__ || 'light';
                 document.body.classList.remove('ui-modern', 'ui-classic');
                 document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
                 document.body.setAttribute('data-ui-mode', mode);
+                document.body.classList.remove('ui-dark', 'ui-light');
+                document.body.classList.add(colorMode === 'dark' ? 'ui-dark' : 'ui-light');
+                document.body.setAttribute('data-ui-color-mode', colorMode);
+                document.body.setAttribute('data-bs-theme', (mode === 'modern' && colorMode === 'dark') ? 'dark' : 'light');
                 return;
             }
 
             var mode = window.__UI_MODE_EFFECTIVE__ || 'classic';
+            var colorMode = window.__UI_COLOR_MODE_EFFECTIVE__ || 'light';
             var server = window.__UI_MODE_SERVER__ || 'classic';
             var policy = window.__UI_MODE_POLICY__ || 'user_choice';
 
             document.body.classList.remove('ui-modern', 'ui-classic');
             document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
             document.body.setAttribute('data-ui-mode', mode);
+            document.body.classList.remove('ui-dark', 'ui-light');
+            document.body.classList.add(colorMode === 'dark' ? 'ui-dark' : 'ui-light');
+            document.body.setAttribute('data-ui-color-mode', colorMode);
+            document.body.setAttribute('data-bs-theme', (mode === 'modern' && colorMode === 'dark') ? 'dark' : 'light');
 
             var pending = null;
             try {
@@ -2138,6 +2200,26 @@
     <script>
         // Sidebar UI mode switch (classic/modern) - hosted in page-sidebar
         (function () {
+            function applyColorModeClasses(colorMode) {
+                var mode = colorMode === 'dark' ? 'dark' : 'light';
+                var root = document.documentElement;
+                var isModern = root.classList.contains('ui-modern');
+
+                root.classList.remove('ui-dark', 'ui-light');
+                root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
+                root.setAttribute('data-ui-color-mode', mode);
+                root.setAttribute('data-bs-theme', (isModern && mode === 'dark') ? 'dark' : 'light');
+
+                if (document.body) {
+                    document.body.classList.remove('ui-dark', 'ui-light');
+                    document.body.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
+                    document.body.setAttribute('data-ui-color-mode', mode);
+                    document.body.setAttribute('data-bs-theme', (isModern && mode === 'dark') ? 'dark' : 'light');
+                }
+
+                window.__UI_COLOR_MODE_EFFECTIVE__ = mode;
+            }
+
             function applyModeClasses(mode) {
                 var root = document.documentElement;
                 root.classList.remove('ui-modern', 'ui-classic');
@@ -2149,6 +2231,35 @@
                     document.body.classList.add(mode === 'modern' ? 'ui-modern' : 'ui-classic');
                     document.body.setAttribute('data-ui-mode', mode);
                 }
+
+                var currentColor = window.__UI_COLOR_MODE_EFFECTIVE__ || 'light';
+                applyColorModeClasses(currentColor);
+            }
+
+            function bindColorToggle() {
+                var colorToggle = document.getElementById('sidebarColorModeToggle');
+                if (!colorToggle) return;
+                if (colorToggle.dataset.bound === '1') return;
+                colorToggle.dataset.bound = '1';
+
+                var mode = window.__UI_COLOR_MODE_EFFECTIVE__ || 'light';
+                applyColorModeClasses(mode);
+
+                colorToggle.checked = mode === 'dark';
+                colorToggle.setAttribute('aria-pressed', colorToggle.checked ? 'true' : 'false');
+
+                colorToggle.addEventListener('change', function (e) {
+                    var nextMode = e.target && e.target.checked ? 'dark' : 'light';
+                    colorToggle.setAttribute('aria-pressed', nextMode === 'dark' ? 'true' : 'false');
+
+                    try {
+                        localStorage.setItem('ui_color_mode', nextMode);
+                    } catch (err) {
+                        // ignore
+                    }
+
+                    applyColorModeClasses(nextMode);
+                });
             }
 
             function bind() {
@@ -2183,9 +2294,13 @@
             }
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', bind, { once: true });
+                document.addEventListener('DOMContentLoaded', function () {
+                    bind();
+                    bindColorToggle();
+                }, { once: true });
             } else {
                 bind();
+                bindColorToggle();
             }
         })();
     </script>
