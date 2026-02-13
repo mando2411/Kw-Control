@@ -909,12 +909,15 @@
                 justify-content: center;
                 text-decoration: none;
                 padding: 0;
+                pointer-events: auto;
+                touch-action: manipulation;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif,
             body.ui-modern .dashboard-topbar-mobile .dtm-notif {
                 color: var(--ui-ink);
                 position: relative;
+                z-index: 1090;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-badge,
@@ -1690,30 +1693,26 @@
                 }
             };
 
-            var mobileBellButton = document.getElementById('notif-menu-dropdown-mobile');
-            if (mobileBellButton && mobileBellButton.dataset.bound !== '1') {
-                mobileBellButton.dataset.bound = '1';
-                var mobileBellLastHandledAt = 0;
-                var mobileBellHandler = function (event) {
-                    var nowTs = Date.now();
-                    if (nowTs - mobileBellLastHandledAt < 280) {
-                        if (event) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                        return;
-                    }
-
-                    mobileBellLastHandledAt = nowTs;
-                    window.toggleDashboardNotifMenuMobile(event);
-                };
-
-                if (window.PointerEvent) {
-                    mobileBellButton.addEventListener('pointerup', mobileBellHandler);
-                } else {
-                    mobileBellButton.addEventListener('click', mobileBellHandler);
+            var mobileBellLastHandledAt = 0;
+            function handleMobileBellDelegated(event) {
+                var mobileBell = event.target.closest('#notif-menu-dropdown-mobile');
+                if (!mobileBell) {
+                    return;
                 }
+
+                var nowTs = Date.now();
+                if (nowTs - mobileBellLastHandledAt < 280) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
+
+                mobileBellLastHandledAt = nowTs;
+                window.toggleDashboardNotifMenuMobile(event);
             }
+
+            document.addEventListener('click', handleMobileBellDelegated, true);
+            document.addEventListener('touchend', handleMobileBellDelegated, { passive: false, capture: true });
 
             function csrfToken() {
                 var meta = document.querySelector('meta[name="csrf-token"]');
