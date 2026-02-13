@@ -752,6 +752,8 @@
                 visibility: hidden;
                 pointer-events: none;
                 transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms ease;
+                direction: rtl;
+                text-align: right;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show,
@@ -1179,6 +1181,8 @@
             pointer-events: none;
             display: block !important;
             transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1), visibility 180ms ease;
+            direction: rtl;
+            text-align: right;
         }
 
         html.ui-modern .dashboard-topbar .dtm-notif-panel.show,
@@ -1662,12 +1666,37 @@
                     event.stopPropagation();
                 }
 
-                if (!mobileNotifier) {
+                if (mobileNotifier) {
+                    toggleNotifierMenu(mobileNotifier, true);
                     return;
                 }
 
-                toggleNotifierMenu(mobileNotifier, true);
+                var mobilePanel = document.getElementById('notif-menu-panel-mobile');
+                var mobileToggle = document.getElementById('notif-menu-dropdown-mobile');
+                if (!mobilePanel || !mobileToggle) {
+                    return;
+                }
+
+                var isOpen = mobilePanel.classList.contains('show');
+                mobilePanel.classList.toggle('show', !isOpen);
+                mobileToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+
+                if (!isOpen) {
+                    renderBadge(0);
+                    markAllAsRead({ refresh: false, optimisticUi: true });
+                    if (!hasFetchedNotifications) {
+                        fetchNotifications();
+                    }
+                }
             };
+
+            var mobileBellButton = document.getElementById('notif-menu-dropdown-mobile');
+            if (mobileBellButton && mobileBellButton.dataset.bound !== '1') {
+                mobileBellButton.dataset.bound = '1';
+                mobileBellButton.addEventListener('click', function (event) {
+                    window.toggleDashboardNotifMenuMobile(event);
+                });
+            }
 
             function csrfToken() {
                 var meta = document.querySelector('meta[name="csrf-token"]');
