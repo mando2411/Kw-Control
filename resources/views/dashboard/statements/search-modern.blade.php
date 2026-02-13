@@ -48,6 +48,7 @@
     .sm-filter-wrap {
         padding: 16px;
         margin-bottom: 12px;
+        background: linear-gradient(180deg, var(--ui-surface, #fff), var(--ui-surface-2, #f8fafc));
     }
 
     .sm-filter-grid {
@@ -63,17 +64,41 @@
 
     .sm-field label {
         display: block;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
         color: var(--ui-muted, #64748b);
         font-size: .82rem;
         font-weight: 800;
+        letter-spacing: .1px;
+    }
+
+    .sm-field {
+        background: var(--ui-surface, #fff);
+        border: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+        border-radius: 14px;
+        padding: 8px 9px;
+        transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .sm-field:hover {
+        border-color: rgba(14,165,233,.24);
     }
 
     .sm-field .form-control,
     .sm-field .form-select {
         border-radius: 12px;
         min-height: 42px;
-        border-color: rgba(148,163,184,.35);
+        border-color: rgba(148,163,184,.28);
+        background: var(--ui-surface, #fff);
+        color: var(--ui-ink, #0f172a);
+        box-shadow: none;
+        transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+    }
+
+    .sm-field .form-control:focus,
+    .sm-field .form-select:focus {
+        border-color: rgba(14,165,233,.45);
+        box-shadow: 0 0 0 .18rem rgba(14,165,233,.16);
+        background: var(--ui-surface, #fff);
     }
 
     .sm-field .form-select {
@@ -94,7 +119,14 @@
         align-items: center;
         justify-content: space-between;
         flex-wrap: wrap;
-        margin-top: 10px;
+        margin-top: 12px;
+        border-top: 1px solid var(--ui-border, rgba(148,163,184,.22));
+        padding-top: 12px;
+    }
+
+    .sm-actions .btn {
+        border-radius: 12px;
+        font-weight: 800;
     }
 
     .sm-advanced-fields {
@@ -103,15 +135,21 @@
         opacity: 0;
         overflow: hidden;
         transition: max-height .26s ease, opacity .2s ease;
+        border-radius: 14px;
     }
 
     .sm-advanced-fields.is-open {
         max-height: 1200px;
         opacity: 1;
+        margin-top: 2px;
     }
 
     .sm-advanced-grid {
-        padding-top: 4px;
+        padding-top: 8px;
+        background: rgba(14,165,233,.04);
+        border: 1px dashed rgba(14,165,233,.22);
+        border-radius: 14px;
+        padding: 10px;
     }
 
     .sm-result-head {
