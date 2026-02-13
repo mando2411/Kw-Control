@@ -263,6 +263,15 @@
 
             var replaceModalEl = root.querySelector('[data-modal="replaceConfirm"]');
             var summaryModalEl = root.querySelector('[data-modal="importSummary"]');
+
+            if (replaceModalEl && replaceModalEl.parentNode !== document.body) {
+                document.body.appendChild(replaceModalEl);
+            }
+
+            if (summaryModalEl && summaryModalEl.parentNode !== document.body) {
+                document.body.appendChild(summaryModalEl);
+            }
+
             var replaceModal = replaceModalEl ? new bootstrap.Modal(replaceModalEl) : null;
             var summaryModal = summaryModalEl ? new bootstrap.Modal(summaryModalEl) : null;
             var summaryBody = root.querySelector('[data-summary-body]');
