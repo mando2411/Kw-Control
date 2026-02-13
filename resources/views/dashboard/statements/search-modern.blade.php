@@ -182,6 +182,91 @@
         font-weight: 700;
     }
 
+    .sm-export-modal .modal-dialog {
+        max-width: 760px;
+    }
+
+    .sm-export-modal .modal-content {
+        border: 1px solid var(--ui-border, rgba(148, 163, 184, .24));
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 24px 46px rgba(2, 6, 23, .18);
+    }
+
+    .sm-export-modal .modal-header {
+        border-bottom: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+        background: linear-gradient(135deg, rgba(14,165,233,.10), rgba(59,130,246,.06));
+        padding: 14px 16px;
+    }
+
+    .sm-export-title {
+        margin: 0;
+        font-size: 1.02rem;
+        font-weight: 900;
+        color: var(--ui-ink, #0f172a);
+    }
+
+    .sm-export-sub {
+        margin: 4px 0 0;
+        color: var(--ui-muted, #64748b);
+        font-size: .84rem;
+        font-weight: 700;
+    }
+
+    .sm-export-modal .modal-body {
+        background: var(--ui-surface, #fff);
+        padding: 14px;
+    }
+
+    .sm-export-section {
+        border: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+        border-radius: 14px;
+        padding: 12px;
+        margin-bottom: 10px;
+        background: var(--ui-surface-2, #f8fafc);
+    }
+
+    .sm-export-section-title {
+        margin: 0 0 8px;
+        font-size: .86rem;
+        color: var(--ui-muted, #64748b);
+        font-weight: 900;
+    }
+
+    .sm-export-check {
+        border: 1px solid var(--ui-border, rgba(148,163,184,.24));
+        border-radius: 12px;
+        padding: 8px 10px;
+        background: #fff;
+    }
+
+    .sm-export-check .form-check-label {
+        font-weight: 700;
+        color: var(--ui-ink, #0f172a);
+        font-size: .86rem;
+    }
+
+    .sm-export-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .sm-export-actions .btn {
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-weight: 800;
+    }
+
+    #smExportModal.fade .modal-dialog {
+        transform: translateY(14px) scale(.98);
+        transition: transform .22s ease-out;
+    }
+
+    #smExportModal.show .modal-dialog {
+        transform: translateY(0) scale(1);
+    }
+
     .sm-loading {
         display: none;
         position: fixed;
@@ -476,29 +561,35 @@
     </div>
 </div>
 
-<div class="modal fade rtl" id="smExportModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade rtl sm-export-modal" id="smExportModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title">استخراج الكشوف</h5>
+            <div class="modal-header">
+                <div>
+                    <h5 class="sm-export-title">استخراج الكشوف</h5>
+                    <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="{{ route('export') }}" method="GET" id="smExportForm">
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" checked disabled type="checkbox" value="name"><label class="form-check-label">اسم الناخب</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="family"><label class="form-check-label">العائلة</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="age"><label class="form-check-label">العمر</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="phone"><label class="form-check-label">الهاتف</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="type"><label class="form-check-label">الجنس</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="madrasa"><label class="form-check-label">مدرسة الانتخاب</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="restricted"><label class="form-check-label">حالة القيد</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="created_at"><label class="form-check-label">تاريخ القيد</label></div></div>
-                        <div class="col-6"><div class="form-check"><input class="form-check-input" type="checkbox" name="columns[]" value="checked_time"><label class="form-check-label">وقت التصويت</label></div></div>
+                    <div class="sm-export-section">
+                        <h6 class="sm-export-section-title">أعمدة الكشف</h6>
+                        <div class="row g-2">
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" checked disabled type="checkbox" value="name"><label class="form-check-label">اسم الناخب</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="family"><label class="form-check-label">العائلة</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="age"><label class="form-check-label">العمر</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="phone"><label class="form-check-label">الهاتف</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="type"><label class="form-check-label">الجنس</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="madrasa"><label class="form-check-label">مدرسة الانتخاب</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" checked type="checkbox" name="columns[]" value="restricted"><label class="form-check-label">حالة القيد</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="created_at"><label class="form-check-label">تاريخ القيد</label></div></div>
+                            <div class="col-6"><div class="form-check sm-export-check"><input class="form-check-input" type="checkbox" name="columns[]" value="checked_time"><label class="form-check-label">وقت التصويت</label></div></div>
+                        </div>
                     </div>
 
-                    <div class="mb-2">
-                        <label class="form-label fw-bold">ترتيب</label>
+                    <div class="sm-export-section">
+                        <h6 class="sm-export-section-title">ترتيب النتائج</h6>
                         <select name="sorted" class="form-select">
                             <option value="asc">أبجدي</option>
                             <option value="phone">الهاتف</option>
@@ -508,18 +599,24 @@
 
                     <input type="hidden" name="type" id="smExportType">
 
-                    <div class="d-flex gap-2 flex-wrap my-3">
-                        <button type="button" class="btn btn-primary sm-export-action" value="PDF">PDF</button>
-                        <button type="button" class="btn btn-success sm-export-action" value="Excel">Excel</button>
-                        <button type="button" class="btn btn-secondary sm-export-action" value="print">طباعة</button>
-                        <button type="button" class="btn btn-secondary sm-export-action" value="show">عرض</button>
+                    <div class="sm-export-section">
+                        <h6 class="sm-export-section-title">إجراء الإخراج</h6>
+                        <div class="sm-export-actions">
+                            <button type="button" class="btn btn-primary sm-export-action" value="PDF">PDF</button>
+                            <button type="button" class="btn btn-success sm-export-action" value="Excel">Excel</button>
+                            <button type="button" class="btn btn-secondary sm-export-action" value="print">طباعة</button>
+                            <button type="button" class="btn btn-secondary sm-export-action" value="show">عرض</button>
+                        </div>
                     </div>
 
                     <p class="text-danger small mb-2">* ملاحظة: لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
 
-                    <div class="d-flex gap-2 align-items-center">
-                        <input type="number" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
-                        <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
+                    <div class="sm-export-section mb-0">
+                        <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="number" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
+                            <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
+                        </div>
                     </div>
                 </form>
             </div>
