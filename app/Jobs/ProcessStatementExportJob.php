@@ -71,7 +71,8 @@ class ProcessStatementExportJob implements ShouldQueue
                 Storage::disk('public')->put($relativePath, $pdf->output());
             }
 
-            $downloadUrl = Storage::disk('public')->url($relativePath);
+            $encodedPath = rtrim(strtr(base64_encode($relativePath), '+/', '-_'), '=');
+            $downloadUrl = route('dashboard.statement.export-download', ['path' => $encodedPath]);
 
             send_system_notification($user, [
                 'title' => 'الملف جاهز للتنزيل',

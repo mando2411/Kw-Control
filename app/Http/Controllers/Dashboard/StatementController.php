@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessStatementExportJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\School;
 use App\Models\Family;
 use App\Models\Committee;
@@ -214,6 +215,32 @@ class StatementController extends Controller
                'success' => true,
                'message' => 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند انتهاء المعالجة.',
            ]);
+       }
+
+       public function downloadGeneratedExport(Request $request)
+       {
+           $encodedPath = (string) $request->query('path', '');
+           if ($encodedPath === '') {
+               abort(404);
+           }
+
+           $decoded = base64_decode(strtr($encodedPath, '-_', '+/'), true);
+           if (!is_string($decoded) || $decoded === '') {
+               abort(404);
+           }
+
+           $path = ltrim($decoded, '/');
+           $allowedPrefix = 'exports/statements/' . (int) auth()->id() . '/';
+
+           if (!str_starts_with($path, $allowedPrefix)) {
+               abort(403);
+           }
+
+           if (!Storage::disk('public')->exists($path)) {
+               abort(404);
+           }
+
+           return Storage::disk('public')->download($path);
        }
 
        public function voterDetails(Voter $voter): JsonResponse

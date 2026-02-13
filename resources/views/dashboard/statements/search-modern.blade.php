@@ -302,6 +302,68 @@
         font-weight: 800;
     }
 
+    .toast-top-right {
+        top: 16px;
+        right: 16px;
+    }
+
+    #toast-container > .toast {
+        width: 340px;
+        border-radius: 14px;
+        box-shadow: 0 16px 34px rgba(2, 6, 23, .2);
+        opacity: 1;
+        padding: 12px 14px 12px 48px;
+        background-image: none !important;
+        border: 1px solid rgba(148, 163, 184, .28);
+        color: #0f172a;
+        font-weight: 700;
+        animation: smToastIn .2s ease-out;
+    }
+
+    #toast-container > .toast-success {
+        background: linear-gradient(135deg, #ecfdf5, #ffffff);
+        border-color: rgba(16, 185, 129, .35);
+        color: #065f46;
+    }
+
+    #toast-container > .toast-error {
+        background: linear-gradient(135deg, #fef2f2, #ffffff);
+        border-color: rgba(239, 68, 68, .35);
+        color: #991b1b;
+    }
+
+    #toast-container > .toast-warning {
+        background: linear-gradient(135deg, #fffbeb, #ffffff);
+        border-color: rgba(245, 158, 11, .35);
+        color: #92400e;
+    }
+
+    #toast-container > .toast-info {
+        background: linear-gradient(135deg, #eff6ff, #ffffff);
+        border-color: rgba(59, 130, 246, .35);
+        color: #1e3a8a;
+    }
+
+    #toast-container > .toast .toast-message {
+        color: inherit;
+        line-height: 1.55;
+        font-size: .9rem;
+    }
+
+    #toast-container > .toast .toast-progress {
+        background: rgba(15, 23, 42, .2);
+    }
+
+    #toast-container > .toast .toast-close-button {
+        color: inherit;
+        opacity: .8;
+    }
+
+    @keyframes smToastIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     #smExportModal.fade .modal-dialog {
         transform: translateY(14px) scale(.98);
         transition: transform .22s ease-out;
