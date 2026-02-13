@@ -631,6 +631,10 @@
                 select.append(`<option value="${optionValue}">${label}</option>`);
             });
 
+            if (select.hasClass('select2-hidden-accessible')) {
+                select.trigger('change.select2');
+            }
+
         }
 
         function refreshDynamicFilters() {
@@ -670,6 +674,27 @@
             refreshDynamicFilters();
         });
 
+        function initModernSelects() {
+            if (!(window.jQuery && window.jQuery.fn.select2)) {
+                return;
+            }
+
+            $('#modernSearchForm select').each(function () {
+                const select = $(this);
+                if (select.hasClass('select2-hidden-accessible')) {
+                    return;
+                }
+
+                select.select2({
+                    width: '100%',
+                    dir: 'rtl',
+                    dropdownAutoWidth: true,
+                });
+            });
+        }
+
+        initModernSelects();
+
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             lastParams = toParams(1);
@@ -708,6 +733,11 @@
 
         resetBtn.addEventListener('click', function () {
             form.reset();
+            if (window.jQuery && window.jQuery.fn.select2) {
+                $('#modernSearchForm select').val('').trigger('change.select2');
+                $('#smType').val('all').trigger('change.select2');
+                $('#smPerPage').val('100').trigger('change.select2');
+            }
             lastParams = null;
             setEmpty('تمت إعادة التعيين. ابدأ البحث لعرض النتائج.');
             totalCount.textContent = '0';
