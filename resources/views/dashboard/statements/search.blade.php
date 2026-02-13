@@ -1521,6 +1521,15 @@
                 }
             }
             $(dynamicSelects.join(',')).on('change', fetchFilteredOptions);
+
+            $(dynamicSelects.join(',')).on('select2:open', function () {
+                const select = $(this);
+                if (select.find('option').length <= 2) {
+                    fetchFilteredOptions();
+                }
+            });
+
+            fetchFilteredOptions();
         });
 
     </script>
