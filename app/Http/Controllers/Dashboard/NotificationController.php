@@ -13,6 +13,10 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
+        $user->unreadNotifications()->update([
+            'read_at' => now(),
+        ]);
+
         $notifications = $user->notifications()
             ->latest()
             ->paginate(20)
@@ -20,7 +24,7 @@ class NotificationController extends Controller
 
         return view('dashboard.notifications.index', [
             'notifications' => $notifications,
-            'unreadCount' => $user->unreadNotifications()->count(),
+            'unreadCount' => 0,
         ]);
     }
 

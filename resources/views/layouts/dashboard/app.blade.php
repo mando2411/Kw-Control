@@ -1577,7 +1577,8 @@
                 entry.notifToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
 
                 if (!isOpen && shouldFetch) {
-                    fetchNotifications();
+                    renderBadge(0);
+                    markAllAsRead();
                 }
             }
 
