@@ -5,7 +5,8 @@ class Elfar3 extends Filter
 {
 
     public function applyFilter($builder){
-        return $builder->where('alfraa',request($this->filterName()));
+        $value = request($this->filterName(), request('alfraa'));
+        return $builder->where('alfraa', $value);
 
     }
 

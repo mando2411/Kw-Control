@@ -5,7 +5,8 @@ class Elbtn extends Filter
 {
 
     public function applyFilter($builder){
-        return $builder->where('albtn',request($this->filterName()));
+        $value = request($this->filterName(), request('albtn'));
+        return $builder->where('albtn', $value);
 
     }
 

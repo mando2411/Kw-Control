@@ -481,6 +481,18 @@
             fd.forEach((value, key) => {
                 params[key] = value;
             });
+
+            params.elfa5z = document.querySelector('#smFakhd')?.value || params.elfa5z || '';
+            params.elfar3 = document.querySelector('#smFaraa')?.value || params.elfar3 || '';
+            params.elbtn = document.querySelector('#smBtn')?.value || params.elbtn || '';
+            params.alktaa = document.querySelector('#smAlktaa')?.value || params.alktaa || '';
+            params.cod1 = document.querySelector('#smCode1')?.value || params.cod1 || '';
+            params.cod2 = document.querySelector('#smCode2')?.value || params.cod2 || '';
+            params.cod3 = document.querySelector('#smCode3')?.value || params.cod3 || '';
+            params.street = document.querySelector('#smStreet')?.value || params.street || '';
+            params.alharaa = document.querySelector('#smAlharaa')?.value || params.alharaa || '';
+            params.home = document.querySelector('#smHome')?.value || params.home || '';
+
             params.page = page || 1;
             params.per_page = params.per_page || '100';
             return params;
