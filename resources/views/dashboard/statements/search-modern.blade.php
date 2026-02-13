@@ -7,6 +7,9 @@
         max-width: 1400px;
         margin: 0 auto;
         padding: 12px;
+        --sm-accent-1: #7c3aed;
+        --sm-accent-2: #059669;
+        --sm-accent-3: #d97706;
     }
 
     .stmt-modern .sm-card {
@@ -50,12 +53,13 @@
         margin-bottom: 12px;
         position: relative;
         overflow: hidden;
-        border: 1px solid rgba(59,130,246,.22);
+        border: 1px solid rgba(124,58,237,.24);
         background:
-            radial-gradient(circle at 12% 8%, rgba(14,165,233,.12), transparent 42%),
-            radial-gradient(circle at 88% 14%, rgba(59,130,246,.10), transparent 40%),
+            radial-gradient(circle at 10% 10%, rgba(124,58,237,.14), transparent 42%),
+            radial-gradient(circle at 86% 14%, rgba(5,150,105,.11), transparent 40%),
+            radial-gradient(circle at 52% 100%, rgba(217,119,6,.09), transparent 42%),
             linear-gradient(180deg, var(--ui-surface, #fff), var(--ui-surface-2, #f8fafc));
-        box-shadow: 0 14px 28px rgba(2, 132, 199, .10);
+        box-shadow: 0 14px 28px rgba(88,28,135,.10);
     }
 
     .sm-filter-wrap::before {
@@ -72,7 +76,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: linear-gradient(180deg, rgba(14,165,233,.04), transparent 35%);
+        background: linear-gradient(180deg, rgba(124,58,237,.05), transparent 35%);
     }
 
     .sm-filter-grid {
@@ -106,8 +110,8 @@
     }
 
     .sm-field:hover {
-        border-color: rgba(14,165,233,.42);
-        box-shadow: 0 10px 20px rgba(14,165,233,.12), 0 0 0 1px rgba(14,165,233,.12);
+        border-color: rgba(124,58,237,.44);
+        box-shadow: 0 10px 20px rgba(124,58,237,.13), 0 0 0 1px rgba(5,150,105,.12);
         transform: translateY(-1px);
     }
 
@@ -124,8 +128,8 @@
 
     .sm-field .form-control:focus,
     .sm-field .form-select:focus {
-        border-color: rgba(2,132,199,.72);
-        box-shadow: 0 0 0 .22rem rgba(14,165,233,.22), 0 10px 18px rgba(14,165,233,.13);
+        border-color: rgba(124,58,237,.72);
+        box-shadow: 0 0 0 .22rem rgba(124,58,237,.20), 0 10px 18px rgba(5,150,105,.14);
         background: #fff;
     }
 
@@ -148,7 +152,7 @@
         justify-content: space-between;
         flex-wrap: wrap;
         margin-top: 12px;
-        border-top: 1px solid rgba(59,130,246,.22);
+        border-top: 1px solid rgba(124,58,237,.24);
         padding-top: 12px;
     }
 
@@ -174,8 +178,8 @@
 
     .sm-advanced-grid {
         padding-top: 8px;
-        background: linear-gradient(180deg, rgba(224,242,254,.76), rgba(239,246,255,.65));
-        border: 1px dashed rgba(2,132,199,.34);
+        background: linear-gradient(180deg, rgba(245,243,255,.92), rgba(236,253,245,.86));
+        border: 1px dashed rgba(124,58,237,.34);
         border-radius: 14px;
         padding: 10px;
         box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
@@ -199,14 +203,14 @@
     }
 
     .sm-pill {
-        background: linear-gradient(135deg, rgba(224,242,254,.95), rgba(219,234,254,.9));
-        color: #0369a1;
-        border: 1px solid rgba(2,132,199,.30);
+        background: linear-gradient(135deg, rgba(245,243,255,.96), rgba(236,253,245,.90));
+        color: #6d28d9;
+        border: 1px solid rgba(109,40,217,.30);
         border-radius: 999px;
         padding: 4px 10px;
         font-size: .78rem;
         font-weight: 800;
-        box-shadow: 0 4px 10px rgba(14,165,233,.10);
+        box-shadow: 0 4px 10px rgba(88,28,135,.10);
     }
 
     .sm-result-body {
