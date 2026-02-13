@@ -1693,32 +1693,12 @@
                 }
             };
 
-            var mobileBellLastHandledAt = 0;
-            function handleMobileBellDelegated(event) {
-                var mobileBell = event.target.closest('#notif-menu-dropdown-mobile');
-                if (!mobileBell) {
-                    return;
-                }
-
-                var nowTs = Date.now();
-                if (nowTs - mobileBellLastHandledAt < 280) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    return;
-                }
-
-                mobileBellLastHandledAt = nowTs;
-                window.toggleDashboardNotifMenuMobile(event);
-            }
-
-            document.addEventListener('click', handleMobileBellDelegated, true);
-            document.addEventListener('touchend', handleMobileBellDelegated, { passive: false, capture: true });
-
             var mobileBellButtonDirect = document.getElementById('notif-menu-dropdown-mobile');
-            if (mobileBellButtonDirect) {
-                mobileBellButtonDirect.onclick = function (event) {
+            if (mobileBellButtonDirect && mobileBellButtonDirect.dataset.bound !== '1') {
+                mobileBellButtonDirect.dataset.bound = '1';
+                mobileBellButtonDirect.addEventListener('click', function (event) {
                     window.toggleDashboardNotifMenuMobile(event);
-                };
+                });
             }
 
             function csrfToken() {
