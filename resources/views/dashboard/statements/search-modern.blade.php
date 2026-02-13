@@ -12,15 +12,15 @@
         --sm-accent-2: #0f766e;
         --sm-accent-3: #b45309;
         background:
-            radial-gradient(circle at 8% 4%, rgba(127,29,29,.13), transparent 34%),
-            radial-gradient(circle at 90% 8%, rgba(15,118,110,.10), transparent 36%),
-            radial-gradient(circle at 50% 100%, rgba(180,83,9,.09), transparent 35%),
-            linear-gradient(180deg, #fffdf9, #fff8f3 38%, #f7fffc 100%);
+            radial-gradient(circle at 6% 2%, rgba(127,29,29,.26), transparent 36%),
+            radial-gradient(circle at 95% 8%, rgba(15,118,110,.22), transparent 40%),
+            radial-gradient(circle at 52% 98%, rgba(180,83,9,.20), transparent 40%),
+            linear-gradient(212deg, #ffe7dc, #ffe2d5 34%, #dbf4ee 100%);
         border-radius: 20px;
     }
 
     .stmt-modern .sm-card {
-        background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.9));
+        background: linear-gradient(336deg, rgba(255,236,229,.92), rgba(221,245,239,.90));
         border: 1px solid rgba(127,29,29,.20);
         border-radius: 18px;
         box-shadow: 0 16px 34px rgba(127,29,29,.10), 0 8px 20px rgba(15,118,110,.08);
@@ -34,7 +34,7 @@
         gap: 12px;
         flex-wrap: wrap;
         margin-bottom: 12px;
-        background: linear-gradient(120deg, rgba(127,29,29,.12), rgba(15,118,110,.08) 55%, rgba(180,83,9,.08));
+        background: linear-gradient(24deg, rgba(127,29,29,.26), rgba(15,118,110,.18) 52%, rgba(180,83,9,.22));
         border: 1px solid rgba(127,29,29,.18);
         border-radius: 16px;
     }
@@ -65,10 +65,10 @@
         overflow: hidden;
         border: 1px solid rgba(127,29,29,.24);
         background:
-            radial-gradient(circle at 10% 10%, rgba(127,29,29,.14), transparent 42%),
-            radial-gradient(circle at 86% 14%, rgba(15,118,110,.11), transparent 40%),
-            radial-gradient(circle at 52% 100%, rgba(180,83,9,.10), transparent 42%),
-            linear-gradient(180deg, var(--ui-surface, #fff), var(--ui-surface-2, #f8fafc));
+            radial-gradient(circle at 8% 12%, rgba(127,29,29,.24), transparent 40%),
+            radial-gradient(circle at 88% 18%, rgba(15,118,110,.22), transparent 42%),
+            radial-gradient(circle at 44% 100%, rgba(180,83,9,.20), transparent 42%),
+            linear-gradient(298deg, #ffe5d9, #ffe9d9 40%, #d8f3ec 100%);
         box-shadow: 0 14px 28px rgba(127,29,29,.10);
     }
 
@@ -77,8 +77,8 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: linear-gradient(120deg, rgba(255,255,255,.28), transparent 28%, transparent 72%, rgba(255,255,255,.16));
-        opacity: .7;
+        background: linear-gradient(70deg, rgba(255,247,240,.34), transparent 30%, transparent 68%, rgba(221,245,239,.24));
+        opacity: .78;
     }
 
     .sm-filter-wrap::after {
@@ -86,7 +86,7 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
-        background: linear-gradient(180deg, rgba(127,29,29,.06), transparent 35%);
+        background: linear-gradient(244deg, rgba(127,29,29,.16), transparent 38%);
     }
 
     .sm-filter-grid {
@@ -110,7 +110,7 @@
     }
 
     .sm-field {
-        background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(240,249,255,.72));
+        background: linear-gradient(22deg, rgba(255,228,218,.82), rgba(216,243,235,.78));
         border: 1px solid rgba(148,163,184,.35);
         border-radius: 14px;
         padding: 8px 9px;
@@ -130,7 +130,7 @@
         border-radius: 12px;
         min-height: 42px;
         border-color: rgba(148,163,184,.36);
-        background: rgba(255,255,255,.96);
+        background: rgba(255,247,241,.92);
         color: var(--ui-ink, #0f172a);
         box-shadow: none;
         transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
@@ -140,7 +140,7 @@
     .sm-field .form-select:focus {
         border-color: rgba(127,29,29,.72);
         box-shadow: 0 0 0 .22rem rgba(127,29,29,.20), 0 10px 18px rgba(15,118,110,.14);
-        background: #fff;
+        background: #fff3ec;
     }
 
     .sm-field .form-select {
@@ -188,7 +188,7 @@
 
     .sm-advanced-grid {
         padding-top: 8px;
-        background: linear-gradient(180deg, rgba(254,242,242,.92), rgba(236,253,250,.86));
+        background: linear-gradient(210deg, rgba(254,226,226,.86), rgba(204,251,241,.82));
         border: 1px dashed rgba(127,29,29,.34);
         border-radius: 14px;
         padding: 10px;
@@ -203,7 +203,7 @@
         gap: 10px;
         align-items: center;
         flex-wrap: wrap;
-        background: linear-gradient(135deg, rgba(254,242,242,.95), rgba(236,253,250,.88));
+        background: linear-gradient(320deg, rgba(254,226,226,.92), rgba(204,251,241,.84));
     }
 
     .sm-result-meta {
@@ -214,7 +214,7 @@
     }
 
     .sm-pill {
-        background: linear-gradient(135deg, rgba(254,242,242,.96), rgba(236,253,250,.90));
+        background: linear-gradient(58deg, rgba(254,226,226,.92), rgba(209,250,229,.86));
         color: #7f1d1d;
         border: 1px solid rgba(127,29,29,.30);
         border-radius: 999px;
@@ -237,7 +237,7 @@
         color: #7f1d1d;
         border-bottom-width: 1px;
         white-space: nowrap;
-        background: linear-gradient(180deg, rgba(254,242,242,.75), rgba(236,253,250,.48));
+        background: linear-gradient(36deg, rgba(254,202,202,.70), rgba(153,246,228,.52));
     }
 
     .sm-table td {
@@ -247,15 +247,15 @@
     }
 
     .sm-table tbody tr:nth-child(odd) {
-        background: rgba(254,242,242,.34);
+        background: rgba(254,226,226,.52);
     }
 
     .sm-table tbody tr:nth-child(even) {
-        background: rgba(236,253,250,.30);
+        background: rgba(204,251,241,.48);
     }
 
     .sm-table tbody tr:hover {
-        background: linear-gradient(90deg, rgba(127,29,29,.12), rgba(15,118,110,.09));
+        background: linear-gradient(246deg, rgba(127,29,29,.26), rgba(15,118,110,.20));
     }
 
     .sm-empty {
@@ -283,7 +283,7 @@
         opacity: 0;
         transform: translateY(8px);
         transition: opacity .22s ease, transform .22s ease;
-        background: linear-gradient(120deg, rgba(254,242,242,.92), rgba(255,247,237,.85));
+        background: linear-gradient(300deg, rgba(254,226,226,.90), rgba(254,215,170,.78));
         border: 1px solid rgba(180,83,9,.24);
     }
 
@@ -311,7 +311,7 @@
 
     .sm-export-modal .modal-header {
         border-bottom: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
-        background: linear-gradient(135deg, rgba(127,29,29,.12), rgba(15,118,110,.08), rgba(180,83,9,.08));
+        background: linear-gradient(18deg, rgba(127,29,29,.24), rgba(15,118,110,.18), rgba(180,83,9,.20));
         padding: 14px 16px;
     }
 
@@ -395,7 +395,7 @@
     }
 
     .sm-chip-input:checked + .sm-chip-pill {
-        background: linear-gradient(135deg, rgba(254,242,242,.95), rgba(236,253,250,.9));
+        background: linear-gradient(340deg, rgba(254,226,226,.90), rgba(204,251,241,.84));
         border-color: rgba(127,29,29,.46);
         color: #7f1d1d;
         box-shadow: 0 10px 18px rgba(127,29,29,.14);
@@ -479,7 +479,7 @@
         .sm-mobile-two { grid-column: span 3; }
 
         .sm-mobile-emphasis {
-            background: linear-gradient(135deg, rgba(254,242,242,.9), rgba(236,253,250,.8));
+            background: linear-gradient(286deg, rgba(254,226,226,.86), rgba(204,251,241,.78));
             border: 1px solid rgba(127,29,29,.24);
             border-radius: 12px;
             padding: 8px;
