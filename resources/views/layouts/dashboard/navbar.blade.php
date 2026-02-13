@@ -44,10 +44,6 @@
         <div class="desktop-header-center">KW-Control</div>
 
         <div class="desktop-header-right d-flex align-items-center">
-            <a href="javascript:void(0)" class="desktop-user-avatar" aria-label="صورة المستخدم">
-                <figure class="rounded-circle overflow-hidden mb-0"><img src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" class="w-100 h-100" alt="user image"></figure>
-            </a>
-
             <div class="dropdown" id="user-menu-wrapper">
                 <button id="user-menu-dropdown" class="btn btn-secondary dropdown-toggle" type="button" onclick="toggleDashboardUserMenu(event)" aria-expanded="false">
                     <i class="fa fa-user ms-1"></i>
@@ -58,6 +54,10 @@
                     <li><a class="dropdown-item px-2 text-danger" style="font-size:12px" href="{{route('logout')}}"><i class="bi bi-box-arrow-left m-1 fs-6 "></i>تسجيل خروج</a></li>
                 </ul>
             </div>
+
+            <a href="javascript:void(0)" class="desktop-user-avatar" aria-label="صورة المستخدم">
+                <figure class="rounded-circle overflow-hidden mb-0"><img src="{{ auth()->user()->image ? auth()->user()->image : asset('assets/admin/images/users/user-placeholder.png') }}" onerror="this.onerror=null;this.src='{{ asset('assets/admin/images/users/user-placeholder.png') }}';" class="w-100 h-100" alt="user image"></figure>
+            </a>
         </div>
 
     </div>
