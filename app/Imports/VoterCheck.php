@@ -16,6 +16,9 @@ use Carbon\Carbon;
 class VoterCheck implements ToCollection, WithHeadingRow
 {
     private $election;
+    private array $resolvedColumns = [];
+    private array $normalizedHeaderToOriginal = [];
+    private bool $headersBootstrapped = false;
     private int $totalRows = 0;
     private int $successCount = 0;
     private int $skippedCount = 0;
@@ -38,13 +41,21 @@ class VoterCheck implements ToCollection, WithHeadingRow
         $this->totalRows = $rows->count();
         DB::transaction(function () use ($rows) {
             try {
-                $validRows = $rows->filter(function ($row) {
-                    return isset($row['mrgaa_aldakhly']);
+                $validRows = $rows->map(function ($row) {
+                        return $row->toArray();
+                    })
+                    ->filter(function (array $row) {
+                        return !empty($this->value($row, 'mrgaa_aldakhly', ['alrkm_almdny', 'civil_id', 'civilid', 'id', 'الرقم_المدني']));
                 });
 
                 $this->skippedCount += $rows->count() - $validRows->count();
 
-                $mrgaaAlDakhlyIds = $validRows->pluck('mrgaa_aldakhly')->unique();
+                $mrgaaAlDakhlyIds = $validRows
+                    ->map(function (array $row) {
+                        return $this->value($row, 'mrgaa_aldakhly', ['alrkm_almdny', 'civil_id', 'civilid', 'id', 'الرقم_المدني']);
+                    })
+                    ->filter()
+                    ->unique();
                 $voters = Voter::whereIn('alrkm_almd_yn', $mrgaaAlDakhlyIds)
                     ->where('status', 0)
                     ->get();
@@ -68,6 +79,68 @@ class VoterCheck implements ToCollection, WithHeadingRow
                 $this->failedCount++;
             }
         });
+    }
+
+    private function value(array $row, string $field, array $aliases = []): mixed
+    {
+        $columnKey = $this->resolveColumnKey($row, $field, $aliases);
+        if (!$columnKey || !array_key_exists($columnKey, $row)) {
+            return null;
+        }
+
+        $value = $row[$columnKey];
+        if (is_string($value)) {
+            $value = trim($value);
+            return $value === '' ? null : $value;
+        }
+
+        return $value;
+    }
+
+    private function resolveColumnKey(array $row, string $field, array $aliases = []): ?string
+    {
+        $this->bootstrapHeaders($row);
+
+        if (array_key_exists($field, $this->resolvedColumns)) {
+            return $this->resolvedColumns[$field];
+        }
+
+        $candidates = array_merge([$field], $aliases);
+
+        foreach ($candidates as $candidate) {
+            $normalized = $this->normalizeHeader($candidate);
+            if ($normalized !== '' && isset($this->normalizedHeaderToOriginal[$normalized])) {
+                $this->resolvedColumns[$field] = $this->normalizedHeaderToOriginal[$normalized];
+                return $this->resolvedColumns[$field];
+            }
+        }
+
+        $this->resolvedColumns[$field] = null;
+        return null;
+    }
+
+    private function bootstrapHeaders(array $row): void
+    {
+        if ($this->headersBootstrapped) {
+            return;
+        }
+
+        foreach (array_keys($row) as $header) {
+            $normalized = $this->normalizeHeader((string) $header);
+            if ($normalized !== '' && !isset($this->normalizedHeaderToOriginal[$normalized])) {
+                $this->normalizedHeaderToOriginal[$normalized] = (string) $header;
+            }
+        }
+
+        $this->headersBootstrapped = true;
+    }
+
+    private function normalizeHeader(string $header): string
+    {
+        $normalized = mb_strtolower($header, 'UTF-8');
+        $normalized = preg_replace('/[^\p{L}\p{N}]+/u', '', $normalized);
+
+        return trim((string) $normalized);
     }
 
 

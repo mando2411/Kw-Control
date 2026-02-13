@@ -17,6 +17,9 @@ use Carbon\Carbon;
 class VotersImport implements ToCollection, WithHeadingRow
 {
     private $election;
+    private array $resolvedColumns = [];
+    private array $normalizedHeaderToOriginal = [];
+    private bool $headersBootstrapped = false;
     private int $totalRows = 0;
     private int $successCount = 0;
     private int $skippedCount = 0;
@@ -39,14 +42,16 @@ class VotersImport implements ToCollection, WithHeadingRow
         $this->totalRows = $rows->count();
         DB::transaction(function () use ($rows) {
             foreach ($rows as $i=>$row) {
-                    if (empty($row['alasm'])) {
+                    $rowData = $this->mapRow($row->toArray());
+
+                    if (empty($rowData['alasm'])) {
                         $this->skippedCount++;
                         continue;
                     }
 
                     try {
-                        $voter = $this->processVoter($row->toArray());
-                        $this->processSelection($row->toArray());
+                        $voter = $this->processVoter($rowData);
+                        $this->processSelection($rowData);
 
                         if (!$voter->election()->where('election_id', $this->election->id)->exists()) {
                             $voter->election()->attach($this->election->id);
@@ -166,6 +171,98 @@ class VotersImport implements ToCollection, WithHeadingRow
         );
 
         return $voter;
+    }
+
+    private function mapRow(array $row): array
+    {
+        return [
+            'alasm' => $this->value($row, 'alasm', ['name', 'full_name', 'fullname', 'الاسم', 'اسم']),
+            'alaaaylh' => $this->value($row, 'alaaaylh', ['family', 'family_name', 'العائلة', 'اسم_العائلة']),
+            'alrkm_almdny' => $this->value($row, 'alrkm_almdny', ['civil_id', 'civilid', 'id', 'national_id', 'الرقم_المدني']),
+            'mrgaa' => $this->value($row, 'mrgaa', ['almrgaa', 'reference', 'المرجع']),
+            'albtn' => $this->value($row, 'albtn', ['btn', 'البطن']),
+            'alfraa' => $this->value($row, 'alfraa', ['elfar3', 'far3', 'الفرع']),
+            'btn_almoyhy' => $this->value($row, 'btn_almoyhy', ['btn_almouhy', 'موضحي']),
+            'tarykh_alandmam' => $this->value($row, 'tarykh_alandmam', ['tary_kh_alandmam', 'join_date', 'تاريخ_الانضمام']),
+            'alrkm_ala_yl_llaanoan' => $this->value($row, 'alrkm_ala_yl_llaanoan', ['address_number', 'رقم_العنوان']),
+            'alktaah' => $this->value($row, 'alktaah', ['alktaa', 'القطعة']),
+            'alkyd_ao_alsndok' => $this->value($row, 'alkyd_ao_alsndok', ['alsndok', 'box', 'الصندوق']),
+            'alfkhd' => $this->value($row, 'alfkhd', ['elfa5z', 'الفخذ']),
+            'alnoaa' => $this->value($row, 'alnoaa', ['type', 'gender', 'النوع', 'الجنس']),
+            'alhatf1' => $this->value($row, 'alhatf1', ['phone', 'phone1', 'الهاتف', 'الهاتف1']),
+            'almntk' => $this->value($row, 'almntk', ['region', 'المنطقة']),
+            'alhatf2' => $this->value($row, 'alhatf2', ['phone2', 'الهاتف2']),
+            'cod1' => $this->value($row, 'cod1', ['code1']),
+            'cod2' => $this->value($row, 'cod2', ['code2']),
+            'cod3' => $this->value($row, 'cod3', ['code3']),
+            'hal_alkyd' => $this->value($row, 'hal_alkyd', ['restricted', 'register_status', 'حالة_القيد']),
+            'street' => $this->value($row, 'street', ['الشارع']),
+            'home' => $this->value($row, 'home', ['house', 'المنزل']),
+            'elharaa' => $this->value($row, 'elharaa', ['alharaa', 'الجادة']),
+        ];
+    }
+
+    private function value(array $row, string $field, array $aliases = []): mixed
+    {
+        $columnKey = $this->resolveColumnKey($row, $field, $aliases);
+        if (!$columnKey || !array_key_exists($columnKey, $row)) {
+            return null;
+        }
+
+        $value = $row[$columnKey];
+        if (is_string($value)) {
+            $value = trim($value);
+            return $value === '' ? null : $value;
+        }
+
+        return $value;
+    }
+
+    private function resolveColumnKey(array $row, string $field, array $aliases = []): ?string
+    {
+        $this->bootstrapHeaders($row);
+
+        if (array_key_exists($field, $this->resolvedColumns)) {
+            return $this->resolvedColumns[$field];
+        }
+
+        $candidates = array_merge([$field], $aliases);
+
+        foreach ($candidates as $candidate) {
+            $normalized = $this->normalizeHeader($candidate);
+            if ($normalized !== '' && isset($this->normalizedHeaderToOriginal[$normalized])) {
+                $this->resolvedColumns[$field] = $this->normalizedHeaderToOriginal[$normalized];
+                return $this->resolvedColumns[$field];
+            }
+        }
+
+        $this->resolvedColumns[$field] = null;
+        return null;
+    }
+
+    private function bootstrapHeaders(array $row): void
+    {
+        if ($this->headersBootstrapped) {
+            return;
+        }
+
+        foreach (array_keys($row) as $header) {
+            $normalized = $this->normalizeHeader((string) $header);
+            if ($normalized !== '' && !isset($this->normalizedHeaderToOriginal[$normalized])) {
+                $this->normalizedHeaderToOriginal[$normalized] = (string) $header;
+            }
+        }
+
+        $this->headersBootstrapped = true;
+    }
+
+    private function normalizeHeader(string $header): string
+    {
+        $normalized = ArabicHelper::normalizeArabic($header);
+        $normalized = mb_strtolower($normalized, 'UTF-8');
+        $normalized = preg_replace('/[^\p{L}\p{N}]+/u', '', $normalized);
+
+        return trim((string) $normalized);
     }
 
     private function processSelection(array $row)
