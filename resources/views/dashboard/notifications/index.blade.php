@@ -129,6 +129,19 @@
         border: 1px solid rgba(245, 158, 11, .35);
     }
 
+    .notification-action-done {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #065f46;
+        background: #ecfdf5;
+        border: 1px solid rgba(16, 185, 129, .35);
+    }
+
     .notification-status {
         font-size: 0.76rem;
         font-weight: 800;
@@ -202,6 +215,7 @@
                     $isUnread = is_null($notification->read_at);
                     $actionExpiresAt = !empty($data['action_expires_at']) ? \Illuminate\Support\Carbon::parse((string) $data['action_expires_at']) : null;
                     $isActionExpired = $actionExpiresAt ? now()->greaterThan($actionExpiresAt) : false;
+                    $isActionUsed = !empty($data['action_used_at']);
                 @endphp
                 <article
                     id="notif-{{ $notification->id }}"
@@ -222,10 +236,14 @@
                             {{ $isUnread ? 'غير مقروء' : 'مقروء' }}
                         </span>
 
-                        @if (!empty($data['action_url']) && !$isActionExpired)
+                        @if (!empty($data['action_url']) && !$isActionExpired && !$isActionUsed)
                             <a href="{{ (string) $data['action_url'] }}" target="_blank" rel="noopener" class="btn btn-sm btn-success">
                                 {{ (string) ($data['action_label'] ?? 'تنزيل') }}
                             </a>
+                        @elseif (!empty($data['action_url']) && $isActionUsed)
+                            <span class="notification-action-done" title="تم تنزيل الملف مسبقًا وتم إنهاء صلاحية الرابط.">
+                                تم تنزيل الملف — تم إغلاق رابط التنزيل لأسباب أمنية.
+                            </span>
                         @elseif (!empty($data['action_url']) && $isActionExpired)
                             <span class="notification-action-expired" title="انتهت صلاحية الرابط، يرجى إعادة تجهيز الملف من جديد.">
                                 انتهت صلاحية رابط التنزيل — يرجى إعادة استخراج الملف.

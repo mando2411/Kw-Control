@@ -11,8 +11,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProcessStatementExportJob implements ShouldQueue
@@ -78,11 +80,24 @@ class ProcessStatementExportJob implements ShouldQueue
 
             $downloadExpiresAt = now()->addMinutes($linkTtlMinutes);
             $fileExpiresAt = now()->addHours($fileTtlHours);
+            $downloadToken = (string) Str::uuid();
+
+            Cache::put(
+                'statement-export:download-token:' . $this->userId . ':' . $downloadToken,
+                [
+                    'path' => $relativePath,
+                    'created_at' => now()->toDateTimeString(),
+                ],
+                $downloadExpiresAt
+            );
 
             $downloadUrl = URL::temporarySignedRoute(
                 'dashboard.statement.export-download',
                 $downloadExpiresAt,
-                ['path' => $encodedPath]
+                [
+                    'path' => $encodedPath,
+                    'dl' => $downloadToken,
+                ]
             );
 
             send_system_notification($user, [
@@ -93,6 +108,7 @@ class ProcessStatementExportJob implements ShouldQueue
                 'action_url' => $downloadUrl,
                 'action_expires_at' => $downloadExpiresAt->toDateTimeString(),
                 'file_expires_at' => $fileExpiresAt->toDateTimeString(),
+                'download_token' => $downloadToken,
             ]);
         } catch (\Throwable $exception) {
             report($exception);

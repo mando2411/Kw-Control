@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessStatementExportJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Models\School;
 use App\Models\Family;
@@ -243,6 +244,12 @@ class StatementController extends Controller
                abort(404);
            }
 
+           $downloadToken = (string) $request->query('dl', '');
+
+           if ($downloadToken === '') {
+               abort(403);
+           }
+
            $decoded = base64_decode(strtr($encodedPath, '-_', '+/'), true);
            if (!is_string($decoded) || $decoded === '') {
                abort(404);
@@ -259,16 +266,43 @@ class StatementController extends Controller
                abort(404);
            }
 
+           $cacheKey = 'statement-export:download-token:' . (int) auth()->id() . ':' . $downloadToken;
+           $tokenPayload = Cache::get($cacheKey);
+
+           if (!is_array($tokenPayload) || (string) ($tokenPayload['path'] ?? '') !== $path) {
+               abort(410, 'تم استخدام رابط التنزيل مسبقًا. حفاظًا على الأمان، يلزم إنشاء ملف جديد.');
+           }
+
            $ttlHours = max(1, (int) config('statement_exports.file_ttl_hours', 24));
            $fileLastModified = (int) Storage::disk('public')->lastModified($path);
            $expiredAt = now()->subHours($ttlHours)->timestamp;
 
            if ($fileLastModified > 0 && $fileLastModified < $expiredAt) {
                Storage::disk('public')->delete($path);
+               Cache::forget($cacheKey);
                abort(410, 'انتهت صلاحية الملف ولم يعد متاحًا للتنزيل. يرجى إعادة استخراج كشف جديد.');
            }
 
-           return Storage::disk('public')->download($path);
+           Cache::forget($cacheKey);
+
+           $downloadedAt = now()->toDateTimeString();
+           $notification = $request->user()->notifications()
+               ->where('data->download_token', $downloadToken)
+               ->latest()
+               ->first();
+
+           if ($notification) {
+               $data = is_array($notification->data) ? $notification->data : [];
+               $data['action_used_at'] = $downloadedAt;
+               $data['action_label'] = 'تم التنزيل';
+               $data['body'] = 'تم تنزيل الملف بنجاح. حفاظًا على أمان البيانات، تم إنهاء صلاحية رابط التنزيل.';
+               $notification->data = $data;
+               $notification->save();
+           }
+
+           $absolutePath = Storage::disk('public')->path($path);
+
+           return response()->download($absolutePath)->deleteFileAfterSend(true);
        }
 
        public function voterDetails(Voter $voter): JsonResponse
