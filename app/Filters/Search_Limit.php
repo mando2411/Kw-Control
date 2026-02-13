@@ -7,6 +7,10 @@ class Search_Limit extends Filter
     {
         $limit = intval(request($this->filterName()));
 
+        if ($limit <= 0) {
+            return $builder;
+        }
+
         return $builder->limit($limit);
     }
 }

@@ -91,13 +91,28 @@ class StatementController extends Controller
             $contractors = auth()->user()->contractors()->Children()->get();
         }
 
+        $effectiveFilters = collect($request->all())
+            ->except(['page', '_token'])
+            ->filter(function ($value, $key) {
+                if (is_array($value)) {
+                    return collect($value)->filter(function ($nested) {
+                        return !is_null($nested) && $nested !== '';
+                    })->isNotEmpty();
+                }
 
-        if ($request->collect()->filter()->isEmpty()) {
-            $voters=null;
+                if ($key === 'type' && $value === 'all') {
+                    return false;
+                }
+
+                return !is_null($value) && $value !== '';
+            });
+
+        if ($effectiveFilters->isEmpty()) {
+            $voters = collect();
             session()->flash('message', 'لم يتم ادخال اي بيانات للبحث');
             session()->flash('type', 'danger');
         } else {
-        $voters=Voter::Filter();
+            $voters = Voter::Filter();
         }
 
 
@@ -109,7 +124,7 @@ class StatementController extends Controller
             ->log('بحث عن ناخبين');
 
            return response()->json([
-               'voters' => $voters,
+               'voters' => collect($voters)->values(),
                'message' => 'Search completed successfully',
            ]);
        }

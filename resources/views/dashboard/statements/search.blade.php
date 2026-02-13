@@ -1074,15 +1074,20 @@
                 axios
                     .get(actionUrl, { params })
                     .then(response => {
-                        if (!response.data || !Array.isArray(response.data.voters)) {
+                        const payload = response.data || {};
+                        if (!Array.isArray(payload.voters)) {
                             throw new Error("Invalid data. Expected an array of voters.");
                         }
 
-                        voters = response.data.voters;
+                        voters = payload.voters;
                         const $voterList = $("#voter-list");
                         $voterList.empty();
                         $("#Query-Table").removeClass("d-none");
                         $("#search_count").text(voters.length).css("color", "#fff");
+
+                        if (!voters.length && payload.message) {
+                            toastr.warning(payload.message);
+                        }
 
                         // Reset chunk index and flags
                         currentChunkIndex = 0;
@@ -1093,7 +1098,8 @@
                     })
                     .catch(error => {
                         console.error(error);
-                        alert("An error occurred during the search.");
+                        const message = error?.response?.data?.message || "حدث خطأ أثناء تنفيذ البحث.";
+                        toastr.error(message);
                         // If an error happens, hide spinner/overlay and enable interaction
                         hideSpinner();
                         hideOverlay();
