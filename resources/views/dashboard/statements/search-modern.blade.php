@@ -461,7 +461,6 @@
             '#smCode1': 'cod1',
             '#smCode2': 'cod2',
             '#smCode3': 'cod3',
-            '#smFamily': 'family_id',
         };
 
         const dynamicSelectors = Object.keys(dynamicSelectMap);
@@ -610,6 +609,7 @@
             const select = $(selector);
             if (!select.length) return;
             const normalizedSource = options && typeof options === 'object' ? options : {};
+            if (Object.keys(normalizedSource).length === 0) return;
 
             const firstHidden = select.find('option[hidden]').first();
             const placeholder = firstHidden.length ? firstHidden.text() : '';
@@ -653,7 +653,6 @@
                     updateDynamicSelect('#smCode1', map.cod1 || {});
                     updateDynamicSelect('#smCode2', map.cod2 || {});
                     updateDynamicSelect('#smCode3', map.cod3 || {});
-                    updateDynamicSelect('#smFamily', map.family_id || {});
 
                     const locationMap = response?.locationOptions || {};
                     updateDynamicSelect('#smStreet', locationMap.street || {});
