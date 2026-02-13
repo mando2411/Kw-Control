@@ -670,13 +670,6 @@
             refreshDynamicFilters();
         });
 
-        $(allDynamicSelectors.join(',')).on('focus click', function () {
-            const select = $(this);
-            if (select.find('option').length <= 2) {
-                refreshDynamicFilters();
-            }
-        });
-
         form.addEventListener('submit', function (event) {
             event.preventDefault();
             lastParams = toParams(1);
