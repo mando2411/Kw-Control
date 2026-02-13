@@ -8,6 +8,7 @@
         margin: 0 auto;
         padding: 12px;
         position: relative;
+        font-weight: 600;
         --sm-accent-1: #7f1d1d;
         --sm-accent-2: #0f766e;
         --sm-accent-3: #b45309;
@@ -42,7 +43,7 @@
     .sm-hero-title {
         margin: 0;
         font-size: 1.2rem;
-        font-weight: 900;
+        font-weight: 950;
         color: var(--ui-ink, #0f172a);
     }
 
@@ -50,6 +51,7 @@
         margin: 4px 0 0;
         color: #475569;
         font-size: .92rem;
+        font-weight: 700;
     }
 
     .sm-hero-actions {
@@ -105,7 +107,7 @@
         margin-bottom: 5px;
         color: #334155;
         font-size: .82rem;
-        font-weight: 800;
+        font-weight: 900;
         letter-spacing: .1px;
     }
 
@@ -132,6 +134,7 @@
         border-color: rgba(148,163,184,.36);
         background: rgba(255,247,241,.92);
         color: var(--ui-ink, #0f172a);
+        font-weight: 700;
         box-shadow: none;
         transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
     }
@@ -168,7 +171,7 @@
 
     .sm-actions .btn {
         border-radius: 12px;
-        font-weight: 800;
+        font-weight: 900;
     }
 
     .sm-advanced-fields {
@@ -220,7 +223,7 @@
         border-radius: 999px;
         padding: 4px 10px;
         font-size: .78rem;
-        font-weight: 800;
+        font-weight: 900;
         box-shadow: 0 4px 10px rgba(127,29,29,.10);
     }
 
@@ -235,6 +238,7 @@
     .sm-table thead th {
         font-size: .82rem;
         color: #7f1d1d;
+        font-weight: 900;
         border-bottom-width: 1px;
         white-space: nowrap;
         background: linear-gradient(36deg, rgba(254,202,202,.70), rgba(153,246,228,.52));
@@ -243,6 +247,7 @@
     .sm-table td {
         vertical-align: middle;
         font-size: .9rem;
+        font-weight: 700;
         border-color: rgba(148,163,184,.18);
     }
 
@@ -261,7 +266,7 @@
     .sm-empty {
         text-align: center;
         color: var(--ui-muted, #64748b);
-        font-weight: 700;
+        font-weight: 800;
         padding: 20px;
     }
 
@@ -295,7 +300,7 @@
     .sm-export-meta {
         color: #7f1d1d;
         font-size: .84rem;
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .sm-export-modal .modal-dialog {
@@ -318,7 +323,7 @@
     .sm-export-title {
         margin: 0;
         font-size: 1.02rem;
-        font-weight: 900;
+        font-weight: 950;
         color: var(--ui-ink, #0f172a);
     }
 
@@ -326,7 +331,7 @@
         margin: 4px 0 0;
         color: var(--ui-muted, #64748b);
         font-size: .84rem;
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .sm-export-modal .modal-body {
@@ -346,7 +351,7 @@
         margin: 0 0 8px;
         font-size: .86rem;
         color: var(--ui-muted, #64748b);
-        font-weight: 900;
+        font-weight: 950;
     }
 
     .sm-export-check {
@@ -357,7 +362,7 @@
     }
 
     .sm-export-check .form-check-label {
-        font-weight: 700;
+        font-weight: 800;
         color: var(--ui-ink, #0f172a);
         font-size: .86rem;
     }
@@ -382,7 +387,7 @@
         border-radius: 12px;
         background: #fff;
         color: var(--ui-ink, #0f172a);
-        font-weight: 800;
+        font-weight: 900;
         font-size: .86rem;
         padding: 10px 12px;
         transition: all .2s ease;
@@ -415,7 +420,7 @@
     .sm-export-actions .btn {
         border-radius: 999px;
         padding: 8px 14px;
-        font-weight: 800;
+        font-weight: 900;
     }
 
     #smExportModal.fade .modal-dialog {
