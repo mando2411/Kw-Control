@@ -591,6 +591,12 @@
             padding: 10px 12px !important;
         }
 
+        html.ui-modern #toast-container.toast-top-right,
+        body.ui-modern #toast-container.toast-top-right {
+            top: 92px !important;
+            right: 16px !important;
+        }
+
         /* Modern: desktop header vs mobile header separation */
         html.ui-modern .dashboard-topbar-mobile,
         body.ui-modern .dashboard-topbar-mobile,
@@ -617,6 +623,12 @@
                 top: 0;
                 width: 100%;
                 z-index: 1030;
+            }
+
+            html.ui-modern #toast-container.toast-top-right,
+            body.ui-modern #toast-container.toast-top-right {
+                top: 74px !important;
+                right: 12px !important;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-inner,
