@@ -730,14 +730,14 @@
 
             html.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #notif-menu-panel-mobile {
-                left: 8px;
-                right: 8px;
-                inset-inline-start: 8px;
-                inset-inline-end: 8px;
+                left: auto;
+                right: 0;
+                inset-inline-start: auto;
+                inset-inline-end: 0;
                 top: calc(100% + 8px);
-                min-width: 0;
+                min-width: 290px;
                 width: auto;
-                max-width: calc(100vw - 16px);
+                max-width: min(92vw, 360px);
                 margin: 0;
                 transform: none !important;
                 z-index: 1081;
@@ -747,8 +747,8 @@
                 border: 1px solid var(--ui-border);
                 background: var(--ui-surface);
                 box-shadow: 0 20px 44px rgba(2, 6, 23, 0.16);
-                direction: rtl;
-                text-align: right;
+                direction: ltr;
+                text-align: left;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-panel.show,
@@ -765,6 +765,8 @@
                 padding: 11px 12px;
                 border-bottom: 1px solid var(--ui-border);
                 background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(59, 130, 246, 0.04));
+                direction: rtl;
+                text-align: right;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-read-all,
@@ -792,6 +794,8 @@
                 padding: 8px;
                 scrollbar-width: thin;
                 scrollbar-color: rgba(14, 165, 233, 0.35) transparent;
+                direction: rtl;
+                text-align: right;
             }
 
             html.ui-modern .dashboard-topbar-mobile .dtm-notif-list::-webkit-scrollbar,
