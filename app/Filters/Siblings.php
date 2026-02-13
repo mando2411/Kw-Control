@@ -7,10 +7,19 @@ class Siblings extends Filter
 {
 
     public function applyFilter($builder){
-        $data=json_decode(request($this->filterName()), true);
+        $raw = request($this->filterName());
+        if (empty($raw)) {
+            return $builder;
+        }
+
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            return $builder;
+        }
+
         if(isset($data['father'])){
             $builder->where('father',$data['father']);
-        }else{
+        }elseif(isset($data['grand'])){
             $builder->where('grand',$data['grand']);
         }
         return $builder;

@@ -217,6 +217,10 @@
                     <label for="smCivilId">الرقم المدني</label>
                     <input id="smCivilId" name="id" type="text" class="form-control" placeholder="الرقم المدني">
                 </div>
+                <div class="sm-field sm-col-3">
+                    <label for="smBox">الصندوق</label>
+                    <input id="smBox" name="box" type="text" class="form-control" placeholder="الصندوق">
+                </div>
 
                 <div class="sm-field sm-col-4">
                     <label for="smFamily">العائلة</label>
@@ -286,6 +290,36 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="sm-field sm-col-3">
+                    <label for="smStreet">الشارع</label>
+                    <select id="smStreet" name="street" class="form-control sm-dynamic-select">
+                        <option value="" hidden>الشارع...</option>
+                        <option value="">--</option>
+                        @foreach (App\Models\Selection::select('street')->whereNotNull('street')->distinct()->get() as $item)
+                            <option value="{{ $item->street }}">{{ $item->street }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="sm-field sm-col-3">
+                    <label for="smAlharaa">الجادة</label>
+                    <select id="smAlharaa" name="alharaa" class="form-control sm-dynamic-select">
+                        <option value="" hidden>الجادة...</option>
+                        <option value="">--</option>
+                        @foreach (App\Models\Selection::select('alharaa')->whereNotNull('alharaa')->distinct()->get() as $item)
+                            <option value="{{ $item->alharaa }}">{{ $item->alharaa }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="sm-field sm-col-3">
+                    <label for="smHome">المنزل</label>
+                    <select id="smHome" name="home" class="form-control sm-dynamic-select">
+                        <option value="" hidden>المنزل...</option>
+                        <option value="">--</option>
+                        @foreach (App\Models\Selection::select('home')->whereNotNull('home')->distinct()->get() as $item)
+                            <option value="{{ $item->home }}">{{ $item->home }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div class="sm-field sm-col-3">
                     <label for="smCode1">Code 1</label>
@@ -351,6 +385,14 @@
                         <option value="500">500</option>
                     </select>
                 </div>
+                <div class="sm-field sm-col-3">
+                    <label for="smBigSearch">بحث موسع</label>
+                    <select id="smBigSearch" name="search" class="form-control">
+                        <option value="">بحث موسع</option>
+                        <option value="1">فقط المضامين</option>
+                        <option value="0">من غير المضامين</option>
+                    </select>
+                </div>
             </div>
 
             <div class="sm-actions">
@@ -380,10 +422,11 @@
                     <th>العمر</th>
                     <th>الهاتف</th>
                     <th>الحالة</th>
+                    <th>خيارات الأقارب</th>
                 </tr>
                 </thead>
                 <tbody id="smResultsBody">
-                <tr><td colspan="5" class="sm-empty">ابدأ البحث لعرض النتائج.</td></tr>
+                <tr><td colspan="6" class="sm-empty">ابدأ البحث لعرض النتائج.</td></tr>
                 </tbody>
             </table>
         </div>
@@ -414,6 +457,7 @@
             '#smFakhd': 'alfkhd',
             '#smFaraa': 'alfraa',
             '#smBtn': 'albtn',
+            '#smAlktaa': 'alktaa',
             '#smCode1': 'cod1',
             '#smCode2': 'cod2',
             '#smCode3': 'cod3',
@@ -421,6 +465,7 @@
         };
 
         const dynamicSelectors = Object.keys(dynamicSelectMap);
+        const locationSelectors = ['#smStreet', '#smAlharaa', '#smHome'];
 
         function showLoading() {
             loading.classList.add('show');
@@ -442,7 +487,7 @@
         }
 
         function setEmpty(text) {
-            resultsBody.innerHTML = `<tr><td colspan="5" class="sm-empty">${text}</td></tr>`;
+            resultsBody.innerHTML = `<tr><td colspan="6" class="sm-empty">${text}</td></tr>`;
         }
 
         function renderRows(items) {
@@ -455,6 +500,10 @@
                 const familyName = voter?.family?.name || '--';
                 const statusText = Number(voter?.status) === 1 ? 'حضر' : 'لم يحضر';
                 const statusClass = Number(voter?.status) === 1 ? 'text-success' : 'text-muted';
+                const father = voter?.father ? String(voter.father) : '';
+                const grand = voter?.grand ? String(voter.grand) : '';
+                const firstDegree = father ? encodeURIComponent(JSON.stringify({ father })) : '';
+                const secondDegree = grand ? encodeURIComponent(JSON.stringify({ grand })) : '';
 
                 return `
                     <tr>
@@ -463,6 +512,14 @@
                         <td>${voter?.age || '--'}</td>
                         <td>${voter?.phone1 || '--'}</td>
                         <td class="${statusClass}">${statusText}</td>
+                        <td>
+                            <select class="form-control form-control-sm sm-siblings" data-voter-id="${voter?.id || ''}" data-first='${firstDegree}' data-second='${secondDegree}'>
+                                <option value="" selected>بحث</option>
+                                <option value="first" ${firstDegree ? '' : 'disabled'}>أقارب من الدرجة الاولى</option>
+                                <option value="second" ${secondDegree ? '' : 'disabled'}>أقارب من الدرجة التانية</option>
+                                <option value="expanded">بحث موسع</option>
+                            </select>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -526,10 +583,14 @@
                 alfkhd: document.querySelector('#smFakhd')?.value || '',
                 alfraa: document.querySelector('#smFaraa')?.value || '',
                 albtn: document.querySelector('#smBtn')?.value || '',
+                alktaa: document.querySelector('#smAlktaa')?.value || '',
                 cod1: document.querySelector('#smCode1')?.value || '',
                 cod2: document.querySelector('#smCode2')?.value || '',
                 cod3: document.querySelector('#smCode3')?.value || '',
                 family_id: document.querySelector('#smFamily')?.value || '',
+                street: document.querySelector('#smStreet')?.value || '',
+                alharaa: document.querySelector('#smAlharaa')?.value || '',
+                home: document.querySelector('#smHome')?.value || '',
             };
         }
 
@@ -565,15 +626,21 @@
                     updateDynamicSelect('#smFakhd', map.alfkhd || {});
                     updateDynamicSelect('#smFaraa', map.alfraa || {});
                     updateDynamicSelect('#smBtn', map.albtn || {});
+                    updateDynamicSelect('#smAlktaa', map.alktaa || {});
                     updateDynamicSelect('#smCode1', map.cod1 || {});
                     updateDynamicSelect('#smCode2', map.cod2 || {});
                     updateDynamicSelect('#smCode3', map.cod3 || {});
                     updateDynamicSelect('#smFamily', map.family_id || {});
+
+                    const locationMap = response?.locationOptions || {};
+                    updateDynamicSelect('#smStreet', locationMap.street || {});
+                    updateDynamicSelect('#smAlharaa', locationMap.alharaa || {});
+                    updateDynamicSelect('#smHome', locationMap.home || {});
                 }
             });
         }
 
-        $(dynamicSelectors.join(',')).on('change', function () {
+        $(dynamicSelectors.concat(locationSelectors).join(',')).on('change', function () {
             refreshDynamicFilters();
         });
 
@@ -593,6 +660,28 @@
             const targetPage = Number(btn.getAttribute('data-page'));
             if (!targetPage || targetPage < 1) return;
             runSearch(targetPage);
+        });
+
+        resultsBody.addEventListener('change', function (event) {
+            const select = event.target.closest('.sm-siblings');
+            if (!select) return;
+
+            const mode = select.value;
+            if (!mode) return;
+
+            const params = toParams(1);
+            delete params.siblings;
+
+            if (mode === 'first' && select.dataset.first) {
+                params.siblings = decodeURIComponent(select.dataset.first);
+            } else if (mode === 'second' && select.dataset.second) {
+                params.siblings = decodeURIComponent(select.dataset.second);
+            } else if (mode === 'expanded') {
+                params.search = '1';
+            }
+
+            lastParams = params;
+            runSearch(1);
         });
 
         resetBtn.addEventListener('click', function () {
