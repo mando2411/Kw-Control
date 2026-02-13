@@ -1420,6 +1420,10 @@ if (voter.contractors.length > 0) {
                     cod1: $('#code1').val(),
                     cod2: $('#code2').val(),
                     cod3: $('#code3').val(),
+                    alktaa: $('#alktaa').val(),
+                    street: $('#street').val(),
+                    alharaa: $('#alharaa').val(),
+                    home: $('#home').val(),
                     family_id: $('#familySearch').val(),
                 };
 
@@ -1446,24 +1450,34 @@ if (voter.contractors.length > 0) {
 
             function updateSelectOptions(selector, options) {
                 const select = $(selector);
+                const normalizedOptions = options && typeof options === 'object' ? options : {};
+
                 // Check if the select already has a selected value
                 if (select.val() !== "") {
                     // Do not change the dropdown if it has a value selected
                     return;
                 }
 
+                if (Object.keys(normalizedOptions).length === 0) {
+                    return;
+                }
+
                 // Clear and repopulate the dropdown if no value is selected
                 select.empty().append('<option value=""> -- </option>'); // Add default empty option
                 if (selector == "#familySearch"){
-                    for (const [id, value] of Object.entries(options)) {
+                    for (const [id, value] of Object.entries(normalizedOptions)) {
                         select.append(`<option value="${id}">${value}</option>`);
                     }
 
                 }else{
 
-                    for (const [id, value] of Object.entries(options)) {
+                    for (const [id, value] of Object.entries(normalizedOptions)) {
                         select.append(`<option value="${value}">${value}</option>`);
                     }
+                }
+
+                if (select.hasClass('select2-hidden-accessible')) {
+                    select.trigger('change.select2');
                 }
             }
             $('.js-example-basic-single').on('change', fetchFilteredOptions);
