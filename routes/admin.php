@@ -32,6 +32,7 @@ Route::group(['prefix' => 'dashboard',
     'as' => 'dashboard.'],
     function () {
         Route::post('translate'  , [AutoTranslationController::class, 'translate'])->name('model.auto.translate');
+        Route::get('notifications/page', [NotificationController::class, 'page'])->name('notifications.page');
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
         Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');

@@ -5,9 +5,25 @@ namespace App\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
+    public function page(Request $request): View
+    {
+        $user = $request->user();
+
+        $notifications = $user->notifications()
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('dashboard.notifications.index', [
+            'notifications' => $notifications,
+            'unreadCount' => $user->unreadNotifications()->count(),
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -18,12 +34,13 @@ class NotificationController extends Controller
             ->get()
             ->map(function ($notification) {
                 $data = is_array($notification->data) ? $notification->data : [];
+                $safePageUrl = route('dashboard.notifications.page', ['open' => $notification->id]);
 
                 return [
                     'id' => $notification->id,
                     'title' => (string) ($data['title'] ?? 'إشعار جديد'),
                     'body' => (string) ($data['body'] ?? ''),
-                    'url' => (string) ($data['url'] ?? '#'),
+                    'url' => $safePageUrl,
                     'read_at' => $notification->read_at,
                     'created_at' => optional($notification->created_at)->diffForHumans(),
                 ];

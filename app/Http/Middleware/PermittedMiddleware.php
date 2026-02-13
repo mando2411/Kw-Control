@@ -14,6 +14,7 @@ class PermittedMiddleware
         'dashboard.settings.result',
         'dashboard.store-fake-candidates',
         'dashboard.notifications.index',
+        'dashboard.notifications.page',
         'dashboard.notifications.read-all',
         'dashboard.notifications.read',
     ];
