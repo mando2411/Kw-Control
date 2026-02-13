@@ -236,6 +236,37 @@ class VotersImport implements ToCollection, WithHeadingRow
             }
         }
 
+        $candidateTokens = collect($candidates)
+            ->map(fn($candidate) => $this->normalizeHeader((string) $candidate))
+            ->filter()
+            ->values()
+            ->all();
+
+        if ($field === 'alaaaylh') {
+            $candidateTokens = array_values(array_unique(array_merge($candidateTokens, [
+                'family',
+                'familyname',
+                'aaylh',
+                'aaaylh',
+                'عائله',
+                'العائله',
+                'العايله',
+            ])));
+        }
+
+        foreach ($this->normalizedHeaderToOriginal as $normalizedHeader => $originalHeader) {
+            foreach ($candidateTokens as $token) {
+                if ($token === '') {
+                    continue;
+                }
+
+                if (str_contains($normalizedHeader, $token) || str_contains($token, $normalizedHeader)) {
+                    $this->resolvedColumns[$field] = $originalHeader;
+                    return $this->resolvedColumns[$field];
+                }
+            }
+        }
+
         $this->resolvedColumns[$field] = null;
         return null;
     }
@@ -258,6 +289,7 @@ class VotersImport implements ToCollection, WithHeadingRow
 
     private function normalizeHeader(string $header): string
     {
+        $header = preg_replace('/^\xEF\xBB\xBF/u', '', $header);
         $normalized = ArabicHelper::normalizeArabic($header);
         $normalized = mb_strtolower($normalized, 'UTF-8');
         $normalized = preg_replace('/[^\p{L}\p{N}]+/u', '', $normalized);
