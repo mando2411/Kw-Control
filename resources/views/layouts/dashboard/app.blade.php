@@ -622,7 +622,7 @@
                 right: 0;
                 top: 0;
                 width: 100%;
-                z-index: 1030;
+                z-index: 1105;
             }
 
             html.ui-modern #toast-container.toast-top-right,
@@ -740,7 +740,7 @@
                 max-width: none;
                 margin: 0;
                 transform: translateY(8px) scale(0.98) !important;
-                z-index: 1081;
+                z-index: 1120;
                 padding: 0;
                 overflow: hidden;
                 border-radius: 16px;
@@ -1713,6 +1713,13 @@
 
             document.addEventListener('click', handleMobileBellDelegated, true);
             document.addEventListener('touchend', handleMobileBellDelegated, { passive: false, capture: true });
+
+            var mobileBellButtonDirect = document.getElementById('notif-menu-dropdown-mobile');
+            if (mobileBellButtonDirect) {
+                mobileBellButtonDirect.onclick = function (event) {
+                    window.toggleDashboardNotifMenuMobile(event);
+                };
+            }
 
             function csrfToken() {
                 var meta = document.querySelector('meta[name="csrf-token"]');
