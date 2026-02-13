@@ -1095,7 +1095,7 @@
                 });
 
                 if (actionType === 'Excel' || actionType === 'PDF') {
-                    axios.post(exportAsyncUrl, queryData, {
+                    axios.post(exportAsyncUrl, formData, {
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                             'X-Requested-With': 'XMLHttpRequest',

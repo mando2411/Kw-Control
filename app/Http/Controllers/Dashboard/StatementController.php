@@ -182,7 +182,8 @@ class StatementController extends Controller
            $type = strtoupper((string) $request->input('type'));
            abort_unless(in_array($type, ['PDF', 'EXCEL'], true), 422, 'نوع التصدير غير مدعوم');
 
-           $voterIds = collect((array) $request->input('voter', []))
+           $rawVoters = $request->input('voter', $request->input('voter[]', []));
+           $voterIds = collect(is_array($rawVoters) ? $rawVoters : [$rawVoters])
                ->filter(fn ($value) => !is_null($value) && $value !== '')
                ->map(fn ($value) => (int) $value)
                ->unique()
@@ -196,7 +197,8 @@ class StatementController extends Controller
                ], 422);
            }
 
-           $columns = collect((array) $request->input('columns', []))
+           $rawColumns = $request->input('columns', $request->input('columns[]', []));
+           $columns = collect(is_array($rawColumns) ? $rawColumns : [$rawColumns])
                ->filter(fn ($value) => !is_null($value) && $value !== '')
                ->values()
                ->all();
