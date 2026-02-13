@@ -714,6 +714,13 @@
                 z-index: 1085;
             }
 
+            html.ui-modern .dashboard-topbar-mobile .dtm-notif-scope-mobile,
+            body.ui-modern .dashboard-topbar-mobile .dtm-notif-scope-mobile {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+            }
+
             html.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile,
             body.ui-modern .dashboard-topbar-mobile #user-menu-panel-mobile {
                 left: 0;
@@ -1669,9 +1676,9 @@
                     event.stopPropagation();
                 }
 
-                if (mobileNotifier) {
-                    toggleNotifierMenu(mobileNotifier, true);
-                    return;
+                if (desktopNotifier && desktopNotifier.notifPanel.classList.contains('show')) {
+                    desktopNotifier.notifPanel.classList.remove('show');
+                    desktopNotifier.notifToggle.setAttribute('aria-expanded', 'false');
                 }
 
                 var mobilePanel = document.getElementById('notif-menu-panel-mobile');
