@@ -224,7 +224,7 @@
 
                 <div class="sm-field sm-col-4">
                     <label for="smFamily">العائلة</label>
-                    <select id="smFamily" name="family" class="form-control sm-dynamic-select">
+                    <select id="smFamily" name="family" class="form-control sm-dynamic-select js-example-basic-single">
                         <option value="" hidden>العائلة...</option>
                         <option value="">--</option>
                         @foreach ($relations['families'] as $family)
@@ -461,6 +461,7 @@
             '#smCode1': 'cod1',
             '#smCode2': 'cod2',
             '#smCode3': 'cod3',
+            '#smFamily': 'family_id',
         };
 
         const dynamicSelectors = Object.keys(dynamicSelectMap);
@@ -611,14 +612,16 @@
             const normalizedSource = options && typeof options === 'object' ? options : {};
             if (Object.keys(normalizedSource).length === 0) return;
 
+            if ((select.val() || '') !== '') {
+                return;
+            }
+
             const firstHidden = select.find('option[hidden]').first();
             const placeholder = firstHidden.length ? firstHidden.text() : '';
-            const currentValue = (select.val() || '').toString();
             const normalized = Object.entries(normalizedSource).map(([key, value]) => {
                 const optionValue = selector === '#smFamily' ? key : value;
                 return [String(optionValue), String(value)];
             });
-            const allowedValues = new Set(normalized.map(([optionValue]) => optionValue));
 
             select.empty();
             if (placeholder) select.append(`<option value="" hidden>${placeholder}</option>`);
@@ -627,12 +630,6 @@
             normalized.forEach(([optionValue, label]) => {
                 select.append(`<option value="${optionValue}">${label}</option>`);
             });
-
-            if (currentValue && allowedValues.has(currentValue)) {
-                select.val(currentValue);
-            } else {
-                select.val('');
-            }
 
             if (select.hasClass('select2-hidden-accessible')) {
                 select.trigger('change.select2');
@@ -653,6 +650,7 @@
                     updateDynamicSelect('#smCode1', map.cod1 || {});
                     updateDynamicSelect('#smCode2', map.cod2 || {});
                     updateDynamicSelect('#smCode3', map.cod3 || {});
+                    updateDynamicSelect('#smFamily', map.family_id || {});
 
                     const locationMap = response?.locationOptions || {};
                     updateDynamicSelect('#smStreet', locationMap.street || {});
