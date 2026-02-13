@@ -18,6 +18,22 @@
     
         <div class=" py-2 text-end ">
             <div class="d-flex navControll">
+                <div class="dropdown me-1" id="notif-menu-wrapper">
+                    <button type="button" id="notif-menu-dropdown" class="btn btn-outline-secondary notif-toggle" aria-label="الإشعارات" title="الإشعارات" onclick="toggleDashboardNotifMenu(event)" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="dtm-notif-badge" id="dtmNotifBadge" hidden>0</span>
+                    </button>
+                    <div id="notif-menu-panel" class="dropdown-menu dtm-notif-panel">
+                        <div class="dtm-notif-head">
+                            <strong>الإشعارات</strong>
+                            <button type="button" class="dtm-notif-read-all" id="dtmNotifReadAll">تعليم الكل كمقروء</button>
+                        </div>
+                        <div class="dtm-notif-list" id="dtmNotifList">
+                            <div class="dtm-notif-empty">لا توجد إشعارات حالياً.</div>
+                        </div>
+                    </div>
+                </div>
+
                                 <div class="dropdown me-1" id="user-menu-wrapper">
                                     <button id="user-menu-dropdown" class="btn btn-secondary dropdown-toggle" type="button" onclick="toggleDashboardUserMenu(event)" aria-expanded="false">
                         <i class="fa fa-user ms-1"></i>

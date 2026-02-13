@@ -1035,6 +1035,134 @@
             padding: 8px;
         }
 
+        html.ui-modern .dashboard-topbar #notif-menu-wrapper,
+        body.ui-modern .dashboard-topbar #notif-menu-wrapper {
+            position: relative;
+        }
+
+        html.ui-modern .dashboard-topbar .notif-toggle,
+        body.ui-modern .dashboard-topbar .notif-toggle {
+            position: relative;
+            min-width: 44px;
+            height: 44px;
+            padding: 0 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        html.ui-modern .dashboard-topbar .notif-toggle .bi,
+        body.ui-modern .dashboard-topbar .notif-toggle .bi {
+            font-size: 1.05rem;
+            color: var(--ui-ink);
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-badge,
+        body.ui-modern .dashboard-topbar .dtm-notif-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+            border-radius: 999px;
+            text-align: center;
+            padding: 0 4px;
+            background: var(--ui-danger);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            display: inline-block;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-badge[hidden],
+        body.ui-modern .dashboard-topbar .dtm-notif-badge[hidden] {
+            display: none;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-panel,
+        body.ui-modern .dashboard-topbar .dtm-notif-panel {
+            min-width: 320px;
+            max-width: min(88vw, 380px);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-head,
+        body.ui-modern .dashboard-topbar .dtm-notif-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--ui-border);
+            background: rgba(248, 250, 252, 0.85);
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-read-all,
+        body.ui-modern .dashboard-topbar .dtm-notif-read-all {
+            border: 0;
+            background: transparent;
+            color: var(--ui-accent);
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 0;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-list,
+        body.ui-modern .dashboard-topbar .dtm-notif-list {
+            max-height: 320px;
+            overflow: auto;
+            padding: 6px;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-item,
+        body.ui-modern .dashboard-topbar .dtm-notif-item {
+            display: block;
+            text-decoration: none;
+            color: var(--ui-ink);
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 9px 10px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.76);
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-item.unread,
+        body.ui-modern .dashboard-topbar .dtm-notif-item.unread {
+            background: rgba(14, 165, 233, 0.08);
+            border-color: rgba(14, 165, 233, 0.22);
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-title,
+        body.ui-modern .dashboard-topbar .dtm-notif-title {
+            font-weight: 800;
+            font-size: 0.84rem;
+            margin-bottom: 2px;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-body,
+        body.ui-modern .dashboard-topbar .dtm-notif-body {
+            font-size: 0.76rem;
+            color: var(--ui-muted);
+            margin-bottom: 3px;
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-time,
+        body.ui-modern .dashboard-topbar .dtm-notif-time {
+            font-size: 0.7rem;
+            color: rgba(100, 116, 139, 0.95);
+        }
+
+        html.ui-modern .dashboard-topbar .dtm-notif-empty,
+        body.ui-modern .dashboard-topbar .dtm-notif-empty {
+            text-align: center;
+            color: var(--ui-muted);
+            font-size: 0.82rem;
+            padding: 12px 10px;
+        }
+
         html.ui-modern .dashboard-topbar .dropdown-item,
         body.ui-modern .dashboard-topbar .dropdown-item {
             border-radius: 10px;
@@ -1285,22 +1413,78 @@
 
     <script>
         (function () {
+            var notifiers = [];
+
+            function initNotifier(config) {
+                var notifPanel = document.getElementById(config.panelId);
+                var notifToggle = document.getElementById(config.toggleId);
+                var notifList = document.getElementById(config.listId);
+                var notifBadge = document.getElementById(config.badgeId);
+                var readAllBtn = document.getElementById(config.readAllId);
+
+                if (!notifPanel || !notifToggle || !notifList || !notifBadge || !readAllBtn) {
+                    return null;
+                }
+
+                return {
+                    wrapperSelector: config.wrapperSelector,
+                    notifPanel: notifPanel,
+                    notifToggle: notifToggle,
+                    notifList: notifList,
+                    notifBadge: notifBadge,
+                    readAllBtn: readAllBtn,
+                };
+            }
+
+            var desktopNotifier = initNotifier({
+                wrapperSelector: '#notif-menu-wrapper',
+                panelId: 'notif-menu-panel',
+                toggleId: 'notif-menu-dropdown',
+                listId: 'dtmNotifList',
+                badgeId: 'dtmNotifBadge',
+                readAllId: 'dtmNotifReadAll',
+            });
+
+            var mobileNotifier = initNotifier({
+                wrapperSelector: '#notif-menu-wrapper-mobile',
+                panelId: 'notif-menu-panel-mobile',
+                toggleId: 'notif-menu-dropdown-mobile',
+                listId: 'dtmNotifListMobile',
+                badgeId: 'dtmNotifBadgeMobile',
+                readAllId: 'dtmNotifReadAllMobile',
+            });
+
+            if (desktopNotifier) notifiers.push(desktopNotifier);
+            if (mobileNotifier) notifiers.push(mobileNotifier);
+            if (!notifiers.length) {
+                return;
+            }
+
+            window.toggleDashboardNotifMenu = function (event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                if (!desktopNotifier) {
+                    return;
+                }
+
+                toggleNotifierMenu(desktopNotifier, true);
+            };
+
             window.toggleDashboardNotifMenuMobile = function (event) {
                 if (event) {
                     event.preventDefault();
                     event.stopPropagation();
                 }
+
+                if (!mobileNotifier) {
+                    return;
+                }
+
+                toggleNotifierMenu(mobileNotifier, true);
             };
-
-            var notifPanel = document.getElementById('notif-menu-panel-mobile');
-            var notifToggle = document.getElementById('notif-menu-dropdown-mobile');
-            var notifList = document.getElementById('dtmNotifListMobile');
-            var notifBadge = document.getElementById('dtmNotifBadgeMobile');
-            var readAllBtn = document.getElementById('dtmNotifReadAllMobile');
-
-            if (!notifPanel || !notifToggle || !notifList || !notifBadge || !readAllBtn) {
-                return;
-            }
 
             function csrfToken() {
                 var meta = document.querySelector('meta[name="csrf-token"]');
@@ -1309,13 +1493,15 @@
 
             function renderBadge(count) {
                 var unread = Number(count || 0);
-                if (unread > 0) {
-                    notifBadge.hidden = false;
-                    notifBadge.textContent = unread > 99 ? '99+' : String(unread);
-                } else {
-                    notifBadge.hidden = true;
-                    notifBadge.textContent = '0';
-                }
+                notifiers.forEach(function (entry) {
+                    if (unread > 0) {
+                        entry.notifBadge.hidden = false;
+                        entry.notifBadge.textContent = unread > 99 ? '99+' : String(unread);
+                    } else {
+                        entry.notifBadge.hidden = true;
+                        entry.notifBadge.textContent = '0';
+                    }
+                });
             }
 
             function renderItems(items) {
@@ -1342,11 +1528,13 @@
                 }
 
                 if (!Array.isArray(items) || items.length === 0) {
-                    notifList.innerHTML = '<div class="dtm-notif-empty">لا توجد إشعارات حالياً.</div>';
+                    notifiers.forEach(function (entry) {
+                        entry.notifList.innerHTML = '<div class="dtm-notif-empty">لا توجد إشعارات حالياً.</div>';
+                    });
                     return;
                 }
 
-                notifList.innerHTML = items.map(function (item) {
+                var html = items.map(function (item) {
                     var itemUrl = safeUrl(item.url);
                     var unreadClass = item.read_at ? '' : ' unread';
 
@@ -1357,6 +1545,28 @@
                             '<div class="dtm-notif-time">' + esc(item.created_at || '') + '</div>' +
                         '</a>';
                 }).join('');
+
+                notifiers.forEach(function (entry) {
+                    entry.notifList.innerHTML = html;
+                });
+            }
+
+            function toggleNotifierMenu(entry, shouldFetch) {
+                var isOpen = entry.notifPanel.classList.contains('show');
+
+                notifiers.forEach(function (other) {
+                    if (other !== entry) {
+                        other.notifPanel.classList.remove('show');
+                        other.notifToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                entry.notifPanel.classList.toggle('show', !isOpen);
+                entry.notifToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+
+                if (!isOpen && shouldFetch) {
+                    fetchNotifications();
+                }
             }
 
             var notificationsPollInterval = null;
@@ -1448,43 +1658,32 @@
                 .catch(function () {});
             }
 
-            window.toggleDashboardNotifMenuMobile = function (event) {
-                if (event) {
+            notifiers.forEach(function (entry) {
+                entry.readAllBtn.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
-                }
+                    markAllAsRead();
+                });
 
-                var isOpen = notifPanel.classList.contains('show');
-                notifPanel.classList.toggle('show', !isOpen);
-                notifToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+                entry.notifList.addEventListener('click', function (event) {
+                    var link = event.target.closest('.dtm-notif-item');
+                    if (!link) {
+                        return;
+                    }
 
-                if (!isOpen) {
-                    fetchNotifications();
-                }
-            };
-
-            readAllBtn.addEventListener('click', function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                markAllAsRead();
-            });
-
-            notifList.addEventListener('click', function (event) {
-                var link = event.target.closest('.dtm-notif-item');
-                if (!link) {
-                    return;
-                }
-
-                var id = link.getAttribute('data-notif-id');
-                markNotificationAsRead(id);
+                    var id = link.getAttribute('data-notif-id');
+                    markNotificationAsRead(id);
+                });
             });
 
             document.addEventListener('click', function (event) {
-                var clickedInsideNotif = event.target.closest('#notif-menu-wrapper-mobile');
-                if (!clickedInsideNotif && notifPanel.classList.contains('show')) {
-                    notifPanel.classList.remove('show');
-                    notifToggle.setAttribute('aria-expanded', 'false');
-                }
+                notifiers.forEach(function (entry) {
+                    var clickedInsideNotif = event.target.closest(entry.wrapperSelector);
+                    if (!clickedInsideNotif && entry.notifPanel.classList.contains('show')) {
+                        entry.notifPanel.classList.remove('show');
+                        entry.notifToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
             });
 
             fetchNotifications();
