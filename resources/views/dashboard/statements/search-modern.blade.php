@@ -97,6 +97,23 @@
         margin-top: 10px;
     }
 
+    .sm-advanced-fields {
+        grid-column: span 12;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height .26s ease, opacity .2s ease;
+    }
+
+    .sm-advanced-fields.is-open {
+        max-height: 520px;
+        opacity: 1;
+    }
+
+    .sm-advanced-grid {
+        padding-top: 4px;
+    }
+
     .sm-result-head {
         padding: 12px 14px;
         border-bottom: 1px solid var(--ui-border, rgba(148,163,184,.22));
@@ -486,10 +503,6 @@
                     <input id="smName" name="name" type="text" class="form-control" placeholder="أي جزء من الاسم">
                 </div>
                 <div class="sm-field sm-col-3">
-                    <label for="smPhone">الهاتف</label>
-                    <input id="smPhone" name="phone" type="text" class="form-control" placeholder="الهاتف">
-                </div>
-                <div class="sm-field sm-col-3">
                     <label for="smCivilId">الرقم المدني</label>
                     <input id="smCivilId" name="id" type="text" class="form-control" placeholder="الرقم المدني">
                 </div>
@@ -556,47 +569,6 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="sm-field sm-col-3">
-                    <label for="smAlktaa">القطعة</label>
-                    <select id="smAlktaa" name="alktaa" class="form-select sm-dynamic-select">
-                        <option value="" hidden>القطعة...</option>
-                        <option value="">--</option>
-                        @foreach ($selectionData['alktaa'] as $item)
-                            <option value="{{ $item }}">{{ $item }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="sm-field sm-col-3">
-                    <label for="smStreet">الشارع</label>
-                    <select id="smStreet" name="street" class="form-select sm-dynamic-select">
-                        <option value="" hidden>الشارع...</option>
-                        <option value="">--</option>
-                        @foreach (App\Models\Selection::select('street')->whereNotNull('street')->distinct()->get() as $item)
-                            <option value="{{ $item->street }}">{{ $item->street }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="sm-field sm-col-3">
-                    <label for="smAlharaa">الجادة</label>
-                    <select id="smAlharaa" name="alharaa" class="form-select sm-dynamic-select">
-                        <option value="" hidden>الجادة...</option>
-                        <option value="">--</option>
-                        @foreach (App\Models\Selection::select('alharaa')->whereNotNull('alharaa')->distinct()->get() as $item)
-                            <option value="{{ $item->alharaa }}">{{ $item->alharaa }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="sm-field sm-col-3">
-                    <label for="smHome">المنزل</label>
-                    <select id="smHome" name="home" class="form-select sm-dynamic-select">
-                        <option value="" hidden>المنزل...</option>
-                        <option value="">--</option>
-                        @foreach (App\Models\Selection::select('home')->whereNotNull('home')->distinct()->get() as $item)
-                            <option value="{{ $item->home }}">{{ $item->home }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 <div class="sm-field sm-col-3">
                     <label for="smCode1">Code 1</label>
                     <select id="smCode1" name="cod1" class="form-select sm-dynamic-select">
@@ -669,12 +641,70 @@
                         <option value="0">من غير المضامين</option>
                     </select>
                 </div>
+
+                <div id="smAdvancedFields" class="sm-advanced-fields">
+                    <div class="sm-filter-grid sm-advanced-grid">
+                        <div class="sm-field sm-col-3">
+                            <label for="smPhone">الهاتف</label>
+                            <input id="smPhone" name="phone" type="text" class="form-control" placeholder="الهاتف">
+                        </div>
+                        <div class="sm-field sm-col-3">
+                            <label for="smThirdName">الاسم الثالث</label>
+                            <input id="smThirdName" name="third_name" type="text" class="form-control" placeholder="الاسم الثالث">
+                        </div>
+                        <div class="sm-field sm-col-3">
+                            <label for="smFourthName">الاسم الرابع</label>
+                            <input id="smFourthName" name="fourth_name" type="text" class="form-control" placeholder="الاسم الرابع">
+                        </div>
+                        <div class="sm-field sm-col-3">
+                            <label for="smAlktaa">القطعة</label>
+                            <select id="smAlktaa" name="alktaa" class="form-select sm-dynamic-select">
+                                <option value="" hidden>القطعة...</option>
+                                <option value="">--</option>
+                                @foreach ($selectionData['alktaa'] as $item)
+                                    <option value="{{ $item }}">{{ $item }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="sm-field sm-col-3">
+                            <label for="smStreet">الشارع</label>
+                            <select id="smStreet" name="street" class="form-select sm-dynamic-select">
+                                <option value="" hidden>الشارع...</option>
+                                <option value="">--</option>
+                                @foreach (App\Models\Selection::select('street')->whereNotNull('street')->distinct()->get() as $item)
+                                    <option value="{{ $item->street }}">{{ $item->street }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="sm-field sm-col-3">
+                            <label for="smAlharaa">الجادة</label>
+                            <select id="smAlharaa" name="alharaa" class="form-select sm-dynamic-select">
+                                <option value="" hidden>الجادة...</option>
+                                <option value="">--</option>
+                                @foreach (App\Models\Selection::select('alharaa')->whereNotNull('alharaa')->distinct()->get() as $item)
+                                    <option value="{{ $item->alharaa }}">{{ $item->alharaa }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="sm-field sm-col-3">
+                            <label for="smHome">المنزل</label>
+                            <select id="smHome" name="home" class="form-select sm-dynamic-select">
+                                <option value="" hidden>المنزل...</option>
+                                <option value="">--</option>
+                                @foreach (App\Models\Selection::select('home')->whereNotNull('home')->distinct()->get() as $item)
+                                    <option value="{{ $item->home }}">{{ $item->home }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="sm-actions">
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">بحث الآن</button>
                     <button type="button" id="smResetBtn" class="btn btn-outline-secondary">إعادة تعيين</button>
+                    <button type="button" id="smMoreFiltersBtn" class="btn btn-outline-info" aria-expanded="false">خيارات بحث أكثر</button>
                 </div>
                 <small class="text-muted">كل النتائج تُحمّل بسرعة عبر Ajax بدون إعادة تحميل الصفحة.</small>
             </div>
@@ -843,6 +873,8 @@
         const totalCount = document.getElementById('smTotalCount');
         const currentPage = document.getElementById('smCurrentPage');
         const resetBtn = document.getElementById('smResetBtn');
+        const moreFiltersBtn = document.getElementById('smMoreFiltersBtn');
+        const advancedFields = document.getElementById('smAdvancedFields');
         const exportBar = document.getElementById('smExportBar');
         const checkAll = document.getElementById('smCheckAll');
         const exportForm = document.getElementById('smExportForm');
@@ -870,6 +902,14 @@
 
         function showLoading() {
             loading.classList.add('show');
+        }
+
+        function setAdvancedOpen(open) {
+            if (!advancedFields || !moreFiltersBtn) return;
+
+            advancedFields.classList.toggle('is-open', !!open);
+            moreFiltersBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            moreFiltersBtn.textContent = open ? 'إخفاء الخيارات الإضافية' : 'خيارات بحث أكثر';
         }
 
         function hideLoading() {
@@ -1311,8 +1351,18 @@
             currentPage.textContent = '1';
             pagination.innerHTML = '';
             updateExportBarVisibility(0);
+            setAdvancedOpen(false);
             refreshDynamicFilters();
         });
+
+        if (moreFiltersBtn) {
+            moreFiltersBtn.addEventListener('click', function () {
+                const isOpen = advancedFields?.classList.contains('is-open');
+                setAdvancedOpen(!isOpen);
+            });
+        }
+
+        setAdvancedOpen(false);
 
         refreshDynamicFilters();
     })();
