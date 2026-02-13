@@ -102,7 +102,7 @@
                 </a>
 
                 <div class="dropdown" id="notif-menu-wrapper-mobile">
-                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" aria-expanded="false">
+                    <button type="button" id="notif-menu-dropdown-mobile" class="dtm-notif" aria-label="الإشعارات" title="الإشعارات" aria-expanded="false" onclick="if(window.toggleDashboardNotifMenuMobile){window.toggleDashboardNotifMenuMobile(event);}else{event.preventDefault();event.stopPropagation();var p=document.getElementById('notif-menu-panel-mobile');if(p){var open=p.classList.contains('show');p.classList.toggle('show',!open);this.setAttribute('aria-expanded',!open?'true':'false');}} return false;">
                         <i class="bi bi-bell"></i>
                         <span class="dtm-notif-badge" id="dtmNotifBadgeMobile" hidden>0</span>
                     </button>

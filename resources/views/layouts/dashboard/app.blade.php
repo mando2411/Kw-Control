@@ -1693,13 +1693,7 @@
                 }
             };
 
-            var mobileBellButtonDirect = document.getElementById('notif-menu-dropdown-mobile');
-            if (mobileBellButtonDirect && mobileBellButtonDirect.dataset.bound !== '1') {
-                mobileBellButtonDirect.dataset.bound = '1';
-                mobileBellButtonDirect.addEventListener('click', function (event) {
-                    window.toggleDashboardNotifMenuMobile(event);
-                });
-            }
+            // Mobile bell primary trigger is handled inline in navbar with a safe fallback.
 
             function csrfToken() {
                 var meta = document.querySelector('meta[name="csrf-token"]');
