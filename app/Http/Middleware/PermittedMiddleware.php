@@ -13,6 +13,9 @@ class PermittedMiddleware
         'dashboard.toggle-theme',
         'dashboard.settings.result',
         'dashboard.store-fake-candidates',
+        'dashboard.notifications.index',
+        'dashboard.notifications.read-all',
+        'dashboard.notifications.read',
     ];
     public function handle(Request $request, Closure $next)
     {

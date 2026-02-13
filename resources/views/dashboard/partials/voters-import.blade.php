@@ -398,6 +398,23 @@
 
             // Replace confirmation handler (single instance)
             var confirmReplaceBtn = root.querySelector('[data-action="confirm-replace"]');
+
+            if (replaceModalEl) {
+                replaceModalEl.addEventListener('hidden.bs.modal', function () {
+                    pendingConfirm = null;
+
+                    if (document.querySelector('.modal.show')) {
+                        return;
+                    }
+
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('padding-right');
+                    Array.prototype.slice.call(document.querySelectorAll('.modal-backdrop')).forEach(function (node) {
+                        node.parentNode && node.parentNode.removeChild(node);
+                    });
+                });
+            }
+
             if (confirmReplaceBtn) {
                 confirmReplaceBtn.addEventListener('click', function (event) {
                     event.preventDefault();

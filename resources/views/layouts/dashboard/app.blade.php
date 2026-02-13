@@ -1359,7 +1359,14 @@
                 }).join('');
             }
 
+            var notificationsPollInterval = null;
+            var notificationsPollingDisabled = false;
+
             function fetchNotifications() {
+                if (notificationsPollingDisabled) {
+                    return;
+                }
+
                 fetch("{{ route('dashboard.notifications.index') }}", {
                     method: 'GET',
                     headers: {
@@ -1368,12 +1375,25 @@
                     }
                 })
                 .then(function (response) {
+                    if (response.status === 403) {
+                        notificationsPollingDisabled = true;
+                        if (notificationsPollInterval) {
+                            clearInterval(notificationsPollInterval);
+                            notificationsPollInterval = null;
+                        }
+                        return null;
+                    }
+
                     if (!response.ok) {
                         throw new Error('Failed to fetch notifications');
                     }
                     return response.json();
                 })
                 .then(function (data) {
+                    if (!data) {
+                        return;
+                    }
+
                     renderBadge(data.unread_count || 0);
                     renderItems(data.items || []);
                 })
@@ -1468,7 +1488,7 @@
             });
 
             fetchNotifications();
-            setInterval(fetchNotifications, 30000);
+            notificationsPollInterval = setInterval(fetchNotifications, 30000);
         })();
     </script>
 
