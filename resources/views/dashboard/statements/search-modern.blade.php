@@ -76,6 +76,12 @@
         border-color: rgba(148,163,184,.35);
     }
 
+    .sm-field .form-select {
+        direction: rtl;
+        background-position: left .75rem center;
+        appearance: auto;
+    }
+
     .sm-actions {
         display: flex;
         gap: 8px;
@@ -224,7 +230,7 @@
 
                 <div class="sm-field sm-col-4">
                     <label for="smFamily">العائلة</label>
-                    <select id="smFamily" name="family" class="form-control sm-dynamic-select">
+                    <select id="smFamily" name="family" class="form-select sm-dynamic-select">
                         <option value="" hidden>العائلة...</option>
                         <option value="">--</option>
                         @foreach ($relations['families'] as $family)
@@ -234,7 +240,7 @@
                 </div>
                 <div class="sm-field sm-col-4">
                     <label for="smCommittee">اللجنة</label>
-                    <select id="smCommittee" name="committee" class="form-control">
+                    <select id="smCommittee" name="committee" class="form-select">
                         <option value="">كل اللجان</option>
                         @foreach ($relations['committees'] as $com)
                             <option value="{{ $com->id }}">{{ $com->name }}</option>
@@ -243,7 +249,7 @@
                 </div>
                 <div class="sm-field sm-col-4">
                     <label for="smStatus">الحالة</label>
-                    <select id="smStatus" name="status" class="form-control">
+                    <select id="smStatus" name="status" class="form-select">
                         <option value="">الكل</option>
                         <option value="1">حضر الانتخابات</option>
                         <option value="0">لم يحضر الانتخابات</option>
@@ -252,7 +258,7 @@
 
                 <div class="sm-field sm-col-3">
                     <label for="smFakhd">الفخذ</label>
-                    <select id="smFakhd" name="elfa5z" class="form-control sm-dynamic-select">
+                    <select id="smFakhd" name="elfa5z" class="form-select sm-dynamic-select">
                         <option value="" hidden>الفخذ...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['alfkhd'] as $item)
@@ -262,7 +268,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smFaraa">الفرع</label>
-                    <select id="smFaraa" name="elfar3" class="form-control sm-dynamic-select">
+                    <select id="smFaraa" name="elfar3" class="form-select sm-dynamic-select">
                         <option value="" hidden>الفرع...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['alfraa'] as $item)
@@ -272,7 +278,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smBtn">البطن</label>
-                    <select id="smBtn" name="elbtn" class="form-control sm-dynamic-select">
+                    <select id="smBtn" name="elbtn" class="form-select sm-dynamic-select">
                         <option value="" hidden>البطن...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['albtn'] as $item)
@@ -282,7 +288,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smAlktaa">القطعة</label>
-                    <select id="smAlktaa" name="alktaa" class="form-control sm-dynamic-select">
+                    <select id="smAlktaa" name="alktaa" class="form-select sm-dynamic-select">
                         <option value="" hidden>القطعة...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['alktaa'] as $item)
@@ -292,7 +298,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smStreet">الشارع</label>
-                    <select id="smStreet" name="street" class="form-control sm-dynamic-select">
+                    <select id="smStreet" name="street" class="form-select sm-dynamic-select">
                         <option value="" hidden>الشارع...</option>
                         <option value="">--</option>
                         @foreach (App\Models\Selection::select('street')->whereNotNull('street')->distinct()->get() as $item)
@@ -302,7 +308,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smAlharaa">الجادة</label>
-                    <select id="smAlharaa" name="alharaa" class="form-control sm-dynamic-select">
+                    <select id="smAlharaa" name="alharaa" class="form-select sm-dynamic-select">
                         <option value="" hidden>الجادة...</option>
                         <option value="">--</option>
                         @foreach (App\Models\Selection::select('alharaa')->whereNotNull('alharaa')->distinct()->get() as $item)
@@ -312,7 +318,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smHome">المنزل</label>
-                    <select id="smHome" name="home" class="form-control sm-dynamic-select">
+                    <select id="smHome" name="home" class="form-select sm-dynamic-select">
                         <option value="" hidden>المنزل...</option>
                         <option value="">--</option>
                         @foreach (App\Models\Selection::select('home')->whereNotNull('home')->distinct()->get() as $item)
@@ -323,7 +329,7 @@
 
                 <div class="sm-field sm-col-3">
                     <label for="smCode1">Code 1</label>
-                    <select id="smCode1" name="cod1" class="form-control sm-dynamic-select">
+                    <select id="smCode1" name="cod1" class="form-select sm-dynamic-select">
                         <option value="" hidden>Code 1...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['cod1'] as $item)
@@ -333,7 +339,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smCode2">Code 2</label>
-                    <select id="smCode2" name="cod2" class="form-control sm-dynamic-select">
+                    <select id="smCode2" name="cod2" class="form-select sm-dynamic-select">
                         <option value="" hidden>Code 2...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['cod2'] as $item)
@@ -343,7 +349,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smCode3">Code 3</label>
-                    <select id="smCode3" name="cod3" class="form-control sm-dynamic-select">
+                    <select id="smCode3" name="cod3" class="form-select sm-dynamic-select">
                         <option value="" hidden>Code 3...</option>
                         <option value="">--</option>
                         @foreach ($selectionData['cod3'] as $item)
@@ -353,7 +359,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smType">النوع</label>
-                    <select id="smType" name="type" class="form-control">
+                    <select id="smType" name="type" class="form-select">
                         <option value="all">الكل</option>
                         <option value="ذكر">ذكر</option>
                         <option value="أنثى">أنثى</option>
@@ -362,7 +368,7 @@
 
                 <div class="sm-field sm-col-3">
                     <label for="smRestricted">حالة القيد</label>
-                    <select id="smRestricted" name="restricted" class="form-control">
+                    <select id="smRestricted" name="restricted" class="form-select">
                         <option value="">الكل</option>
                         <option value="فعال">مقيد</option>
                         <option value="غير مقيد">غير مقيد</option>
@@ -378,7 +384,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smPerPage">عدد النتائج</label>
-                    <select id="smPerPage" name="per_page" class="form-control">
+                    <select id="smPerPage" name="per_page" class="form-select">
                         <option value="50">50</option>
                         <option value="100" selected>100</option>
                         <option value="200">200</option>
@@ -387,7 +393,7 @@
                 </div>
                 <div class="sm-field sm-col-3">
                     <label for="smBigSearch">بحث موسع</label>
-                    <select id="smBigSearch" name="search" class="form-control">
+                    <select id="smBigSearch" name="search" class="form-select">
                         <option value="">بحث موسع</option>
                         <option value="1">فقط المضامين</option>
                         <option value="0">من غير المضامين</option>
