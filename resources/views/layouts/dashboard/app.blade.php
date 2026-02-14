@@ -9,6 +9,59 @@
         $uiModeServer = $uiPolicy;
     }
     $isHomepage = request()->routeIs('dashboard');
+
+    $themeValue = static function (\App\Enums\SettingKey $key, string $fallback): string {
+        $value = trim((string) setting($key->value, true));
+        return $value !== '' ? $value : $fallback;
+    };
+
+    $sanitizeColor = static function (string $value, string $fallback): string {
+        $normalized = trim($value);
+        if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $normalized)) {
+            return $normalized;
+        }
+
+        if (preg_match('/^rgba?\((?:\s*\d+\s*,){2,3}\s*(?:\d+|\d*\.\d+)\s*\)$/', $normalized)) {
+            return $normalized;
+        }
+
+        return $fallback;
+    };
+
+    $sanitizeSize = static function (string $value, string $fallback): string {
+        $normalized = trim($value);
+        return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em)$/', $normalized) ? $normalized : $fallback;
+    };
+
+    $uiThemeLight = [
+        'btn_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY, '#0ea5e9'), '#0ea5e9'),
+        'btn_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY, '#6366f1'), '#6366f1'),
+        'btn_tertiary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY, '#14b8a6'), '#14b8a6'),
+        'btn_quaternary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_QUATERNARY, '#f59e0b'), '#f59e0b'),
+        'text_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY, '#0f172a'), '#0f172a'),
+        'text_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY, '#475569'), '#475569'),
+        'bg_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BG_PRIMARY, '#ffffff'), '#ffffff'),
+        'bg_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BG_SECONDARY, '#f8fafc'), '#f8fafc'),
+    ];
+
+    $uiThemeDark = [
+        'btn_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY, '#38bdf8'), '#38bdf8'),
+        'btn_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_SECONDARY, '#818cf8'), '#818cf8'),
+        'btn_tertiary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY, '#2dd4bf'), '#2dd4bf'),
+        'btn_quaternary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_QUATERNARY, '#fbbf24'), '#fbbf24'),
+        'text_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY, '#f1f5f9'), '#f1f5f9'),
+        'text_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY, '#cbd5e1'), '#cbd5e1'),
+        'bg_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY, '#0f172a'), '#0f172a'),
+        'bg_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY, '#1e293b'), '#1e293b'),
+    ];
+
+    $uiFontScale = [
+        'xs' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_XS, '0.75rem'), '0.75rem'),
+        'sm' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_SM, '0.875rem'), '0.875rem'),
+        'base' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_BASE, '1rem'), '1rem'),
+        'lg' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_LG, '1.125rem'), '1.125rem'),
+        'xl' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_XL, '1.25rem'), '1.25rem'),
+    ];
 @endphp
 
 <html lang="{{ app()->getLocale() }}" class="ui-{{ $uiModeServer }}" data-ui-mode="{{ $uiModeServer }}">
@@ -145,6 +198,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/modern-theme-system.css') }}?v={{ filemtime(public_path('assets/css/modern-theme-system.css')) }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
         .logo {
@@ -212,19 +266,37 @@
         /* === UI Modern Palette (single source of truth) === */
         html.ui-modern,
         body.ui-modern {
-            --ui-ink: rgba(15, 23, 42, 0.92);
-            --ui-muted: rgba(71, 85, 105, 0.92);
-            --ui-surface: rgba(255, 255, 255, 0.98);
-            --ui-surface-2: rgba(255, 255, 255, 0.94);
+            --ui-ink: {{ $uiThemeLight['text_primary'] }};
+            --ui-muted: {{ $uiThemeLight['text_secondary'] }};
+            --ui-surface: {{ $uiThemeLight['bg_primary'] }};
+            --ui-surface-2: {{ $uiThemeLight['bg_secondary'] }};
             --ui-border: rgba(15, 23, 42, 0.10);
             --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.16);
 
-            --ui-accent: rgba(14, 165, 233, 0.95);
-            --ui-accent-soft: rgba(14, 165, 233, 0.12);
-            --ui-warm: rgba(245, 158, 11, 0.92);
-            --ui-warm-soft: rgba(245, 158, 11, 0.10);
+            --ui-accent: {{ $uiThemeLight['btn_primary'] }};
+            --ui-accent-soft: color-mix(in srgb, {{ $uiThemeLight['btn_primary'] }} 14%, transparent);
+            --ui-warm: {{ $uiThemeLight['btn_quaternary'] }};
+            --ui-warm-soft: color-mix(in srgb, {{ $uiThemeLight['btn_quaternary'] }} 12%, transparent);
             --ui-success: rgba(25, 135, 84, 0.95);
             --ui-danger: rgba(220, 53, 69, 0.95);
+
+            --ui-btn-primary: {{ $uiThemeLight['btn_primary'] }};
+            --ui-btn-secondary: {{ $uiThemeLight['btn_secondary'] }};
+            --ui-btn-tertiary: {{ $uiThemeLight['btn_tertiary'] }};
+            --ui-btn-quaternary: {{ $uiThemeLight['btn_quaternary'] }};
+            --ui-btn-ink: #ffffff;
+
+            --ui-text-primary: {{ $uiThemeLight['text_primary'] }};
+            --ui-text-secondary: {{ $uiThemeLight['text_secondary'] }};
+
+            --ui-bg-primary: {{ $uiThemeLight['bg_primary'] }};
+            --ui-bg-secondary: {{ $uiThemeLight['bg_secondary'] }};
+
+            --ui-fs-xs: {{ $uiFontScale['xs'] }};
+            --ui-fs-sm: {{ $uiFontScale['sm'] }};
+            --ui-fs-base: {{ $uiFontScale['base'] }};
+            --ui-fs-lg: {{ $uiFontScale['lg'] }};
+            --ui-fs-xl: {{ $uiFontScale['xl'] }};
 
             --ui-dark-1: rgba(2, 6, 23, 0.94);
             --ui-dark-2: rgba(15, 23, 42, 0.88);
@@ -233,18 +305,30 @@
 
         html.ui-modern.ui-dark,
         body.ui-modern.ui-dark {
-            --ui-ink: rgba(241, 245, 249, 0.96);
-            --ui-muted: rgba(203, 213, 225, 0.88);
-            --ui-surface: rgba(15, 23, 42, 0.94);
-            --ui-surface-2: rgba(30, 41, 59, 0.88);
+            --ui-ink: {{ $uiThemeDark['text_primary'] }};
+            --ui-muted: {{ $uiThemeDark['text_secondary'] }};
+            --ui-surface: {{ $uiThemeDark['bg_primary'] }};
+            --ui-surface-2: {{ $uiThemeDark['bg_secondary'] }};
             --ui-border: rgba(148, 163, 184, 0.28);
             --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.48);
-            --ui-accent: rgba(56, 189, 248, 0.98);
-            --ui-accent-soft: rgba(56, 189, 248, 0.16);
-            --ui-warm: rgba(251, 191, 36, 0.96);
-            --ui-warm-soft: rgba(251, 191, 36, 0.14);
+            --ui-accent: {{ $uiThemeDark['btn_primary'] }};
+            --ui-accent-soft: color-mix(in srgb, {{ $uiThemeDark['btn_primary'] }} 16%, transparent);
+            --ui-warm: {{ $uiThemeDark['btn_quaternary'] }};
+            --ui-warm-soft: color-mix(in srgb, {{ $uiThemeDark['btn_quaternary'] }} 14%, transparent);
             --ui-success: rgba(74, 222, 128, 0.95);
             --ui-danger: rgba(248, 113, 113, 0.95);
+
+            --ui-btn-primary: {{ $uiThemeDark['btn_primary'] }};
+            --ui-btn-secondary: {{ $uiThemeDark['btn_secondary'] }};
+            --ui-btn-tertiary: {{ $uiThemeDark['btn_tertiary'] }};
+            --ui-btn-quaternary: {{ $uiThemeDark['btn_quaternary'] }};
+            --ui-btn-ink: #ffffff;
+
+            --ui-text-primary: {{ $uiThemeDark['text_primary'] }};
+            --ui-text-secondary: {{ $uiThemeDark['text_secondary'] }};
+
+            --ui-bg-primary: {{ $uiThemeDark['bg_primary'] }};
+            --ui-bg-secondary: {{ $uiThemeDark['bg_secondary'] }};
             color-scheme: dark;
         }
 

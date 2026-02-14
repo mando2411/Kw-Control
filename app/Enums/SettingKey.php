@@ -23,6 +23,37 @@ enum SettingKey: string
     // Global UI policy: user_choice | modern | classic
     case UI_MODE_POLICY             = 'ui_mode_policy';
 
+    // Modern UI Theme Tokens (Light)
+    case UI_MODERN_BTN_PRIMARY      = 'ui_modern_btn_primary';
+    case UI_MODERN_BTN_SECONDARY    = 'ui_modern_btn_secondary';
+    case UI_MODERN_BTN_TERTIARY     = 'ui_modern_btn_tertiary';
+    case UI_MODERN_BTN_QUATERNARY   = 'ui_modern_btn_quaternary';
+
+    case UI_MODERN_TEXT_PRIMARY     = 'ui_modern_text_primary';
+    case UI_MODERN_TEXT_SECONDARY   = 'ui_modern_text_secondary';
+
+    case UI_MODERN_BG_PRIMARY       = 'ui_modern_bg_primary';
+    case UI_MODERN_BG_SECONDARY     = 'ui_modern_bg_secondary';
+
+    // Modern UI Theme Tokens (Dark)
+    case UI_MODERN_DARK_BTN_PRIMARY    = 'ui_modern_dark_btn_primary';
+    case UI_MODERN_DARK_BTN_SECONDARY  = 'ui_modern_dark_btn_secondary';
+    case UI_MODERN_DARK_BTN_TERTIARY   = 'ui_modern_dark_btn_tertiary';
+    case UI_MODERN_DARK_BTN_QUATERNARY = 'ui_modern_dark_btn_quaternary';
+
+    case UI_MODERN_DARK_TEXT_PRIMARY   = 'ui_modern_dark_text_primary';
+    case UI_MODERN_DARK_TEXT_SECONDARY = 'ui_modern_dark_text_secondary';
+
+    case UI_MODERN_DARK_BG_PRIMARY     = 'ui_modern_dark_bg_primary';
+    case UI_MODERN_DARK_BG_SECONDARY   = 'ui_modern_dark_bg_secondary';
+
+    // Modern UI Typography Scale
+    case UI_MODERN_FS_XS            = 'ui_modern_fs_xs';
+    case UI_MODERN_FS_SM            = 'ui_modern_fs_sm';
+    case UI_MODERN_FS_BASE          = 'ui_modern_fs_base';
+    case UI_MODERN_FS_LG            = 'ui_modern_fs_lg';
+    case UI_MODERN_FS_XL            = 'ui_modern_fs_xl';
+
 
 
 

@@ -1,0 +1,107 @@
+/* Modern Theme System
+   Scoped to ui-modern only. Legacy UI stays untouched.
+*/
+
+html.ui-modern,
+body.ui-modern {
+    --ui-heading-h1: calc(var(--ui-fs-xl) * 1.45);
+    --ui-heading-h2: calc(var(--ui-fs-xl) * 1.20);
+    --ui-heading-h3: calc(var(--ui-fs-xl) * 1.05);
+    --ui-heading-h4: var(--ui-fs-xl);
+    --ui-heading-h5: var(--ui-fs-lg);
+    --ui-heading-h6: var(--ui-fs-base);
+}
+
+html.ui-modern body,
+body.ui-modern {
+    color: var(--ui-text-primary);
+    background-color: var(--ui-bg-primary);
+    font-size: var(--ui-fs-base);
+}
+
+html.ui-modern h1,
+body.ui-modern h1 { font-size: var(--ui-heading-h1); }
+html.ui-modern h2,
+body.ui-modern h2 { font-size: var(--ui-heading-h2); }
+html.ui-modern h3,
+body.ui-modern h3 { font-size: var(--ui-heading-h3); }
+html.ui-modern h4,
+body.ui-modern h4 { font-size: var(--ui-heading-h4); }
+html.ui-modern h5,
+body.ui-modern h5 { font-size: var(--ui-heading-h5); }
+html.ui-modern h6,
+body.ui-modern h6 { font-size: var(--ui-heading-h6); }
+
+html.ui-modern .btn,
+body.ui-modern .btn {
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: var(--ui-fs-sm);
+}
+
+html.ui-modern .btn-primary,
+body.ui-modern .btn-primary,
+html.ui-modern .btn-ui-primary,
+body.ui-modern .btn-ui-primary {
+    background-color: var(--ui-btn-primary);
+    border-color: var(--ui-btn-primary);
+    color: var(--ui-btn-ink);
+}
+
+html.ui-modern .btn-secondary,
+body.ui-modern .btn-secondary,
+html.ui-modern .btn-ui-secondary,
+body.ui-modern .btn-ui-secondary {
+    background-color: var(--ui-btn-secondary);
+    border-color: var(--ui-btn-secondary);
+    color: var(--ui-btn-ink);
+}
+
+html.ui-modern .btn-ui-tertiary,
+body.ui-modern .btn-ui-tertiary,
+html.ui-modern .btn-info,
+body.ui-modern .btn-info {
+    background-color: var(--ui-btn-tertiary);
+    border-color: var(--ui-btn-tertiary);
+    color: var(--ui-btn-ink);
+}
+
+html.ui-modern .btn-ui-quaternary,
+body.ui-modern .btn-ui-quaternary,
+html.ui-modern .btn-warning,
+body.ui-modern .btn-warning {
+    background-color: var(--ui-btn-quaternary);
+    border-color: var(--ui-btn-quaternary);
+    color: #111827;
+}
+
+html.ui-modern .text-ui-primary,
+body.ui-modern .text-ui-primary {
+    color: var(--ui-text-primary) !important;
+}
+
+html.ui-modern .text-ui-secondary,
+body.ui-modern .text-ui-secondary {
+    color: var(--ui-text-secondary) !important;
+}
+
+html.ui-modern .bg-ui-primary,
+body.ui-modern .bg-ui-primary {
+    background-color: var(--ui-bg-primary) !important;
+}
+
+html.ui-modern .bg-ui-secondary,
+body.ui-modern .bg-ui-secondary {
+    background-color: var(--ui-bg-secondary) !important;
+}
+
+html.ui-modern .ui-fs-xs,
+body.ui-modern .ui-fs-xs { font-size: var(--ui-fs-xs) !important; }
+html.ui-modern .ui-fs-sm,
+body.ui-modern .ui-fs-sm { font-size: var(--ui-fs-sm) !important; }
+html.ui-modern .ui-fs-base,
+body.ui-modern .ui-fs-base { font-size: var(--ui-fs-base) !important; }
+html.ui-modern .ui-fs-lg,
+body.ui-modern .ui-fs-lg { font-size: var(--ui-fs-lg) !important; }
+html.ui-modern .ui-fs-xl,
+body.ui-modern .ui-fs-xl { font-size: var(--ui-fs-xl) !important; }

@@ -234,6 +234,41 @@
                     $policyCurrent = old(\App\Enums\SettingKey::UI_MODE_POLICY->value.'.0',
                         $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODE_POLICY->value)?->option_value[0] ?? 'user_choice');
                     $policyCurrent = in_array($policyCurrent, ['user_choice', 'modern', 'classic'], true) ? $policyCurrent : 'user_choice';
+
+                    $themeSettingValue = static function (string $key, string $fallback) use ($settings) {
+                        $value = old($key.'.0', $settings->firstWhere('option_key', $key)?->option_value[0] ?? $fallback);
+                        return is_string($value) && trim($value) !== '' ? trim($value) : $fallback;
+                    };
+
+                    $themeLightDefaults = [
+                        \App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY->value => ['label' => 'زر أساسي (Primary)', 'default' => '#0ea5e9'],
+                        \App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY->value => ['label' => 'زر ثانوي (Secondary)', 'default' => '#6366f1'],
+                        \App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY->value => ['label' => 'زر ثالث (Tertiary)', 'default' => '#14b8a6'],
+                        \App\Enums\SettingKey::UI_MODERN_BTN_QUATERNARY->value => ['label' => 'زر رابع (Quaternary)', 'default' => '#f59e0b'],
+                        \App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY->value => ['label' => 'نص أساسي', 'default' => '#0f172a'],
+                        \App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY->value => ['label' => 'نص ثانوي', 'default' => '#475569'],
+                        \App\Enums\SettingKey::UI_MODERN_BG_PRIMARY->value => ['label' => 'خلفية أساسية', 'default' => '#ffffff'],
+                        \App\Enums\SettingKey::UI_MODERN_BG_SECONDARY->value => ['label' => 'خلفية ثانوية', 'default' => '#f8fafc'],
+                    ];
+
+                    $themeDarkDefaults = [
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY->value => ['label' => 'زر أساسي (Dark)', 'default' => '#38bdf8'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BTN_SECONDARY->value => ['label' => 'زر ثانوي (Dark)', 'default' => '#818cf8'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY->value => ['label' => 'زر ثالث (Dark)', 'default' => '#2dd4bf'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BTN_QUATERNARY->value => ['label' => 'زر رابع (Dark)', 'default' => '#fbbf24'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY->value => ['label' => 'نص أساسي (Dark)', 'default' => '#f1f5f9'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY->value => ['label' => 'نص ثانوي (Dark)', 'default' => '#cbd5e1'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY->value => ['label' => 'خلفية أساسية (Dark)', 'default' => '#0f172a'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY->value => ['label' => 'خلفية ثانوية (Dark)', 'default' => '#1e293b'],
+                    ];
+
+                    $fontDefaults = [
+                        \App\Enums\SettingKey::UI_MODERN_FS_XS->value => ['label' => 'حجم XS', 'default' => '0.75rem'],
+                        \App\Enums\SettingKey::UI_MODERN_FS_SM->value => ['label' => 'حجم SM', 'default' => '0.875rem'],
+                        \App\Enums\SettingKey::UI_MODERN_FS_BASE->value => ['label' => 'الحجم الأساسي', 'default' => '1rem'],
+                        \App\Enums\SettingKey::UI_MODERN_FS_LG->value => ['label' => 'حجم LG', 'default' => '1.125rem'],
+                        \App\Enums\SettingKey::UI_MODERN_FS_XL->value => ['label' => 'حجم XL', 'default' => '1.25rem'],
+                    ];
                 @endphp
 
                 <div class="sm-card mb-3">
@@ -260,6 +295,62 @@
 
                             <div class="sm-actions">
                                 <button type="submit" class="btn btn-primary">حفظ الإعداد</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="sm-card mb-3">
+                    <div class="sm-card-h">
+                        <h5>نظام ألوان وأحجام الواجهة الحديثة</h5>
+                        <p>تحكم مركزي في ألوان الأزرار/النصوص/الخلفيات + أحجام الخطوط للـ Modern و Dark Mode.</p>
+                    </div>
+                    <div class="sm-card-b">
+                        <div class="sm-help">
+                            أدخل ألوان بصيغة <strong>#hex</strong> (مثل #0ea5e9) أو <strong>rgb/rgba</strong>، وأحجام الخط بصيغة <strong>rem</strong> أو <strong>px</strong>.
+                        </div>
+
+                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <h6 class="fw-bold mb-2">ألوان الوضع الحديث (Light)</h6>
+                                </div>
+
+                                @foreach ($themeLightDefaults as $key => $meta)
+                                    <div class="col-md-6 col-lg-3">
+                                        <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                        <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                    </div>
+                                @endforeach
+
+                                <div class="col-12 mt-2">
+                                    <h6 class="fw-bold mb-2">ألوان الوضع الداكن (Dark)</h6>
+                                </div>
+
+                                @foreach ($themeDarkDefaults as $key => $meta)
+                                    <div class="col-md-6 col-lg-3">
+                                        <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                        <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                    </div>
+                                @endforeach
+
+                                <div class="col-12 mt-2">
+                                    <h6 class="fw-bold mb-2">أحجام الخطوط (Modern)</h6>
+                                </div>
+
+                                @foreach ($fontDefaults as $key => $meta)
+                                    <div class="col-md-6 col-lg-3">
+                                        <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                        <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="sm-actions">
+                                <button type="submit" class="btn btn-primary">حفظ نظام الثيم</button>
                             </div>
                         </form>
                     </div>
