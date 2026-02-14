@@ -215,6 +215,18 @@
             color: #fff;
             padding: 0 .55rem;
         }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-modal-panels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .6rem;
+            margin-bottom: .65rem;
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-modal-panels > .Delete_names,
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-modal-panels > .Search_logs {
+            flex: 1 1 280px;
+        }
     </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -651,6 +663,47 @@
                                 </div>
                             </div>
                             <div class="text-white text-center rtl rounded-3">
+                                <div class="cm-modal-panels text-end">
+                                    <div class="Delete_names d-none">
+                                        <h5 class="cm-panel-toggle cPointer">
+                                            <span class="cm-label"><i class="fa fa-trash"></i> أسماء محذوفة</span>
+                                            <span class="cm-count" id="deletes_count">3</span>
+                                        </h5>
+
+                                        <table class="table rtl overflow-hidden rounded-3 text-center d-none">
+                                            <thead class="table-secondary border-0 border-secondary border-bottom border-2">
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th class="w150">الأسم</th>
+                                                    <th>الهاتف</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="deletes_data">
+
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+
+                                    <div class="Search_logs d-none">
+                                        <h5 class="cm-panel-toggle cPointer">
+                                            <span class="cm-label"><i class="fa fa-clock-rotate-left"></i> سجل عمليات البحث</span>
+                                            <span class="cm-count" id="log_count">0</span>
+                                        </h5>
+                                        <table class="table rtl overflow-hidden rounded-3 text-center d-none">
+                                            <thead class="table-secondary border-0 border-secondary border-bottom border-2">
+                                                <tr>
+                                                    <th class="w150">البحث</th>
+                                                    <th>الوقت</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="log_data">
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
                                 <h3 class="bg-secondary py-1">
                                     كشف المتعهد
                                     <span class="bg-dark rounded-3 fs-6 px-2 py-1 me-2">العدد<span
@@ -697,47 +750,6 @@
 
                                         </tbody>
                                     </table>
-                                </div>
-
-                                <div class="text-end">
-                                    <div class="Delete_names d-none">
-                                        <h5 class="cm-panel-toggle cPointer">
-                                            <span class="cm-label"><i class="fa fa-trash"></i> أسماء محذوفة</span>
-                                            <span class="cm-count" id="deletes_count">3</span>
-                                        </h5>
-
-                                        <table class="table rtl overflow-hidden rounded-3 text-center d-none">
-                                            <thead class="table-secondary border-0 border-secondary border-bottom border-2">
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th class="w150">الأسم</th>
-                                                    <th>الهاتف</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="deletes_data">
-
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-
-                                    <div class="Search_logs d-none">
-                                        <h5 class="cm-panel-toggle cPointer">
-                                            <span class="cm-label"><i class="fa fa-clock-rotate-left"></i> سجل عمليات البحث</span>
-                                            <span class="cm-count" id="log_count">0</span>
-                                        </h5>
-                                        <table class="table rtl overflow-hidden rounded-3 text-center d-none">
-                                            <thead class="table-secondary border-0 border-secondary border-bottom border-2">
-                                                <tr>
-                                                    <th class="w150">البحث</th>
-                                                    <th>الوقت</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="log_data">
-
-                                            </tbody>
-                                        </table>
-                                    </div>
                                 </div>
 
                             </div>
