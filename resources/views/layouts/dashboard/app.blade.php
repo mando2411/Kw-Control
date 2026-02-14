@@ -38,26 +38,156 @@
         return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em|%)$/', $normalized) ? $normalized : $fallback;
     };
 
+    $themePreset = trim((string) setting(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value, true));
+    $themePreset = in_array($themePreset, ['default', 'emerald', 'violet', 'custom'], true) ? $themePreset : 'default';
+
+    $themePresetPalettes = [
+        'default' => [
+            'light' => [
+                'btn_primary' => '#0ea5e9',
+                'btn_secondary' => '#6366f1',
+                'btn_tertiary' => '#14b8a6',
+                'btn_quaternary' => '#f59e0b',
+                'text_primary' => '#0f172a',
+                'text_secondary' => '#475569',
+                'bg_primary' => '#ffffff',
+                'bg_secondary' => '#f8fafc',
+            ],
+            'dark' => [
+                'btn_primary' => '#38bdf8',
+                'btn_secondary' => '#818cf8',
+                'btn_tertiary' => '#2dd4bf',
+                'btn_quaternary' => '#fbbf24',
+                'text_primary' => '#f1f5f9',
+                'text_secondary' => '#cbd5e1',
+                'bg_primary' => '#0f172a',
+                'bg_secondary' => '#1e293b',
+            ],
+            'surface' => [
+                'link_light' => '#0ea5e9',
+                'link_dark' => '#38bdf8',
+                'border_light' => '#dbe3ef',
+                'border_dark' => '#64748b',
+                'radius_card' => '1rem',
+                'radius_input' => '0.75rem',
+                'radius_button' => '0.75rem',
+                'space_section' => '1.25rem',
+                'space_card' => '1rem',
+                'container_max' => '1320px',
+                'shadow_level' => 'medium',
+                'home_box_bg_light' => '#f8fafc',
+                'home_box_border_light' => '#dbe3ef',
+                'home_box_bg_dark' => '#1e293b',
+                'home_box_border_dark' => '#475569',
+            ],
+        ],
+        'emerald' => [
+            'light' => [
+                'btn_primary' => '#10b981',
+                'btn_secondary' => '#0ea5a4',
+                'btn_tertiary' => '#22c55e',
+                'btn_quaternary' => '#f59e0b',
+                'text_primary' => '#052e2b',
+                'text_secondary' => '#0f766e',
+                'bg_primary' => '#ffffff',
+                'bg_secondary' => '#f0fdfa',
+            ],
+            'dark' => [
+                'btn_primary' => '#34d399',
+                'btn_secondary' => '#2dd4bf',
+                'btn_tertiary' => '#4ade80',
+                'btn_quaternary' => '#fbbf24',
+                'text_primary' => '#ecfeff',
+                'text_secondary' => '#99f6e4',
+                'bg_primary' => '#042f2e',
+                'bg_secondary' => '#134e4a',
+            ],
+            'surface' => [
+                'link_light' => '#0f766e',
+                'link_dark' => '#2dd4bf',
+                'border_light' => '#99f6e4',
+                'border_dark' => '#0f766e',
+                'radius_card' => '1rem',
+                'radius_input' => '0.75rem',
+                'radius_button' => '0.75rem',
+                'space_section' => '1.25rem',
+                'space_card' => '1rem',
+                'container_max' => '1320px',
+                'shadow_level' => 'medium',
+                'home_box_bg_light' => '#ecfdf5',
+                'home_box_border_light' => '#6ee7b7',
+                'home_box_bg_dark' => '#14532d',
+                'home_box_border_dark' => '#22c55e',
+            ],
+        ],
+        'violet' => [
+            'light' => [
+                'btn_primary' => '#8b5cf6',
+                'btn_secondary' => '#6366f1',
+                'btn_tertiary' => '#ec4899',
+                'btn_quaternary' => '#f59e0b',
+                'text_primary' => '#1f1147',
+                'text_secondary' => '#5b21b6',
+                'bg_primary' => '#ffffff',
+                'bg_secondary' => '#f5f3ff',
+            ],
+            'dark' => [
+                'btn_primary' => '#a78bfa',
+                'btn_secondary' => '#818cf8',
+                'btn_tertiary' => '#f472b6',
+                'btn_quaternary' => '#fbbf24',
+                'text_primary' => '#f5f3ff',
+                'text_secondary' => '#ddd6fe',
+                'bg_primary' => '#1e1b4b',
+                'bg_secondary' => '#312e81',
+            ],
+            'surface' => [
+                'link_light' => '#7c3aed',
+                'link_dark' => '#a78bfa',
+                'border_light' => '#ddd6fe',
+                'border_dark' => '#7c3aed',
+                'radius_card' => '1rem',
+                'radius_input' => '0.75rem',
+                'radius_button' => '0.75rem',
+                'space_section' => '1.25rem',
+                'space_card' => '1rem',
+                'container_max' => '1320px',
+                'shadow_level' => 'medium',
+                'home_box_bg_light' => '#f5f3ff',
+                'home_box_border_light' => '#c4b5fd',
+                'home_box_bg_dark' => '#312e81',
+                'home_box_border_dark' => '#8b5cf6',
+            ],
+        ],
+    ];
+
+    $activePreset = $themePresetPalettes[$themePreset === 'custom' ? 'default' : $themePreset];
+
+    $resolveThemeValue = static function (\App\Enums\SettingKey $key, string $presetValue, callable $sanitize) use ($themePreset, $themeValue) {
+        $value = $themePreset === 'custom' ? $themeValue($key, $presetValue) : $presetValue;
+        return $sanitize($value, $presetValue);
+    };
+
     $uiThemeLight = [
-        'btn_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY, '#0ea5e9'), '#0ea5e9'),
-        'btn_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY, '#6366f1'), '#6366f1'),
-        'btn_tertiary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY, '#14b8a6'), '#14b8a6'),
-        'btn_quaternary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_QUATERNARY, '#f59e0b'), '#f59e0b'),
-        'text_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY, '#0f172a'), '#0f172a'),
-        'text_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY, '#475569'), '#475569'),
-        'bg_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BG_PRIMARY, '#ffffff'), '#ffffff'),
-        'bg_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BG_SECONDARY, '#f8fafc'), '#f8fafc'),
+        'btn_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY, $activePreset['light']['btn_primary'], $sanitizeColor),
+        'btn_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY, $activePreset['light']['btn_secondary'], $sanitizeColor),
+        'btn_tertiary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY, $activePreset['light']['btn_tertiary'], $sanitizeColor),
+        'btn_quaternary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_QUATERNARY, $activePreset['light']['btn_quaternary'], $sanitizeColor),
+        'text_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY, $activePreset['light']['text_primary'], $sanitizeColor),
+        'text_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY, $activePreset['light']['text_secondary'], $sanitizeColor),
+        'bg_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BG_PRIMARY, $activePreset['light']['bg_primary'], $sanitizeColor),
+        'bg_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BG_SECONDARY, $activePreset['light']['bg_secondary'], $sanitizeColor),
     ];
 
     $uiThemeDark = [
-        'btn_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY, '#38bdf8'), '#38bdf8'),
-        'btn_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_SECONDARY, '#818cf8'), '#818cf8'),
-        'btn_tertiary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY, '#2dd4bf'), '#2dd4bf'),
-        'btn_quaternary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_QUATERNARY, '#fbbf24'), '#fbbf24'),
-        'text_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY, '#f1f5f9'), '#f1f5f9'),
-        'text_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY, '#cbd5e1'), '#cbd5e1'),
-        'bg_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY, '#0f172a'), '#0f172a'),
-        'bg_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY, '#1e293b'), '#1e293b'),
+        'btn_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY, $activePreset['dark']['btn_primary'], $sanitizeColor),
+        'btn_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_SECONDARY, $activePreset['dark']['btn_secondary'], $sanitizeColor),
+        'btn_tertiary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY, $activePreset['dark']['btn_tertiary'], $sanitizeColor),
+        'btn_quaternary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_QUATERNARY, $activePreset['dark']['btn_quaternary'], $sanitizeColor),
+        'text_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY, $activePreset['dark']['text_primary'], $sanitizeColor),
+        'text_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY, $activePreset['dark']['text_secondary'], $sanitizeColor),
+        'bg_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY, $activePreset['dark']['bg_primary'], $sanitizeColor),
+        'bg_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY, $activePreset['dark']['bg_secondary'], $sanitizeColor),
     ];
 
     $uiFontScale = [
@@ -74,20 +204,26 @@
         'strong' => '0 28px 65px rgba(2, 6, 23, 0.20)',
     ];
 
-    $uiShadowLevel = trim((string) $themeValue(\App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL, 'medium'));
+    $uiShadowLevel = $themePreset === 'custom'
+        ? trim((string) $themeValue(\App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL, $activePreset['surface']['shadow_level']))
+        : $activePreset['surface']['shadow_level'];
     $uiShadowLevel = array_key_exists($uiShadowLevel, $uiShadowMap) ? $uiShadowLevel : 'medium';
 
     $uiModernSurface = [
-        'link_light' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_LINK_COLOR, '#0ea5e9'), '#0ea5e9'),
-        'link_dark' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR, '#38bdf8'), '#38bdf8'),
-        'border_light' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BORDER_COLOR, '#dbe3ef'), '#dbe3ef'),
-        'border_dark' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR, '#64748b'), '#64748b'),
-        'radius_card' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_CARD, '1rem'), '1rem'),
-        'radius_input' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT, '0.75rem'), '0.75rem'),
-        'radius_button' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON, '0.75rem'), '0.75rem'),
-        'space_section' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_SECTION, '1.25rem'), '1.25rem'),
-        'space_card' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_CARD, '1rem'), '1rem'),
-        'container_max' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX, '1320px'), '1320px'),
+        'link_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_LINK_COLOR, $activePreset['surface']['link_light'], $sanitizeColor),
+        'link_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR, $activePreset['surface']['link_dark'], $sanitizeColor),
+        'border_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BORDER_COLOR, $activePreset['surface']['border_light'], $sanitizeColor),
+        'border_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR, $activePreset['surface']['border_dark'], $sanitizeColor),
+        'radius_card' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_CARD, $activePreset['surface']['radius_card'], $sanitizeLengthOrPercent),
+        'radius_input' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT, $activePreset['surface']['radius_input'], $sanitizeLengthOrPercent),
+        'radius_button' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON, $activePreset['surface']['radius_button'], $sanitizeLengthOrPercent),
+        'space_section' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_SECTION, $activePreset['surface']['space_section'], $sanitizeLengthOrPercent),
+        'space_card' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_CARD, $activePreset['surface']['space_card'], $sanitizeLengthOrPercent),
+        'container_max' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX, $activePreset['surface']['container_max'], $sanitizeLengthOrPercent),
+        'home_box_bg_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG, $activePreset['surface']['home_box_bg_light'], $sanitizeColor),
+        'home_box_border_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER, $activePreset['surface']['home_box_border_light'], $sanitizeColor),
+        'home_box_bg_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG, $activePreset['surface']['home_box_bg_dark'], $sanitizeColor),
+        'home_box_border_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER, $activePreset['surface']['home_box_border_dark'], $sanitizeColor),
         'shadow' => $uiShadowMap[$uiShadowLevel],
     ];
 @endphp

@@ -23,6 +23,9 @@ enum SettingKey: string
     // Global UI policy: user_choice | modern | classic
     case UI_MODE_POLICY             = 'ui_mode_policy';
 
+    // Modern UI Theme Preset: default | emerald | violet | custom
+    case UI_MODERN_THEME_PRESET     = 'ui_modern_theme_preset';
+
     // Modern UI Theme Tokens (Light)
     case UI_MODERN_BTN_PRIMARY      = 'ui_modern_btn_primary';
     case UI_MODERN_BTN_SECONDARY    = 'ui_modern_btn_secondary';
@@ -68,6 +71,12 @@ enum SettingKey: string
     case UI_MODERN_SPACE_SECTION    = 'ui_modern_space_section';
     case UI_MODERN_SPACE_CARD       = 'ui_modern_space_card';
     case UI_MODERN_CONTAINER_MAX    = 'ui_modern_container_max';
+
+    // Modern Homepage box tones
+    case UI_MODERN_HOME_BOX_BG      = 'ui_modern_home_box_bg';
+    case UI_MODERN_HOME_BOX_BORDER  = 'ui_modern_home_box_border';
+    case UI_MODERN_DARK_HOME_BOX_BG = 'ui_modern_dark_home_box_bg';
+    case UI_MODERN_DARK_HOME_BOX_BORDER = 'ui_modern_dark_home_box_border';
 
 
 
