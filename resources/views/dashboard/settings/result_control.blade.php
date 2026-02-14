@@ -235,6 +235,10 @@
                         $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODE_POLICY->value)?->option_value[0] ?? 'user_choice');
                     $policyCurrent = in_array($policyCurrent, ['user_choice', 'modern', 'classic'], true) ? $policyCurrent : 'user_choice';
 
+                    $themePresetCurrent = old(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value.'.0',
+                        $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value)?->option_value[0] ?? 'default');
+                    $themePresetCurrent = in_array($themePresetCurrent, ['default', 'emerald', 'violet', 'custom'], true) ? $themePresetCurrent : 'default';
+
                     $themeSettingValue = static function (string $key, string $fallback) use ($settings) {
                         $value = old($key.'.0', $settings->firstWhere('option_key', $key)?->option_value[0] ?? $fallback);
                         return is_string($value) && trim($value) !== '' ? trim($value) : $fallback;
@@ -289,6 +293,10 @@
                         \App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR->value => ['label' => 'لون الروابط (Dark)', 'default' => '#38bdf8', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_BORDER_COLOR->value => ['label' => 'لون الحدود (Light)', 'default' => '#dbe3ef', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR->value => ['label' => 'لون الحدود (Dark)', 'default' => '#64748b', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG->value => ['label' => 'خلفية بوكسات الرئيسية (Light)', 'default' => '#f8fafc', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER->value => ['label' => 'حدود بوكسات الرئيسية (Light)', 'default' => '#dbe3ef', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG->value => ['label' => 'خلفية بوكسات الرئيسية (Dark)', 'default' => '#1e293b', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER->value => ['label' => 'حدود بوكسات الرئيسية (Dark)', 'default' => '#475569', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_RADIUS_CARD->value => ['label' => 'استدارة الكروت', 'default' => '1rem', 'type' => 'size'],
                         \App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT->value => ['label' => 'استدارة المدخلات', 'default' => '0.75rem', 'type' => 'size'],
                         \App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON->value => ['label' => 'استدارة الأزرار', 'default' => '0.75rem', 'type' => 'size'],
@@ -330,8 +338,33 @@
 
                 <div class="sm-card mb-3">
                     <div class="sm-card-h">
-                        <h5>نظام ألوان وأحجام الواجهة الحديثة</h5>
-                        <p>تحكم مركزي في ألوان الأزرار/النصوص/الخلفيات + أحجام الخطوط للـ Modern و Dark Mode.</p>
+                        <h5>نظام الثيمات</h5>
+                        <p>اختر ثيم جاهز متناسق (Light + Dark) أو اختر Custom لتفعيل الإعدادات اليدوية بالأسفل.</p>
+                    </div>
+                    <div class="sm-card-b">
+                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+
+                            <label class="form-label fw-bold">الثيم الحالي</label>
+                            <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value }}[]" id="ui_modern_theme_preset">
+                                <option value="default" @selected($themePresetCurrent === 'default')>Default (الثيم الأصلي)</option>
+                                <option value="emerald" @selected($themePresetCurrent === 'emerald')>Emerald (أخضر/تركواز متناسق)</option>
+                                <option value="violet" @selected($themePresetCurrent === 'violet')>Violet (بنفسجي/وردي متناسق)</option>
+                                <option value="custom" @selected($themePresetCurrent === 'custom')>Custom (يدوي)</option>
+                            </select>
+
+                            <div class="sm-actions">
+                                <button type="submit" class="btn btn-primary">تطبيق الثيم</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="sm-card mb-3">
+                    <div class="sm-card-h">
+                        <h5>الوضع Custom (تخصيص يدوي)</h5>
+                        <p>هذه الإعدادات تعمل عند اختيار Custom من نظام الثيمات، وتشمل ألوان الواجهة + بوكسات الرئيسية + الخطوط والتخطيط.</p>
                     </div>
                     <div class="sm-card-b">
                         <div class="sm-help">

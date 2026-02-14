@@ -18,6 +18,13 @@
   --hm-warm: var(--ui-warm, rgba(245, 158, 11, 0.92));
   --hm-warm-soft: var(--ui-warm-soft, rgba(245, 158, 11, 0.10));
   --hm-success: var(--ui-success, rgba(25, 135, 84, 0.95));
+  --hm-hero-start: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 24%, #020617);
+  --hm-hero-mid: color-mix(in srgb, var(--ui-btn-secondary, #6366f1) 20%, #0f172a);
+  --hm-hero-end: color-mix(in srgb, var(--ui-btn-tertiary, #14b8a6) 18%, #020617);
+  --hm-hero-text: color-mix(in srgb, var(--ui-text-primary, #0f172a) 8%, #ffffff);
+  --hm-box-bg: var(--ui-home-box-bg, #f8fafc);
+  --hm-box-border: var(--ui-home-box-border, #dbe3ef);
+  --hm-box-shadow: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 12%, rgba(2, 6, 23, 0.20));
 }
 
 .home-modern-mode .hm-shell {
@@ -32,8 +39,8 @@
 .home-modern-mode .hm-hero {
   border-radius: 1.25rem;
   padding: 1.5rem 1.5rem;
-  background: linear-gradient(135deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.92) 50%, rgba(2, 6, 23, 0.98));
-  color: rgba(248, 250, 252, 0.96);
+  background: linear-gradient(135deg, var(--hm-hero-start), var(--hm-hero-mid) 50%, var(--hm-hero-end));
+  color: var(--hm-hero-text);
   overflow: hidden;
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.10);
@@ -156,9 +163,9 @@
 .home-modern-mode .hm-hero-mini-row .hm-section-mini {
   position: relative;
   border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.16), rgba(148, 163, 184, 0.09));
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.2);
+  border: 1px solid color-mix(in srgb, var(--hm-box-border) 60%, #ffffff);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--hm-box-bg) 92%, #ffffff), color-mix(in srgb, var(--hm-box-bg) 72%, var(--ui-bg-secondary, #0f172a)));
+  box-shadow: 0 10px 24px var(--hm-box-shadow);
   transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
 }
 
@@ -260,9 +267,9 @@
   gap: 0.3rem;
   padding: 0.9rem 0.95rem;
   border-radius: 1.05rem;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.08);
+  background: color-mix(in srgb, var(--hm-box-bg) 90%, #ffffff);
+  border: 1px solid var(--hm-box-border);
+  box-shadow: 0 14px 30px color-mix(in srgb, var(--hm-box-shadow) 55%, transparent);
   text-decoration: none;
   color: var(--hm-ink);
   position: relative;
@@ -341,9 +348,9 @@
   overflow: hidden;
   border-radius: 1.1rem;
   padding: 0.95rem;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 249, 0.92));
-  box-shadow: 0 14px 28px rgba(2, 6, 23, 0.09);
+  border: 1px solid var(--hm-box-border);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--hm-box-bg) 90%, #ffffff), color-mix(in srgb, var(--hm-box-bg) 70%, var(--ui-bg-secondary, #e2e8f0)));
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--hm-box-shadow) 55%, transparent);
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 

@@ -457,6 +457,8 @@
             --ui-bg-secondary: {{ $uiThemeLight['bg_secondary'] }};
 
             --ui-link: {{ $uiModernSurface['link_light'] }};
+            --ui-home-box-bg: {{ $uiModernSurface['home_box_bg_light'] }};
+            --ui-home-box-border: {{ $uiModernSurface['home_box_border_light'] }};
             --ui-radius-card: {{ $uiModernSurface['radius_card'] }};
             --ui-radius-input: {{ $uiModernSurface['radius_input'] }};
             --ui-radius-button: {{ $uiModernSurface['radius_button'] }};
@@ -503,6 +505,8 @@
             --ui-bg-secondary: {{ $uiThemeDark['bg_secondary'] }};
 
             --ui-link: {{ $uiModernSurface['link_dark'] }};
+            --ui-home-box-bg: {{ $uiModernSurface['home_box_bg_dark'] }};
+            --ui-home-box-border: {{ $uiModernSurface['home_box_border_dark'] }};
             color-scheme: dark;
         }
 
