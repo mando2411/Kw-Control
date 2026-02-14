@@ -605,6 +605,14 @@
 @endsection
 @push('js')
     <script>
+        if (!window.jQuery) {
+            console.warn('jQuery غير متاح حالياً، تم تخطي ربط addMota3ahed مؤقتاً.');
+        }
+    </script>
+    <script>
+        if (!window.jQuery) {
+            // skip to prevent runtime errors when assets fail to load
+        } else {
         let url
         $("#addMota3ahed").on('change', function() {
             console.log($("#addMota3ahed").val());
@@ -616,6 +624,7 @@
 
             $("#form-attach").attr("action", url)
         })
+        }
     </script>
 
     <script>
@@ -1113,11 +1122,12 @@
         })();
     </script>
     <script>
-
-        $(".Sort_Btn").on('click',function(){
-            $('.all').addClass('d-none');
-            $('.'+$(this).find('input').val()).removeClass('d-none')
-        })
+        if (window.jQuery) {
+            $(".Sort_Btn").on('click',function(){
+                $('.all').addClass('d-none');
+                $('.'+$(this).find('input').val()).removeClass('d-none')
+            });
+        }
     </script>
 
 
