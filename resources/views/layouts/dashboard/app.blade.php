@@ -142,8 +142,8 @@
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <!-- App css-->
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}" onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css';">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css';">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/style.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
@@ -1623,17 +1623,7 @@
     <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min/snippets/css.js"></script>
     <script src="{{ asset('assets/admin/js/ace/ext-language_tools.js') }}"></script>
     <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
-    <script>
-        if (!window.bootstrap) {
-            document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"><\\/script>');
-        }
-    </script>
     <script src="{{ asset('assets/admin/js/jquery-3.7.1.min.js') }}"></script>
-    <script>
-        if (!window.jQuery) {
-            document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\\/script>');
-        }
-    </script>
     <script src="{{ asset('assets/admin/js/jquery.easing.1.3.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ asset('assets/admin/js/main.js') }}?v={{ filemtime(public_path('assets/admin/js/main.js')) }}"></script>
