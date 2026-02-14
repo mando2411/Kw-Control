@@ -114,12 +114,12 @@
             </div>
 
             <!-- Modal foundedNow-->
-            <div class="modal modal-md rtl" id="foundedNow" tabindex="-1" aria-labelledby="exampleModalLabel"
+            <div class="modal modal-md rtl" id="foundedNow" tabindex="-1" aria-labelledby="foundedNowLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            <h1 class="modal-title fs-5" id="foundedNowLabel">
                                 بيانات المتعهد
                             </h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -151,12 +151,12 @@
             </div>
 
             <!-- Modal Mota3ahdeenList-->
-            <div class="modal modal-md rtl" id="Mota3ahdeenList" tabindex="-1" aria-labelledby="exampleModalLabel"
+            <div class="modal modal-md rtl" id="Mota3ahdeenList" tabindex="-1" aria-labelledby="mota3ahdeenListLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            <h1 class="modal-title fs-5" id="mota3ahdeenListLabel">
                                 بيانات المتعهد
                             </h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
@@ -261,8 +261,8 @@
                                 <td>
                                     <input type="checkbox" class="check" name="madameenNameChecked" />
                                 </td>
-                                <input type="hidden" id="conUrl" data-url="{{ route('con-profile', $i->token) }}">
-                                <td class="d-none" id="user_id">{{ $i->id }}</td>
+                                <input type="hidden" class="js-contractor-url" data-url="{{ route('con-profile', $i->token) }}">
+                                <td class="d-none js-contractor-id">{{ $i->id }}</td>
                                 <td data-bs-toggle="modal" data-bs-target="#mota3ahdeenDataModern" class="contractor-open-cell">
                                     {{ $i->name }}
                                 </td>
@@ -281,12 +281,12 @@
             </div>
 
             <!-- Modal madameenName-->
-            <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="-1" aria-labelledby="exampleModalLabel"
+            <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="-1" aria-labelledby="mota3ahdeenDataModernLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            <h1 class="modal-title fs-5" id="mota3ahdeenDataModernLabel">
                                 بيانات المتعهد
                             </h1>
                             <div id="contractorModalStatus" class="cm-modal-status" aria-live="polite"></div>
@@ -622,8 +622,12 @@
     <script>
         (function () {
             if (!window.jQuery || !window.axios) return;
+            if (window.__contractorsModernPageInit) return;
+            window.__contractorsModernPageInit = true;
 
             var $ = window.jQuery;
+            var pageRoot = document.querySelector('.contractors-modern-page');
+            if (!pageRoot) return;
             var modalEl = document.getElementById('mota3ahdeenDataModern');
             if (!modalEl) return;
 
@@ -842,8 +846,8 @@
             $(document).off('click.contractorOpen', 'td[data-bs-target="#mota3ahdeenDataModern"]');
             $(document).on('click.contractorOpen', 'td[data-bs-target="#mota3ahdeenDataModern"]', function () {
                 var row = $(this).closest('tr');
-                var contractorId = row.data('contractor-id') || $.trim(row.find('#user_id').text());
-                var contractorUrl = row.data('contractor-url') || (row.find('#conUrl').data('url') || '');
+                var contractorId = row.data('contractor-id') || $.trim(row.find('.js-contractor-id').text());
+                var contractorUrl = row.data('contractor-url') || (row.find('.js-contractor-url').data('url') || '');
 
                 if (contractorId) {
                     rowCache[String(contractorId)] = row;
@@ -888,8 +892,12 @@
                             rowCache[key].remove();
                         }
 
-                        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                        modal.hide();
+                        if (window.bootstrap && window.bootstrap.Modal && window.bootstrap.Modal.getOrCreateInstance) {
+                            var modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+                            modal.hide();
+                        } else if (window.jQuery && typeof window.jQuery(modalEl).modal === 'function') {
+                            window.jQuery(modalEl).modal('hide');
+                        }
                         showStatus('تم الحذف بنجاح', 'success');
                         if (window.toastr) toastr.success('تم حذف المتعهد بنجاح');
                     })
@@ -976,23 +984,7 @@
 
                     selectedVoterIdsCache = getSelectedVoterIdsForExport();
                 });
-
-                exportModalElement.addEventListener('hidden.bs.modal', function () {
-                    document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
-                });
             }
-
-            document.addEventListener('click', function (event) {
-                var closeTrigger = event.target.closest('#smExportCloseBtn, #smExportModal .btn-close, #smExportModal [data-bs-dismiss="modal"]');
-                if (!closeTrigger) return;
-
-                event.preventDefault();
-                event.stopPropagation();
-                if (typeof event.stopImmediatePropagation === 'function') {
-                    event.stopImmediatePropagation();
-                }
-                closeExportModal();
-            }, true);
 
             $(document).off('click.contractorExportAction', '.sm-export-action').on('click.contractorExportAction', '.sm-export-action', function () {
                 if (!exportForm || !exportType) return;
@@ -1100,8 +1092,8 @@
     <script>
 
         $(".Sort_Btn").on('click',function(){
-            $('.all').addClass('d-none');
-            $('.'+$(this).find('input').val()).removeClass('d-none')
+            $('#myTable tbody tr.all').addClass('d-none');
+            $('#myTable tbody tr.'+$(this).find('input').val()).removeClass('d-none')
         })
     </script>
 
@@ -1152,19 +1144,22 @@
 
     
         // Search Functionality
-        document.getElementById("searchBox").addEventListener("input", function () {
-            const query = this.value.toLowerCase();
-            const rows = document.querySelectorAll("#myTable tbody tr");
+        const searchBox = document.getElementById("searchBox");
+        if (searchBox) {
+            searchBox.addEventListener("input", function () {
+                const query = this.value.toLowerCase();
+                const rows = document.querySelectorAll("#myTable tbody tr");
 
-            rows.forEach(row => {
-                const cells = Array.from(row.cells);
-                const matches = cells.some(cell =>
-                    cell.innerText.toLowerCase().includes(query)
-                );
+                rows.forEach(row => {
+                    const cells = Array.from(row.cells);
+                    const matches = cells.some(cell =>
+                        cell.innerText.toLowerCase().includes(query)
+                    );
 
-                row.style.display = matches ? "" : "none";
+                    row.style.display = matches ? "" : "none";
+                });
             });
-        });
+        }
 
 
 

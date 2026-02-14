@@ -136,7 +136,7 @@ body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-content {
     box-shadow: 0 18px 40px rgba(2, 6, 23, 0.14);
 }
 
-#mota3ahdeenDataModern .modal-dialog {
+body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-dialog {
     margin: 1.75rem auto !important;
 }
 
