@@ -1,20 +1,14 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لا توجد انتخابات</title>
-    @vite(['resources/css/app.css'])
-</head>
-<body class="bg-light">
-    <div class="container py-5">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <h3 class="mb-3">لا توجد انتخابات مفعّلة</h3>
-                <p class="text-muted mb-4">يرجى التواصل مع المسؤول لتفعيل انتخابات مرتبطة بحسابك قبل المتابعة.</p>
-                <a href="{{ url('/') }}" class="btn btn-primary">العودة للرئيسية</a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+@extends('layouts.app')
+
+@section('content')
+<div class="container text-center py-5 rtl">
+    <h2 class="mb-3">غير مسموح بالدخول</h2>
+    <p class="text-muted fs-5">
+        أنت لست تابعًا لأي حملة انتخابية حاليًا.
+    </p>
+
+    <a href="{{ route('dashboard') }}" class="btn btn-primary mt-3">
+        العودة للرئيسية
+    </a>
+</div>
+@endsection

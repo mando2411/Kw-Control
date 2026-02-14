@@ -71,7 +71,7 @@
                         </div>
                         <div class="hm-kpi hm-kpi-days">
                             <div class="value" id="hmDays">0</div>
-                            <div class="label">يوم اختبار</div>
+                            <div class="label">يوم</div>
 
 
                             
