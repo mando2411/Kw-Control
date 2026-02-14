@@ -55,20 +55,20 @@
 
                     <div class="hm-kpi-grid">
                         <div class="hm-kpi">
-                            <div class="value" id="hmDays">0</div>
-                            <div class="label">يوم</div>
-                        </div>
-                        <div class="hm-kpi">
-                            <div class="value" id="hmHours">0</div>
-                            <div class="label">ساعة</div>
+                            <div class="value" id="hmSeconds">0</div>
+                            <div class="label">ثانية</div>
                         </div>
                         <div class="hm-kpi">
                             <div class="value" id="hmMinutes">0</div>
                             <div class="label">دقيقة</div>
                         </div>
                         <div class="hm-kpi">
-                            <div class="value" id="hmSeconds">0</div>
-                            <div class="label">ثانية</div>
+                            <div class="value" id="hmHours">0</div>
+                            <div class="label">ساعة</div>
+                        </div>
+                        <div class="hm-kpi">
+                            <div class="value" id="hmDays">0</div>
+                            <div class="label">يوم</div>
                         </div>
                     </div>
 

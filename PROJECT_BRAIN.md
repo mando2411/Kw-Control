@@ -1,5 +1,8 @@
 Project Brain - Technical Documentation
 
+Working Preference (Owner)
+- All requested UI/UX changes should be implemented on the modern style (ui_mode = modern) by default unless explicitly stated otherwise.
+
 System Overview
 - Laravel MVC application for managing elections, candidates, voters, contractors, committees, representatives, and reporting.
 - Core features live under a secured dashboard route group with role/permission gating and activity logging.
