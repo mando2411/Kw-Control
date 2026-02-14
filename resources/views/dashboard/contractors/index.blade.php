@@ -118,6 +118,51 @@
                 border-radius: 0.85rem;
             }
         }
+
+        body.ui-modern .contractors-modern-page .cm-modal-status {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: .82rem;
+            border-radius: 999px;
+            padding: .28rem .62rem;
+            background: rgba(14, 165, 233, 0.10);
+            color: rgba(3, 105, 161, .95);
+            border: 1px solid rgba(14, 165, 233, 0.24);
+            opacity: 0;
+            transform: translateY(-2px);
+            transition: opacity .2s ease, transform .2s ease;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-modal-status.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-content {
+            border-radius: 1rem;
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.14);
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-header {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(59, 130, 246, 0.10));
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern [data-bs-target="edit-mot"],
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern #trustingRate {
+            transition: box-shadow .18s ease, border-color .18s ease;
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern [data-bs-target="edit-mot"]:focus,
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern #trustingRate:focus {
+            box-shadow: 0 0 0 .2rem rgba(14, 165, 233, .16);
+            border-color: rgba(14, 165, 233, .45);
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern #trustingRate {
+            accent-color: #0ea5e9;
+        }
     </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -371,13 +416,15 @@
                                 table-warning
                                     {{App\Enums\ConType::Pending->value}}
                                 @endif
-                                ">
+                                "
+                                data-contractor-id="{{ $i->id }}"
+                                data-contractor-url="{{ route('con-profile', $i->token) }}">
                                 <td>
                                     <input type="checkbox" class="check" name="madameenNameChecked" />
                                 </td>
                                 <input type="hidden" id="conUrl" data-url="{{ route('con-profile', $i->token) }}">
                                 <td class="d-none" id="user_id">{{ $i->id }}</td>
-                                <td data-bs-toggle="modal" data-bs-target="#mota3ahdeenData">
+                                <td data-bs-toggle="modal" data-bs-target="#mota3ahdeenDataModern" class="contractor-open-cell">
                                     {{ $i->name }}
                                 </td>
                                 <td>{{ $i->phone }}</td>
@@ -395,7 +442,7 @@
             </div>
 
             <!-- Modal madameenName-->
-            <div class="modal modal-lg rtl" id="mota3ahdeenData" tabindex="-1" aria-labelledby="exampleModalLabel"
+            <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="-1" aria-labelledby="exampleModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-scrollable">
                     <div class="modal-content">
@@ -403,6 +450,7 @@
                             <h1 class="modal-title fs-5" id="exampleModalLabel">
                                 بيانات المتعهد
                             </h1>
+                            <div id="contractorModalStatus" class="cm-modal-status" aria-live="polite"></div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                         </div>
@@ -571,7 +619,7 @@
                                                 <option value="{{ $i->id }}">{{ $i->name }}</option>
                                             @endforeach
                                         </select>
-                                        <button class="btn btn-primary px-3" id="all_voters">تنفيذ</button>
+                                        <button class="btn btn-primary px-3" id="all_voters_modern">تنفيذ</button>
 
                                     </div>
                                 </form>
@@ -842,6 +890,261 @@
 
             $("#form-attach").attr("action", url)
         })
+    </script>
+
+    <script>
+        (function () {
+            if (!window.jQuery || !window.axios) return;
+
+            var $ = window.jQuery;
+            var modalEl = document.getElementById('mota3ahdeenDataModern');
+            if (!modalEl) return;
+
+            var modalStatus = document.getElementById('contractorModalStatus');
+            var currentContractorId = null;
+            var currentContractorUrl = '';
+            var trustDebounce = null;
+            var rowCache = {};
+
+            function showStatus(message, tone) {
+                if (!modalStatus) return;
+                modalStatus.textContent = message || '';
+                modalStatus.classList.add('is-visible');
+
+                modalStatus.style.background = tone === 'error'
+                    ? 'rgba(239, 68, 68, 0.12)'
+                    : tone === 'success'
+                        ? 'rgba(16, 185, 129, 0.12)'
+                        : 'rgba(14, 165, 233, 0.10)';
+
+                modalStatus.style.borderColor = tone === 'error'
+                    ? 'rgba(239, 68, 68, 0.30)'
+                    : tone === 'success'
+                        ? 'rgba(16, 185, 129, 0.30)'
+                        : 'rgba(14, 165, 233, 0.24)';
+
+                modalStatus.style.color = tone === 'error'
+                    ? 'rgba(153, 27, 27, 0.95)'
+                    : tone === 'success'
+                        ? 'rgba(6, 95, 70, 0.95)'
+                        : 'rgba(3, 105, 161, 0.95)';
+            }
+
+            function clearStatus(delay) {
+                setTimeout(function () {
+                    if (!modalStatus) return;
+                    modalStatus.classList.remove('is-visible');
+                }, delay || 900);
+            }
+
+            function renderModal(response) {
+                var user = response.data.user;
+                var voters = user.voters || [];
+                var softDelete = user.softDelete || [];
+                var logs = user.logs || [];
+
+                $('#last_id').val(user.id);
+                $('#nameMota3ahed').val(user.name || '');
+                $('#phoneMota3ahed').val(user.phone || '');
+                $('#trustingRate').val(user.trust || 0);
+                $('#trustText').text(user.trust || 0);
+                $('#noteMota3ahed').val(user.note || '');
+                $('#changparent_id').val(user.parent || '');
+                $('#delete-con').val(user.id || '');
+                $('#voters_numberss').text(' ' + voters.length + ' ');
+                $('#deletes_count').text(' ' + softDelete.length + ' ');
+                $('#log_count').text(' ' + logs.length + ' ');
+
+                $('.Delete_names').toggleClass('d-none', softDelete.length === 0);
+                $('.Search_logs').toggleClass('d-none', logs.length === 0);
+
+                $('#moltazem').prop('checked', user.status == 1);
+                $('#follow').prop('checked', user.status != 1);
+
+                $('#moltazem-l').toggleClass('btn-success', user.status == 1).toggleClass('btn-outline-success', user.status != 1);
+                $('#follow-l').toggleClass('btn-warning', user.status != 1).toggleClass('btn-outline-warning', user.status == 1);
+
+                $('#con-url').text(currentContractorUrl || '');
+                $('#RedirectLink').attr('href', currentContractorUrl || '#');
+
+                var phoneNumber = Number(String(user.phone || '').replace(/\s+/g, '')) || '';
+                $('#phone_wa').val(phoneNumber);
+                var candidateLine = (user.creator || '') + ': اخوكم المرشح';
+                var message = ($('#message').val() || '') + candidateLine;
+
+                function bindWhatsapp(phone) {
+                    document.getElementById('whatsapp-link').href = 'https://wa.me/965' + phone + '?text=' + encodeURIComponent(message) + '%0A%0A' + encodeURIComponent(currentContractorUrl || '');
+                }
+                bindWhatsapp(phoneNumber);
+
+                var votersHtml = '';
+                voters.forEach(function (voter, idx) {
+                    var status = '';
+                    if (voter.status === true || voter.status === 1) {
+                        var updatedAt = new Date(voter.updated_at);
+                        var formattedDate = updatedAt.toLocaleDateString('en-GB') + ' ' + updatedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                        status = '<span><i class="fa fa-check-square text-success ms-1"></i>تم التصويت </span><span>' + formattedDate + '</span>';
+                    }
+
+                    votersHtml += '<tr>' +
+                        '<td><input type="checkbox" class="check" name="voter[]" value="' + voter.id + '" /></td>' +
+                        '<td>' + (idx + 1) + '</td>' +
+                        '<td>' + (voter.name || '') + '</td>' +
+                        '<td>' + ((voter.pivot && voter.pivot.percentage) ? voter.pivot.percentage : 0) + '%</td>' +
+                        '<td>' + (voter.phone1 || '') + '</td>' +
+                        '<td>' + status + '</td>' +
+                        '</tr>';
+                });
+                document.getElementById('voters_con').innerHTML = votersHtml;
+
+                var deletedHtml = '';
+                softDelete.forEach(function (voter, idx) {
+                    deletedHtml += '<tr><td>' + (idx + 1) + '</td><td>' + (voter.name || '') + '</td><td>' + (voter.phone1 || '') + '</td><td></td></tr>';
+                });
+                document.getElementById('deletes_data').innerHTML = deletedHtml;
+
+                var logsHtml = '';
+                logs.forEach(function (log) {
+                    logsHtml += '<tr><td>' + (log.description || '') + '</td><td>' + (log.created_at || '') + '</td></tr>';
+                });
+                document.getElementById('log_data').innerHTML = logsHtml;
+            }
+
+            function loadContractorData(contractorId, contractorUrl) {
+                if (!contractorId) return;
+                currentContractorId = contractorId;
+                currentContractorUrl = contractorUrl || '';
+                showStatus('جاري تحميل البيانات...', 'info');
+
+                return axios.get('/con/' + contractorId)
+                    .then(function (response) {
+                        renderModal(response);
+                        showStatus('تم تحميل البيانات', 'success');
+                        clearStatus(700);
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        showStatus('تعذر تحميل بيانات المتعهد', 'error');
+                    });
+            }
+
+            function saveField(fieldName, fieldValue) {
+                if (!currentContractorId) return Promise.resolve();
+                showStatus('جاري الحفظ...', 'info');
+
+                return axios.post('/dashboard/mot-up/' + currentContractorId, {
+                    name: fieldName,
+                    value: fieldValue
+                }).then(function () {
+                    showStatus('تم الحفظ', 'success');
+                    clearStatus(700);
+                }).catch(function (error) {
+                    console.error(error);
+                    showStatus('فشل الحفظ', 'error');
+                });
+            }
+
+            $(document).off('click.contractorOpen', 'td[data-bs-target="#mota3ahdeenDataModern"]');
+            $(document).on('click.contractorOpen', 'td[data-bs-target="#mota3ahdeenDataModern"]', function () {
+                var row = $(this).closest('tr');
+                var contractorId = row.data('contractor-id') || $.trim(row.find('#user_id').text());
+                var contractorUrl = row.data('contractor-url') || (row.find('#conUrl').data('url') || '');
+
+                if (contractorId) {
+                    rowCache[String(contractorId)] = row;
+                }
+
+                loadContractorData(contractorId, contractorUrl);
+            });
+
+            $('#phone_wa').off('change.contractorWa').on('change.contractorWa', function () {
+                var phone = $(this).val();
+                var candidateLine = ($('#message').val() || '') + '';
+                document.getElementById('whatsapp-link').href = 'https://wa.me/965' + phone + '?text=' + encodeURIComponent(candidateLine) + '%0A%0A' + encodeURIComponent(currentContractorUrl || '');
+            });
+
+            $('[data-bs-target="edit-mot"]').off('change.contractorEdit').on('change.contractorEdit', function () {
+                var fieldName = $(this).attr('name') || this.tagName.toLowerCase();
+                var fieldValue = $(this).val();
+                saveField(fieldName, fieldValue);
+            });
+
+            $('#trustingRate').off('input.contractorTrust').on('input.contractorTrust', function () {
+                $('#trustText').text($(this).val());
+            });
+
+            $('#trustingRate').off('change.contractorTrustSave').on('change.contractorTrustSave', function () {
+                var value = $(this).val();
+                if (trustDebounce) clearTimeout(trustDebounce);
+                trustDebounce = setTimeout(function () {
+                    saveField('trust', value);
+                }, 160);
+            });
+
+            $('#delete-con').off('click.contractorDelete').on('click.contractorDelete', function (event) {
+                event.preventDefault();
+                if (!currentContractorId) return;
+                showStatus('جاري حذف المتعهد...', 'info');
+
+                axios.delete('/dashboard/contractors/' + currentContractorId)
+                    .then(function () {
+                        var key = String(currentContractorId);
+                        if (rowCache[key] && rowCache[key].length) {
+                            rowCache[key].remove();
+                        }
+
+                        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.hide();
+                        showStatus('تم الحذف بنجاح', 'success');
+                        if (window.toastr) toastr.success('تم حذف المتعهد بنجاح');
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        showStatus('تعذر حذف المتعهد', 'error');
+                    });
+            });
+
+            $('#all_voters_modern').off('click.contractorTransfer').on('click.contractorTransfer', function (event) {
+                event.preventDefault();
+                if (!currentContractorId) return;
+
+                var selected = $('#addMota3ahed').val();
+                var voters = $.map($('#voters_con input.check:checked'), function (element) {
+                    return $(element).val();
+                });
+
+                if (!selected || !voters.length) {
+                    showStatus('اختر إجراء ومحددات أولاً', 'error');
+                    return;
+                }
+
+                var endpoint = selected === 'delete' ? '/delete/mad' : '/ass/' + selected;
+                var payload = selected === 'delete'
+                    ? { id: currentContractorId, voter: voters }
+                    : { id: currentContractorId, voter: voters };
+
+                showStatus('جاري تنفيذ العملية...', 'info');
+
+                axios.post(endpoint, payload)
+                    .then(function () {
+                        if (window.toastr) toastr.success('تم تنفيذ العملية بنجاح');
+                        return loadContractorData(currentContractorId, currentContractorUrl);
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        showStatus('فشلت العملية', 'error');
+                    });
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                currentContractorId = null;
+                currentContractorUrl = '';
+                document.getElementById('voters_con').innerHTML = '';
+                document.getElementById('deletes_data').innerHTML = '';
+                document.getElementById('log_data').innerHTML = '';
+                if (modalStatus) modalStatus.classList.remove('is-visible');
+            });
+        })();
     </script>
     <script>
 

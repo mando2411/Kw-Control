@@ -1,10 +1,6 @@
 let newDate = new Date();
 $(".todayDate").text(newDate.getDate());
 
-// statistics
-$(".btn-close").on('click', function () {
-    window.location.reload()
-});
 (function () {
   $(".moreSearch div.btn").on("click", function () {
     $(this).siblings(".moreSearch .description").toggleClass("d-none");
