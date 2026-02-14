@@ -15,6 +15,7 @@ use App\Models\Committee;
 use App\Models\Voter;
 use App\Models\School;
 use App\Services\Attendance;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 
@@ -46,13 +47,24 @@ class RepresentativeController extends Controller
 
     public function store(RepresentativeRequest $request ,UserRequest $userRequest)
     {
-        $user = User::create($userRequest->getSanitized());
-        $user->assignRole(Role::whereName('مندوب')->first()->id);
-        $request['user_id']=$user->id;
-        $representative = Representative::create($request->all());
+        DB::transaction(function () use ($request, $userRequest) {
+            $user = User::create($userRequest->getSanitized());
+
+            $representativeRole = Role::where('name', 'مندوب')->first();
+            if ($representativeRole) {
+                $user->assignRole($representativeRole);
+            }
+
+            $representativeData = $request->getSanitized();
+            $representativeData['user_id'] = $user->id;
+            $representativeData['election_id'] = $representativeData['election_id'] ?? $user->election_id;
+
+            Representative::create($representativeData);
+        });
+
         session()->flash('message', 'تم اضافه مندوب بكلمه سر افتراضيه > (1) ');
         session()->flash('type', 'success');
-        return redirect()->back();
+        return redirect()->route('dashboard.rep-home');
     }
 
 
