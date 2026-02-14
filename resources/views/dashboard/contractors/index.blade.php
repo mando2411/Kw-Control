@@ -844,7 +844,7 @@
                                 <div class="modal-content">
                                         <div class="modal-header">
                                                 <div>
-                                                        <h5 class="sm-export-title">استخراج الكشوف</h5>
+                                                        <h5 class="sm-export-title">استخراج الكشوف ششش</h5>
                                                         <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                                                 </div>
                                                 <button type="button" id="smExportCloseBtn" class="btn-close" aria-label="Close"></button>
