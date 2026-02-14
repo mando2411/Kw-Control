@@ -19,10 +19,13 @@ body.ui-modern {
     font-size: var(--ui-fs-base);
 }
 
-html.ui-modern .page-body,
-body.ui-modern .page-body {
+html.ui-modern .page-body .container-fluid,
+body.ui-modern .page-body .container-fluid,
+html.ui-modern .page-body .container,
+body.ui-modern .page-body .container {
     max-width: var(--ui-container-max);
     margin-inline: auto;
+    width: 100%;
 }
 
 html.ui-modern a,
