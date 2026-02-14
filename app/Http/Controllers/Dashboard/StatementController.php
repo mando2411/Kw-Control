@@ -214,6 +214,11 @@ class StatementController extends Controller
            $type = strtoupper((string) $request->input('type'));
            abort_unless(in_array($type, ['PDF', 'EXCEL'], true), 422, 'نوع التصدير غير مدعوم');
 
+           $source = (string) $request->input('source', 'statement_search');
+           $source = in_array($source, ['statement_search', 'contractors'], true)
+               ? $source
+               : 'statement_search';
+
            $rawVoters = $request->input('voter', $request->input('voter[]', []));
            $voterIds = collect(is_array($rawVoters) ? $rawVoters : [$rawVoters])
                ->filter(fn ($value) => !is_null($value) && $value !== '')
@@ -239,7 +244,8 @@ class StatementController extends Controller
                (int) auth()->id(),
                $type,
                $voterIds,
-               $columns
+               $columns,
+               $source
            );
 
            return response()->json([

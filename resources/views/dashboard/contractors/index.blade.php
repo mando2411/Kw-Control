@@ -228,74 +228,131 @@
             flex: 1 1 280px;
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-modal .modal-dialog {
-            max-width: 680px;
+        body.ui-modern .contractors-modern-page .sm-export-modal .modal-dialog {
+            max-width: 760px;
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-modal .modal-content {
-            border-radius: 1rem;
-            border: 1px solid rgba(14, 165, 233, 0.24);
-            box-shadow: 0 20px 44px rgba(2, 6, 23, 0.14);
+        body.ui-modern .contractors-modern-page .sm-export-modal .modal-content {
+            border: 1px solid var(--ui-border, rgba(148, 163, 184, .24));
+            border-radius: 18px;
             overflow: hidden;
+            box-shadow: 0 24px 46px rgba(2, 6, 23, .18);
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-modal .modal-header {
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(59, 130, 246, 0.12));
-            border-bottom: 1px solid rgba(14, 165, 233, 0.2);
+        body.ui-modern .contractors-modern-page .sm-export-modal .modal-header {
+            border-bottom: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+            background: linear-gradient(18deg, rgba(127,29,29,.24), rgba(15,118,110,.18), rgba(180,83,9,.20));
+            padding: 14px 16px;
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-title {
-            font-weight: 900;
+        body.ui-modern .contractors-modern-page .sm-export-title {
             margin: 0;
-            color: rgba(15, 23, 42, 0.94);
+            font-size: 1.02rem;
+            font-weight: 950;
+            color: var(--ui-ink, #0f172a);
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-sub {
-            margin: .18rem 0 0;
-            color: rgba(51, 65, 85, 0.84);
-            font-size: .86rem;
-        }
-
-        body.ui-modern .contractors-modern-page .cm-export-modal .modal-body {
-            background: rgba(248, 250, 252, 0.55);
-        }
-
-        body.ui-modern .contractors-modern-page .cm-export-section {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(15, 23, 42, 0.10);
-            border-radius: .85rem;
-            padding: .7rem;
-            margin-bottom: .65rem;
-        }
-
-        body.ui-modern .contractors-modern-page .cm-export-section-title {
-            margin-bottom: .45rem;
-            font-size: .87rem;
+        body.ui-modern .contractors-modern-page .sm-export-sub {
+            margin: 4px 0 0;
+            color: var(--ui-muted, #64748b);
+            font-size: .84rem;
             font-weight: 800;
-            color: rgba(15, 23, 42, .9);
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-actions {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: .5rem;
+        body.ui-modern .contractors-modern-page .sm-export-modal .modal-body {
+            background: var(--ui-surface, #fff);
+            padding: 14px;
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-status {
-            display: inline-flex;
-            align-items: center;
+        body.ui-modern .contractors-modern-page .sm-export-section {
+            border: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: var(--ui-surface-2, #f8fafc);
+        }
+
+        body.ui-modern .contractors-modern-page .sm-export-section-title {
+            margin: 0 0 8px;
+            font-size: .86rem;
+            color: var(--ui-muted, #64748b);
+            font-weight: 950;
+        }
+
+        body.ui-modern .contractors-modern-page .sm-chip-option {
+            display: block;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        body.ui-modern .contractors-modern-page .sm-chip-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+            pointer-events: none;
+        }
+
+        body.ui-modern .contractors-modern-page .sm-chip-pill {
+            display: block;
+            border: 1px solid var(--ui-border, rgba(148,163,184,.24));
+            border-radius: 12px;
+            background: #fff;
+            color: var(--ui-ink, #0f172a);
+            font-weight: 900;
+            font-size: .86rem;
+            padding: 10px 12px;
+            transition: all .2s ease;
+        }
+
+        body.ui-modern .contractors-modern-page .sm-chip-option:hover .sm-chip-pill {
+            transform: translateY(-1px);
+            border-color: rgba(127,29,29,.35);
+            box-shadow: 0 8px 16px rgba(127,29,29,.14);
+        }
+
+        body.ui-modern .contractors-modern-page .sm-chip-input:checked + .sm-chip-pill {
+            background: linear-gradient(340deg, rgba(254,226,226,.90), rgba(204,251,241,.84));
+            border-color: rgba(127,29,29,.46);
+            color: #7f1d1d;
+            box-shadow: 0 10px 18px rgba(127,29,29,.14);
+        }
+
+        body.ui-modern .contractors-modern-page .sm-chip-input:disabled + .sm-chip-pill {
+            opacity: .72;
+            cursor: not-allowed;
+        }
+
+        body.ui-modern .contractors-modern-page .sm-export-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        body.ui-modern .contractors-modern-page .sm-export-actions .btn {
             border-radius: 999px;
-            padding: .22rem .55rem;
-            font-size: .78rem;
-            font-weight: 700;
-            border: 1px solid rgba(14, 165, 233, 0.24);
-            background: rgba(14, 165, 233, 0.1);
-            color: rgba(3, 105, 161, 0.95);
+            padding: 8px 14px;
+            font-weight: 900;
+        }
+
+        body.ui-modern .contractors-modern-page #contractorExportModal.fade .modal-dialog {
+            transform: translateY(14px) scale(.98);
+            transition: transform .22s ease-out;
+        }
+
+        body.ui-modern .contractors-modern-page #contractorExportModal.show .modal-dialog {
+            transform: translateY(0) scale(1);
+        }
+
+        body.ui-modern .contractors-modern-page .sm-export-meta {
+            color: #7f1d1d;
+            font-size: .84rem;
+            font-weight: 800;
             opacity: 0;
             transition: opacity .2s ease;
         }
 
-        body.ui-modern .contractors-modern-page .cm-export-status.is-visible {
+        body.ui-modern .contractors-modern-page .sm-export-meta.is-visible {
             opacity: 1;
         }
     </style>
@@ -832,43 +889,44 @@
             </div>
         </div>
 
-                <div class="modal fade rtl cm-export-modal" id="contractorExportModal" tabindex="-1" aria-hidden="true">
+                <div class="modal fade rtl sm-export-modal" id="contractorExportModal" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-scrollable">
                                 <div class="modal-content">
                                         <div class="modal-header">
                                                 <div>
-                                                        <h5 class="cm-export-title">استخراج الكشوف</h5>
-                                                        <p class="cm-export-sub">نفس تجربة صفحة البحث الحديثة مع تنفيذ سريع وبدون إعادة تحميل الصفحة.</p>
+                                                        <h5 class="sm-export-title">استخراج الكشوف</h5>
+                                                        <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                                                 </div>
                                                 <div class="d-flex align-items-center gap-2">
-                                                        <span id="contractorExportStatus" class="cm-export-status" aria-live="polite"></span>
-                                                        <button type="button" id="contractorExportCloseBtn" class="btn-close" aria-label="Close"></button>
+                                                        <span id="contractorExportStatus" class="sm-export-meta" aria-live="polite"></span>
+                                                        <button type="button" id="contractorExportCloseBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                         </div>
                                         <div class="modal-body px-3">
                                                 <form action="{{ route('export') }}" method="GET" id="contractorExportForm">
                                                         <input type="hidden" name="search_id" id="contractorExportSearchId" value="">
+                                                        <input type="hidden" name="source" value="contractors">
 
-                                                        <div class="cm-export-section">
-                                                                <h6 class="cm-export-section-title">أعمدة الكشف</h6>
+                                                        <div class="sm-export-section">
+                                                            <h6 class="sm-export-section-title">أعمدة الكشف</h6>
                                                                 <div class="row g-2">
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked disabled type="checkbox" value="name"><span>اسم الناخب</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked type="checkbox" name="columns[]" value="family"><span>العائلة</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="age"><span>العمر</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked type="checkbox" name="columns[]" value="alsndok"><span>رقم القيد</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="phone"><span>الهاتف</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="type"><span>الجنس</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="created_at"><span>تاريخ القيد</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="region"><span>المنطقة</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="committee"><span>اللجنة</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="madrasa"><span>مدرسة الانتخاب</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked type="checkbox" name="columns[]" value="restricted"><span>حالة القيد</span></label></div>
-                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="status"><span>حالة التصويت</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked disabled type="checkbox" value="name"><span class="sm-chip-pill">اسم الناخب</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="family"><span class="sm-chip-pill">العائلة</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="age"><span class="sm-chip-pill">العمر</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="alsndok"><span class="sm-chip-pill">رقم القيد</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="phone"><span class="sm-chip-pill">الهاتف</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="type"><span class="sm-chip-pill">الجنس</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="created_at"><span class="sm-chip-pill">تاريخ القيد</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="region"><span class="sm-chip-pill">المنطقة</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="committee"><span class="sm-chip-pill">اللجنة</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="madrasa"><span class="sm-chip-pill">مدرسة الانتخاب</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="restricted"><span class="sm-chip-pill">حالة القيد</span></label></div>
+                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="status"><span class="sm-chip-pill">حالة التصويت</span></label></div>
                                                                 </div>
                                                         </div>
 
-                                                        <div class="cm-export-section">
-                                                                <h6 class="cm-export-section-title">ترتيب النتائج</h6>
+                                                        <div class="sm-export-section">
+                                                            <h6 class="sm-export-section-title">ترتيب النتائج</h6>
                                                                 <select name="sorted" class="form-select form-select-sm">
                                                                         <option value="asc">أبجدي</option>
                                                                         <option value="phone">الهاتف</option>
@@ -878,9 +936,9 @@
 
                                                         <input type="hidden" name="type" id="contractorExportType">
 
-                                                        <div class="cm-export-section">
-                                                                <h6 class="cm-export-section-title">إجراء الإخراج</h6>
-                                                                <div class="cm-export-actions">
+                                                        <div class="sm-export-section">
+                                                            <h6 class="sm-export-section-title">إجراء الإخراج</h6>
+                                                            <div class="sm-export-actions">
                                                                         <button type="button" class="btn btn-primary contractor-export-action" value="PDF">PDF</button>
                                                                         <button type="button" class="btn btn-success contractor-export-action" value="Excel">Excel</button>
                                                                         <button type="button" class="btn btn-secondary contractor-export-action" value="print">طباعة</button>
@@ -890,8 +948,8 @@
 
                                                         <p class="text-danger small mb-2">* ملاحظة: لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
 
-                                                        <div class="cm-export-section mb-0">
-                                                                <h6 class="cm-export-section-title">إرسال PDF عبر WhatsApp</h6>
+                                                        <div class="sm-export-section mb-0">
+                                                            <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
                                                                 <div class="d-flex gap-2 align-items-center">
                                                                         <input type="number" class="form-control form-control-sm" name="to" id="contractorExportWhatsappTo" placeholder="رقم الهاتف">
                                                                         <button type="button" class="btn btn-outline-primary contractor-export-action" value="Send">إرسال</button>
@@ -974,10 +1032,34 @@
 
             function closeExportModal() {
                 if (!exportModalElement) return;
+
+                function forceModalCleanup() {
+                    exportModalElement.classList.remove('show');
+                    exportModalElement.style.display = 'none';
+                    exportModalElement.setAttribute('aria-hidden', 'true');
+                    exportModalElement.removeAttribute('aria-modal');
+                    exportModalElement.removeAttribute('role');
+
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('padding-right');
+                    document.body.style.removeProperty('overflow');
+                    document.documentElement.classList.remove('modal-open');
+                    document.documentElement.style.removeProperty('padding-right');
+                    document.documentElement.style.removeProperty('overflow');
+                    document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+                }
+
                 if (window.bootstrap && window.bootstrap.Modal) {
                     var modal = window.bootstrap.Modal.getOrCreateInstance(exportModalElement);
-                    modal.hide();
+                    if (modal && typeof modal.hide === 'function') {
+                        modal.hide();
+                        setTimeout(forceModalCleanup, 60);
+                        setTimeout(forceModalCleanup, 240);
+                        return;
+                    }
                 }
+
+                forceModalCleanup();
             }
 
             function showStatus(message, tone) {
@@ -1251,7 +1333,26 @@
                         exportStatus.classList.remove('is-visible');
                     }
                 });
+
+                exportModalElement.addEventListener('hidden.bs.modal', function () {
+                    if (exportStatus) {
+                        exportStatus.classList.remove('is-visible');
+                    }
+                    document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+                });
             }
+
+            document.addEventListener('click', function (event) {
+                var closeTrigger = event.target.closest('#contractorExportCloseBtn, #contractorExportModal .btn-close, #contractorExportModal [data-bs-dismiss="modal"]');
+                if (!closeTrigger) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+                if (typeof event.stopImmediatePropagation === 'function') {
+                    event.stopImmediatePropagation();
+                }
+                closeExportModal();
+            }, true);
 
             $(document).off('click.contractorExportAction', '.contractor-export-action').on('click.contractorExportAction', '.contractor-export-action', function () {
                 if (!exportForm || !exportType) return;
@@ -1311,7 +1412,7 @@
                         .then(function (res) {
                             showExportStatus('تم إرسال الطلب للخلفية', 'success');
                             if (window.toastr) {
-                                toastr.success(res?.data?.message || 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند الانتهاء.');
+                                toastr.success('بدأ تجهيز ملف كشوف المتعهدين في الخلفية. ستصلك إشعارات مميزة لكشوف المتعهدين عند الانتهاء.');
                             }
                         })
                         .catch(function (error) {

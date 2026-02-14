@@ -31,6 +31,7 @@ class ProcessStatementExportJob implements ShouldQueue
         private readonly string $type,
         private readonly array $voterIds,
         private readonly array $columns,
+        private readonly string $source = 'statement_search',
     ) {
     }
 
@@ -100,9 +101,18 @@ class ProcessStatementExportJob implements ShouldQueue
                 ]
             );
 
+            $isContractorsExport = $this->source === 'contractors';
+            $title = $isContractorsExport
+                ? 'ملف كشوف المتعهدين جاهز للتنزيل'
+                : 'الملف جاهز للتنزيل';
+
+            $body = $isContractorsExport
+                ? 'اكتمل تجهيز ملف ' . $type . ' الخاص بكشوف المتعهدين. يمكنك تنزيله الآن من الزر المخصص.'
+                : 'اكتمل تجهيز ملف ' . $type . ' الخاص بالكشوف. يمكنك تنزيله الآن من الزر المخصص.';
+
             send_system_notification($user, [
-                'title' => 'الملف جاهز للتنزيل',
-                'body' => 'اكتمل تجهيز ملف ' . $type . ' الخاص بالكشوف. يمكنك تنزيله الآن من الزر المخصص.',
+                'title' => $title,
+                'body' => $body,
                 'url' => route('dashboard.notifications.page'),
                 'action_label' => 'تنزيل الملف',
                 'action_url' => $downloadUrl,
@@ -119,8 +129,12 @@ class ProcessStatementExportJob implements ShouldQueue
 
     private function sendFailureNotification(User $user, string $message): void
     {
+        $title = $this->source === 'contractors'
+            ? 'فشل تجهيز كشوف المتعهدين'
+            : 'فشل تجهيز ملف الكشوف';
+
         send_system_notification($user, [
-            'title' => 'فشل تجهيز ملف الكشوف',
+            'title' => $title,
             'body' => $message,
             'url' => route('dashboard.notifications.page'),
         ]);
