@@ -227,11 +227,11 @@
             flex: 1 1 280px;
         }
 
-        body.ui-modern #contractorExportModal.sm-export-modal .modal-dialog {
+        body.ui-modern #smExportModal.sm-export-modal .modal-dialog {
             max-width: 760px;
         }
 
-        body.ui-modern #contractorExportModal.sm-export-modal .modal-content {
+        body.ui-modern #smExportModal.sm-export-modal .modal-content {
             border: 1px solid var(--ui-border, rgba(148, 163, 184, .24));
             border-radius: 18px;
             overflow: hidden;
@@ -240,27 +240,27 @@
             color: var(--ui-ink, #0f172a);
         }
 
-        body.ui-modern #contractorExportModal.sm-export-modal .modal-header {
+        body.ui-modern #smExportModal.sm-export-modal .modal-header {
             border-bottom: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
             background: linear-gradient(18deg, rgba(127,29,29,.24), rgba(15,118,110,.18), rgba(180,83,9,.20));
             padding: 14px 16px;
         }
 
-        body.ui-modern #contractorExportModal .sm-export-title {
+        body.ui-modern #smExportModal .sm-export-title {
             margin: 0;
             font-size: 1.02rem;
             font-weight: 950;
             color: var(--ui-ink, #0f172a);
         }
 
-        body.ui-modern #contractorExportModal .sm-export-sub {
+        body.ui-modern #smExportModal .sm-export-sub {
             margin: 4px 0 0;
             color: var(--ui-muted, #64748b);
             font-size: .84rem;
             font-weight: 800;
         }
 
-        body.ui-modern #contractorExportModal.sm-export-modal .modal-body {
+        body.ui-modern #smExportModal.sm-export-modal .modal-body {
             background: var(--ui-surface, #fff);
             padding: 14px;
             color: var(--ui-ink, #0f172a);
@@ -337,12 +337,12 @@
             font-weight: 900;
         }
 
-        body.ui-modern .contractors-modern-page #contractorExportModal.fade .modal-dialog {
+        body.ui-modern .contractors-modern-page #smExportModal.fade .modal-dialog {
             transform: translateY(14px) scale(.98);
             transition: transform .22s ease-out;
         }
 
-        body.ui-modern .contractors-modern-page #contractorExportModal.show .modal-dialog {
+        body.ui-modern .contractors-modern-page #smExportModal.show .modal-dialog {
             transform: translateY(0) scale(1);
         }
 
@@ -859,7 +859,7 @@
                                     </div>
                                 </form>
 
-                                <button data-bs-toggle="modal" data-bs-target="#contractorExportModal" class="my-2 btn btn-dark"> استخراج الكشوف</button>
+                                <button type="button" id="smOpenExport" data-bs-toggle="modal" data-bs-target="#smExportModal" class="my-2 btn btn-dark"> استخراج الكشوف</button>
 
 
                                 <div class="table-responsive mt-2">
@@ -891,7 +891,7 @@
             </div>
         </div>
 
-                <div class="modal fade rtl sm-export-modal" id="contractorExportModal" tabindex="-1" aria-hidden="true">
+                <div class="modal fade rtl sm-export-modal" id="smExportModal" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-scrollable">
                                 <div class="modal-content">
                                         <div class="modal-header">
@@ -899,11 +899,11 @@
                                                         <h5 class="sm-export-title">استخراج الكشوف</h5>
                                                         <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                                                 </div>
-                                                <button type="button" id="contractorExportCloseBtn" class="btn-close" aria-label="Close"></button>
+                                                <button type="button" id="smExportCloseBtn" class="btn-close" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body px-3">
-                                                <form action="{{ route('export') }}" method="GET" id="contractorExportForm">
-                                                        <input type="hidden" name="search_id" id="contractorExportSearchId" value="">
+                                                <form action="{{ route('export') }}" method="GET" id="smExportForm">
+                                                    <input type="hidden" name="search_id" id="smExportSearchId" value="">
                                                         <input type="hidden" name="source" value="contractors">
 
                                                         <div class="sm-export-section">
@@ -930,7 +930,7 @@
                                                                 </select>
                                                         </div>
 
-                                                        <input type="hidden" name="type" id="contractorExportType">
+                                                        <input type="hidden" name="type" id="smExportType">
 
                                                         <div class="sm-export-section">
                                                             <h6 class="sm-export-section-title">إجراء الإخراج</h6>
@@ -987,11 +987,11 @@
             var currentContractorUrl = '';
             var trustDebounce = null;
             var rowCache = {};
-            var exportModalElement = document.getElementById('contractorExportModal');
-            var exportForm = document.getElementById('contractorExportForm');
-            var exportType = document.getElementById('contractorExportType');
-            var exportSearchId = document.getElementById('contractorExportSearchId');
-            var exportCloseBtn = document.getElementById('contractorExportCloseBtn');
+            var exportModalElement = document.getElementById('smExportModal');
+            var exportForm = document.getElementById('smExportForm');
+            var exportType = document.getElementById('smExportType');
+            var exportSearchId = document.getElementById('smExportSearchId');
+            var exportCloseBtn = document.getElementById('smExportCloseBtn');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
 
             function showExportStatus(message, tone) {
@@ -1323,7 +1323,7 @@
             }
 
             document.addEventListener('click', function (event) {
-                var closeTrigger = event.target.closest('#contractorExportCloseBtn, #contractorExportModal .btn-close, #contractorExportModal [data-bs-dismiss="modal"]');
+                var closeTrigger = event.target.closest('#smExportCloseBtn, #smExportModal .btn-close, #smExportModal [data-bs-dismiss="modal"]');
                 if (!closeTrigger) return;
 
                 event.preventDefault();
