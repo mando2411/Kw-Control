@@ -1,6 +1,7 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
+    <link rel="stylesheet" href="/assets/css/contractors-modern.css?v=20260214c">
     <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260214b">
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -545,7 +546,7 @@
                                                 </div>
                                                 <button type="button" id="smExportCloseBtn" class="btn-close" aria-label="Close"></button>
                                         </div>
-                                        <div class="modal-body px-3">
+                                        <div class="modal-body">
                                                 <form action="{{ route('export') }}" method="GET" id="smExportForm">
                                                     <input type="hidden" name="search_id" id="smExportSearchId" value="">
                                                         <input type="hidden" name="source" value="contractors">
@@ -567,7 +568,7 @@
 
                                                         <div class="sm-export-section">
                                                             <h6 class="sm-export-section-title">ترتيب النتائج</h6>
-                                                                <select name="sorted" class="form-select form-select-sm">
+                                                                <select name="sorted" class="form-select">
                                                                         <option value="asc">أبجدي</option>
                                                                         <option value="phone">الهاتف</option>
                                                                         <option value="commitment">الالتزام</option>
@@ -658,40 +659,24 @@
             function closeExportModal() {
                 if (!exportModalElement) return;
 
-                function forceModalCleanup() {
-                    exportModalElement.classList.remove('show');
-                    exportModalElement.style.display = 'none';
-                    exportModalElement.setAttribute('aria-hidden', 'true');
-                    exportModalElement.removeAttribute('aria-modal');
-                    exportModalElement.removeAttribute('role');
-
-                    document.body.classList.remove('modal-open');
-                    document.body.style.removeProperty('padding-right');
-                    document.body.style.removeProperty('overflow');
-                    document.documentElement.classList.remove('modal-open');
-                    document.documentElement.style.removeProperty('padding-right');
-                    document.documentElement.style.removeProperty('overflow');
-                    document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
-                }
-
                 if (window.bootstrap && window.bootstrap.Modal) {
-                    var modal = window.bootstrap.Modal.getOrCreateInstance(exportModalElement);
+                    var modal = window.bootstrap.Modal.getInstance
+                        ? window.bootstrap.Modal.getInstance(exportModalElement)
+                        : null;
+
+                    if (!modal && window.bootstrap.Modal.getOrCreateInstance) {
+                        modal = window.bootstrap.Modal.getOrCreateInstance(exportModalElement);
+                    }
+
                     if (modal && typeof modal.hide === 'function') {
                         modal.hide();
-                        setTimeout(forceModalCleanup, 60);
-                        setTimeout(forceModalCleanup, 240);
                         return;
                     }
                 }
 
                 if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
                     window.jQuery(exportModalElement).modal('hide');
-                    setTimeout(forceModalCleanup, 60);
-                    setTimeout(forceModalCleanup, 240);
-                    return;
                 }
-
-                forceModalCleanup();
             }
 
             function showStatus(message, tone) {
@@ -1077,7 +1062,7 @@
 
                 axios.get(exportForm.action, {
                     params: queryData,
-                    responseType: 'json'
+                    responseType: actionType === 'Send' ? 'json' : 'text'
                 })
                     .then(function (res) {
                         showExportStatus('تم تنفيذ العملية', 'success');
