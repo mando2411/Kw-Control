@@ -4,6 +4,7 @@ namespace App\Http\Requests\Dashboard;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class UserRequest extends FormRequest
 {
@@ -60,9 +61,20 @@ class UserRequest extends FormRequest
     {
         $data = $this->validated();
         unset($data['roles'], $data['password']);
+
+        $isCreateRequest = !request('user');
+
+        if ($isCreateRequest && empty($data['email'])) {
+            $data['email'] = 'auto+' . Str::uuid() . '@kw-control.local';
+        }
+
+        if (!$isCreateRequest && array_key_exists('email', $data) && empty($data['email'])) {
+            unset($data['email']);
+        }
+
         if ($this->get('password')) {
             $data['password'] = \Hash::make($this->get('password'));
-        }elseif(!request('user')){
+        }elseif($isCreateRequest){
             $data['password'] =\Hash::make("1");
         }
         $data['creator_id']= auth()->user()->id;
