@@ -17,365 +17,222 @@
             </div>
             <x-dashboard.partials.message-alert />
             <form class="mota3ahdeenControl cm-anim cm-anim-delay-2" action="{{ route('dashboard.contractors.store') }}" method="POST">
-                @csrf
-                <div class="d-flex align-items-center mb-1">
-                    <label class="labelStyle" for="parent_id">المتعهد الرئيسى</label>
-                    <select name="parent_id" id="parent_id" class="form-control py-1">
-                        <option value="الكل" disabled>الكل</option>
+            <!-- DataTables JS -->
+            <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+            <!-- DataTables Buttons JS -->
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+            <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
-                        @foreach ($parents as $item)
-                            <option value="{{ $item['id'] }}"
-                            @if (auth()->user()->contractor && auth()->user()->contractor->id == $item['id'])
-                                selected
-                            @elseif (auth()->user()->contractor && auth()->user()->contractor->id != $item['id'])
-                                disabled
-                            @endif
-                            >{{ $item['name'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <script>
+                    (function () {
+                        if (window.__contractorsTableToolsInit) return;
+                        window.__contractorsTableToolsInit = true;
 
-                <div class="moreSearch my-3">
-                    <div role="button" class="btn btn-primary w-100">
-                        + اضافة متعهد فرعى
-                    </div>
-                    <div class="description d-none p-2">
-                        <div class="d-flex align-items-center mb-1">
-                            <label class="labelStyle" for="name">الاسم</label>
-                            <input type="text" class="form-control py-1" placeholder="Name" name="name"
-                                id="name">
-                        </div>
-                        <div class="d-flex align-items-center mb-1">
-                            <label class="labelStyle" for="phone">الهاتف</label>
-                            <input type="text" class="form-control py-1 w-75" placeholder="phone" name="phone"
-                                id="phone">
-                            <div
-                                class="w-25 bg-body-secondary py-1 d-flex justify-content-evenly fs-5 rounded-start-2 text-center">
-                                <span class=" w-50 ms-2">965</span>
-                                <span class=" w-50  px-1 border-end border-2 border-dark ">+</span>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center mb-1">
-                            <label class="labelStyle" for="notes">الملاحظات</label>
-                            <input type="text" class="form-control py-1" placeholder="Add Note" name="note"
-                                id="notes">
-                        </div>
+                        var table = document.getElementById('myTable');
+                        var searchBox = document.getElementById('searchBox');
+                        var exportExcelBtn = document.getElementById('exportExcelBtn');
 
-                        <div class="d-flex justify-content-between mb-3">
-                            <div class=" d-flex align-items-center">
-                                <input type="checkbox" name="roles[]" id="canSearch"
-                                    value="{{ App\Models\Role::findByName('بحث في الكشوف')?->name ?? '' }} " checked>
-                                <label class="labelStyle" class="w-100 me-3" for="canSearch">تفعيل امكانية البحث</label>
-                            </div>
-                            <div class=" d-flex align-items-center">
-                                <input type="checkbox" name="roles[]" id="canDelet"
-                                    value="{{ App\Models\Role::findByName('حذف المضامين')?->name ?? '' }} " checked>
-                                <label class="labelStyle" class="w-100 me-3" for="canDelet">يستطيع حذف مضامينة</label>
-                            </div>
-                        </div>
+                        function sortTable(targetTable, columnIndex) {
+                            if (!targetTable) return;
+                            var tbody = targetTable.querySelector('tbody');
+                            if (!tbody) return;
 
-                        <button class="btn btn-success w-100 mx-auto d-block" type="submit">أضافة</button>
-                    </div>
-                </div>
+                            var rows = Array.from(tbody.querySelectorAll('tr'));
+                            var isAscending = targetTable.dataset.sortOrder !== 'asc';
+                            var collator = new Intl.Collator('ar', { numeric: true });
 
-            </form>
+                            rows.sort(function (rowA, rowB) {
+                                var cellA = (rowA.cells[columnIndex] && rowA.cells[columnIndex].textContent || '').trim();
+                                var cellB = (rowB.cells[columnIndex] && rowB.cells[columnIndex].textContent || '').trim();
+                                return isAscending ? collator.compare(cellA, cellB) : collator.compare(cellB, cellA);
+                            });
 
+                            rows.forEach(function (row) { tbody.appendChild(row); });
+                            targetTable.dataset.sortOrder = isAscending ? 'asc' : 'desc';
+                        }
 
-            <input type="search" id="searchBox"  class="form-control py-1 mb-3"
-                placeholder="البحث بجدول المتعهدين الفرعيين">
+                        function exportTableToExcel(tableId, filename) {
+                            var targetTable = document.getElementById(tableId);
+                            if (!targetTable) return;
 
-            <div class="">
-                <button  class="Sort_Btn mt-2 btn btn-outline-success">
-                    <label for="trusted">الملتزمين</label>
-                    <input type="radio" role="button" class="visually-hidden" id="trustedMota3ahdeen" name="mota3ahdeenTable"
-                        value="{{App\Enums\ConType::Committed->value}}">
-                </button>
-                <button  class="Sort_Btn mt-2 btn btn-outline-warning">
-                    <label for="trusted">قيد المتابعة</label>
-                    <input type="radio" role="button" class="visually-hidden" id="registedMota3ahdeen" name="mota3ahdeenTable"
-                        value="{{App\Enums\ConType::Pending->value}}">
-                </button>
-                <button  class="Sort_Btn mt-2 btn btn-secondary">
-                    <label for="trusted">الكل</label>
-                    <input type="radio" role="button" class="visually-hidden" id="allMota3ahdeen" name="mota3ahdeenTable"
-                        value="all">
-                </button>
-                <div role="button" class="mt-2 btn btn-dark" data-bs-toggle="modal" data-bs-target="#foundedNow">
-                    المتواجدين
-                </div>
-				
-  <button onclick="exportTableToExcel('myTable', 'contractors.xls')" class="btn btn-primary">
-   استخداج اكسيل
-   </button>
+                            var rows = Array.from(targetTable.rows);
+                            var tableHTML = rows.map(function (row) {
+                                var cells = Array.from(row.cells);
+                                return '<tr>' + cells.map(function (cell) {
+                                    return '<td>' + cell.textContent.replace(/\s+/g, ' ').trim() + '</td>';
+                                }).join('') + '</tr>';
+                            }).join('');
 
-				
-				
-				
-            </div>
+                            var htmlTemplate = '\n                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">\n                    <head>\n                        <meta charset="utf-8">\n                        <style>.rtl { direction: rtl; } .text-center { text-align: center; }</style>\n                    </head>\n                    <body>\n                        <table class="rtl text-center">' + tableHTML + '</table>\n                    </body>\n                    </html>\n                ';
 
-            <!-- Modal foundedNow-->
-            <div class="modal modal-md rtl" id="foundedNow" tabindex="-1" aria-labelledby="foundedNowLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="foundedNowLabel">
-                                بيانات المتعهد
-                            </h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
+                            var blob = new Blob([htmlTemplate], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+                            var downloadLink = document.createElement('a');
+                            var url = URL.createObjectURL(blob);
+                            downloadLink.href = url;
+                            downloadLink.download = filename || 'contractors.xls';
+                            document.body.appendChild(downloadLink);
+                            downloadLink.click();
+                            document.body.removeChild(downloadLink);
+                            URL.revokeObjectURL(url);
+                        }
 
-                            <div class="table-responsive mt-4">
-                                <table class="table overflow-hidden rtl">
-                                    <thead class="table-secondary text-center border-0 border-dark border-bottom border-2">
-                                        <tr>
-                                            <th>الأسم</th>
-                                            <th>اخر ظهور</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="table-group-divider text-center">
-                                        <tr>
-                                            <td>هابس بدر الشويب</td>
-                                            <td>03:52:11</td>
-                                        </tr>
+                        if (table && !table.dataset.sortHeadersBound) {
+                            var headers = table.querySelectorAll('thead th');
+                            headers.forEach(function (header, columnIndex) {
+                                header.addEventListener('click', function () {
+                                    sortTable(table, columnIndex);
+                                });
+                            });
+                            table.dataset.sortHeadersBound = '1';
+                        }
 
-                                    </tbody>
-                                </table>
-                            </div>
+                        if (searchBox) {
+                            searchBox.oninput = function () {
+                                var query = this.value.toLowerCase();
+                                var rows = table ? table.querySelectorAll('tbody tr') : [];
+                                rows.forEach(function (row) {
+                                    var cells = Array.from(row.cells);
+                                    var matches = cells.some(function (cell) {
+                                        return (cell.innerText || '').toLowerCase().includes(query);
+                                    });
+                                    row.style.display = matches ? '' : 'none';
+                                });
+                            };
+                        }
 
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        if (window.jQuery) {
+                            var $ = window.jQuery;
+                            $(document)
+                                .off('click.contractorsSortBtns', '.Sort_Btn')
+                                .on('click.contractorsSortBtns', '.Sort_Btn', function () {
+                                    var value = $(this).find('input').val();
+                                    $('#myTable tbody tr.all').addClass('d-none');
+                                    $('#myTable tbody tr.' + value).removeClass('d-none');
+                                });
+                        }
 
-            <!-- Modal Mota3ahdeenList-->
-            <div class="modal modal-md rtl" id="Mota3ahdeenList" tabindex="-1" aria-labelledby="mota3ahdeenListLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="mota3ahdeenListLabel">
-                                بيانات المتعهد
-                            </h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body px-4">
+                        if (exportExcelBtn) {
+                            exportExcelBtn.addEventListener('click', function (event) {
+                                event.preventDefault();
+                                exportTableToExcel('myTable', 'contractors.xls');
+                            });
+                        }
+                    })();
+                </script>
+                                            });
+                                            row.style.display = matches ? '' : 'none';
+                                        });
+                                    };
+                                }
 
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedName">
-                                <label class="labelStyle" for="mota3aheedName">اسم المتعهد</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedPhone">
-                                <label class="labelStyle" for="mota3aheedPhone">هاتف المتعهد</label>
-                            </div>
-                            <hr>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedTrusted">
-                                <label class="labelStyle" for="mota3aheedTrusted">الألتزام</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="madameenNum">
-                                <label class="labelStyle" for="madameenNum">عدد المضامين</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="percentageTrusted">
-                                <label class="labelStyle" for="percentageTrusted">نسبة الصدق</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="trustedNumber">
-                                <label class="labelStyle" for="trustedNumber">عدد صدق المضامين</label>
-                            </div>
-                            <hr>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedName">
-                                <label class="labelStyle" for="mota3aheedName">اسم المتعهد</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData"
-                                    id="printMejorMota3ahed">
-                                <label class="labelStyle" for="printMejorMota3ahed"> المتعهد الرئيسى</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="addationDate">
-                                <label class="labelStyle" for="addationDate">تاريخ الاضافة</label>
-                            </div>
-                            <hr>
-                            <div class="d-flex align-items-center">
-                                <label class="labelStyle" for="mota3aheedTrusted">ترتيب</label>
-                                <select name="sorted" id="sorted" class="form-control py-1">
-                                    <option value="">أبجدى</option>
-                                    <option value="">الهاتف</option>
-                                    <option value="">الألتزام</option>
-                                </select>
-                            </div>
+                                if (window.jQuery) {
+                                    var $ = window.jQuery;
+                                    $(document)
+                                        .off('click.contractorsSortBtns', '.Sort_Btn')
+                                        .on('click.contractorsSortBtns', '.Sort_Btn', function () {
+                                            var value = $(this).find('input').val();
+                                            $('#myTable tbody tr.all').addClass('d-none');
+                                            $('#myTable tbody tr.' + value).removeClass('d-none');
+                                        });
+                                }
 
+                                if (exportExcelBtn) {
+                                    exportExcelBtn.addEventListener('click', function (event) {
+                                        event.preventDefault();
+                                        exportTableToExcel('myTable', 'contractors.xls');
+                                    });
+                                }
+                            })();
+                        </script>
 
+                            function sortTable(targetTable, columnIndex) {
+                                if (!targetTable) return;
+                                var tbody = targetTable.querySelector('tbody');
+                                if (!tbody) return;
 
-                        </div>
-                    </div>
-                </div>
-            </div>
+                                var rows = Array.from(tbody.querySelectorAll('tr'));
+                                var isAscending = targetTable.dataset.sortOrder !== 'asc';
+                                var collator = new Intl.Collator('ar', { numeric: true });
 
-			<div class="row">
-			
-				<div class="col-12 col-md-6">
-			
-			
-					
-			</div>
-			
-			</div>
-            <div class="table-responsive mt-4 cm-anim cm-anim-delay-3">
-                <table id="myTable" class="table rtl overflow-hidden rounded-3 text-center">
-                    <thead class="table-primary border-0 border-secondary border-bottom border-2">
-                        <tr style="font-size: 15px !important">
-                            <th>
-                                <button class="btn btn-secondary all">الكل</button>
-                            </th>
-                            <th class="w150"> المتعهدين ({{ $children->count() }}) </th>
-                            <th>الهاتف</th>
-                            <th>الحضور</th>
-                            <th>مضامين</th>
-                            <th>نسبة الصدق</th>
-                            <th>صدق المضامين</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($children as $c=>$i)
-                            <tr
-                            class="all
-                                @if ($i->status == 1)
-                                table-info
-                                    {{App\Enums\ConType::Committed->value}}
-                                @else
-                                table-warning
-                                    {{App\Enums\ConType::Pending->value}}
-                                @endif
-                                "
-                                data-contractor-id="{{ $i->id }}"
-                                data-contractor-url="{{ route('con-profile', $i->token) }}">
-                                <td>
-                                    <input type="checkbox" class="check" name="madameenNameChecked" />
-                                </td>
-                                <input type="hidden" class="js-contractor-url" data-url="{{ route('con-profile', $i->token) }}">
-                                <td class="d-none js-contractor-id">{{ $i->id }}</td>
-                                <td data-bs-toggle="modal" data-bs-target="#mota3ahdeenDataModern" class="contractor-open-cell">
-                                    {{ $i->name }}
-                                </td>
-                                <td>{{ $i->phone }}</td>
-                                <td>{{ $i->voters->filter(function ($voter) {
-                                        return $voter->status ==     1;
-                                    })->count() }}
-                                </td>
-                                <td>{{ $i->voters->count() }}</td>
-                                <td>{{ $i->trust }}%</td>
-                                <td>{{ $i->voters->where('status', 1)->count() }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                                rows.sort(function (rowA, rowB) {
+                                    var cellA = (rowA.cells[columnIndex] && rowA.cells[columnIndex].textContent || '').trim();
+                                    var cellB = (rowB.cells[columnIndex] && rowB.cells[columnIndex].textContent || '').trim();
+                                    return isAscending ? collator.compare(cellA, cellB) : collator.compare(cellB, cellA);
+                                });
 
-            <!-- Modal madameenName-->
-            <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="-1" aria-labelledby="mota3ahdeenDataModernLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="mota3ahdeenDataModernLabel">
-                                بيانات المتعهد
-                            </h1>
-                            <div id="contractorModalStatus" class="cm-modal-status" aria-live="polite"></div>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <label class="labelStyle">تعيين المتعهد</label>
-                            <form class="d-flex align-items-center justify-content-around flex-wrap">
+                                rows.forEach(function (row) { tbody.appendChild(row); });
+                                targetTable.dataset.sortOrder = isAscending ? 'asc' : 'desc';
+                            }
 
-                                <div class="checkMota3ahed mt-2 d-flex justify-content-between flex-wrap">
-                                    <label class="mx-1 mb-2 btn btn-outline-success " id="moltazem-l"
-                                        for="moltazem">ملتزم
+                            function exportTableToExcel(tableId, filename) {
+                                var targetTable = document.getElementById(tableId);
+                                if (!targetTable) return;
 
-                                        <input type="radio" data-bs-target="edit-mot" class="visually-hidden"
-                                            name="status" id="moltazem" value="1">
-                                    </label>
+                                var rows = Array.from(targetTable.rows);
+                                var tableHTML = rows.map(function (row) {
+                                    var cells = Array.from(row.cells);
+                                    return '<tr>' + cells.map(function (cell) {
+                                        return '<td>' + cell.textContent.replace(/\s+/g, ' ').trim() + '</td>';
+                                    }).join('') + '</tr>';
+                                }).join('');
 
-                                    <label class="mx-1 mb-2 btn  btn-outline-warning" id="follow-l" for="follow">قيد
-                                        المتابعة
+                                var htmlTemplate = '\n                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">\n                    <head>\n                        <meta charset="utf-8">\n                        <style>.rtl { direction: rtl; } .text-center { text-align: center; }</style>\n                    </head>\n                    <body>\n                        <table class="rtl text-center">' + tableHTML + '</table>\n                    </body>\n                    </html>\n                ';
 
-                                        <input type="radio" data-bs-target="edit-mot" class="visually-hidden"
-                                            name="status" id="follow" value="0">
-                                    </label>
+                                var blob = new Blob([htmlTemplate], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+                                var downloadLink = document.createElement('a');
+                                var url = URL.createObjectURL(blob);
+                                downloadLink.href = url;
+                                downloadLink.download = filename || 'contractors.xls';
+                                document.body.appendChild(downloadLink);
+                                downloadLink.click();
+                                document.body.removeChild(downloadLink);
+                                URL.revokeObjectURL(url);
+                            }
 
+                            if (table && !table.dataset.sortHeadersBound) {
+                                var headers = table.querySelectorAll('thead th');
+                                headers.forEach(function (header, columnIndex) {
+                                    header.addEventListener('click', function () {
+                                        sortTable(table, columnIndex);
+                                    });
+                                });
+                                table.dataset.sortHeadersBound = '1';
+                            }
 
-                                </div>
+                            if (searchBox) {
+                                searchBox.oninput = function () {
+                                    var query = this.value.toLowerCase();
+                                    var rows = table ? table.querySelectorAll('tbody tr') : [];
+                                    rows.forEach(function (row) {
+                                        var cells = Array.from(row.cells);
+                                        var matches = cells.some(function (cell) {
+                                            return (cell.innerText || '').toLowerCase().includes(query);
+                                        });
+                                        row.style.display = matches ? '' : 'none';
+                                    });
+                                };
+                            }
 
-                                <div class="checkMota3ahed mt-2 d-flex justify-content-between flex-wrap">
+                            if (window.jQuery) {
+                                var $ = window.jQuery;
+                                $(document)
+                                    .off('click.contractorsSortBtns', '.Sort_Btn')
+                                    .on('click.contractorsSortBtns', '.Sort_Btn', function () {
+                                        var value = $(this).find('input').val();
+                                        $('#myTable tbody tr.all').addClass('d-none');
+                                        $('#myTable tbody tr.' + value).removeClass('d-none');
+                                    });
+                            }
 
-                                    <label class="mx-1 mb-2 btn btn-outline-secondary" for="general">عام
-
-                                        <input type="radio" class="visually-hidden" name="mota3ahdeenType"
-                                            id="general" value="general">
-                                    </label>
-
-                                    <label class="mx-1 mb-2 btn btn-outline-danger" for="private">خاص
-
-                                        <input type="radio" class="visually-hidden" name="mota3ahdeenType"
-                                            id="private" value="private">
-                                    </label>
-
-                                </div>
-
-                                <div class="moreSearch my-2 w-100 text-center">
-                                    <div role="button" class="w-100 btn btn-secondary px-5 fw-semibold">
-                                        اعدادات
-                                    </div>
-                                    <div class="description d-none p-2">
-                                        <div class="d-flex justify-content-between mb-3">
-                                            <div class="d-flex align-items-center w-100">
-                                                <input type="checkbox" name="settingMota3ahed" id="settingCanSearch"
-                                                    checked>
-                                                <label class="w-100 me-2" for="settingCanSearch">تفعيل امكانية
-                                                    البحث</label>
-                                            </div>
-                                            <div class=" d-flex align-items-center w-100">
-                                                <input type="checkbox" name="settingMota3ahed" id="settingCanDelet"
-                                                    checked>
-                                                <label class="w-100 me-2" for="settingCanDelet">يستطيع حذف مضامينة</label>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-1">
-                                            <label class="labelStyle" for="changparent_id">تغيير المتعهد الرئيسى</label>
-                                            <select name="parent_id" data-bs-target="edit-mot" id="changparent_id"
-                                                class="form-control py-1">
-
-                                                <option value="الكل" disabled>الكل</option>
-                                                @foreach ($parents as $item)
-                                                    <option value="{{ $item['id'] }}">{{ $item['name'] }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <button class="btn btn-primary w-100">حفظ الأعدادات</button>
-                                        <hr>
-                                    </div>
-                                </div>
-                            </form>
-
-                            <button class="btn btn-primary d-block me-auto" id="delete-con" value="">حذف
-                                المتعهد</button>
-
-                            <div class="d-flex align-items-center mt-3 border">
-                                <label class="labelStyle" for="trustingRate">المصداقيه</label>
-                                <input data-bs-target="edit-mot" type="range" name="trust" id="trustingRate"
-                                    value="0" min="0" class="w-100">
-                                <span class="bg-body-secondary p-2 px-3 d-flex">% <span id="trustText"
-                                        class="fw-semibold">0</span></span>
-                            </div>
+                            if (exportExcelBtn) {
+                                exportExcelBtn.addEventListener('click', function (event) {
+                                    event.preventDefault();
+                                    exportTableToExcel('myTable', 'contractors.xls');
+                                });
+                            }
+                        })();
+                    </script>
 
                             <div class="mt-3">
                                 <div class="d-flex align-items-center mb-1">
