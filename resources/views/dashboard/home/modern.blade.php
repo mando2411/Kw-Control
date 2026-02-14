@@ -48,10 +48,11 @@
                     الوقت المتبقي
                 </div>
                 <div class="hm-card hm-countdown hm-countdown-card" id="hmCountdown">
+                    <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
                     <input type="hidden" id="hmStartDate" value="{{ \Carbon\Carbon::parse($election->start_date)->format('Y-m-d') }}">
                     <input type="hidden" id="hmStartTime" value="{{ \Carbon\Carbon::parse($election->start_time)->format('H:i:s') }}">
                     <input type="hidden" id="hmEndDate" value="{{ \Carbon\Carbon::parse($election->end_date)->format('Y-m-d') }}">
-                    <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
+                    
 
                     <div class="hm-kpi-grid">
 
@@ -60,7 +61,8 @@
                             <div class="value" id="hmDays">0</div>
                             <div class="label">يوم</div>
 
-                            
+
+                        
                         <div class="hm-kpi hm-kpi-seconds">
                             <div class="value" id="hmSeconds">0</div>
                             <div class="label">ثانية</div>
