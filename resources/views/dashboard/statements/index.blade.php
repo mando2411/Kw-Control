@@ -305,7 +305,7 @@
 let x = new Chart(ctx, {
     type: "bar",
     data: {
-        labels: ['{!! auth()->user()->election->name !!}'],
+        labels: ['{!! auth()->user()->election?->name ?? 'غير محدد' !!}'],
       datasets: [
         {
           label: "الرجال",

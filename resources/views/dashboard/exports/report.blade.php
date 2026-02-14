@@ -286,7 +286,7 @@ foreach ($voters as $j => $con) {
         <div class="description">
             <h1 class="fw-bold">{{ auth()->user()->name }}</h1>
             @if(!auth()->user()->hasRole('Administrator'))
-                <p class="fs-5"> {{"مرشح". "  ".  auth()->user()->election->name }} </p>
+                <p class="fs-5"> {{"مرشح". "  ".  (auth()->user()->election?->name ?? 'غير محدد') }} </p>
             @endif
         </div>
     </div>

@@ -101,7 +101,7 @@
     foreach($voters as $i => $voter) {
         $row= ['#' => $i+1, 'name' => $voter->name];
         if (in_array('family', $columns)) {
-            $row['family'] = $voter->family->name;
+            $row['family'] = optional($voter->family)->name ?? 'لايوجد';
         }
         if (in_array('committee', $columns)) {
             $row['committee'] = $voter->committee ? $voter->committee->name : 'لايوجد';

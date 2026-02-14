@@ -1,8 +1,6 @@
 <?php
 namespace App\Filters;
 
-use Termwind\Components\Dd;
-
 class Siblings extends Filter
 {
 
@@ -12,15 +10,22 @@ class Siblings extends Filter
             return $builder;
         }
 
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            return $builder;
+        if (is_array($raw)) {
+            $data = $raw;
+        } else {
+            $data = json_decode((string) $raw, true);
+            if (!is_array($data)) {
+                return $builder;
+            }
         }
 
-        if(isset($data['father'])){
-            $builder->where('father',$data['father']);
-        }elseif(isset($data['grand'])){
-            $builder->where('grand',$data['grand']);
+        $father = $data['father'] ?? null;
+        $grand = $data['grand'] ?? null;
+
+        if(!empty($father)){
+            $builder->where('father', $father);
+        }elseif(!empty($grand)){
+            $builder->where('grand', $grand);
         }
         return $builder;
     }

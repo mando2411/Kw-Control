@@ -152,7 +152,7 @@
     foreach($voters as $i => $voter) {
         $row= ['#' => $i+1, 'name' => $voter->name];
         if (in_array('family', $columns)) {
-            $row['family'] = $voter->family->name;
+            $row['family'] = optional($voter->family)->name ?? 'لايوجد';
         }
         if (in_array('committee', $columns)) {
             $row['committee'] = $voter->committee ? $voter->committee->name : 'لايوجد';
@@ -220,7 +220,7 @@
         <div class="description">
             <h1 class="fw-bold">{{ auth()->user()->name }}</h1>
             @if(!auth()->user()->hasRole('Administrator'))
-                <p class="fs-5"> {{"مرشح". "  ".  auth()->user()->election->name }} </p>
+                <p class="fs-5"> {{"مرشح". "  ".  (auth()->user()->election?->name ?? 'غير محدد') }} </p>
             @endif
         </div>
     </div>

@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -28,6 +29,32 @@ class ProfileController extends Controller
         else
           return  view('site.about.index');
      }
+
+    public function toggleTheme(Request $request)
+    {
+        $mode = $request->get('mode');
+        $allowedModes = ['classic', 'modern'];
+
+        if (!in_array($mode, $allowedModes, true)) {
+            $currentMode = session('ui_mode', auth()->user()->ui_mode ?? 'classic');
+            $mode = $currentMode === 'modern' ? 'classic' : 'modern';
+        }
+
+        session(['ui_mode' => $mode]);
+
+        if (auth()->check() && Schema::hasColumn('users', 'ui_mode')) {
+            auth()->user()->update(['ui_mode' => $mode]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status' => 'ok',
+                'ui_mode' => $mode,
+            ]);
+        }
+
+        return back();
+    }
 
 
     public function change_password(Request $request)

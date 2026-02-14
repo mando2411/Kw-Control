@@ -29,18 +29,18 @@ class AuthenticatedSessionController extends Controller
     {
         $guard = null;
         if ($request->filled('login_as_client')) {
-            $guard = 'client_web';
+            $guard = 'client';
             config()->set('auth.defaults', $guard);
         }
         $request->authenticate($guard);
 
         $request->session()->regenerate();
 
-        if ($guard == 'client_web') {
+        if ($guard == 'client') {
 
             setcookie(
                 'token',
-                auth('client_web')->user()->createToken('api')->accessToken,
+                auth('client')->user()->createToken('api')->accessToken,
                 now()->addHours(2)->unix()
             );
 
@@ -48,8 +48,8 @@ class AuthenticatedSessionController extends Controller
                 return response()->json([
                     'success' => true,
                     'user' => [
-                        'name' => auth('client_web')->user()->name,
-                        'image' => auth('client_web')->user()->image,
+                        'name' => auth('client')->user()->name,
+                        'image' => auth('client')->user()->image,
                     ],
                     'redirect' => url('/api/documentation'),
                 ]);
@@ -92,7 +92,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $guard = auth()->user() instanceof User ? 'web' : 'client_web';
+        $guard = auth()->user() instanceof User ? 'web' : 'client';
 
         Auth::guard($guard)->logout();
 
