@@ -363,8 +363,19 @@
 }
 
 .home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi-grid {
+  display: flex;
+  direction: rtl;
   gap: 0.55rem;
 }
+
+.home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi-grid .hm-kpi {
+  flex: 1 1 0;
+}
+
+.home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi-grid .hm-kpi.hm-kpi-seconds { order: 1; }
+.home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi-grid .hm-kpi.hm-kpi-minutes { order: 2; }
+.home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi-grid .hm-kpi.hm-kpi-hours { order: 3; }
+.home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi-grid .hm-kpi.hm-kpi-days { order: 4; }
 
 .home-modern-mode .hm-countdown.hm-countdown-card .hm-kpi {
   border-radius: 0.9rem;

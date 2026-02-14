@@ -92,7 +92,7 @@
                     preload.id = preloadId;
                     preload.rel = 'preload';
                     preload.as = 'style';
-                    preload.href = "{{ asset('assets/css/home-modern.css') }}";
+                    preload.href = "{{ asset('assets/css/home-modern.css') . '?v=' . filemtime(public_path('assets/css/home-modern.css')) }}";
                     document.head.appendChild(preload);
                 }
 
@@ -103,7 +103,7 @@
                         var link = document.createElement('link');
                         link.id = cssId;
                         link.rel = 'stylesheet';
-                        link.href = "{{ asset('assets/css/home-modern.css') }}";
+                        link.href = "{{ asset('assets/css/home-modern.css') . '?v=' . filemtime(public_path('assets/css/home-modern.css')) }}";
                         document.head.appendChild(link);
                     }
                 }

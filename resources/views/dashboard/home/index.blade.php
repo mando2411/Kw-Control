@@ -962,7 +962,7 @@
     (function () {
         var STORAGE_KEY = 'ui_mode';
         var PENDING_KEY = 'ui_mode_pending';
-        var MODERN_HREF = "{{ asset('assets/css/home-modern.css') }}";
+        var MODERN_HREF = "{{ asset('assets/css/home-modern.css') . '?v=' . filemtime(public_path('assets/css/home-modern.css')) }}";
         var PERSIST_URL = "{{ route('ui-mode.update') }}";
 
         function getEffectiveModeFromDom() {

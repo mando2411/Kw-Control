@@ -54,19 +54,19 @@
                     <input type="hidden" id="hmEndTime" value="{{ \Carbon\Carbon::parse($election->end_time)->format('H:i:s') }}">
 
                     <div class="hm-kpi-grid">
-                        <div class="hm-kpi">
+                        <div class="hm-kpi hm-kpi-seconds">
                             <div class="value" id="hmSeconds">0</div>
                             <div class="label">ثانية</div>
                         </div>
-                        <div class="hm-kpi">
+                        <div class="hm-kpi hm-kpi-minutes">
                             <div class="value" id="hmMinutes">0</div>
                             <div class="label">دقيقة</div>
                         </div>
-                        <div class="hm-kpi">
+                        <div class="hm-kpi hm-kpi-hours">
                             <div class="value" id="hmHours">0</div>
                             <div class="label">ساعة</div>
                         </div>
-                        <div class="hm-kpi">
+                        <div class="hm-kpi hm-kpi-days">
                             <div class="value" id="hmDays">0</div>
                             <div class="label">يوم</div>
                         </div>
