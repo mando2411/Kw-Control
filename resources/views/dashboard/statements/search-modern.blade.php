@@ -1,6 +1,7 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
+<link rel="stylesheet" href="/assets/css/export-modal.css?v=20260214">
 <style>
     .stmt-modern {
         direction: rtl;
