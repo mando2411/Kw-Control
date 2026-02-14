@@ -631,11 +631,13 @@
             var currentContractorUrl = '';
             var trustDebounce = null;
             var rowCache = {};
+            var selectedVoterIdsCache = [];
             var exportModalElement = document.getElementById('smExportModal');
             var exportForm = document.getElementById('smExportForm');
             var exportType = document.getElementById('smExportType');
             var exportSearchId = document.getElementById('smExportSearchId');
             var exportCloseBtn = document.getElementById('smExportCloseBtn');
+            var exportOpenBtn = document.getElementById('smOpenExport');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
 
             function showExportStatus(message, tone) {
@@ -731,7 +733,13 @@
                     ids.push(value);
                 });
 
-                return Array.from(new Set(ids));
+                var unique = Array.from(new Set(ids));
+                if (unique.length) {
+                    selectedVoterIdsCache = unique.slice();
+                    return unique;
+                }
+
+                return selectedVoterIdsCache.slice();
             }
 
             function renderModal(response) {
@@ -793,6 +801,7 @@
                         '</tr>';
                 });
                 document.getElementById('voters_con').innerHTML = votersHtml;
+                selectedVoterIdsCache = [];
 
                 var deletedHtml = '';
                 softDelete.forEach(function (voter, idx) {
@@ -948,13 +957,24 @@
                 });
 
             modalEl.addEventListener('hidden.bs.modal', function () {
+                if (exportModalElement && (exportModalElement.classList.contains('show') || exportModalElement.style.display === 'block')) {
+                    return;
+                }
+
                 currentContractorId = null;
                 currentContractorUrl = '';
                 document.getElementById('voters_con').innerHTML = '';
                 document.getElementById('deletes_data').innerHTML = '';
                 document.getElementById('log_data').innerHTML = '';
+                selectedVoterIdsCache = [];
                 if (modalStatus) modalStatus.classList.remove('is-visible');
             });
+
+            if (exportOpenBtn) {
+                exportOpenBtn.addEventListener('click', function () {
+                    selectedVoterIdsCache = getSelectedVoterIdsForExport();
+                });
+            }
 
             if (exportCloseBtn) {
                 exportCloseBtn.addEventListener('click', function (event) {
@@ -968,6 +988,8 @@
                     if (exportSearchId) {
                         exportSearchId.value = currentContractorId ? String(currentContractorId) : '';
                     }
+
+                    selectedVoterIdsCache = getSelectedVoterIdsForExport();
                 });
 
                 exportModalElement.addEventListener('hidden.bs.modal', function () {
