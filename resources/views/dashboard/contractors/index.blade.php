@@ -227,6 +227,77 @@
         body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-modal-panels > .Search_logs {
             flex: 1 1 280px;
         }
+
+        body.ui-modern .contractors-modern-page .cm-export-modal .modal-dialog {
+            max-width: 680px;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-modal .modal-content {
+            border-radius: 1rem;
+            border: 1px solid rgba(14, 165, 233, 0.24);
+            box-shadow: 0 20px 44px rgba(2, 6, 23, 0.14);
+            overflow: hidden;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-modal .modal-header {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(59, 130, 246, 0.12));
+            border-bottom: 1px solid rgba(14, 165, 233, 0.2);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-title {
+            font-weight: 900;
+            margin: 0;
+            color: rgba(15, 23, 42, 0.94);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-sub {
+            margin: .18rem 0 0;
+            color: rgba(51, 65, 85, 0.84);
+            font-size: .86rem;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-modal .modal-body {
+            background: rgba(248, 250, 252, 0.55);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-section {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: .85rem;
+            padding: .7rem;
+            margin-bottom: .65rem;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-section-title {
+            margin-bottom: .45rem;
+            font-size: .87rem;
+            font-weight: 800;
+            color: rgba(15, 23, 42, .9);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .5rem;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-status {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: .22rem .55rem;
+            font-size: .78rem;
+            font-weight: 700;
+            border: 1px solid rgba(14, 165, 233, 0.24);
+            background: rgba(14, 165, 233, 0.1);
+            color: rgba(3, 105, 161, 0.95);
+            opacity: 0;
+            transition: opacity .2s ease;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-export-status.is-visible {
+            opacity: 1;
+        }
     </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -729,7 +800,7 @@
                                     </div>
                                 </form>
 
-                                <button data-bs-toggle="modal" data-bs-target="#elkshoofDetails" class="my-2 btn btn-dark"> استخراج الكشوف</button>
+                                <button data-bs-toggle="modal" data-bs-target="#contractorExportModal" class="my-2 btn btn-dark"> استخراج الكشوف</button>
 
 
                                 <div class="table-responsive mt-2">
@@ -761,181 +832,76 @@
             </div>
         </div>
 
-        <div
-        class="modal modal-md rtl"
-        id="elkshoofDetails"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">
-                بيانات الناخب
-              </h1>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body px-4">
+                <div class="modal fade rtl cm-export-modal" id="contractorExportModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-scrollable">
+                                <div class="modal-content">
+                                        <div class="modal-header">
+                                                <div>
+                                                        <h5 class="cm-export-title">استخراج الكشوف</h5>
+                                                        <p class="cm-export-sub">نفس تجربة صفحة البحث الحديثة مع تنفيذ سريع وبدون إعادة تحميل الصفحة.</p>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                        <span id="contractorExportStatus" class="cm-export-status" aria-live="polite"></span>
+                                                        <button type="button" id="contractorExportCloseBtn" class="btn-close" aria-label="Close"></button>
+                                                </div>
+                                        </div>
+                                        <div class="modal-body px-3">
+                                                <form action="{{ route('export') }}" method="GET" id="contractorExportForm">
+                                                        <input type="hidden" name="search_id" id="contractorExportSearchId" value="">
 
-              <form action="{{route('export')}}" method="GET" id="export">
-                <input type="hidden" name="search_id"id="search_id" value="">
-                <div class="d-flex align-items-center mb-3">
-                    <label class="labelStyle pt-2 pb-1 rounded-3" for="na5ebArea">المنطقة</label>
-                  <input type="text" class="form-control bg-secondary bg-opacity-25 " value="" name="region" id="na5ebArea">
+                                                        <div class="cm-export-section">
+                                                                <h6 class="cm-export-section-title">أعمدة الكشف</h6>
+                                                                <div class="row g-2">
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked disabled type="checkbox" value="name"><span>اسم الناخب</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked type="checkbox" name="columns[]" value="family"><span>العائلة</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="age"><span>العمر</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked type="checkbox" name="columns[]" value="alsndok"><span>رقم القيد</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="phone"><span>الهاتف</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="type"><span>الجنس</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="created_at"><span>تاريخ القيد</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="region"><span>المنطقة</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="committee"><span>اللجنة</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="madrasa"><span>مدرسة الانتخاب</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input checked type="checkbox" name="columns[]" value="restricted"><span>حالة القيد</span></label></div>
+                                                                        <div class="col-6"><label class="d-flex align-items-center gap-2"><input type="checkbox" name="columns[]" value="status"><span>حالة التصويت</span></label></div>
+                                                                </div>
+                                                        </div>
+
+                                                        <div class="cm-export-section">
+                                                                <h6 class="cm-export-section-title">ترتيب النتائج</h6>
+                                                                <select name="sorted" class="form-select form-select-sm">
+                                                                        <option value="asc">أبجدي</option>
+                                                                        <option value="phone">الهاتف</option>
+                                                                        <option value="commitment">الالتزام</option>
+                                                                </select>
+                                                        </div>
+
+                                                        <input type="hidden" name="type" id="contractorExportType">
+
+                                                        <div class="cm-export-section">
+                                                                <h6 class="cm-export-section-title">إجراء الإخراج</h6>
+                                                                <div class="cm-export-actions">
+                                                                        <button type="button" class="btn btn-primary contractor-export-action" value="PDF">PDF</button>
+                                                                        <button type="button" class="btn btn-success contractor-export-action" value="Excel">Excel</button>
+                                                                        <button type="button" class="btn btn-secondary contractor-export-action" value="print">طباعة</button>
+                                                                        <button type="button" class="btn btn-secondary contractor-export-action" value="show">عرض</button>
+                                                                </div>
+                                                        </div>
+
+                                                        <p class="text-danger small mb-2">* ملاحظة: لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
+
+                                                        <div class="cm-export-section mb-0">
+                                                                <h6 class="cm-export-section-title">إرسال PDF عبر WhatsApp</h6>
+                                                                <div class="d-flex gap-2 align-items-center">
+                                                                        <input type="number" class="form-control form-control-sm" name="to" id="contractorExportWhatsappTo" placeholder="رقم الهاتف">
+                                                                        <button type="button" class="btn btn-outline-primary contractor-export-action" value="Send">إرسال</button>
+                                                                </div>
+                                                        </div>
+                                                </form>
+                                        </div>
+                                </div>
+                        </div>
                 </div>
-
-                <div class="row g-4">
-                  <div class="col-6 ">
-                    <div class="d-flex align-items-center ">
-                        <input checked disabled type="checkbox" class="" name="columns[]" value="name" id="na5ebName">
-                        <label for="na5ebName">اسم الناخب</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                        <input checked type="checkbox" class="" name="columns[]" value="family" id="na5ebFamilyName">
-                        <label for="na5ebFamilyName"> العائلة</label>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <input type="checkbox" class="ms-2" name="columns[]" value="age" id="na5ebAge">
-                        <!-- <label for="na5ebAge"> العائلة</label> -->
-                        <select name="na5ebAge" class="border-0 p-1">
-                            <option value="الميلاد / العمر">الميلاد / العمر</option>
-                            <option value=" العمر"> العمر</option>
-                            <option value=" سنة الميلاد  ">سنة الميلاد</option>
-                            <option value="تاريخ الميلاد">تاريخ الميلاد</option>
-                        </select>
-                    </div>
-                  </div>
-
-                  <div class="col-6 ">
-                      {{-- <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="" id="na5ebCircle">
-                      <label for="na5ebCircle"> الدائرة</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="" id="na5ebChar">
-                      <label for="na5ebChar"> الحرف</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="" id="na5ebTableNumber">
-                      <label for="na5ebTableNumber"> رقم الجدول</label>
-                    </div> --}}
-                    <div class="d-flex align-items-center ">
-                      <input checked  type="checkbox" class="" name="columns[]" value="alsndok" id="na5ebRejestNumber">
-                      <label for="na5ebRejestNumber"> رقم القيد</label>
-                    </div>
-
-                  </div>
-
-                   <div class="col-6 ">
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="phone" id="na5ebPhone">
-                      <label for="na5ebPhone"> الهاتف</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="type" id="na5ebType">
-                      <label for="na5ebType"> الجنس</label>
-                    </div>
-                    <div class="d-flex align-items-center mb-1 ">
-                        <input  type="checkbox" class="ms-2" name="columns[]" value="created_at" id="na5ebRejesterDate">
-                        <label class="labelStyle" for="na5ebRejesterDate"> تاريخ القيد</label>
-                      </div>
-                    {{-- <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="job" id="na5ebJop">
-                      <label for="na5ebJop"> المهنة</label>
-                    </div>
-
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="" id="na5ebAddress">
-                      <label for="na5ebAddress"> العنوان</label>
-                    </div> --}}
-
-                    <div class="d-flex align-items-center ">
-                        <input  type="checkbox" class="" name="columns[]" value="region" id="na5ebRejon">
-                        <label for="na5ebRejon"> المنطقة</label>
-                      </div>
-                  </div>
-
-                  <div class="col-6 ">
-                      <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="committee" id="na5ebCommitte">
-                      <label for="na5ebCommitte"> اللجنة</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="madrasa" id="na5ebSchool">
-                      <label for="na5ebSchool"> مدرسة الانتخاب</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                     <input checked type="checkbox" class="" name="columns[]" value="restricted" id="na5ebRejesterStatus">
-                     <label for="na5ebRejesterStatus"> حالة القيد</label>
-                   </div>
-                    {{--
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="" id="na5ebRejesterDate">
-                      <label for="na5ebRejesterDate"> تاريخ القيد</label>
-                    </div>
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="" id="na5ebReference">
-                      <label for="na5ebReference"> مرجع الداخلية</label>
-                    </div> --}}
-                    <div class="d-flex align-items-center ">
-                      <input  type="checkbox" class="" name="columns[]" value="status" id="status">
-                      <label for="na5ebCheckedTime"> حاله التصويت</label>
-                    </div>
-                  </div>
-
-
-
-                </div>
-              <hr>
-              <div class="d-flex align-items-center">
-                <label class="labelStyle" for="mota3aheedTrusted">ترتيب</label>
-                <select name="sorted" id="sorted" class="form-control">
-                      <option value="asc">أبجدى</option>
-                      <option value="phone">الهاتف</option>
-                      <option value="asc">الألتزام</option>
-                  </select>
-              </div>
-              <input type="hidden" name="type" id="type">
-                <div class="rtl my-4 text-center">
-                <a href="">
-                  <button class="btn btn-primary button" value="PDF">PDF</button>
-                </a>
-                <a href="">
-                  <button class="btn btn-success button" value="Excel">Excel</button>
-                </a>
-                <a href="">
-                  <button class="btn btn-secondary button" value="print">طباعة</button>
-                </a>
-                <a href="">
-                  <button class="btn btn-secondary button" value="show">عرض</button>
-                </a>
-              </div>
-
-
-              <p class="text-danger">* ملاحظة : لا يم;ن استخراج البيانات الضخمة عبر ملف PDF</p>
-              <div class="d-flex align-items-center mb-3 pdfe">
-                  <label class="w-50 lableStyle" for="sendToNa5eb">ارسال PDF عبر whatsapp</label>
-                  <input type="number" class="form-control bg-secondary bg-opacity-25" name="to" id="sendToNa5eb" placeholder="رقم الهاتف">
-                  <button class="btn btn-primary me-2 button" value="Send">ارسال</button>
-              </div>
-
-
-
-
-              </form>
-
-
-
-            </div>
-          </div>
-        </div>
-      </div>
 
     </section>
 @endsection
@@ -967,6 +933,52 @@
             var currentContractorUrl = '';
             var trustDebounce = null;
             var rowCache = {};
+            var exportModalElement = document.getElementById('contractorExportModal');
+            var exportForm = document.getElementById('contractorExportForm');
+            var exportType = document.getElementById('contractorExportType');
+            var exportSearchId = document.getElementById('contractorExportSearchId');
+            var exportCloseBtn = document.getElementById('contractorExportCloseBtn');
+            var exportStatus = document.getElementById('contractorExportStatus');
+            var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
+
+            function showExportStatus(message, tone) {
+                if (!exportStatus) return;
+                exportStatus.textContent = message || '';
+                exportStatus.classList.add('is-visible');
+
+                exportStatus.style.background = tone === 'error'
+                    ? 'rgba(239, 68, 68, 0.12)'
+                    : tone === 'success'
+                        ? 'rgba(16, 185, 129, 0.12)'
+                        : 'rgba(14, 165, 233, 0.10)';
+
+                exportStatus.style.borderColor = tone === 'error'
+                    ? 'rgba(239, 68, 68, 0.30)'
+                    : tone === 'success'
+                        ? 'rgba(16, 185, 129, 0.30)'
+                        : 'rgba(14, 165, 233, 0.24)';
+
+                exportStatus.style.color = tone === 'error'
+                    ? 'rgba(153, 27, 27, 0.95)'
+                    : tone === 'success'
+                        ? 'rgba(6, 95, 70, 0.95)'
+                        : 'rgba(3, 105, 161, 0.95)';
+            }
+
+            function clearExportStatus(delay) {
+                setTimeout(function () {
+                    if (!exportStatus) return;
+                    exportStatus.classList.remove('is-visible');
+                }, delay || 900);
+            }
+
+            function closeExportModal() {
+                if (!exportModalElement) return;
+                if (window.bootstrap && window.bootstrap.Modal) {
+                    var modal = window.bootstrap.Modal.getOrCreateInstance(exportModalElement);
+                    modal.hide();
+                }
+            }
 
             function showStatus(message, tone) {
                 if (!modalStatus) return;
@@ -1070,6 +1082,10 @@
                     logsHtml += '<tr><td>' + (log.description || '') + '</td><td>' + (log.created_at || '') + '</td></tr>';
                 });
                 document.getElementById('log_data').innerHTML = logsHtml;
+
+                if (exportSearchId) {
+                    exportSearchId.value = String(user.id || '');
+                }
             }
 
             function loadContractorData(contractorId, contractorUrl) {
@@ -1218,6 +1234,138 @@
                 document.getElementById('log_data').innerHTML = '';
                 if (modalStatus) modalStatus.classList.remove('is-visible');
             });
+
+            if (exportCloseBtn) {
+                exportCloseBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    closeExportModal();
+                });
+            }
+
+            if (exportModalElement) {
+                exportModalElement.addEventListener('show.bs.modal', function () {
+                    if (exportSearchId) {
+                        exportSearchId.value = currentContractorId ? String(currentContractorId) : '';
+                    }
+                    if (exportStatus) {
+                        exportStatus.classList.remove('is-visible');
+                    }
+                });
+            }
+
+            $(document).off('click.contractorExportAction', '.contractor-export-action').on('click.contractorExportAction', '.contractor-export-action', function () {
+                if (!exportForm || !exportType) return;
+
+                var actionType = this.value;
+                var submitBtn = this;
+                var selectedIds = $.map($('#voters_con input.check:checked'), function (element) {
+                    return $(element).val();
+                });
+
+                if (!selectedIds.length) {
+                    showExportStatus('اختر ناخبًا واحدًا على الأقل', 'error');
+                    if (window.toastr) toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
+                    return;
+                }
+
+                exportType.value = actionType;
+                exportForm.querySelectorAll('input[name="voter[]"]').forEach(function (input) { input.remove(); });
+
+                selectedIds.forEach(function (id) {
+                    var hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = 'voter[]';
+                    hidden.value = id;
+                    exportForm.appendChild(hidden);
+                });
+
+                if (exportSearchId && !exportSearchId.value && currentContractorId) {
+                    exportSearchId.value = String(currentContractorId);
+                }
+
+                var formData = new FormData(exportForm);
+                var queryData = {};
+                formData.forEach(function (value, key) {
+                    if (Object.prototype.hasOwnProperty.call(queryData, key)) {
+                        if (!Array.isArray(queryData[key])) {
+                            queryData[key] = [queryData[key]];
+                        }
+                        queryData[key].push(value || '');
+                    } else {
+                        queryData[key] = value || '';
+                    }
+                });
+
+                submitBtn.disabled = true;
+                showExportStatus('جاري تنفيذ العملية...', 'info');
+
+                if (actionType === 'Excel' || actionType === 'PDF') {
+                    closeExportModal();
+                    axios.post(exportAsyncUrl, formData, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                        .then(function (res) {
+                            showExportStatus('تم إرسال الطلب للخلفية', 'success');
+                            if (window.toastr) {
+                                toastr.success(res?.data?.message || 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند الانتهاء.');
+                            }
+                        })
+                        .catch(function (error) {
+                            console.error(error);
+                            showExportStatus('تعذر بدء التجهيز', 'error');
+                            if (window.toastr) {
+                                toastr.error(error?.response?.data?.message || 'تعذر بدء تجهيز الملف. حاول مرة أخرى.');
+                            }
+                        })
+                        .finally(function () {
+                            submitBtn.disabled = false;
+                            clearExportStatus(1000);
+                        });
+                    return;
+                }
+
+                axios.get(exportForm.action, {
+                    params: queryData,
+                    responseType: 'json'
+                })
+                    .then(function (res) {
+                        showExportStatus('تم تنفيذ العملية', 'success');
+
+                        if (actionType === 'Send' && res.data?.Redirect_Url) {
+                            var waTab = window.open();
+                            if (waTab) {
+                                waTab.location.href = res.data.Redirect_Url;
+                            }
+                            return;
+                        }
+
+                        var newTab = window.open();
+                        if (newTab) {
+                            if (typeof res.data === 'string') {
+                                newTab.document.open();
+                                newTab.document.write(res.data);
+                                newTab.document.close();
+                            } else if (res.data?.Redirect_Url) {
+                                newTab.location.href = res.data.Redirect_Url;
+                            }
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        showExportStatus('فشل تنفيذ العملية', 'error');
+                        if (window.toastr) {
+                            toastr.error(error?.response?.data?.error || 'حدث خطأ غير متوقع');
+                        }
+                    })
+                    .finally(function () {
+                        submitBtn.disabled = false;
+                        clearExportStatus(1000);
+                    });
+            });
         })();
     </script>
     <script>
@@ -1227,58 +1375,6 @@
             $('.'+$(this).find('input').val()).removeClass('d-none')
         })
     </script>
-    <script>
-        $(document).ready(function() {
-        $('.button').on('click', function() {
-            var buttonValue = $(this).val();
-            $('#type').val(buttonValue);
-
-               if(!checkedValues){
-        var checkedElements = $('.check:checked');
-
-            var checkedValues = $.map(checkedElements, function(element) {
-            return $(element).val();
-            });
-
-            }
-            checkedValues.forEach(function(value) {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'voter[]',
-                    value: value
-                }).appendTo('#export');
-            });
-
-
-            var form = $('#export')[0]; // Ensure we get the DOM element, not jQuery object
-            var formData = new FormData(form);
-            var submitBtn = $(this);
-            axios.get(form.action, formData)
-                .then((res) => {
-                    console.log(res);
-                    setTimeout(() => {
-                        console.log(res.data);
-                    }, 2000);
-                    if (res.data.Redirect_Url) {
-                        window.location.href = res.data.Redirect_Url;
-                    } else {
-                        toastr.success(res.data.success);
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    }
-                })
-                .catch(error => {
-                    console.log(error);
-                    toastr.error(error.response.data.error ?? '{{ __('main.unexpected-error') }}');
-                    submitBtn.attr('disabled', false);
-                });
-        });
-    });
-    </script>
-
-
-
 
 
 <!-- DataTables JS -->
