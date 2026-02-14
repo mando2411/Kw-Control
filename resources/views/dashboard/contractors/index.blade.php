@@ -5,6 +5,119 @@
         th {
             font-size: 18px !important;
         }
+
+        body.ui-modern .contractors-modern-page {
+            --cm-bg: linear-gradient(160deg, rgba(15, 23, 42, 0.04), rgba(14, 165, 233, 0.06));
+            --cm-surface: rgba(255, 255, 255, 0.94);
+            --cm-border: rgba(15, 23, 42, 0.10);
+            --cm-shadow: 0 20px 45px rgba(2, 6, 23, 0.10);
+            --cm-text: rgba(15, 23, 42, 0.92);
+            --cm-muted: rgba(51, 65, 85, 0.82);
+            background: var(--cm-bg);
+            border: 1px solid var(--cm-border);
+            border-radius: 1.1rem;
+            padding: 1rem;
+            box-shadow: var(--cm-shadow);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-head {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(59, 130, 246, 0.12));
+            border: 1px solid rgba(14, 165, 233, 0.20);
+            border-radius: 1rem;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.9rem;
+            color: var(--cm-text);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-title {
+            font-weight: 900;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-sub {
+            color: var(--cm-muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        body.ui-modern .contractors-modern-page .mota3ahdeenControl,
+        body.ui-modern .contractors-modern-page .table-responsive,
+        body.ui-modern .contractors-modern-page .modal-content {
+            background: var(--cm-surface);
+            border: 1px solid var(--cm-border);
+            border-radius: 1rem;
+            box-shadow: 0 12px 28px rgba(2, 6, 23, 0.08);
+        }
+
+        body.ui-modern .contractors-modern-page .mota3ahdeenControl {
+            padding: 0.85rem;
+        }
+
+        body.ui-modern .contractors-modern-page #searchBox {
+            border-radius: 0.85rem;
+            border-color: rgba(14, 165, 233, 0.35);
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 4px 16px rgba(2, 6, 23, 0.06);
+        }
+
+        body.ui-modern .contractors-modern-page .Sort_Btn {
+            border-radius: 0.75rem !important;
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        body.ui-modern .contractors-modern-page .Sort_Btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(2, 6, 23, 0.12);
+        }
+
+        body.ui-modern .contractors-modern-page #myTable {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+
+        body.ui-modern .contractors-modern-page #myTable thead th {
+            background: rgba(14, 165, 233, 0.12) !important;
+            color: var(--cm-text);
+            border-bottom-color: rgba(14, 165, 233, 0.28) !important;
+        }
+
+        body.ui-modern .contractors-modern-page #myTable tbody tr {
+            transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        body.ui-modern .contractors-modern-page #myTable tbody tr:hover {
+            transform: translateY(-1px);
+            box-shadow: inset 0 0 0 1px rgba(14, 165, 233, 0.20);
+            background: rgba(248, 250, 252, 0.9);
+        }
+
+        body.ui-modern .contractors-modern-page .cm-anim {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: cmFadeUp .35s ease forwards;
+        }
+
+        body.ui-modern .contractors-modern-page .cm-anim-delay-1 { animation-delay: .05s; }
+        body.ui-modern .contractors-modern-page .cm-anim-delay-2 { animation-delay: .10s; }
+        body.ui-modern .contractors-modern-page .cm-anim-delay-3 { animation-delay: .15s; }
+
+        @keyframes cmFadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 991px) {
+            body.ui-modern .contractors-modern-page {
+                padding: 0.7rem;
+                border-radius: 0.85rem;
+            }
+        }
     </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -13,9 +126,13 @@
 
 
     <section class="py-1 my-1 rtl">
-        <div class="container mt-3">
+        <div class="container mt-3 contractors-modern-page">
+            <div class="cm-head cm-anim cm-anim-delay-1">
+                <h2 class="cm-title">إدارة المتعهدين</h2>
+                <div class="cm-sub">نسخة حديثة بواجهة أنعم وتجربة أسرع مع الحفاظ على نفس الوظائف الحالية.</div>
+            </div>
             <x-dashboard.partials.message-alert />
-            <form class="mota3ahdeenControl" action="{{ route('dashboard.contractors.store') }}" method="POST">
+            <form class="mota3ahdeenControl cm-anim cm-anim-delay-2" action="{{ route('dashboard.contractors.store') }}" method="POST">
                 @csrf
                 <div class="d-flex align-items-center mb-1">
                     <label class="labelStyle" for="parent_id">المتعهد الرئيسى</label>
@@ -228,7 +345,7 @@
 			</div>
 			
 			</div>
-            <div class="table-responsive mt-4">
+            <div class="table-responsive mt-4 cm-anim cm-anim-delay-3">
                 <table id="myTable" class="table rtl overflow-hidden rounded-3 text-center">
                     <thead class="table-primary border-0 border-secondary border-bottom border-2">
                         <tr style="font-size: 15px !important">
