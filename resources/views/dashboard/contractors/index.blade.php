@@ -104,7 +104,7 @@
                     المتواجدين
                 </div>
 				
-  <button onclick="exportTableToExcel('myTable', 'contractors.xls')" class="btn btn-primary">
+    <button id="exportExcelBtn" class="btn btn-primary">
    استخداج اكسيل
    </button>
 
@@ -191,8 +191,8 @@
                             </div>
                             <hr>
                             <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedName">
-                                <label class="labelStyle" for="mota3aheedName">اسم المتعهد</label>
+                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedName2">
+                                <label class="labelStyle" for="mota3aheedName2">اسم المتعهد</label>
                             </div>
                             <div>
                                 <input type="checkbox" class="" name="printMota3ahedData"
@@ -1090,11 +1090,19 @@
         })();
     </script>
     <script>
+        $(document)
+            .off('click.contractorsSortButtons', '.Sort_Btn')
+            .on('click.contractorsSortButtons', '.Sort_Btn', function () {
+                var selectedType = $(this).find('input').val();
+                $('#myTable tbody tr.all').addClass('d-none');
 
-        $(".Sort_Btn").on('click',function(){
-            $('#myTable tbody tr.all').addClass('d-none');
-            $('#myTable tbody tr.'+$(this).find('input').val()).removeClass('d-none')
-        })
+                if (selectedType === 'all') {
+                    $('#myTable tbody tr.all').removeClass('d-none');
+                    return;
+                }
+
+                $('#myTable tbody tr.' + selectedType).removeClass('d-none');
+            });
     </script>
 
 
@@ -1108,13 +1116,17 @@
  <script>
         document.addEventListener("DOMContentLoaded", function () {
         const table = document.getElementById("myTable");
-        const headers = table.querySelectorAll("thead th");
+        if (!table) return;
 
-        headers.forEach((header, columnIndex) => {
-            header.addEventListener("click", function () {
-                sortTable(table, columnIndex);
+        if (!table.dataset.headerSortBound) {
+            const headers = table.querySelectorAll("thead th");
+            headers.forEach((header, columnIndex) => {
+                header.addEventListener("click", function () {
+                    sortTable(table, columnIndex);
+                });
             });
-        });
+            table.dataset.headerSortBound = "1";
+        }
     });
 
     function sortTable(table, columnIndex) {
@@ -1146,7 +1158,7 @@
         // Search Functionality
         const searchBox = document.getElementById("searchBox");
         if (searchBox) {
-            searchBox.addEventListener("input", function () {
+            searchBox.oninput = function () {
                 const query = this.value.toLowerCase();
                 const rows = document.querySelectorAll("#myTable tbody tr");
 
@@ -1158,7 +1170,7 @@
 
                     row.style.display = matches ? "" : "none";
                 });
-            });
+            };
         }
 
 
@@ -1236,6 +1248,14 @@
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
+
+    const exportExcelBtn = document.getElementById("exportExcelBtn");
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            exportTableToExcel("myTable", "contractors.xls");
+        });
+    }
 
 	 
 	
