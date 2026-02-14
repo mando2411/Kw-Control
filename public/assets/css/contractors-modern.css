@@ -137,8 +137,7 @@ body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-content {
 }
 
 #mota3ahdeenDataModern .modal-dialog {
-    margin-left: auto;
-    margin-right: auto;
+    margin: 1.75rem auto !important;
 }
 
 body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-header {
