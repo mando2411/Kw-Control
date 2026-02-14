@@ -42,8 +42,7 @@
         }
 
         body.ui-modern .contractors-modern-page .mota3ahdeenControl,
-        body.ui-modern .contractors-modern-page .table-responsive,
-        body.ui-modern .contractors-modern-page .modal-content {
+        body.ui-modern .contractors-modern-page .table-responsive {
             background: var(--cm-surface);
             border: 1px solid var(--cm-border);
             border-radius: 1rem;
@@ -228,40 +227,43 @@
             flex: 1 1 280px;
         }
 
-        body.ui-modern .contractors-modern-page .sm-export-modal .modal-dialog {
+        body.ui-modern #contractorExportModal.sm-export-modal .modal-dialog {
             max-width: 760px;
         }
 
-        body.ui-modern .contractors-modern-page .sm-export-modal .modal-content {
+        body.ui-modern #contractorExportModal.sm-export-modal .modal-content {
             border: 1px solid var(--ui-border, rgba(148, 163, 184, .24));
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 24px 46px rgba(2, 6, 23, .18);
+            background: var(--ui-surface, #fff);
+            color: var(--ui-ink, #0f172a);
         }
 
-        body.ui-modern .contractors-modern-page .sm-export-modal .modal-header {
+        body.ui-modern #contractorExportModal.sm-export-modal .modal-header {
             border-bottom: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
             background: linear-gradient(18deg, rgba(127,29,29,.24), rgba(15,118,110,.18), rgba(180,83,9,.20));
             padding: 14px 16px;
         }
 
-        body.ui-modern .contractors-modern-page .sm-export-title {
+        body.ui-modern #contractorExportModal .sm-export-title {
             margin: 0;
             font-size: 1.02rem;
             font-weight: 950;
             color: var(--ui-ink, #0f172a);
         }
 
-        body.ui-modern .contractors-modern-page .sm-export-sub {
+        body.ui-modern #contractorExportModal .sm-export-sub {
             margin: 4px 0 0;
             color: var(--ui-muted, #64748b);
             font-size: .84rem;
             font-weight: 800;
         }
 
-        body.ui-modern .contractors-modern-page .sm-export-modal .modal-body {
+        body.ui-modern #contractorExportModal.sm-export-modal .modal-body {
             background: var(--ui-surface, #fff);
             padding: 14px;
+            color: var(--ui-ink, #0f172a);
         }
 
         body.ui-modern .contractors-modern-page .sm-export-section {
