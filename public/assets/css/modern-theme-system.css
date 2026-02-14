@@ -19,6 +19,70 @@ body.ui-modern {
     font-size: var(--ui-fs-base);
 }
 
+html.ui-modern .page-body,
+body.ui-modern .page-body {
+    max-width: var(--ui-container-max);
+    margin-inline: auto;
+}
+
+html.ui-modern a,
+body.ui-modern a {
+    color: var(--ui-link);
+}
+
+html.ui-modern .container-fluid,
+body.ui-modern .container-fluid {
+    --bs-gutter-x: var(--ui-space-section);
+}
+
+html.ui-modern .card,
+body.ui-modern .card,
+html.ui-modern .modal-content,
+body.ui-modern .modal-content,
+html.ui-modern .table-responsive,
+body.ui-modern .table-responsive {
+    border-radius: var(--ui-radius-card);
+    border-color: var(--ui-border);
+    box-shadow: var(--ui-shadow);
+    background-color: var(--ui-bg-primary);
+}
+
+html.ui-modern .card-body,
+body.ui-modern .card-body,
+html.ui-modern .modal-body,
+body.ui-modern .modal-body {
+    padding: var(--ui-space-card);
+}
+
+html.ui-modern .form-control,
+body.ui-modern .form-control,
+html.ui-modern .form-select,
+body.ui-modern .form-select,
+html.ui-modern .input-group-text,
+body.ui-modern .input-group-text {
+    border-radius: var(--ui-radius-input);
+    border-color: var(--ui-border);
+    color: var(--ui-text-primary);
+    background-color: var(--ui-bg-primary);
+}
+
+html.ui-modern .table,
+body.ui-modern .table {
+    color: var(--ui-text-primary);
+}
+
+html.ui-modern .table > :not(caption) > * > *,
+body.ui-modern .table > :not(caption) > * > * {
+    border-bottom-color: var(--ui-border);
+}
+
+html.ui-modern .navbar,
+body.ui-modern .navbar,
+html.ui-modern .breadcrumb,
+body.ui-modern .breadcrumb {
+    color: var(--ui-text-primary);
+}
+
 html.ui-modern h1,
 body.ui-modern h1 { font-size: var(--ui-heading-h1); }
 html.ui-modern h2,
@@ -34,7 +98,7 @@ body.ui-modern h6 { font-size: var(--ui-heading-h6); }
 
 html.ui-modern .btn,
 body.ui-modern .btn {
-    border-radius: 0.75rem;
+    border-radius: var(--ui-radius-button);
     font-weight: 700;
     font-size: var(--ui-fs-sm);
 }

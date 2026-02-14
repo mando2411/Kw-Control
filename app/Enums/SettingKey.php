@@ -54,6 +54,21 @@ enum SettingKey: string
     case UI_MODERN_FS_LG            = 'ui_modern_fs_lg';
     case UI_MODERN_FS_XL            = 'ui_modern_fs_xl';
 
+    // Modern UI Global Surface/Component Controls
+    case UI_MODERN_LINK_COLOR       = 'ui_modern_link_color';
+    case UI_MODERN_DARK_LINK_COLOR  = 'ui_modern_dark_link_color';
+    case UI_MODERN_BORDER_COLOR     = 'ui_modern_border_color';
+    case UI_MODERN_DARK_BORDER_COLOR = 'ui_modern_dark_border_color';
+
+    case UI_MODERN_RADIUS_CARD      = 'ui_modern_radius_card';
+    case UI_MODERN_RADIUS_INPUT     = 'ui_modern_radius_input';
+    case UI_MODERN_RADIUS_BUTTON    = 'ui_modern_radius_button';
+    case UI_MODERN_SHADOW_LEVEL     = 'ui_modern_shadow_level';
+
+    case UI_MODERN_SPACE_SECTION    = 'ui_modern_space_section';
+    case UI_MODERN_SPACE_CARD       = 'ui_modern_space_card';
+    case UI_MODERN_CONTAINER_MAX    = 'ui_modern_container_max';
+
 
 
 

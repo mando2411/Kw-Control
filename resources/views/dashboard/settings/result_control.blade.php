@@ -283,6 +283,20 @@
                         \App\Enums\SettingKey::UI_MODERN_FS_LG->value => ['label' => 'حجم LG', 'default' => '1.125rem'],
                         \App\Enums\SettingKey::UI_MODERN_FS_XL->value => ['label' => 'حجم XL', 'default' => '1.25rem'],
                     ];
+
+                    $componentDefaults = [
+                        \App\Enums\SettingKey::UI_MODERN_LINK_COLOR->value => ['label' => 'لون الروابط (Light)', 'default' => '#0ea5e9', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR->value => ['label' => 'لون الروابط (Dark)', 'default' => '#38bdf8', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_BORDER_COLOR->value => ['label' => 'لون الحدود (Light)', 'default' => '#dbe3ef', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR->value => ['label' => 'لون الحدود (Dark)', 'default' => '#64748b', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_RADIUS_CARD->value => ['label' => 'استدارة الكروت', 'default' => '1rem', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT->value => ['label' => 'استدارة المدخلات', 'default' => '0.75rem', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON->value => ['label' => 'استدارة الأزرار', 'default' => '0.75rem', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_SPACE_SECTION->value => ['label' => 'تباعد الأقسام', 'default' => '1.25rem', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_SPACE_CARD->value => ['label' => 'Padding الكروت', 'default' => '1rem', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX->value => ['label' => 'أقصى عرض للمحتوى', 'default' => '1320px', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL->value => ['label' => 'مستوى الظل', 'default' => 'medium', 'type' => 'select'],
+                    ];
                 @endphp
 
                 <div class="sm-card mb-3">
@@ -330,7 +344,7 @@
 
                             <div class="row g-3">
                                 <div class="col-12">
-                                    <h6 class="fw-bold mb-2">ألوان الوضع الحديث (Light)</h6>
+                                    <h6 class="fw-bold mb-2">1) ألوان الواجهة الحديثة (Light)</h6>
                                 </div>
 
                                 @foreach ($themeLightDefaults as $key => $meta)
@@ -345,7 +359,7 @@
                                 @endforeach
 
                                 <div class="col-12 mt-2">
-                                    <h6 class="fw-bold mb-2">ألوان الوضع الداكن (Dark)</h6>
+                                    <h6 class="fw-bold mb-2">2) ألوان الوضع الداكن (Dark)</h6>
                                 </div>
 
                                 @foreach ($themeDarkDefaults as $key => $meta)
@@ -360,7 +374,7 @@
                                 @endforeach
 
                                 <div class="col-12 mt-2">
-                                    <h6 class="fw-bold mb-2">أحجام الخطوط (Modern)</h6>
+                                    <h6 class="fw-bold mb-2">3) أحجام الخطوط</h6>
                                 </div>
 
                                 @foreach ($fontDefaults as $key => $meta)
@@ -368,6 +382,38 @@
                                         <label class="form-label fw-bold">{{ $meta['label'] }}</label>
                                         <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
                                     </div>
+                                @endforeach
+
+                                <div class="col-12 mt-2">
+                                    <h6 class="fw-bold mb-2">4) تحكم شامل للمكونات والتخطيط</h6>
+                                </div>
+
+                                @foreach ($componentDefaults as $key => $meta)
+                                    @if ($meta['type'] === 'color')
+                                        @php $colorId = 'theme_component_'.$key; @endphp
+                                        <div class="col-md-6 col-lg-3">
+                                            <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                            <div class="input-group">
+                                                <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
+                                                <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                            </div>
+                                        </div>
+                                    @elseif ($meta['type'] === 'select')
+                                        @php $shadowCurrent = $themeSettingValue($key, $meta['default']); @endphp
+                                        <div class="col-md-6 col-lg-3">
+                                            <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                            <select class="form-control" name="{{ $key }}[]">
+                                                <option value="soft" @selected($shadowCurrent === 'soft')>خفيف</option>
+                                                <option value="medium" @selected($shadowCurrent === 'medium')>متوسط</option>
+                                                <option value="strong" @selected($shadowCurrent === 'strong')>قوي</option>
+                                            </select>
+                                        </div>
+                                    @else
+                                        <div class="col-md-6 col-lg-3">
+                                            <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                            <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                        </div>
+                                    @endif
                                 @endforeach
                             </div>
 

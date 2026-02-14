@@ -33,6 +33,11 @@
         return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em)$/', $normalized) ? $normalized : $fallback;
     };
 
+    $sanitizeLengthOrPercent = static function (string $value, string $fallback): string {
+        $normalized = trim($value);
+        return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em|%)$/', $normalized) ? $normalized : $fallback;
+    };
+
     $uiThemeLight = [
         'btn_primary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY, '#0ea5e9'), '#0ea5e9'),
         'btn_secondary' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY, '#6366f1'), '#6366f1'),
@@ -61,6 +66,29 @@
         'base' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_BASE, '1rem'), '1rem'),
         'lg' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_LG, '1.125rem'), '1.125rem'),
         'xl' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_XL, '1.25rem'), '1.25rem'),
+    ];
+
+    $uiShadowMap = [
+        'soft' => '0 14px 28px rgba(2, 6, 23, 0.10)',
+        'medium' => '0 20px 45px rgba(2, 6, 23, 0.14)',
+        'strong' => '0 28px 65px rgba(2, 6, 23, 0.20)',
+    ];
+
+    $uiShadowLevel = trim((string) $themeValue(\App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL, 'medium'));
+    $uiShadowLevel = array_key_exists($uiShadowLevel, $uiShadowMap) ? $uiShadowLevel : 'medium';
+
+    $uiModernSurface = [
+        'link_light' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_LINK_COLOR, '#0ea5e9'), '#0ea5e9'),
+        'link_dark' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR, '#38bdf8'), '#38bdf8'),
+        'border_light' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_BORDER_COLOR, '#dbe3ef'), '#dbe3ef'),
+        'border_dark' => $sanitizeColor($themeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR, '#64748b'), '#64748b'),
+        'radius_card' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_CARD, '1rem'), '1rem'),
+        'radius_input' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT, '0.75rem'), '0.75rem'),
+        'radius_button' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON, '0.75rem'), '0.75rem'),
+        'space_section' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_SECTION, '1.25rem'), '1.25rem'),
+        'space_card' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_CARD, '1rem'), '1rem'),
+        'container_max' => $sanitizeLengthOrPercent($themeValue(\App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX, '1320px'), '1320px'),
+        'shadow' => $uiShadowMap[$uiShadowLevel],
     ];
 @endphp
 
@@ -270,8 +298,8 @@
             --ui-muted: {{ $uiThemeLight['text_secondary'] }};
             --ui-surface: {{ $uiThemeLight['bg_primary'] }};
             --ui-surface-2: {{ $uiThemeLight['bg_secondary'] }};
-            --ui-border: rgba(15, 23, 42, 0.10);
-            --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.16);
+            --ui-border: {{ $uiModernSurface['border_light'] }};
+            --ui-shadow: {{ $uiModernSurface['shadow'] }};
 
             --ui-accent: {{ $uiThemeLight['btn_primary'] }};
             --ui-accent-soft: color-mix(in srgb, {{ $uiThemeLight['btn_primary'] }} 14%, transparent);
@@ -292,6 +320,14 @@
             --ui-bg-primary: {{ $uiThemeLight['bg_primary'] }};
             --ui-bg-secondary: {{ $uiThemeLight['bg_secondary'] }};
 
+            --ui-link: {{ $uiModernSurface['link_light'] }};
+            --ui-radius-card: {{ $uiModernSurface['radius_card'] }};
+            --ui-radius-input: {{ $uiModernSurface['radius_input'] }};
+            --ui-radius-button: {{ $uiModernSurface['radius_button'] }};
+            --ui-space-section: {{ $uiModernSurface['space_section'] }};
+            --ui-space-card: {{ $uiModernSurface['space_card'] }};
+            --ui-container-max: {{ $uiModernSurface['container_max'] }};
+
             --ui-fs-xs: {{ $uiFontScale['xs'] }};
             --ui-fs-sm: {{ $uiFontScale['sm'] }};
             --ui-fs-base: {{ $uiFontScale['base'] }};
@@ -309,8 +345,8 @@
             --ui-muted: {{ $uiThemeDark['text_secondary'] }};
             --ui-surface: {{ $uiThemeDark['bg_primary'] }};
             --ui-surface-2: {{ $uiThemeDark['bg_secondary'] }};
-            --ui-border: rgba(148, 163, 184, 0.28);
-            --ui-shadow: 0 24px 60px rgba(2, 6, 23, 0.48);
+            --ui-border: {{ $uiModernSurface['border_dark'] }};
+            --ui-shadow: {{ $uiModernSurface['shadow'] }};
             --ui-accent: {{ $uiThemeDark['btn_primary'] }};
             --ui-accent-soft: color-mix(in srgb, {{ $uiThemeDark['btn_primary'] }} 16%, transparent);
             --ui-warm: {{ $uiThemeDark['btn_quaternary'] }};
@@ -329,6 +365,8 @@
 
             --ui-bg-primary: {{ $uiThemeDark['bg_primary'] }};
             --ui-bg-secondary: {{ $uiThemeDark['bg_secondary'] }};
+
+            --ui-link: {{ $uiModernSurface['link_dark'] }};
             color-scheme: dark;
         }
 
