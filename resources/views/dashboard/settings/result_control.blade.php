@@ -240,6 +240,20 @@
                         return is_string($value) && trim($value) !== '' ? trim($value) : $fallback;
                     };
 
+                    $themeHexValue = static function (string $key, string $fallback) use ($themeSettingValue) {
+                        $value = $themeSettingValue($key, $fallback);
+                        if (preg_match('/^#([0-9a-fA-F]{6})$/', $value)) {
+                            return strtolower($value);
+                        }
+
+                        if (preg_match('/^#([0-9a-fA-F]{3})$/', $value, $matches)) {
+                            $hex = strtolower($matches[1]);
+                            return '#'.$hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+                        }
+
+                        return strtolower($fallback);
+                    };
+
                     $themeLightDefaults = [
                         \App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY->value => ['label' => 'زر أساسي (Primary)', 'default' => '#0ea5e9'],
                         \App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY->value => ['label' => 'زر ثانوي (Secondary)', 'default' => '#6366f1'],
@@ -307,7 +321,7 @@
                     </div>
                     <div class="sm-card-b">
                         <div class="sm-help">
-                            أدخل ألوان بصيغة <strong>#hex</strong> (مثل #0ea5e9) أو <strong>rgb/rgba</strong>، وأحجام الخط بصيغة <strong>rem</strong> أو <strong>px</strong>.
+                            اختَر اللون مباشرة من المربع، ويمكنك أيضًا تعديل كود اللون يدويًا. أحجام الخطوط بصيغة <strong>rem</strong> أو <strong>px</strong>.
                         </div>
 
                         <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
@@ -320,9 +334,13 @@
                                 </div>
 
                                 @foreach ($themeLightDefaults as $key => $meta)
+                                    @php $colorId = 'theme_color_'.$key; @endphp
                                     <div class="col-md-6 col-lg-3">
                                         <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                        <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                        <div class="input-group">
+                                            <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
+                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                        </div>
                                     </div>
                                 @endforeach
 
@@ -331,9 +349,13 @@
                                 </div>
 
                                 @foreach ($themeDarkDefaults as $key => $meta)
+                                    @php $colorId = 'theme_color_'.$key; @endphp
                                     <div class="col-md-6 col-lg-3">
                                         <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                        <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                        <div class="input-group">
+                                            <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
+                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                        </div>
                                     </div>
                                 @endforeach
 
@@ -432,6 +454,33 @@
                 </div>
             </div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var colorPickers = document.querySelectorAll('#settings-app input[type="color"][data-sync-target]');
+                colorPickers.forEach(function (picker) {
+                    var targetId = picker.getAttribute('data-sync-target');
+                    var targetInput = document.getElementById(targetId);
+                    if (!targetInput) {
+                        return;
+                    }
+
+                    picker.addEventListener('input', function () {
+                        targetInput.value = picker.value;
+                    });
+
+                    targetInput.addEventListener('input', function () {
+                        var value = (targetInput.value || '').trim();
+                        if (/^#([a-fA-F0-9]{6})$/.test(value)) {
+                            picker.value = value;
+                        } else if (/^#([a-fA-F0-9]{3})$/.test(value)) {
+                            var shortHex = value.substring(1);
+                            picker.value = '#' + shortHex[0] + shortHex[0] + shortHex[1] + shortHex[1] + shortHex[2] + shortHex[2];
+                        }
+                    });
+                });
+            });
+        </script>
     </div>
     <!-- Container-fluid Ends-->
 @endsection
