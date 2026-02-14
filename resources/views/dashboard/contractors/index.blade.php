@@ -897,10 +897,7 @@
                                                         <h5 class="sm-export-title">استخراج الكشوف</h5>
                                                         <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                                                 </div>
-                                                <div class="d-flex align-items-center gap-2">
-                                                        <span id="contractorExportStatus" class="sm-export-meta" aria-live="polite"></span>
-                                                        <button type="button" id="contractorExportCloseBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
+                                                <button type="button" id="contractorExportCloseBtn" class="btn-close" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body px-3">
                                                 <form action="{{ route('export') }}" method="GET" id="contractorExportForm">
@@ -913,15 +910,12 @@
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked disabled type="checkbox" value="name"><span class="sm-chip-pill">اسم الناخب</span></label></div>
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="family"><span class="sm-chip-pill">العائلة</span></label></div>
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="age"><span class="sm-chip-pill">العمر</span></label></div>
-                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="alsndok"><span class="sm-chip-pill">رقم القيد</span></label></div>
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="phone"><span class="sm-chip-pill">الهاتف</span></label></div>
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="type"><span class="sm-chip-pill">الجنس</span></label></div>
-                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="created_at"><span class="sm-chip-pill">تاريخ القيد</span></label></div>
-                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="region"><span class="sm-chip-pill">المنطقة</span></label></div>
-                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="committee"><span class="sm-chip-pill">اللجنة</span></label></div>
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="madrasa"><span class="sm-chip-pill">مدرسة الانتخاب</span></label></div>
                                                                 <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="restricted"><span class="sm-chip-pill">حالة القيد</span></label></div>
-                                                                <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="status"><span class="sm-chip-pill">حالة التصويت</span></label></div>
+                                                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="created_at"><span class="sm-chip-pill">تاريخ القيد</span></label></div>
+                                                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="checked_time"><span class="sm-chip-pill">وقت التصويت</span></label></div>
                                                                 </div>
                                                         </div>
 
@@ -939,10 +933,10 @@
                                                         <div class="sm-export-section">
                                                             <h6 class="sm-export-section-title">إجراء الإخراج</h6>
                                                             <div class="sm-export-actions">
-                                                                        <button type="button" class="btn btn-primary contractor-export-action" value="PDF">PDF</button>
-                                                                        <button type="button" class="btn btn-success contractor-export-action" value="Excel">Excel</button>
-                                                                        <button type="button" class="btn btn-secondary contractor-export-action" value="print">طباعة</button>
-                                                                        <button type="button" class="btn btn-secondary contractor-export-action" value="show">عرض</button>
+                                                                <button type="button" class="btn btn-primary sm-export-action" value="PDF">PDF</button>
+                                                                <button type="button" class="btn btn-success sm-export-action" value="Excel">Excel</button>
+                                                                <button type="button" class="btn btn-secondary sm-export-action" value="print">طباعة</button>
+                                                                <button type="button" class="btn btn-secondary sm-export-action" value="show">عرض</button>
                                                                 </div>
                                                         </div>
 
@@ -952,7 +946,7 @@
                                                             <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
                                                                 <div class="d-flex gap-2 align-items-center">
                                                                         <input type="number" class="form-control form-control-sm" name="to" id="contractorExportWhatsappTo" placeholder="رقم الهاتف">
-                                                                        <button type="button" class="btn btn-outline-primary contractor-export-action" value="Send">إرسال</button>
+                                                                <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
                                                                 </div>
                                                         </div>
                                                 </form>
@@ -996,39 +990,22 @@
             var exportType = document.getElementById('contractorExportType');
             var exportSearchId = document.getElementById('contractorExportSearchId');
             var exportCloseBtn = document.getElementById('contractorExportCloseBtn');
-            var exportStatus = document.getElementById('contractorExportStatus');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
 
             function showExportStatus(message, tone) {
-                if (!exportStatus) return;
-                exportStatus.textContent = message || '';
-                exportStatus.classList.add('is-visible');
-
-                exportStatus.style.background = tone === 'error'
-                    ? 'rgba(239, 68, 68, 0.12)'
-                    : tone === 'success'
-                        ? 'rgba(16, 185, 129, 0.12)'
-                        : 'rgba(14, 165, 233, 0.10)';
-
-                exportStatus.style.borderColor = tone === 'error'
-                    ? 'rgba(239, 68, 68, 0.30)'
-                    : tone === 'success'
-                        ? 'rgba(16, 185, 129, 0.30)'
-                        : 'rgba(14, 165, 233, 0.24)';
-
-                exportStatus.style.color = tone === 'error'
-                    ? 'rgba(153, 27, 27, 0.95)'
-                    : tone === 'success'
-                        ? 'rgba(6, 95, 70, 0.95)'
-                        : 'rgba(3, 105, 161, 0.95)';
+                if (!window.toastr) return;
+                if (tone === 'error') {
+                    toastr.error(message || 'حدث خطأ غير متوقع');
+                    return;
+                }
+                if (tone === 'success') {
+                    toastr.success(message || 'تم التنفيذ بنجاح');
+                    return;
+                }
+                toastr.info(message || 'جارٍ التنفيذ...');
             }
 
-            function clearExportStatus(delay) {
-                setTimeout(function () {
-                    if (!exportStatus) return;
-                    exportStatus.classList.remove('is-visible');
-                }, delay || 900);
-            }
+            function clearExportStatus(delay) {}
 
             function closeExportModal() {
                 if (!exportModalElement) return;
@@ -1057,6 +1034,13 @@
                         setTimeout(forceModalCleanup, 240);
                         return;
                     }
+                }
+
+                if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
+                    window.jQuery(exportModalElement).modal('hide');
+                    setTimeout(forceModalCleanup, 60);
+                    setTimeout(forceModalCleanup, 240);
+                    return;
                 }
 
                 forceModalCleanup();
@@ -1329,15 +1313,9 @@
                     if (exportSearchId) {
                         exportSearchId.value = currentContractorId ? String(currentContractorId) : '';
                     }
-                    if (exportStatus) {
-                        exportStatus.classList.remove('is-visible');
-                    }
                 });
 
                 exportModalElement.addEventListener('hidden.bs.modal', function () {
-                    if (exportStatus) {
-                        exportStatus.classList.remove('is-visible');
-                    }
                     document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
                 });
             }
@@ -1354,7 +1332,7 @@
                 closeExportModal();
             }, true);
 
-            $(document).off('click.contractorExportAction', '.contractor-export-action').on('click.contractorExportAction', '.contractor-export-action', function () {
+            $(document).off('click.contractorExportAction', '.sm-export-action').on('click.contractorExportAction', '.sm-export-action', function () {
                 if (!exportForm || !exportType) return;
 
                 var actionType = this.value;
@@ -1410,17 +1388,11 @@
                         }
                     })
                         .then(function (res) {
-                            showExportStatus('تم إرسال الطلب للخلفية', 'success');
-                            if (window.toastr) {
-                                toastr.success('بدأ تجهيز ملف كشوف المتعهدين في الخلفية. ستصلك إشعارات مميزة لكشوف المتعهدين عند الانتهاء.');
-                            }
+                            showExportStatus('بدأ تجهيز ملف كشوف المتعهدين في الخلفية. ستصلك إشعارات مميزة لكشوف المتعهدين عند الانتهاء.', 'success');
                         })
                         .catch(function (error) {
                             console.error(error);
-                            showExportStatus('تعذر بدء التجهيز', 'error');
-                            if (window.toastr) {
-                                toastr.error(error?.response?.data?.message || 'تعذر بدء تجهيز الملف. حاول مرة أخرى.');
-                            }
+                            showExportStatus(error?.response?.data?.message || 'تعذر بدء تجهيز الملف. حاول مرة أخرى.', 'error');
                         })
                         .finally(function () {
                             submitBtn.disabled = false;
@@ -1457,10 +1429,7 @@
                     })
                     .catch(function (error) {
                         console.error(error);
-                        showExportStatus('فشل تنفيذ العملية', 'error');
-                        if (window.toastr) {
-                            toastr.error(error?.response?.data?.error || 'حدث خطأ غير متوقع');
-                        }
+                        showExportStatus(error?.response?.data?.error || 'حدث خطأ غير متوقع', 'error');
                     })
                     .finally(function () {
                         submitBtn.disabled = false;
