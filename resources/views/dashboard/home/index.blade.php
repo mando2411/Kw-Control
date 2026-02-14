@@ -594,17 +594,8 @@
                     <div class="col-3">
                         <div class="inner border border-2 p-2 rounded-3 rounded">
                             <div class="textMainColor text-center fw-bold">
-                                <span class="fs-2" id="days"></span> <br />
-                                يوم
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-3">
-                        <div class="inner border border-2 p-2 rounded-3 rounded">
-                            <div class="textMainColor text-center fw-bold">
-                                <span class="fs-2" id="hours"></span> <br />
-                                ساعه
+                                <span class="fs-2" id="seconds"></span> <br />
+                                ثانيه
                             </div>
                         </div>
                     </div>
@@ -621,8 +612,17 @@
                     <div class="col-3">
                         <div class="inner border border-2 p-2 rounded-3 rounded">
                             <div class="textMainColor text-center fw-bold">
-                                <span class="fs-2" id="seconds"></span> <br />
-                                ثانيه
+                                <span class="fs-2" id="hours"></span> <br />
+                                ساعه
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-3">
+                        <div class="inner border border-2 p-2 rounded-3 rounded">
+                            <div class="textMainColor text-center fw-bold">
+                                <span class="fs-2" id="days"></span> <br />
+                                يوم
                             </div>
                         </div>
                     </div>
