@@ -723,6 +723,17 @@
                 }, delay || 900);
             }
 
+            function getSelectedVoterIdsForExport() {
+                var ids = [];
+                document.querySelectorAll('#voters_con input[type="checkbox"]:checked').forEach(function (element) {
+                    var value = String(element && element.value ? element.value : '').trim();
+                    if (!value || value === 'on') return;
+                    ids.push(value);
+                });
+
+                return Array.from(new Set(ids));
+            }
+
             function renderModal(response) {
                 var user = response.data.user;
                 var voters = user.voters || [];
@@ -899,9 +910,7 @@
                 if (!currentContractorId) return;
 
                 var selected = $('#addMota3ahed').val();
-                var voters = $.map($('#voters_con input.check:checked'), function (element) {
-                    return $(element).val();
-                });
+                var voters = getSelectedVoterIdsForExport();
 
                 if (!selected || !voters.length) {
                     showStatus('اختر إجراء ومحددات أولاً', 'error');
@@ -983,13 +992,10 @@
 
                 var actionType = this.value;
                 var submitBtn = this;
-                var selectedIds = $.map($('#voters_con input.check:checked'), function (element) {
-                    return $(element).val();
-                });
+                var selectedIds = getSelectedVoterIdsForExport();
 
                 if (!selectedIds.length) {
                     showExportStatus('اختر ناخبًا واحدًا على الأقل', 'error');
-                    if (window.toastr) toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
                     return;
                 }
 
