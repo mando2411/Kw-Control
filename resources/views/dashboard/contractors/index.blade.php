@@ -1136,6 +1136,18 @@
                     });
             });
 
+            $(document)
+                .off('click.contractorLogsToggle', '#mota3ahdeenDataModern .Search_logs h5')
+                .on('click.contractorLogsToggle', '#mota3ahdeenDataModern .Search_logs h5', function () {
+                    $(this).siblings('table').toggleClass('d-none');
+                });
+
+            $(document)
+                .off('click.contractorDeletedToggle', '#mota3ahdeenDataModern .Delete_names h5')
+                .on('click.contractorDeletedToggle', '#mota3ahdeenDataModern .Delete_names h5', function () {
+                    $(this).siblings('table').toggleClass('d-none');
+                });
+
             modalEl.addEventListener('hidden.bs.modal', function () {
                 currentContractorId = null;
                 currentContractorUrl = '';
