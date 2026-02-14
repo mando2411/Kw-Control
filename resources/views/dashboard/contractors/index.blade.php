@@ -227,59 +227,7 @@
             flex: 1 1 280px;
         }
 
-        body.ui-modern #smExportModal.sm-export-modal .modal-dialog {
-            max-width: 760px;
-        }
-
-        body.ui-modern #smExportModal.sm-export-modal .modal-content {
-            border: 1px solid var(--ui-border, rgba(148, 163, 184, .24));
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 24px 46px rgba(2, 6, 23, .18);
-            background: var(--ui-surface, #fff);
-            color: var(--ui-ink, #0f172a);
-        }
-
-        body.ui-modern #smExportModal.sm-export-modal .modal-header {
-            border-bottom: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
-            background: linear-gradient(18deg, rgba(127,29,29,.24), rgba(15,118,110,.18), rgba(180,83,9,.20));
-            padding: 14px 16px;
-        }
-
-        body.ui-modern #smExportModal .sm-export-title {
-            margin: 0;
-            font-size: 1.02rem;
-            font-weight: 950;
-            color: var(--ui-ink, #0f172a);
-        }
-
-        body.ui-modern #smExportModal .sm-export-sub {
-            margin: 4px 0 0;
-            color: var(--ui-muted, #64748b);
-            font-size: .84rem;
-            font-weight: 800;
-        }
-
-        body.ui-modern #smExportModal.sm-export-modal .modal-body {
-            background: var(--ui-surface, #fff);
-            padding: 14px;
-            color: var(--ui-ink, #0f172a);
-        }
-
-        body.ui-modern .contractors-modern-page .sm-export-section {
-            border: 1px solid var(--ui-border, rgba(148, 163, 184, .22));
-            border-radius: 14px;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: var(--ui-surface-2, #f8fafc);
-        }
-
-        body.ui-modern .contractors-modern-page .sm-export-section-title {
-            margin: 0 0 8px;
-            font-size: .86rem;
-            color: var(--ui-muted, #64748b);
-            font-weight: 950;
-        }
+        /* تم حذف أي CSS خاص بالمودال هنا لتفادي التعارض. كل قواعد sm-export-modal ستأتي من ملف البحث فقط */
 
         body.ui-modern .contractors-modern-page .sm-chip-option {
             display: block;
@@ -947,7 +895,7 @@
                                                         <div class="sm-export-section mb-0">
                                                             <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
                                                                 <div class="d-flex gap-2 align-items-center">
-                                                                        <input type="number" class="form-control form-control-sm" name="to" id="contractorExportWhatsappTo" placeholder="رقم الهاتف">
+                                                                        <input type="number" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
                                                                 <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
                                                                 </div>
                                                         </div>
