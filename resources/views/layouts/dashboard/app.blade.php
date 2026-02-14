@@ -1649,6 +1649,19 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 
+    <script>
+        (function () {
+            if (!window.jQuery) return;
+            var $ = window.jQuery;
+            if (!$.fn.select2) {
+                $.fn.select2 = function () { return this; };
+            }
+            if (!$.fn.tagsinput) {
+                $.fn.tagsinput = function () { return this; };
+            }
+        })();
+    </script>
+
     <script src="{{ asset('assets/admin/js/admin.js') }}"></script>
 
     <script>
@@ -2420,6 +2433,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/worker-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/beautify-css.min.js"></script>
+
+<script>
+    document.addEventListener('hide.bs.modal', function (event) {
+        var active = document.activeElement;
+        if (active && event.target && event.target.contains(active) && typeof active.blur === 'function') {
+            active.blur();
+        }
+    });
+</script>
 
 </body>
 
