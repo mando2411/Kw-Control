@@ -163,6 +163,58 @@
         body.ui-modern .contractors-modern-page #mota3ahdeenDataModern #trustingRate {
             accent-color: #0ea5e9;
         }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-panel-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .55rem;
+            margin: 0;
+            border-radius: .75rem;
+            padding: .55rem .7rem;
+            cursor: pointer;
+            transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
+            border: 1px solid transparent;
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-panel-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(2, 6, 23, .10);
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .Delete_names .cm-panel-toggle {
+            background: linear-gradient(135deg, rgba(239, 68, 68, .12), rgba(220, 38, 38, .10));
+            border-color: rgba(220, 38, 38, .22);
+            color: rgba(127, 29, 29, .95);
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .Search_logs .cm-panel-toggle {
+            background: linear-gradient(135deg, rgba(14, 165, 233, .13), rgba(59, 130, 246, .12));
+            border-color: rgba(14, 165, 233, .24);
+            color: rgba(12, 74, 110, .96);
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-panel-toggle .cm-label {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-weight: 800;
+            font-size: .9rem;
+        }
+
+        body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .cm-panel-toggle .cm-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.1rem;
+            height: 1.55rem;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 900;
+            background: rgba(2, 6, 23, .8);
+            color: #fff;
+            padding: 0 .55rem;
+        }
     </style>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -649,10 +701,9 @@
 
                                 <div class="text-end">
                                     <div class="Delete_names d-none">
-                                        <h5 class="bg-danger rounded-2 p-2 cPointer">
-                                            أسماء محذوفة
-                                            <span class="bg-dark rounded-3 fs-6 px-2 py-1 me-2">العدد<span
-                                                    class="ma7zofeenNumber me-2" id="deletes_count">3</span></span>
+                                        <h5 class="cm-panel-toggle cPointer">
+                                            <span class="cm-label"><i class="fa fa-trash"></i> أسماء محذوفة</span>
+                                            <span class="cm-count" id="deletes_count">3</span>
                                         </h5>
 
                                         <table class="table rtl overflow-hidden rounded-3 text-center d-none">
@@ -671,10 +722,9 @@
                                     </div>
 
                                     <div class="Search_logs d-none">
-                                        <h5 class="bg-info rounded-2 p-2 cPointer">
-                                            سجل عمليات البحث :
-                                            <span class="bg-dark rounded-3 fs-6 px-2 py-1 me-2"><span
-                                                    class="ma7zofeenNumber me-2" id="log_count">0</span></span>
+                                        <h5 class="cm-panel-toggle cPointer">
+                                            <span class="cm-label"><i class="fa fa-clock-rotate-left"></i> سجل عمليات البحث</span>
+                                            <span class="cm-count" id="log_count">0</span>
                                         </h5>
                                         <table class="table rtl overflow-hidden rounded-3 text-center d-none">
                                             <thead class="table-secondary border-0 border-secondary border-bottom border-2">
