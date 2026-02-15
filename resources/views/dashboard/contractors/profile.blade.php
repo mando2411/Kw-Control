@@ -257,7 +257,7 @@
     'shadow' => $uiShadowMap[$uiShadowLevel],
   ];
 @endphp
-<html lang="{{ app()->getLocale() }}" class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+<html lang="ar" dir="rtl" class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -362,6 +362,11 @@
 
   </head>
   <style>
+    .contractor-profile-page {
+      direction: rtl;
+      text-align: right;
+    }
+
     .contractor-top-cta {
       background: linear-gradient(120deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1), var(--ui-btn-tertiary, #14b8a6));
       color: #fff;
@@ -383,6 +388,7 @@
       max-width: min(1280px, 94vw);
       margin: 0 auto;
       display: flex;
+      direction: rtl;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
@@ -414,6 +420,14 @@
       font-size: clamp(0.84rem, 1.4vw, 0.98rem);
       font-weight: 900;
       letter-spacing: -0.01em;
+      direction: rtl;
+      unicode-bidi: plaintext;
+    }
+
+    .contractor-top-cta__offer .ltr-fragment {
+      direction: ltr;
+      unicode-bidi: isolate;
+      display: inline-block;
     }
 
     .contractor-top-cta__hint {
@@ -545,12 +559,12 @@
       }
     }
   </style>
-  <body class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+  <body class="ui-modern ui-light contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
 
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
         <div>
-          <p class="contractor-top-cta__offer"><i class="fa fa-coins"></i> كن وسيط بين البرنامج والمرشح واربح عمولة مباشرة 20%</p>
+          <p class="contractor-top-cta__offer"><i class="fa fa-coins"></i> كن وسيط بين البرنامج والمرشح واربح عمولة مباشرة <span class="ltr-fragment">20%</span></p>
           <p class="contractor-top-cta__text"><i class="fa fa-bullhorn"></i> عشان تعرف اكتر عن البرنامج اضغط هنا</p>
           <p class="contractor-top-cta__hint">اكتشف مميزات كنترول وكيف يساعدك في إدارة الكشوف والمتابعة بشكل احترافي.</p>
         </div>
