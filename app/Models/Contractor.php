@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\User;
 use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\LogOptions;
@@ -46,13 +47,13 @@ class Contractor extends Authenticatable
         static::addGlobalScope(new CreatorScope);
 
     }
-    public function user()
+    public function user(): BelongsTo
     {
-        return (object) [
-            'name'=> $this->name,
-            'email'=> $this->email,
-            'phone'=> $this->phone,
-        ];
+        return $this->belongsTo(User::class, 'user_id')->withDefault(function (User $user, Contractor $contractor) {
+            $user->name = $contractor->name;
+            $user->email = $contractor->email;
+            $user->phone = $contractor->phone;
+        });
     }
     public function creator(): BelongsTo
     {

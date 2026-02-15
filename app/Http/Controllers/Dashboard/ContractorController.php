@@ -192,10 +192,13 @@ class ContractorController extends Controller
         ]);
     }
     public function profile($token){
-        $contractor=Contractor::where('token',$token)->first();
-$families = Family::select('name', 'id')
-    ->where('election_id', $contractor->creator->election_id)
-    ->get();
+        $contractor = Contractor::where('token', $token)->firstOrFail();
+        $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
+        $families = Family::select('name', 'id')
+            ->when($electionId, function ($query) use ($electionId) {
+                $query->where('election_id', $electionId);
+            })
+            ->get();
 		return view('dashboard.contractors.profile', compact('contractor','families'));
     }
     public function search(Request $request){
@@ -219,11 +222,17 @@ $families = Family::select('name', 'id')
             $log[]="بحث عن الاقارب  :". $sibling;
         }
         
-        $contractor=Contractor::where('id',$request->id)->first();
+        $contractor = Contractor::find($request->id);
+        if (!$contractor) {
+            return response()->json(['voters' => []]);
+        }
 
-		 $voters = $votersQuery->whereHas('election',function($q) use($contractor){
-                $q->where('election_id',$contractor->creator->election_id);
+        $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
+        if ($electionId) {
+            $votersQuery->whereHas('election', function ($q) use ($electionId) {
+                $q->where('election_id', $electionId);
             });
+        }
         $logString = implode(", ", $log);
 
         activity()
