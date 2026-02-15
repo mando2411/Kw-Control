@@ -17,6 +17,21 @@
 
 }
 
+.copyLink.is-copying {
+    opacity: .85;
+    transform: translateY(-1px);
+}
+
+.copyLink.is-copied {
+    animation: copyPulse .45s ease;
+}
+
+@keyframes copyPulse {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
 #load-more {
     background-color: #007bff;  /* Primary blue color */
     color: white;
@@ -621,12 +636,10 @@
                                 </button>
                             </a>
 
-                        <a href="">
-                            <button class="btn btn-secondary copyLink mb-1" value="link">
+                        <button type="button" class="btn btn-secondary copyLink mb-1" id="copyConUrlBtn" value="link">
                                 <i class="fa fa-book"></i>
-                                <span>نسخ الرابط</span>
+                                <span id="copyConUrlText">نسخ الرابط</span>
                             </button>
-                        </a>
                     </div>
                     <div class="d-flex justify-content-center align-items-center mt-3">
                         <div class="form-group text-center">
@@ -842,6 +855,7 @@ let url
             $("#con-url").text(conUrl)
             $('#delete-con').val(response.data.user.id)
             $("#RedirectLink").attr('href', conUrl);
+            $('#copyConUrlBtn').attr('data-copy-url', conUrl);
             $('#voters_numberss').text(" "+response.data.user.voters.length + " ")
             let phoneNumber = Number(response.data.user.phone.replace(/\s+/g, ''));
             $('#phone_wa').val(phoneNumber)
@@ -1066,6 +1080,74 @@ $("#addMota3ahed").on('change',function(){
 let url = "/ass/"+$(this).val()
 $("#form-attach").attr("action", url )
 })
+
+$(document).off('click.copyConUrl', '#copyConUrlBtn').on('click.copyConUrl', '#copyConUrlBtn', async function (event) {
+    event.preventDefault();
+
+    var btn = this;
+    var $btn = $(btn);
+    var textNode = document.getElementById('copyConUrlText');
+    var rawUrl = ($btn.attr('data-copy-url') || $('#RedirectLink').attr('href') || $('#con-url').text() || '').trim();
+
+    if (!rawUrl) {
+        if (window.toastr) {
+            toastr.error('لا يوجد رابط لنسخه');
+        } else {
+            alert('لا يوجد رابط لنسخه');
+        }
+        return;
+    }
+
+    var absoluteUrl = rawUrl;
+    if (!/^https?:\/\//i.test(rawUrl)) {
+        absoluteUrl = window.location.origin.replace(/\/$/, '') + '/' + rawUrl.replace(/^\/+/, '');
+    }
+
+    $btn.addClass('is-copying');
+    btn.disabled = true;
+    if (textNode) textNode.textContent = 'جارٍ النسخ...';
+
+    var copied = false;
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(absoluteUrl);
+            copied = true;
+        } else {
+            var tempInput = document.createElement('input');
+            tempInput.value = absoluteUrl;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999);
+            copied = document.execCommand('copy');
+            document.body.removeChild(tempInput);
+        }
+    } catch (error) {
+        copied = false;
+    }
+
+    if (copied) {
+        $btn.addClass('is-copied');
+        if (textNode) textNode.textContent = 'تم النسخ ✓';
+        if (window.toastr) toastr.success('تم نسخ الرابط');
+        setTimeout(function () {
+            $btn.removeClass('is-copied');
+            if (textNode) textNode.textContent = 'نسخ الرابط';
+        }, 1100);
+    } else {
+        if (textNode) textNode.textContent = 'فشل النسخ';
+        if (window.toastr) {
+            toastr.error('تعذر نسخ الرابط');
+        } else {
+            alert('تعذر نسخ الرابط');
+        }
+        setTimeout(function () {
+            if (textNode) textNode.textContent = 'نسخ الرابط';
+        }, 1100);
+    }
+
+    btn.disabled = false;
+    $btn.removeClass('is-copying');
+});
 </script>
 
 <script>
