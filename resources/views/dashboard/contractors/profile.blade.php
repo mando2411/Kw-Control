@@ -363,10 +363,20 @@
   </head>
   <style>
     .contractor-top-cta {
-      background: linear-gradient(135deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1));
+      background: linear-gradient(120deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1), var(--ui-btn-tertiary, #14b8a6));
       color: #fff;
-      padding: 0.9rem 1rem;
-      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.18);
+      padding: 1rem 1rem;
+      box-shadow: 0 14px 34px rgba(2, 6, 23, 0.22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contractor-top-cta::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.18), transparent 30%), radial-gradient(circle at 86% 78%, rgba(255, 255, 255, 0.14), transparent 32%);
+      pointer-events: none;
     }
 
     .contractor-top-cta__inner {
@@ -375,32 +385,51 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 0.9rem;
+      gap: 1rem;
       flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
     }
 
     .contractor-top-cta__text {
-      font-size: clamp(0.92rem, 1.6vw, 1.06rem);
-      font-weight: 700;
+      font-size: clamp(0.96rem, 1.6vw, 1.15rem);
+      font-weight: 900;
       margin: 0;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .contractor-top-cta__hint {
+      margin: 0;
+      font-size: clamp(0.78rem, 1.2vw, 0.9rem);
+      font-weight: 600;
+      opacity: 0.94;
     }
 
     .contractor-top-cta__link {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.18);
-      border: 1px solid rgba(255, 255, 255, 0.42);
+      color: #0f172a;
+      background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.88));
+      border: 1px solid rgba(255, 255, 255, 0.55);
       border-radius: 999px;
-      padding: 0.48rem 1rem;
-      font-weight: 800;
+      padding: 0.58rem 1.2rem;
+      font-weight: 900;
+      font-size: 0.94rem;
       text-decoration: none;
-      transition: transform 180ms ease, background-color 180ms ease;
+      transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
       white-space: nowrap;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     .contractor-top-cta__link:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.28);
-      transform: translateY(-1px);
+      color: #0f172a;
+      background: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.26);
     }
 
     .contractor-hero-wrap {
@@ -482,6 +511,15 @@
     }
 
     @media (max-width: 768px) {
+      .contractor-top-cta__inner {
+        justify-content: center;
+        text-align: center;
+      }
+
+      .contractor-top-cta__text {
+        justify-content: center;
+      }
+
       .contractor-hero {
         grid-template-columns: 1fr;
         text-align: center;
@@ -496,8 +534,11 @@
 
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
-        <p class="contractor-top-cta__text">عشان تعرف اكتر عن البرنامج اضغط هنا</p>
-        <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer">اضغط هنا</a>
+        <div>
+          <p class="contractor-top-cta__text"><i class="fa fa-bullhorn"></i> عشان تعرف اكتر عن البرنامج اضغط هنا</p>
+          <p class="contractor-top-cta__hint">اكتشف مميزات كنترول وكيف يساعدك في إدارة الكشوف والمتابعة بشكل احترافي.</p>
+        </div>
+        <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer"><i class="fa fa-arrow-up-left-from-circle"></i> اضغط هنا</a>
       </div>
     </div>
 
