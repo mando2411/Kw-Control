@@ -176,7 +176,7 @@ a{
 @media (max-width: 600px){
     .mobile-sidebar .btn{padding: 3px;}
 
-    .user_name,.home-btn{
+    .user_name{
         display: none;
       }
   .nav div:nth-child(1){

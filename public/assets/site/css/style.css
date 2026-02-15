@@ -33,27 +33,14 @@ p{
 .textMainColor {
   color: var(--mainColor);
 }
-
-.bgMainColor {
-  background-color: var(--mainColor);
-}
-.bgEEE {
-  background-color: #eee;
-}
 a,
 a:hover {
   text-decoration: none;
   color: #000;
   transition: 0.8s all;
 }
-.w-fit{
-  width: fit-content;
-}
 ::selection{
   background-color: var(--mainColor);
-}
-.font-lg {
-  font-size: 80px;
 }
 .font-sm {
   font-size: 12px;
