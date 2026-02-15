@@ -6593,7 +6593,13 @@ var bootstrap = function (t, e, n) {
           }, u._enforceFocus = function () {
             var t = this;
             e(document).off(l.FOCUSIN).on(l.FOCUSIN, function (n) {
-              document === n.target || t._element === n.target || e(t._element).has(n.target).length || t._element.focus()
+              if (document === n.target || t._element === n.target || e(t._element).has(n.target).length) return;
+              if (t._isEnforcingFocus) return;
+              t._isEnforcingFocus = !0;
+              t._element.focus();
+              setTimeout(function () {
+                t._isEnforcingFocus = !1
+              }, 0)
             })
           }, u._setEscapeEvent = function () {
             var t = this;
