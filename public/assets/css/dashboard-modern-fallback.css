@@ -19,6 +19,44 @@ body.ui-modern .page-body {
     font-size: var(--ui-fs-base);
 }
 
+/* Sidebar user profile section (image + name near top) */
+html.ui-modern .page-sidebar .sidebar-user,
+body.ui-modern .page-sidebar .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 8px 10px 12px;
+    border: 1px solid var(--ui-fallback-border);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-fallback-surface-2);
+}
+
+html.ui-modern .page-sidebar .sidebar-user .img-60,
+body.ui-modern .page-sidebar .sidebar-user .img-60 {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 1px solid var(--ui-fallback-border);
+}
+
+html.ui-modern .page-sidebar .sidebar-user h6,
+body.ui-modern .page-sidebar .sidebar-user h6 {
+    margin: 0;
+    font-size: var(--ui-fs-sm);
+    color: var(--ui-text-primary);
+    font-weight: 800;
+}
+
+html.ui-modern .page-sidebar .sidebar-user p,
+body.ui-modern .page-sidebar .sidebar-user p {
+    margin: 2px 0 0;
+    font-size: var(--ui-fs-xs);
+    color: var(--ui-text-secondary);
+}
+
 html.ui-modern .page-body .card,
 body.ui-modern .page-body .card,
 html.ui-modern .page-body .modal-content,
