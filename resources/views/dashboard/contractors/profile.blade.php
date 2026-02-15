@@ -527,6 +527,10 @@
           >
         </h5>
 
+        <div class="d-flex justify-content-start mb-2">
+          <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
+        </div>
+
         <div class="madameenTable table-responsive mt-4">
           <table
             class="table rtl overflow-hidden rounded-3 text-center"
@@ -570,9 +574,12 @@
                 </td>
                 <td>%  {{$voter->pivot->percentage}} </td>
 
-                <td data-bs-toggle="modal" data-bs-target="#nameChechedDetails">
-                    <a class="btn btn-dark">تفاصيل</a>
-                  </td>
+                <td>
+                  <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" class="btn btn-secondary" onclick="addSingleVoter('{{$voter->id}}')">اضافة</button>
+                    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
+                  </div>
+                </td>
               </tr>
               @endforeach
             </tbody>
@@ -580,7 +587,6 @@
         </div>
         <div class="d-flex align-items-center">
             <label class="btn btn-dark allBtn">تحديد الكل</label>
-          <button type="button" class="btn btn-primary mx-2" id="all_voters">اضافة المحدد</button>
             <select name="select" id="allSelected" class="form-control mx-2">
                 <option value="" ></option>
                 <option value="" hidden>التطبيق على المحدد</option>
