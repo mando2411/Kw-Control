@@ -502,37 +502,7 @@
         </div>
       </div>
     </section>
-    <section class="py-2 rtl">
-      <div class="container-fluid contractor-layout-block">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-          <h6 class="mb-0">
-            نتائج البحث
-            <span class="namesListCounter listNumber bg-dark text-white rounded-2 p-1 px-3 me-2" id="search_count">0</span>
-          </h6>
-          <button class="btn btn-secondary all" type="button">الكل</button>
-        </div>
 
-        <form action="{{route('ass',$contractor->id)}}" method="POST" id="form-attach">
-          @csrf
-          <div class="table-responsive">
-            <table class="table rtl overflow-hidden rounded-3 text-center mt-2 table-striped">
-              <thead class="table-secondary border-0 border-secondary border-bottom border-2">
-                <tr>
-                  <th>#</th>
-                  <th class="w150 fs-6">الأسماء</th>
-                  <th>أدوات</th>
-                </tr>
-              </thead>
-              <tbody id="resultSearchData"></tbody>
-            </table>
-          </div>
-
-          <div class="text-start">
-            <button type="submit" id="all_voters" class="btn btn-primary">اضافة المحدد</button>
-          </div>
-        </form>
-      </div>
-    </section>
     @php
     $id=$contractor->id;
     $voters = $contractor->voters()
@@ -551,7 +521,8 @@
         <h5>
           قائمة الأسماء
           <span
-            class="  bg-dark text-white rounded-2 p-1 px-3 me-2"
+            id="search_count"
+            class="bg-dark text-white rounded-2 p-1 px-3 me-2"
             >{{$voters->count()}}</span
           >
         </h5>
@@ -570,7 +541,7 @@
                 <th>أدوات</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="resultSearchData">
               @foreach ( $voters as $voter )
               <tr
                 class="
@@ -587,6 +558,8 @@
                   <p class="@if ($voter->restricted != 'فعال')
                       line
                   @endif">{{$voter->name}}</p>
+
+                  <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="{{$voter->father}}" type="button">البحث عن أقارب</button>
 
                     @if ($voter->status == 1)
                 <p class=" my-1">
@@ -607,6 +580,7 @@
         </div>
         <div class="d-flex align-items-center">
             <label class="btn btn-dark allBtn">تحديد الكل</label>
+          <button type="button" class="btn btn-primary mx-2" id="all_voters">اضافة المحدد</button>
             <select name="select" id="allSelected" class="form-control mx-2">
                 <option value="" ></option>
                 <option value="" hidden>التطبيق على المحدد</option>
@@ -1141,6 +1115,56 @@ var message = selectedOption.data('message'); // Get the data-message attribute
           //========================================================================
       });
 let users = [];
+const attachRoute = "{{ route('ass', $contractor->id) }}";
+const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+function submitAttachVoters(voterIds) {
+  if (!Array.isArray(voterIds) || voterIds.length === 0) {
+    alert('يرجى تحديد ناخب واحد على الأقل');
+    return;
+  }
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = attachRoute;
+
+  const csrf = document.createElement('input');
+  csrf.type = 'hidden';
+  csrf.name = '_token';
+  csrf.value = csrfToken;
+  form.appendChild(csrf);
+
+  voterIds.forEach(function (id) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'voter[]';
+    input.value = id;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function addSingleVoter(voterId) {
+  submitAttachVoters([voterId]);
+}
+
+function bindRelativeButtons() {
+  document.querySelectorAll('.search-relatives-btn').forEach(function (button) {
+    button.onclick = function () {
+      searchRelatives(this.dataset.voterGrand);
+    };
+  });
+}
+
+$('#all_voters').on('click', function (event) {
+  event.preventDefault();
+  const selectedVoters = Array.from(document.querySelectorAll('#resultSearchData .check:checked')).map(function (checkbox) {
+    return checkbox.value;
+  });
+  submitAttachVoters(selectedVoters);
+});
 
 $("#SearchForm").on('submit', function(event){
   event.preventDefault();
@@ -1177,9 +1201,6 @@ function getResultSearch() {
           .then(function (response) {
               console.log('Success:', response);
              users=response.data.voters;
-             var con_id={{$contractor->id}}
-          var route = "{{ route('ass', ':id') }}";
-          var link = route.replace(':id', con_id);
           console.log(users.length);
 
 $("#search_count").text(users.length)
@@ -1207,11 +1228,7 @@ $("#search_count").text(users.length)
                   <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="${users[i].father}" type="button">البحث عن أقارب</button>
                   </td>
                 <td>
-                    <form action="${link}" method="POST">
-                    @csrf
-                    <input type="hidden" name="voter[]" value="${id}">
-                    <button type="submit" class="btn btn-secondary">اضافة</button>
-                  </form>
+                  <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${id}')">اضافة</button>
                 </td>
 
               </tr>`;
@@ -1219,12 +1236,7 @@ $("#search_count").text(users.length)
     }
     resultSearchDate.innerHTML = cartona;
 
-             document.querySelectorAll('.search-relatives-btn').forEach(button => {
-          button.addEventListener('click', function () {
-            
-            searchRelatives(this.dataset.voterGrand);
-          });
-        });
+             bindRelativeButtons();
 
                       })
           .catch(function (error) {
@@ -1248,9 +1260,6 @@ function searchRelatives(voterName) {
     .then(function (response) {
       console.log('Relatives Search Success:', response);
       let relatives = response.data.voters;
-     
-          var route = "{{ route('ass', ':id') }}";
-          var link = route.replace(':id', con_id);
 
       let cartona = "";
       $("#search_count").text(relatives.length)
@@ -1278,23 +1287,14 @@ function searchRelatives(voterName) {
               <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="${relatives[i].father}" type="button">البحث عن أقارب</button>
           </td>
           <td>
-              <form action="${link}" method="POST">
-              @csrf
-              <input type="hidden" name="voter[]" value="${id}">
-              <button type="submit" class="btn btn-secondary">اضافة</button>
-            </form>
+            <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${id}')">اضافة</button>
           </td>
         </tr>`;
       }
 
       document.getElementById("resultSearchData").innerHTML = cartona;
 
-      // Reattach event listeners to the new "البحث عن أقارب" buttons
-      document.querySelectorAll('.search-relatives-btn').forEach(button => {
-        button.addEventListener('click', function () {
-          searchRelatives(this.dataset.voterGrand);
-        });
-      });
+      bindRelativeButtons();
 
     })
     .catch(function (error) {
@@ -1321,9 +1321,6 @@ $("#search").on('click',function(){
           .then(function (response) {
               console.log('Success:', response);
              users=response.data.voters;
-             var con_id={{$contractor->id}}
-          var route = "{{ route('ass', ':id') }}";
-          var link = route.replace(':id', con_id);
             console.log(users.length);
             
           $("#search_count").text(users.length)
@@ -1345,17 +1342,14 @@ $("#search").on('click',function(){
                 </td>
                 <span style="color:red"> ${users[i].restricted != 'فعال' ? " غير فعال" : ""} </span>
                 <td>
-                    <form action="${link}" method="POST">
-                    @csrf
-                    <input type="hidden" name="voter[]" value="${id}">
-                    <button type="submit" class="btn btn-secondary">اضافة</button>
-                  </form>
+                  <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${id}')">اضافة</button>
                 </td>
 
               </tr>`;
 
     }
     resultSearchDate.innerHTML = cartona;
+    bindRelativeButtons();
 
                       })
           .catch(function (error) {
@@ -1392,6 +1386,8 @@ $('button[data-bs-target="#ta7reerData"]').on("click", function () {
 
 
 })
+
+bindRelativeButtons();
 
 
 
