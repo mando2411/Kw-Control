@@ -149,7 +149,7 @@ body.ui-modern .contractors-modern-page #mota3ahdeenDataModern.modal.show {
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    margin-left:23% !important;
+    margin-left: 0 !important;
 }
 
 body.ui-modern .contractors-modern-page #mota3ahdeenDataModern.modal.show .modal-dialog {

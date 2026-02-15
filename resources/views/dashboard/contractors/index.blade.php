@@ -1,7 +1,7 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
-    <link rel="stylesheet" href="/assets/css/contractors-modern.css?v=20260215d">
+    <link rel="stylesheet" href="/assets/css/contractors-modern.css?v=20260215e">
     <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260215b">
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -645,6 +645,40 @@
             var exportOpenBtn = document.getElementById('smOpenExport');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
+            var shouldCloseParentAfterExport = false;
+
+            function isModalVisible(element) {
+                if (!element) return false;
+                return element.classList.contains('show') || element.style.display === 'block';
+            }
+
+            function getModalInstance(element, options) {
+                if (!element) return null;
+
+                if (window.bootstrap && window.bootstrap.Modal) {
+                    if (window.bootstrap.Modal.getOrCreateInstance) {
+                        return window.bootstrap.Modal.getOrCreateInstance(element, options || {});
+                    }
+
+                    return new window.bootstrap.Modal(element, options || {});
+                }
+
+                return null;
+            }
+
+            function hideParentModal() {
+                if (!modalEl) return;
+
+                var modal = getModalInstance(modalEl);
+                if (modal && typeof modal.hide === 'function') {
+                    modal.hide();
+                    return;
+                }
+
+                if (window.jQuery && typeof window.jQuery(modalEl).modal === 'function') {
+                    window.jQuery(modalEl).modal('hide');
+                }
+            }
 
             function setExportModalLayeredState(enabled) {
                 if (!document.body) return;
@@ -683,10 +717,10 @@
                 if (window.bootstrap && window.bootstrap.Modal) {
                     var modal = window.bootstrap.Modal.getInstance
                         ? window.bootstrap.Modal.getInstance(exportModalElement)
-                        : null;
+                        : getModalInstance(exportModalElement, { backdrop: true, focus: true, keyboard: true });
 
-                    if (!modal && window.bootstrap.Modal.getOrCreateInstance) {
-                        modal = window.bootstrap.Modal.getOrCreateInstance(exportModalElement);
+                    if (!modal) {
+                        modal = getModalInstance(exportModalElement, { backdrop: true, focus: true, keyboard: true });
                     }
 
                     if (modal && typeof modal.hide === 'function') {
@@ -704,9 +738,11 @@
                 if (!exportModalElement) return;
 
                 if (window.bootstrap && window.bootstrap.Modal) {
-                    var modal = window.bootstrap.Modal.getOrCreateInstance
-                        ? window.bootstrap.Modal.getOrCreateInstance(exportModalElement)
-                        : new window.bootstrap.Modal(exportModalElement);
+                    var modal = getModalInstance(exportModalElement, {
+                        backdrop: true,
+                        focus: true,
+                        keyboard: true
+                    });
 
                     if (modal && typeof modal.show === 'function') {
                         modal.show();
@@ -1003,10 +1039,20 @@
                 if (modalStatus) modalStatus.classList.remove('is-visible');
             });
 
+            modalEl.addEventListener('hide.bs.modal', function (event) {
+                if (!isModalVisible(exportModalElement)) {
+                    return;
+                }
+
+                event.preventDefault();
+                closeExportModal();
+            });
+
             if (exportOpenBtn) {
                 exportOpenBtn.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
+                    shouldCloseParentAfterExport = false;
 
                     selectedVoterIdsCache = getSelectedVoterIdsForExport();
 
@@ -1026,7 +1072,15 @@
             if (exportCloseBtn) {
                 exportCloseBtn.addEventListener('click', function (event) {
                     event.preventDefault();
+                    shouldCloseParentAfterExport = false;
                     closeExportModal();
+                });
+            }
+
+            var parentCloseBtn = modalEl.querySelector('.modal-header .btn-close[data-bs-dismiss="modal"]');
+            if (parentCloseBtn) {
+                parentCloseBtn.addEventListener('click', function () {
+                    shouldCloseParentAfterExport = isModalVisible(exportModalElement);
                 });
             }
 
@@ -1056,6 +1110,11 @@
                 exportModalElement.addEventListener('hidden.bs.modal', function () {
                     isOpeningExportModal = false;
                     setExportModalLayeredState(false);
+
+                    if (shouldCloseParentAfterExport) {
+                        shouldCloseParentAfterExport = false;
+                        hideParentModal();
+                    }
                 });
             }
 
