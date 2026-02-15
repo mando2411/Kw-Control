@@ -441,16 +441,16 @@
 
                 <ul class="nav nav-tabs sm-tabs" id="settings-modern-tabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="tab-general-btn" data-bs-toggle="tab" data-bs-target="#tab-general" type="button" role="tab" aria-controls="tab-general" aria-selected="true">إعدادات عامة</button>
+                        <button class="nav-link active" id="tab-general-btn" data-tab-target="tab-general" type="button" role="tab" aria-controls="tab-general" aria-selected="true">إعدادات عامة</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tab-design-btn" data-bs-toggle="tab" data-bs-target="#tab-design" type="button" role="tab" aria-controls="tab-design" aria-selected="false">التصميم والثيمات</button>
+                        <button class="nav-link" id="tab-design-btn" data-tab-target="tab-design" type="button" role="tab" aria-controls="tab-design" aria-selected="false">التصميم والثيمات</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tab-results-btn" data-bs-toggle="tab" data-bs-target="#tab-results" type="button" role="tab" aria-controls="tab-results" aria-selected="false">إعدادات النتائج</button>
+                        <button class="nav-link" id="tab-results-btn" data-tab-target="tab-results" type="button" role="tab" aria-controls="tab-results" aria-selected="false">إعدادات النتائج</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="tab-maintenance-btn" data-bs-toggle="tab" data-bs-target="#tab-maintenance" type="button" role="tab" aria-controls="tab-maintenance" aria-selected="false">التهيئة والصيانة</button>
+                        <button class="nav-link" id="tab-maintenance-btn" data-tab-target="tab-maintenance" type="button" role="tab" aria-controls="tab-maintenance" aria-selected="false">التهيئة والصيانة</button>
                     </li>
                 </ul>
 
@@ -705,6 +705,40 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
+                var tabsRoot = document.getElementById('settings-modern-tabs');
+                var tabsContent = document.getElementById('settings-modern-tabs-content');
+
+                if (tabsRoot && tabsContent) {
+                    var tabButtons = Array.prototype.slice.call(tabsRoot.querySelectorAll('[data-tab-target]'));
+                    var tabPanes = Array.prototype.slice.call(tabsContent.querySelectorAll('.tab-pane'));
+
+                    var activateTab = function (targetId) {
+                        tabButtons.forEach(function (button) {
+                            var isActive = button.getAttribute('data-tab-target') === targetId;
+                            button.classList.toggle('active', isActive);
+                            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                        });
+
+                        tabPanes.forEach(function (pane) {
+                            var isActive = pane.id === targetId;
+                            pane.classList.toggle('active', isActive);
+                            pane.classList.toggle('show', isActive);
+                        });
+                    };
+
+                    tabButtons.forEach(function (button) {
+                        button.addEventListener('click', function () {
+                            var targetId = button.getAttribute('data-tab-target');
+                            if (targetId) {
+                                activateTab(targetId);
+                            }
+                        });
+                    });
+
+                    var initiallyActive = tabsRoot.querySelector('[data-tab-target].active');
+                    activateTab(initiallyActive ? initiallyActive.getAttribute('data-tab-target') : 'tab-general');
+                }
+
                 var presetSelect = document.getElementById('ui_modern_theme_preset');
                 var presetForm = document.getElementById('theme-preset-form');
                 var customForm = document.getElementById('theme-custom-form');
