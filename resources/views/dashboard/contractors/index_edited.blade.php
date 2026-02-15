@@ -277,7 +277,8 @@
             </div>
 
             <!-- Modal madameenName-->
-            <div class="modal modal-lg rtl" id="mota3ahdeenData" tabindex="-1" aria-labelledby="exampleModalLabel"
+        <!--    <div class="modal modal-lg rtl" id="mota3ahdeenData" tabindex="-1" aria-labelledby="exampleModalLabel"
+
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-scrollable">
                     <div class="modal-content">
@@ -530,6 +531,8 @@
                         </div>
                     </div>
                 </div>
+            
+-->
             </div>
         </div>
 
