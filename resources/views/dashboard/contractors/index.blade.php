@@ -409,18 +409,15 @@
                                     id="con-url">md-kw.com/./?q=NTEy</span> -->
                             </div>
                             <div class="text-center">
-                                <a href="" id="RedirectLink">
-                                    <button class="btn btn-secondary copyLink mb-1" value="link">
-                                        <i class="fa fa-book"></i>
-                                        <span>الدخول للرابط</span>
-                                    </button>
+                                <a href="#" id="RedirectLink" class="btn btn-secondary mb-1" target="_blank" rel="noopener noreferrer">
+                                    <i class="fa fa-book"></i>
+                                    <span>الدخول للرابط</span>
                                 </a>
 
                                 <button type="button" class="btn btn-secondary mb-1" id="copyConUrlBtn">
-                                <i class="fa fa-book"></i>
-                                <span id="copyConUrlText">نسخ الرابط</span>
-                            </button>
-                                </a>
+                                    <i class="fa fa-book"></i>
+                                    <span id="copyConUrlText">نسخ الرابط</span>
+                                </button>
                             </div>
                             <div class="d-flex justify-content-center align-items-center mt-3">
                                 <div class="form-group text-center">
@@ -633,6 +630,10 @@
             var modalStatus = document.getElementById('contractorModalStatus');
             var currentContractorId = null;
             var currentContractorUrl = '';
+            var openConUrlBtn = document.getElementById('RedirectLink');
+            var copyConUrlBtn = document.getElementById('copyConUrlBtn');
+            var copyConUrlText = document.getElementById('copyConUrlText');
+            var copyConUrlResetTimer = null;
             var trustDebounce = null;
             var rowCache = {};
             var selectedVoterIdsCache = [];
@@ -710,6 +711,55 @@
 
             function clearExportStatus(delay) {}
 
+            function setCopyButtonState(text, tone) {
+                if (!copyConUrlBtn || !copyConUrlText) return;
+
+                if (copyConUrlResetTimer) {
+                    clearTimeout(copyConUrlResetTimer);
+                    copyConUrlResetTimer = null;
+                }
+
+                copyConUrlBtn.classList.remove('btn-secondary', 'btn-success', 'btn-danger');
+                copyConUrlBtn.classList.add(tone === 'success' ? 'btn-success' : (tone === 'error' ? 'btn-danger' : 'btn-secondary'));
+                copyConUrlText.textContent = text;
+
+                if (tone === 'success' || tone === 'error') {
+                    copyConUrlResetTimer = setTimeout(function () {
+                        if (!copyConUrlBtn || !copyConUrlText) return;
+                        copyConUrlBtn.classList.remove('btn-success', 'btn-danger');
+                        copyConUrlBtn.classList.add('btn-secondary');
+                        copyConUrlText.textContent = 'نسخ الرابط';
+                    }, 1200);
+                }
+            }
+
+            async function copyTextToClipboard(text) {
+                if (!text) return false;
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+
+                var tempInput = document.createElement('textarea');
+                tempInput.value = text;
+                tempInput.setAttribute('readonly', '');
+                tempInput.style.position = 'absolute';
+                tempInput.style.left = '-9999px';
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                tempInput.setSelectionRange(0, tempInput.value.length);
+                var copied = false;
+
+                try {
+                    copied = document.execCommand('copy');
+                } finally {
+                    document.body.removeChild(tempInput);
+                }
+
+                return copied;
+            }
+
             function closeExportModal() {
                 if (!exportModalElement) return;
 
@@ -752,6 +802,37 @@
                 if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
                     window.jQuery(exportModalElement).modal('show');
                 }
+            }
+
+            if (openConUrlBtn) {
+                openConUrlBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (!currentContractorUrl) return;
+                    window.open(currentContractorUrl, '_blank', 'noopener,noreferrer');
+                });
+            }
+
+            if (copyConUrlBtn) {
+                copyConUrlBtn.addEventListener('click', async function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (!currentContractorUrl) {
+                        setCopyButtonState('لا يوجد رابط', 'error');
+                        return;
+                    }
+
+                    setCopyButtonState('جاري النسخ...', 'idle');
+
+                    try {
+                        var isCopied = await copyTextToClipboard(currentContractorUrl);
+                        setCopyButtonState(isCopied ? 'تم النسخ ✓' : 'فشل النسخ', isCopied ? 'success' : 'error');
+                    } catch (error) {
+                        setCopyButtonState('فشل النسخ', 'error');
+                    }
+                });
             }
 
             function showStatus(message, tone) {
