@@ -8,21 +8,19 @@
                 </button>
             </a>
 
-            @if (auth()->user()->hasRole("Administrator"))
-                <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
-                    <label class="switch">
-                        <a href="javascript:void(0)" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
-                            <i id="sidebar-toggle" data-feather="align-left"></i>
-                        </a>
-                    </label>
-                </span>
+            <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
+                <label class="switch">
+                    <a href="javascript:void(0)" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
+                        <i id="sidebar-toggle" data-feather="align-left"></i>
+                    </a>
+                </label>
+            </span>
 
-                <span class="media-body text-end mx-2 sidebar-toggle-modern">
-                    <button type="button" class="hm-sidebar-toggle" id="sidebar-toggle-modern" aria-label="القائمة الجانبية" title="القائمة الجانبية">
-                        <i class="bi bi-layout-sidebar-inset"></i>
-                    </button>
-                </span>
-            @endif
+            <span class="media-body text-end mx-2 sidebar-toggle-modern">
+                <button type="button" class="hm-sidebar-toggle" id="sidebar-toggle-modern" aria-label="القائمة الجانبية" title="القائمة الجانبية">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </button>
+            </span>
 
             <div class="dropdown me-1" id="notif-menu-wrapper">
                 <button type="button" id="notif-menu-dropdown" class="btn btn-outline-secondary notif-toggle" aria-label="الإشعارات" title="الإشعارات" onclick="toggleDashboardNotifMenu(event)" aria-expanded="false">
@@ -104,11 +102,9 @@
                     </div>
                 </div>
 
-                @if (auth()->user()->hasRole("Administrator"))
-                    <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
-                        <i class="bi bi-layout-sidebar-inset"></i>
-                    </button>
-                @endif
+                <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </button>
             </div>
 
         </div>

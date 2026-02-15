@@ -19,9 +19,6 @@
     <!-- Modern font for the new login design -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap">
 
-    <!-- Your Custom CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/admin/css/style.css') }}">
-
     <style>
         .login {
             background: url({{ asset('assets/admin/images/login.jpg') }}) no-repeat center center fixed;

@@ -1,7 +1,11 @@
-/* Global modern fallback for dashboard pages without dedicated modern templates */
+/* =========================================================
+    Global Dashboard Modern Fallback
+    Applies modern look to pages without dedicated modern templates
+    ========================================================= */
 
 html.ui-modern body,
 body.ui-modern {
+    /* Global fallback surfaces section */
     --ui-fallback-surface: var(--ui-bg-primary, #ffffff);
     --ui-fallback-surface-2: var(--ui-bg-secondary, #f8fafc);
     --ui-fallback-border: var(--ui-border, #dbe3ef);
@@ -10,8 +14,47 @@ body.ui-modern {
 
 html.ui-modern .page-body,
 body.ui-modern .page-body {
+    /* Page body text section */
     color: var(--ui-text-primary);
     font-size: var(--ui-fs-base);
+}
+
+/* Sidebar user profile section (image + name near top) */
+html.ui-modern .page-sidebar .sidebar-user,
+body.ui-modern .page-sidebar .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 8px 10px 12px;
+    border: 1px solid var(--ui-fallback-border);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-fallback-surface-2);
+}
+
+html.ui-modern .page-sidebar .sidebar-user .img-60,
+body.ui-modern .page-sidebar .sidebar-user .img-60 {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 999px;
+    object-fit: cover;
+    border: 1px solid var(--ui-fallback-border);
+}
+
+html.ui-modern .page-sidebar .sidebar-user h6,
+body.ui-modern .page-sidebar .sidebar-user h6 {
+    margin: 0;
+    font-size: var(--ui-fs-sm);
+    color: var(--ui-text-primary);
+    font-weight: 800;
+}
+
+html.ui-modern .page-sidebar .sidebar-user p,
+body.ui-modern .page-sidebar .sidebar-user p {
+    margin: 2px 0 0;
+    font-size: var(--ui-fs-xs);
+    color: var(--ui-text-secondary);
 }
 
 html.ui-modern .page-body .card,
@@ -24,6 +67,7 @@ html.ui-modern .page-body .accordion-item,
 body.ui-modern .page-body .accordion-item,
 html.ui-modern .page-body .list-group,
 body.ui-modern .page-body .list-group {
+    /* Cards + Modals + Groups section */
     background: var(--ui-fallback-surface);
     border: 1px solid var(--ui-fallback-border);
     border-radius: var(--ui-radius-card);
@@ -38,6 +82,7 @@ html.ui-modern .page-body .accordion-button,
 body.ui-modern .page-body .accordion-button,
 html.ui-modern .page-body .list-group-item,
 body.ui-modern .page-body .list-group-item {
+    /* Headers/titles for card + modal + accordion section */
     background: var(--ui-fallback-surface-2);
     color: var(--ui-text-primary);
     border-color: var(--ui-fallback-border);
@@ -47,6 +92,7 @@ html.ui-modern .page-body .card .card-body,
 body.ui-modern .page-body .card .card-body,
 html.ui-modern .page-body .modal-body,
 body.ui-modern .page-body .modal-body {
+    /* Card body + Modal body content section */
     color: var(--ui-text-primary);
     padding: var(--ui-space-card);
 }
@@ -61,6 +107,7 @@ html.ui-modern .page-body .select2-container--default .select2-selection--multip
 body.ui-modern .page-body .select2-container--default .select2-selection--multiple,
 html.ui-modern .page-body .input-group-text,
 body.ui-modern .page-body .input-group-text {
+    /* Forms & input controls section */
     background: var(--ui-fallback-surface);
     color: var(--ui-text-primary);
     border: 1px solid var(--ui-fallback-border);
@@ -79,6 +126,7 @@ html.ui-modern .page-body .form-select:focus,
 body.ui-modern .page-body .form-select:focus,
 html.ui-modern .page-body .select2-container--default.select2-container--focus .select2-selection--multiple,
 body.ui-modern .page-body .select2-container--default.select2-container--focus .select2-selection--multiple {
+    /* Form focus state section */
     border-color: color-mix(in srgb, var(--ui-btn-primary) 60%, var(--ui-fallback-border));
     box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--ui-btn-primary) 20%, transparent);
 }
@@ -89,12 +137,14 @@ html.ui-modern .page-body .table th,
 body.ui-modern .page-body .table th,
 html.ui-modern .page-body .table td,
 body.ui-modern .page-body .table td {
+    /* Table section */
     color: var(--ui-text-primary);
     border-color: var(--ui-fallback-border);
 }
 
 html.ui-modern .page-body .table thead th,
 body.ui-modern .page-body .table thead th {
+    /* Table header section */
     background: color-mix(in srgb, var(--ui-btn-primary) 10%, var(--ui-fallback-surface));
     font-size: var(--ui-fs-sm);
     font-weight: 800;
@@ -107,6 +157,7 @@ body.ui-modern .page-body .table-hover tbody tr:hover {
 
 html.ui-modern .page-body .nav-tabs,
 body.ui-modern .page-body .nav-tabs {
+    /* Tab navigation section */
     border-color: var(--ui-fallback-border);
 }
 
@@ -127,6 +178,7 @@ body.ui-modern .page-body .nav-tabs .nav-link.active {
 
 html.ui-modern .page-body .pagination .page-link,
 body.ui-modern .page-body .pagination .page-link {
+    /* Pagination section */
     color: var(--ui-text-primary);
     border-color: var(--ui-fallback-border);
     background: var(--ui-fallback-surface);
@@ -141,24 +193,28 @@ body.ui-modern .page-body .pagination .page-item.active .page-link {
 
 html.ui-modern .page-body .btn,
 body.ui-modern .page-body .btn {
+    /* Buttons base section */
     border-radius: var(--ui-radius-button);
     font-weight: 700;
 }
 
 html.ui-modern .page-body .btn-primary,
 body.ui-modern .page-body .btn-primary {
+    /* Primary button */
     background: var(--ui-btn-primary);
     border-color: var(--ui-btn-primary);
 }
 
 html.ui-modern .page-body .btn-secondary,
 body.ui-modern .page-body .btn-secondary {
+    /* Secondary button */
     background: var(--ui-btn-secondary);
     border-color: var(--ui-btn-secondary);
 }
 
 html.ui-modern .page-body .btn-info,
 body.ui-modern .page-body .btn-info {
+    /* Tertiary button */
     background: var(--ui-btn-tertiary);
     border-color: var(--ui-btn-tertiary);
     color: #fff;
@@ -166,6 +222,7 @@ body.ui-modern .page-body .btn-info {
 
 html.ui-modern .page-body .btn-warning,
 body.ui-modern .page-body .btn-warning {
+    /* Quaternary button */
     background: var(--ui-btn-quaternary);
     border-color: var(--ui-btn-quaternary);
     color: #111827;
@@ -186,6 +243,7 @@ html.ui-modern .page-body .dataTables_wrapper .dataTables_filter input,
 body.ui-modern .page-body .dataTables_wrapper .dataTables_filter input,
 html.ui-modern .page-body .dataTables_wrapper .dataTables_length select,
 body.ui-modern .page-body .dataTables_wrapper .dataTables_length select {
+    /* DataTable controls section */
     border-radius: var(--ui-radius-input);
     border: 1px solid var(--ui-fallback-border);
     background: var(--ui-fallback-surface);
@@ -194,5 +252,6 @@ body.ui-modern .page-body .dataTables_wrapper .dataTables_length select {
 
 html.ui-modern .page-body .alert,
 body.ui-modern .page-body .alert {
+    /* Alerts section */
     border-radius: var(--ui-radius-card);
 }
