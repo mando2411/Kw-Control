@@ -281,7 +281,7 @@
             </div>
 
             <!-- Modal madameenName-->
-            <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="-1" aria-labelledby="mota3ahdeenDataModernLabel"
+            <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="1" aria-labelledby="mota3ahdeenDataModernLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
