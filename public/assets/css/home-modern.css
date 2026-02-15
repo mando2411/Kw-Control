@@ -24,6 +24,7 @@
   --hm-hero-text: color-mix(in srgb, var(--ui-text-primary, #0f172a) 8%, #ffffff);
   --hm-box-bg: var(--ui-home-box-bg, #f8fafc);
   --hm-box-border: var(--ui-home-box-border, #dbe3ef);
+  --hm-card-bg: var(--ui-home-card-bg, #ffffff);
   --hm-box-shadow: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 12%, rgba(2, 6, 23, 0.20));
 }
 
@@ -200,7 +201,7 @@
 
 .home-modern-mode .hm-card {
   border-radius: 1.1rem;
-  background: var(--hm-surface);
+  background: var(--hm-card-bg);
   border: 1px solid var(--hm-border);
   box-shadow: var(--hm-shadow);
   backdrop-filter: blur(10px);
@@ -267,7 +268,7 @@
   gap: 0.3rem;
   padding: 0.9rem 0.95rem;
   border-radius: 1.05rem;
-  background: color-mix(in srgb, var(--hm-box-bg) 90%, #ffffff);
+  background: color-mix(in srgb, var(--hm-card-bg) 92%, #ffffff);
   border: 1px solid var(--hm-box-border);
   box-shadow: 0 14px 30px color-mix(in srgb, var(--hm-box-shadow) 55%, transparent);
   text-decoration: none;
@@ -349,7 +350,7 @@
   border-radius: 1.1rem;
   padding: 0.95rem;
   border: 1px solid var(--hm-box-border);
-  background: linear-gradient(150deg, color-mix(in srgb, var(--hm-box-bg) 90%, #ffffff), color-mix(in srgb, var(--hm-box-bg) 70%, var(--ui-bg-secondary, #e2e8f0)));
+  background: linear-gradient(150deg, color-mix(in srgb, var(--hm-card-bg) 90%, #ffffff), color-mix(in srgb, var(--hm-card-bg) 70%, var(--ui-bg-secondary, #e2e8f0)));
   box-shadow: 0 14px 28px color-mix(in srgb, var(--hm-box-shadow) 55%, transparent);
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }

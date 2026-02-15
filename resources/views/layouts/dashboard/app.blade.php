@@ -116,8 +116,10 @@
                 'shadow_level' => 'medium',
                 'home_box_bg_light' => '#f8fafc',
                 'home_box_border_light' => '#dbe3ef',
+                'home_card_bg_light' => '#ffffff',
                 'home_box_bg_dark' => '#1e293b',
                 'home_box_border_dark' => '#475569',
+                'home_card_bg_dark' => '#0f172a',
             ],
             'font' => $baseFontPreset,
         ],
@@ -156,8 +158,10 @@
                 'shadow_level' => 'medium',
                 'home_box_bg_light' => '#ecfdf5',
                 'home_box_border_light' => '#6ee7b7',
+                'home_card_bg_light' => '#f0fdfa',
                 'home_box_bg_dark' => '#14532d',
                 'home_box_border_dark' => '#22c55e',
+                'home_card_bg_dark' => '#042f2e',
             ],
             'font' => $baseFontPreset,
         ],
@@ -196,8 +200,10 @@
                 'shadow_level' => 'medium',
                 'home_box_bg_light' => '#f5f3ff',
                 'home_box_border_light' => '#c4b5fd',
+                'home_card_bg_light' => '#ffffff',
                 'home_box_bg_dark' => '#312e81',
                 'home_box_border_dark' => '#8b5cf6',
+                'home_card_bg_dark' => '#1e1b4b',
             ],
             'font' => $baseFontPreset,
         ],
@@ -274,8 +280,10 @@
         'container_max' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX, $activePreset['surface']['container_max'], $sanitizeLengthOrPercent),
         'home_box_bg_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG, $activePreset['surface']['home_box_bg_light'], $sanitizeColor),
         'home_box_border_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER, $activePreset['surface']['home_box_border_light'], $sanitizeColor),
+        'home_card_bg_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_HOME_CARD_BG, $activePreset['surface']['home_card_bg_light'], $sanitizeColor),
         'home_box_bg_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG, $activePreset['surface']['home_box_bg_dark'], $sanitizeColor),
         'home_box_border_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER, $activePreset['surface']['home_box_border_dark'], $sanitizeColor),
+        'home_card_bg_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_HOME_CARD_BG, $activePreset['surface']['home_card_bg_dark'], $sanitizeColor),
         'shadow' => $uiShadowMap[$uiShadowLevel],
     ];
 @endphp
@@ -511,6 +519,7 @@
             --ui-link: {{ $uiModernSurface['link_light'] }};
             --ui-home-box-bg: {{ $uiModernSurface['home_box_bg_light'] }};
             --ui-home-box-border: {{ $uiModernSurface['home_box_border_light'] }};
+            --ui-home-card-bg: {{ $uiModernSurface['home_card_bg_light'] }};
             --ui-radius-card: {{ $uiModernSurface['radius_card'] }};
             --ui-radius-input: {{ $uiModernSurface['radius_input'] }};
             --ui-radius-button: {{ $uiModernSurface['radius_button'] }};
@@ -559,6 +568,7 @@
             --ui-link: {{ $uiModernSurface['link_dark'] }};
             --ui-home-box-bg: {{ $uiModernSurface['home_box_bg_dark'] }};
             --ui-home-box-border: {{ $uiModernSurface['home_box_border_dark'] }};
+            --ui-home-card-bg: {{ $uiModernSurface['home_card_bg_dark'] }};
             color-scheme: dark;
         }
 
