@@ -1,238 +1,49 @@
-    <section class="py-2 rtl">
-      <div class="container-fluid contractor-layout-block">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-          <h6 class="mb-0">
-            نتائج البحث
-            <span class="namesListCounter listNumber bg-dark text-white rounded-2 p-1 px-3 me-2" id="search_count">0</span>
-          </h6>
-          <button class="btn btn-secondary all" type="button">الكل</button>
-        </div>
+@php
+  $uiThemeLight = [
+    'btn_primary' => '#0ea5e9',
+    'btn_secondary' => '#6366f1',
+    'btn_tertiary' => '#14b8a6',
+    'btn_quaternary' => '#f59e0b',
+    'text_primary' => '#0f172a',
+    'text_secondary' => '#475569',
+    'bg_primary' => '#ffffff',
+    'bg_secondary' => '#f8fafc',
+  ];
 
-        <form action="{{route('ass',$contractor->id)}}" method="POST" id="form-attach">
-          @csrf
-          <div class="table-responsive">
-            <table class="table rtl overflow-hidden rounded-3 text-center mt-2 table-striped">
-              <thead class="table-secondary border-0 border-secondary border-bottom border-2">
-                <tr>
-                  <th>#</th>
-                  <th class="w150 fs-6">الأسماء</th>
-                  <th>أدوات</th>
-                </tr>
-              </thead>
-              <tbody id="resultSearchData"></tbody>
-            </table>
-          </div>
+  $uiThemeDark = [
+    'btn_primary' => '#38bdf8',
+    'btn_secondary' => '#818cf8',
+    'btn_tertiary' => '#2dd4bf',
+    'btn_quaternary' => '#fbbf24',
+    'text_primary' => '#f1f5f9',
+    'text_secondary' => '#cbd5e1',
+    'bg_primary' => '#0f172a',
+    'bg_secondary' => '#1e293b',
+  ];
 
-          <div class="text-start">
-            <button type="submit" id="all_voters" class="btn btn-primary">اضافة المحدد</button>
-          </div>
-        </form>
-      </div>
-    </section>
-    }
+  $uiModernSurface = [
+    'link_light' => '#0ea5e9',
+    'link_dark' => '#38bdf8',
+    'border_light' => '#dbe3ef',
+    'border_dark' => '#64748b',
+    'radius_card' => '1rem',
+    'radius_input' => '0.75rem',
+    'radius_button' => '0.75rem',
+    'space_section' => '1.25rem',
+    'space_card' => '1rem',
+    'container_max' => '1320px',
+    'shadow' => '0 20px 45px rgba(2, 6, 23, 0.14)',
+  ];
 
-    $themeLibraryById[$id] = [
-      'id' => $id,
-      'name' => trim((string) ($themeItem['name'] ?? $id)),
-      'values' => $values,
-    ];
-  }
-
-  $themePreset = strtolower(trim((string) setting(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value, true)));
-  $allowedPresets = array_merge(['default', 'emerald', 'violet', 'custom'], array_keys($themeLibraryById));
-  $themePreset = in_array($themePreset, $allowedPresets, true) ? $themePreset : 'default';
-
-  $baseFontPreset = [
+  $uiFontScale = [
     'xs' => '0.75rem',
     'sm' => '0.875rem',
     'base' => '1rem',
     'lg' => '1.125rem',
     'xl' => '1.25rem',
   ];
-
-  $themePresetPalettes = [
-    'default' => [
-      'light' => [
-        'btn_primary' => '#0ea5e9',
-        'btn_secondary' => '#6366f1',
-        'btn_tertiary' => '#14b8a6',
-        'btn_quaternary' => '#f59e0b',
-        'text_primary' => '#0f172a',
-        'text_secondary' => '#475569',
-        'bg_primary' => '#ffffff',
-        'bg_secondary' => '#f8fafc',
-      ],
-      'dark' => [
-        'btn_primary' => '#38bdf8',
-        'btn_secondary' => '#818cf8',
-        'btn_tertiary' => '#2dd4bf',
-        'btn_quaternary' => '#fbbf24',
-        'text_primary' => '#f1f5f9',
-        'text_secondary' => '#cbd5e1',
-        'bg_primary' => '#0f172a',
-        'bg_secondary' => '#1e293b',
-      ],
-      'surface' => [
-        'link_light' => '#0ea5e9',
-        'link_dark' => '#38bdf8',
-        'border_light' => '#dbe3ef',
-        'border_dark' => '#64748b',
-        'radius_card' => '1rem',
-        'radius_input' => '0.75rem',
-        'radius_button' => '0.75rem',
-        'space_section' => '1.25rem',
-        'space_card' => '1rem',
-        'container_max' => '1320px',
-        'shadow_level' => 'medium',
-      ],
-      'font' => $baseFontPreset,
-    ],
-    'emerald' => [
-      'light' => [
-        'btn_primary' => '#10b981',
-        'btn_secondary' => '#0ea5a4',
-        'btn_tertiary' => '#22c55e',
-        'btn_quaternary' => '#f59e0b',
-        'text_primary' => '#052e2b',
-        'text_secondary' => '#0f766e',
-        'bg_primary' => '#ffffff',
-        'bg_secondary' => '#f0fdfa',
-      ],
-      'dark' => [
-        'btn_primary' => '#34d399',
-        'btn_secondary' => '#2dd4bf',
-        'btn_tertiary' => '#4ade80',
-        'btn_quaternary' => '#fbbf24',
-        'text_primary' => '#ecfeff',
-        'text_secondary' => '#99f6e4',
-        'bg_primary' => '#042f2e',
-        'bg_secondary' => '#134e4a',
-      ],
-      'surface' => [
-        'link_light' => '#0f766e',
-        'link_dark' => '#2dd4bf',
-        'border_light' => '#99f6e4',
-        'border_dark' => '#0f766e',
-        'radius_card' => '1rem',
-        'radius_input' => '0.75rem',
-        'radius_button' => '0.75rem',
-        'space_section' => '1.25rem',
-        'space_card' => '1rem',
-        'container_max' => '1320px',
-        'shadow_level' => 'medium',
-      ],
-      'font' => $baseFontPreset,
-    ],
-    'violet' => [
-      'light' => [
-        'btn_primary' => '#8b5cf6',
-        'btn_secondary' => '#6366f1',
-        'btn_tertiary' => '#ec4899',
-        'btn_quaternary' => '#f59e0b',
-        'text_primary' => '#1f1147',
-        'text_secondary' => '#5b21b6',
-        'bg_primary' => '#ffffff',
-        'bg_secondary' => '#f5f3ff',
-      ],
-      'dark' => [
-        'btn_primary' => '#a78bfa',
-        'btn_secondary' => '#818cf8',
-        'btn_tertiary' => '#f472b6',
-        'btn_quaternary' => '#fbbf24',
-        'text_primary' => '#f5f3ff',
-        'text_secondary' => '#ddd6fe',
-        'bg_primary' => '#1e1b4b',
-        'bg_secondary' => '#312e81',
-      ],
-      'surface' => [
-        'link_light' => '#7c3aed',
-        'link_dark' => '#a78bfa',
-        'border_light' => '#ddd6fe',
-        'border_dark' => '#7c3aed',
-        'radius_card' => '1rem',
-        'radius_input' => '0.75rem',
-        'radius_button' => '0.75rem',
-        'space_section' => '1.25rem',
-        'space_card' => '1rem',
-        'container_max' => '1320px',
-        'shadow_level' => 'medium',
-      ],
-      'font' => $baseFontPreset,
-    ],
-  ];
-
-  $activePreset = $themePresetPalettes[array_key_exists($themePreset, $themePresetPalettes) ? $themePreset : 'default'];
-  $selectedLibraryTheme = $themeLibraryById[$themePreset] ?? null;
-
-  $resolveThemeValue = static function (\App\Enums\SettingKey $key, string $presetValue, callable $sanitize) use ($themePreset, $themeValue, $selectedLibraryTheme) {
-    $value = $presetValue;
-
-    if ($themePreset === 'custom') {
-      $value = $themeValue($key, $presetValue);
-    } elseif (is_array($selectedLibraryTheme) && is_array($selectedLibraryTheme['values'] ?? null)) {
-      $value = (string) ($selectedLibraryTheme['values'][$key->value] ?? $presetValue);
-    }
-
-    return $sanitize($value, $presetValue);
-  };
-
-  $uiThemeLight = [
-    'btn_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY, $activePreset['light']['btn_primary'], $sanitizeColor),
-    'btn_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY, $activePreset['light']['btn_secondary'], $sanitizeColor),
-    'btn_tertiary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY, $activePreset['light']['btn_tertiary'], $sanitizeColor),
-    'btn_quaternary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BTN_QUATERNARY, $activePreset['light']['btn_quaternary'], $sanitizeColor),
-    'text_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY, $activePreset['light']['text_primary'], $sanitizeColor),
-    'text_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY, $activePreset['light']['text_secondary'], $sanitizeColor),
-    'bg_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BG_PRIMARY, $activePreset['light']['bg_primary'], $sanitizeColor),
-    'bg_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BG_SECONDARY, $activePreset['light']['bg_secondary'], $sanitizeColor),
-  ];
-
-  $uiThemeDark = [
-    'btn_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY, $activePreset['dark']['btn_primary'], $sanitizeColor),
-    'btn_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_SECONDARY, $activePreset['dark']['btn_secondary'], $sanitizeColor),
-    'btn_tertiary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY, $activePreset['dark']['btn_tertiary'], $sanitizeColor),
-    'btn_quaternary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BTN_QUATERNARY, $activePreset['dark']['btn_quaternary'], $sanitizeColor),
-    'text_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY, $activePreset['dark']['text_primary'], $sanitizeColor),
-    'text_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY, $activePreset['dark']['text_secondary'], $sanitizeColor),
-    'bg_primary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY, $activePreset['dark']['bg_primary'], $sanitizeColor),
-    'bg_secondary' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY, $activePreset['dark']['bg_secondary'], $sanitizeColor),
-  ];
-
-  $uiFontScale = [
-    'xs' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_XS, $activePreset['font']['xs'], $sanitizeSize),
-    'sm' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_SM, $activePreset['font']['sm'], $sanitizeSize),
-    'base' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_BASE, $activePreset['font']['base'], $sanitizeSize),
-    'lg' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_LG, $activePreset['font']['lg'], $sanitizeSize),
-    'xl' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_XL, $activePreset['font']['xl'], $sanitizeSize),
-  ];
-
-  $uiShadowMap = [
-    'soft' => '0 14px 28px rgba(2, 6, 23, 0.10)',
-    'medium' => '0 20px 45px rgba(2, 6, 23, 0.14)',
-    'strong' => '0 28px 65px rgba(2, 6, 23, 0.20)',
-  ];
-
-  $uiShadowLevel = $resolveThemeValue(
-    \App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL,
-    $activePreset['surface']['shadow_level'],
-    static fn (string $value, string $fallback): string => in_array($value, ['soft', 'medium', 'strong'], true) ? $value : $fallback
-  );
-  $uiShadowLevel = array_key_exists($uiShadowLevel, $uiShadowMap) ? $uiShadowLevel : 'medium';
-
-  $uiModernSurface = [
-    'link_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_LINK_COLOR, $activePreset['surface']['link_light'], $sanitizeColor),
-    'link_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR, $activePreset['surface']['link_dark'], $sanitizeColor),
-    'border_light' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_BORDER_COLOR, $activePreset['surface']['border_light'], $sanitizeColor),
-    'border_dark' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR, $activePreset['surface']['border_dark'], $sanitizeColor),
-    'radius_card' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_CARD, $activePreset['surface']['radius_card'], $sanitizeLengthOrPercent),
-    'radius_input' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT, $activePreset['surface']['radius_input'], $sanitizeLengthOrPercent),
-    'radius_button' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON, $activePreset['surface']['radius_button'], $sanitizeLengthOrPercent),
-    'space_section' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_SECTION, $activePreset['surface']['space_section'], $sanitizeLengthOrPercent),
-    'space_card' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_SPACE_CARD, $activePreset['surface']['space_card'], $sanitizeLengthOrPercent),
-    'container_max' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX, $activePreset['surface']['container_max'], $sanitizeLengthOrPercent),
-    'shadow' => $uiShadowMap[$uiShadowLevel],
-  ];
 @endphp
+<!DOCTYPE html>
 <html lang="ar" dir="rtl" class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
   <head>
     <meta charset="UTF-8" />
