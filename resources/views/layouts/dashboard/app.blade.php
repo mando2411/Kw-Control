@@ -10,6 +10,11 @@
     }
     $isHomepage = request()->routeIs('dashboard');
 
+    $loadModernThemeCss = $uiModeServer === 'modern';
+    $loadSelect2Assets = request()->routeIs('dashboard.settings.*', 'dashboard.statement.*', 'dashboard.voters.*', 'dashboard.contractors.*');
+    $loadAceAssets = request()->routeIs('dashboard.settings.*');
+    $loadTagsInputAssets = request()->routeIs('dashboard.settings.*');
+
     $themeValue = static function (\App\Enums\SettingKey $key, string $fallback): string {
         $value = trim((string) setting($key->value, true));
         return $value !== '' ? $value : $fallback;
@@ -422,14 +427,18 @@
         href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,500;1,600;1,700;1,800;1,900&display=swap">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap">
+    @if ($loadSelect2Assets)
         <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    @endif
     <!-- App css-->
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/style.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/modern-theme-system.css') }}?v={{ filemtime(public_path('assets/css/modern-theme-system.css')) }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/dashboard-modern-fallback.css') }}?v={{ filemtime(public_path('assets/css/dashboard-modern-fallback.css')) }}">
+    @if ($loadModernThemeCss)
+        <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/modern-theme-system.css') }}?v={{ filemtime(public_path('assets/css/modern-theme-system.css')) }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/dashboard-modern-fallback.css') }}?v={{ filemtime(public_path('assets/css/dashboard-modern-fallback.css')) }}">
+    @endif
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <style>
         .logo {
@@ -1955,15 +1964,19 @@
     </div>
     <!-- page-wrapper end-->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="{{ asset('assets/admin/js/ace/ace.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/ace/mode-css.js') }}"></script>
-    <script src="{{ asset('assets/admin/js/ace/worker-css.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min/snippets/css.js"></script>
-    <script src="{{ asset('assets/admin/js/ace/ext-language_tools.js') }}"></script>
+    @if ($loadAceAssets)
+        <script src="{{ asset('assets/admin/js/ace/ace.js') }}"></script>
+        <script src="{{ asset('assets/admin/js/ace/mode-css.js') }}"></script>
+        <script src="{{ asset('assets/admin/js/ace/worker-css.js') }}"></script>
+        <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.6/src-min/snippets/css.js"></script>
+        <script src="{{ asset('assets/admin/js/ace/ext-language_tools.js') }}"></script>
+    @endif
     <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/jquery-3.7.1.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/jquery.easing.1.3.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    @if ($loadSelect2Assets)
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    @endif
     <script src="{{ asset('assets/admin/js/main.js') }}?v={{ filemtime(public_path('assets/admin/js/main.js')) }}"></script>
     <!-- Bootstrap JS already loaded via assets/admin/js/bootstrap.bundle.min.js -->
 
@@ -1980,12 +1993,10 @@
     <script>
         window.supportedLocales = {!! collect(config('translatable.locales'))->toJson() !!}
     </script>
-    <!-- Tagsinput -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css"/>
-<!-- Select2 -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+    @if ($loadTagsInputAssets)
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css"/>
+    @endif
 
     <script>
         (function () {
@@ -2766,11 +2777,13 @@
     
     
     <!-- Ace Editor CDN -->
+@if ($loadAceAssets)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-language_tools.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/worker-css.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/beautify-css.min.js"></script>
+@endif
 
 <script>
     document.addEventListener('hide.bs.modal', function (event) {
