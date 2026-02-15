@@ -437,7 +437,6 @@
     <!-- App css-->
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/admin.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/style.css') }}">
     @if ($loadModernThemeCss)
         <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/modern-theme-system.css') }}?v={{ filemtime(public_path('assets/css/modern-theme-system.css')) }}">
