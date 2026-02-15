@@ -31,6 +31,7 @@
     font-weight: 800;
 }
 
+
 .sm-export-modal .modal-body {
     background: var(--ui-surface, #fff);
     padding: 14px;
@@ -49,19 +50,6 @@
     font-size: .86rem;
     color: var(--ui-muted, #64748b);
     font-weight: 950;
-}
-
-.sm-export-check {
-    border: 1px solid var(--ui-border, rgba(148,163,184,.24));
-    border-radius: 12px;
-    padding: 8px 10px;
-    background: #fff;
-}
-
-.sm-export-check .form-check-label {
-    font-weight: 800;
-    color: var(--ui-ink, #0f172a);
-    font-size: .86rem;
 }
 
 .sm-chip-option {
