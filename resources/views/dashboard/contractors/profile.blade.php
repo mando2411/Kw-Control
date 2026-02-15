@@ -377,6 +377,62 @@
       font-weight: 700;
     }
 
+    .hero-countdown {
+      margin-top: 0.85rem;
+      padding: 0.75rem;
+      border-radius: 0.9rem;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 85%, transparent);
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 88%, transparent);
+    }
+
+    .hero-countdown__title {
+      margin: 0 0 0.55rem;
+      color: var(--ui-text-primary, #0f172a);
+      font-size: 0.9rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .hero-countdown__grid {
+      --bs-gutter-x: 0.5rem;
+      --bs-gutter-y: 0.5rem;
+    }
+
+    .hero-countdown__item {
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 80%, transparent);
+      border-radius: 0.75rem;
+      background: color-mix(in srgb, var(--ui-bg-primary, #fff) 92%, transparent);
+      padding: 0.45rem 0.3rem;
+      text-align: center;
+      box-shadow: 0 6px 16px rgba(2, 6, 23, 0.06);
+    }
+
+    .hero-countdown__value {
+      display: block;
+      font-size: clamp(1rem, 1.8vw, 1.22rem);
+      font-weight: 900;
+      line-height: 1;
+      color: var(--ui-text-primary, #0f172a);
+    }
+
+    .hero-countdown__label {
+      display: block;
+      margin-top: 0.2rem;
+      font-size: 0.72rem;
+      color: var(--ui-text-secondary, #475569);
+      font-weight: 700;
+    }
+
+    .hero-countdown__date {
+      margin-top: 0.5rem;
+    }
+
+    .hero-countdown__date p {
+      margin: 0;
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
     .committeDetails {
       max-width: min(1080px, 92vw);
       margin: 1rem auto 1.3rem;
@@ -420,6 +476,18 @@
       .contractor-hero-media {
         margin: 0 auto;
       }
+
+      .hero-countdown {
+        padding: 0.62rem;
+      }
+
+      .hero-countdown__value {
+        font-size: 1rem;
+      }
+
+      .hero-countdown__label {
+        font-size: 0.68rem;
+      }
     }
   </style>
   <body class="ui-modern ui-light contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
@@ -449,43 +517,35 @@
             <h1 class="contractor-hero-name">{{$contractor->creator?->name}}</h1>
             <p class="contractor-hero-sub">مرشح انتخابات جمعية {{ $contractor->creator?->election->name }}</p>
 
-            <div class="mt-3 p-3 rounded-3 border" style="background: var(--ui-bg-secondary, #f8fafc); border-color: var(--ui-border, #dbe3ef) !important;">
-              <h6 class="mb-2 fw-bold" style="color: var(--ui-text-primary, #0f172a);">باقي على موعد الانتخابات</h6>
+            <div class="hero-countdown">
+              <h6 class="hero-countdown__title">باقي على موعد الانتخابات</h6>
 
-              <div class="row g-2 align-items-center text-center">
+              <div class="row hero-countdown__grid align-items-center">
                 <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor fw-bold">
-                      <span class="fs-2" id="seconds"></span> <br />
-                      ثانيه
-                    </div>
+                  <div class="hero-countdown__item">
+                    <span class="hero-countdown__value" id="seconds"></span>
+                    <span class="hero-countdown__label">ثانيه</span>
                   </div>
                 </div>
 
                 <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor fw-bold">
-                      <span class="fs-2" id="minutes"></span> <br />
-                      دقيقه
-                    </div>
+                  <div class="hero-countdown__item">
+                    <span class="hero-countdown__value" id="minutes"></span>
+                    <span class="hero-countdown__label">دقيقه</span>
                   </div>
                 </div>
 
                 <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor fw-bold">
-                      <span class="fs-2" id="hours"></span> <br />
-                      ساعه
-                    </div>
+                  <div class="hero-countdown__item">
+                    <span class="hero-countdown__value" id="hours"></span>
+                    <span class="hero-countdown__label">ساعه</span>
                   </div>
                 </div>
 
                 <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor fw-bold">
-                      <span class="fs-2" id="days"></span> <br />
-                      يوم
-                    </div>
+                  <div class="hero-countdown__item">
+                    <span class="hero-countdown__value" id="days"></span>
+                    <span class="hero-countdown__label">يوم</span>
                   </div>
                 </div>
               </div>
@@ -495,15 +555,15 @@
               <input type="hidden" id="endDate" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->end_date)->format('Y-m-d') }}">
               <input type="hidden" id="endTime" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('H:i:s') }}">
 
-              <div id="election_start" class="mt-2">
-                <p class="text-danger mb-0">
+              <div id="election_start" class="hero-countdown__date">
+                <p class="text-danger">
                   حتى تاريخ {{ \Carbon\Carbon::parse($contractor->creator?->election->start_date)->format('d/m/Y') }} , الساعة
                   {{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('h:i') }}
                   {{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('A') === 'AM' ? 'ص' : 'م' }}
                 </p>
               </div>
-              <div id="election_end" class="d-none mt-2">
-                <p class="text-danger mb-0">
+              <div id="election_end" class="d-none hero-countdown__date">
+                <p class="text-danger">
                   حتى تاريخ {{ \Carbon\Carbon::parse($contractor->creator?->election->end_date)->format('d/m/Y') }} , الساعة
                   {{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('h:i') }}
                   {{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('A') === 'AM' ? 'ص' : 'م' }}
