@@ -4,6 +4,18 @@
     max-width: 760px;
 }
 
+#smExportModal.modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+#smExportModal .modal-dialog {
+    width: min(760px, calc(100vw - 2rem));
+    margin: 0 auto;
+}
+
 .sm-export-modal .modal-content {
     border: 1px solid var(--ui-border, rgba(148, 163, 184, .24));
     border-radius: 18px;
@@ -132,14 +144,19 @@ body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataMo
     z-index: 1060;
 }
 
+body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern.modal.show {
+    margin-left: 0 !important;
+}
+
 body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern .modal-dialog {
-    transform: scale(.985);
-    transition: transform .18s ease;
+    transform: scale(.965) translateY(6px);
+    transition: transform .18s ease, opacity .18s ease;
+    opacity: .88;
 }
 
 body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern .modal-content {
-    box-shadow: 0 10px 24px rgba(2, 6, 23, .16);
-    filter: saturate(.96);
+    box-shadow: 0 8px 20px rgba(2, 6, 23, .14);
+    filter: saturate(.88) brightness(.96);
 }
 
 body.contractor-export-modal-layered #smExportModal {
@@ -147,11 +164,26 @@ body.contractor-export-modal-layered #smExportModal {
 }
 
 body.contractor-export-modal-layered #smExportModal .modal-dialog {
-    margin-top: 2.5rem;
+    margin-top: 0;
+}
+
+body.contractor-export-modal-layered #smExportModal .modal-content {
+    box-shadow: 0 28px 54px rgba(2, 6, 23, .28);
+    border-color: rgba(148, 163, 184, .30);
 }
 
 .modal-backdrop.sm-export-backdrop {
     z-index: 1086;
-    opacity: .42;
-    background-color: rgba(2, 6, 23, .62);
+    opacity: .50;
+    background-color: rgba(2, 6, 23, .66);
+}
+
+@media (max-width: 768px) {
+    #smExportModal.modal.show {
+        padding: .5rem;
+    }
+
+    #smExportModal .modal-dialog {
+        width: calc(100vw - 1rem);
+    }
 }

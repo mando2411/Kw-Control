@@ -2,7 +2,7 @@
 
 @section('content')
     <link rel="stylesheet" href="/assets/css/contractors-modern.css?v=20260214c">
-    <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260215a">
+    <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260215b">
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <!-- DataTables Buttons CSS -->
@@ -537,7 +537,7 @@
         </div>
 
                 <div class="modal fade rtl sm-export-modal" id="smExportModal" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                                 <div class="modal-content">
                                         <div class="modal-header">
                                                 <div>
