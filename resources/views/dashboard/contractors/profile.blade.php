@@ -492,7 +492,6 @@
 
               <button
                 type="submit"
-                onclick="getResultSearch()"
                 class="resultSearchBtn btn btn-secondary w-100"
               >
                 بحث
@@ -503,63 +502,37 @@
         </div>
       </div>
     </section>
+    <section class="py-2 rtl">
+      <div class="container-fluid contractor-layout-block">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <h6 class="mb-0">
+            نتائج البحث
+            <span class="namesListCounter listNumber bg-dark text-white rounded-2 p-1 px-3 me-2" id="search_count">0</span>
+          </h6>
+          <button class="btn btn-secondary all" type="button">الكل</button>
+        </div>
 
-
-    <!-- resultOfSearch -->
-    <div
-      class="modal modal-lg rtl"
-      id="resultOfSearch"
-      tabindex="-1"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div class="modal-title" id="exampleModalLabel">
-              <img src="{{$contractor->creator ? $contractor->creator->image : "https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Flag_of_Kuwait.svg/1200px-Flag_of_Kuwait.svg.png"}} " class="w-100 mb-5" style="height: 150px" alt="banner" />
-            </div>
-            <table 
-              class="table rtl overflow-hidden rounded-3 text-center mt-3 table-striped"
-            >
-              <thead
-                class="table-secondary border-0 border-secondary border-bottom border-2"
-              >
+        <form action="{{route('ass',$contractor->id)}}" method="POST" id="form-attach">
+          @csrf
+          <div class="table-responsive">
+            <table class="table rtl overflow-hidden rounded-3 text-center mt-2 table-striped">
+              <thead class="table-secondary border-0 border-secondary border-bottom border-2">
                 <tr>
-                  <th>
-                    <button class="btn btn-secondary all">الكل</button>
-                  </th>
-                  <th class="w150 fs-5">الأسماء
-                    <span
-            class="namesListCounter listNumber bg-dark text-white rounded-2 p-1 px-3 me-2"
-           id="search_count" style="color: #fff !impotant"> </span
-          >
-                  </th>
-                  <th></th>
+                  <th>#</th>
+                  <th class="w150 fs-6">الأسماء</th>
+                  <th>أدوات</th>
                 </tr>
               </thead>
-              <button type="submit" id="all_voters" class="btn btn-primary "> اضافه المحدد</button>
-              <form action="{{route('ass',$contractor->id)}}" method="POST" id="form-attach">
-                @csrf
-
-                <tbody id="resultSearchData">
-
-                </tbody>
-
-              </form>
+              <tbody id="resultSearchData"></tbody>
             </table>
           </div>
-        </div>
+
+          <div class="text-start">
+            <button type="submit" id="all_voters" class="btn btn-primary">اضافة المحدد</button>
+          </div>
+        </form>
       </div>
-    </div>
+    </section>
     @php
     $id=$contractor->id;
     $voters = $contractor->voters()
