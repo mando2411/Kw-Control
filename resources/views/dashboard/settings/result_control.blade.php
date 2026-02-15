@@ -333,7 +333,7 @@
                         \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG->value => ['label' => 'خلفية بوكسات الرئيسية (Light)', 'default' => '#f8fafc', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER->value => ['label' => 'حدود بوكسات الرئيسية (Light)', 'default' => '#dbe3ef', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_HOME_CARD_BG->value => ['label' => 'خلفية كروت الرئيسية (Light)', 'default' => '#ffffff', 'type' => 'color'],
-                        \App\Enums\SettingKey::UI_MODERN_HOME_AVATAR_SIZE->value => ['label' => 'حجم صورة أفاتار كارت الرئيسية', 'default' => '62px', 'type' => 'size_select', 'options' => ['48px', '56px', '62px', '72px', '84px']],
+                        \App\Enums\SettingKey::UI_MODERN_HOME_AVATAR_SIZE->value => ['label' => 'حجم صورة أفاتار كارت الرئيسية', 'default' => '62px', 'type' => 'size_select', 'options' => ['48px', '56px', '62px', '72px', '84px', '96px', '108px', '120px', '136px']],
                         \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG->value => ['label' => 'خلفية بوكسات الرئيسية (Dark)', 'default' => '#1e293b', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER->value => ['label' => 'حدود بوكسات الرئيسية (Dark)', 'default' => '#475569', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_DARK_HOME_CARD_BG->value => ['label' => 'خلفية كروت الرئيسية (Dark)', 'default' => '#0f172a', 'type' => 'color'],

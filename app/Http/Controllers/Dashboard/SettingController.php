@@ -72,7 +72,7 @@ class SettingController extends Controller
             SettingKey::UI_MODERN_SPACE_SECTION->value => ['1.25rem', '0.75rem', '1rem', '1.5rem', '2rem'],
             SettingKey::UI_MODERN_SPACE_CARD->value => ['1rem', '0.75rem', '1.25rem', '1.5rem'],
             SettingKey::UI_MODERN_CONTAINER_MAX->value => ['1320px', '1140px', '1200px', '1440px', '1600px'],
-            SettingKey::UI_MODERN_HOME_AVATAR_SIZE->value => ['62px', '48px', '56px', '72px', '84px'],
+            SettingKey::UI_MODERN_HOME_AVATAR_SIZE->value => ['62px', '48px', '56px', '72px', '84px', '96px', '108px', '120px', '136px'],
         ];
 
         if (array_key_exists($key, $selectableSizeSettings)) {
