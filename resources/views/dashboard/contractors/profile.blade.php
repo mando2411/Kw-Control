@@ -496,7 +496,7 @@
 
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
-        <p class="contractor-top-cta__text">عايز تتعرف أكثر على برنامج كنترول وكيف يطور إدارة الكشوف والمتابعة؟</p>
+        <p class="contractor-top-cta__text">عشان تعرف اكتر عن البرنامج اضغط هنا</p>
         <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer">اضغط هنا</a>
       </div>
     </div>
