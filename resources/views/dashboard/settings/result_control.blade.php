@@ -143,8 +143,15 @@
 
             html.ui-modern #settings-app .sm-tab-pane,
             body.ui-modern #settings-app .sm-tab-pane {
-                display: grid;
+                display: none;
                 gap: 14px;
+            }
+
+            html.ui-modern #settings-app .sm-tab-pane.active,
+            html.ui-modern #settings-app .sm-tab-pane.show,
+            body.ui-modern #settings-app .sm-tab-pane.active,
+            body.ui-modern #settings-app .sm-tab-pane.show {
+                display: grid;
             }
 
             @media (min-width: 992px) {
