@@ -416,11 +416,10 @@
                                     </button>
                                 </a>
 
-                                <a href="">
-                                    <button class="btn btn-secondary copyLink mb-1" value="link">
-                                        <i class="fa fa-book"></i>
-                                        <span>Aنسخ الرابط</span>
-                                    </button>
+                                <button type="button" class="btn btn-secondary mb-1" id="copyConUrlBtn">
+                                <i class="fa fa-book"></i>
+                                <span id="copyConUrlText">نسخ الرابط</span>
+                            </button>
                                 </a>
                             </div>
                             <div class="d-flex justify-content-center align-items-center mt-3">
