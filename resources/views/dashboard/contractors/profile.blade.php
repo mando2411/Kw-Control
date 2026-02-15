@@ -448,6 +448,68 @@
             <span class="contractor-hero-badge"><i class="fa fa-circle-check"></i> صفحة المتعهد الرسمية</span>
             <h1 class="contractor-hero-name">{{$contractor->creator?->name}}</h1>
             <p class="contractor-hero-sub">مرشح انتخابات جمعية {{ $contractor->creator?->election->name }}</p>
+
+            <div class="mt-3 p-3 rounded-3 border" style="background: var(--ui-bg-secondary, #f8fafc); border-color: var(--ui-border, #dbe3ef) !important;">
+              <h6 class="mb-2 fw-bold" style="color: var(--ui-text-primary, #0f172a);">باقي على موعد الانتخابات</h6>
+
+              <div class="row g-2 align-items-center text-center">
+                <div class="col-3">
+                  <div class="inner border border-2 p-2 rounded-3 rounded">
+                    <div class="textMainColor fw-bold">
+                      <span class="fs-2" id="seconds"></span> <br />
+                      ثانيه
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-3">
+                  <div class="inner border border-2 p-2 rounded-3 rounded">
+                    <div class="textMainColor fw-bold">
+                      <span class="fs-2" id="minutes"></span> <br />
+                      دقيقه
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-3">
+                  <div class="inner border border-2 p-2 rounded-3 rounded">
+                    <div class="textMainColor fw-bold">
+                      <span class="fs-2" id="hours"></span> <br />
+                      ساعه
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-3">
+                  <div class="inner border border-2 p-2 rounded-3 rounded">
+                    <div class="textMainColor fw-bold">
+                      <span class="fs-2" id="days"></span> <br />
+                      يوم
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <input type="hidden" id="startDate" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->start_date)->format('Y-m-d') }}">
+              <input type="hidden" id="startTime" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('H:i:s') }}">
+              <input type="hidden" id="endDate" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->end_date)->format('Y-m-d') }}">
+              <input type="hidden" id="endTime" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('H:i:s') }}">
+
+              <div id="election_start" class="mt-2">
+                <p class="text-danger mb-0">
+                  حتى تاريخ {{ \Carbon\Carbon::parse($contractor->creator?->election->start_date)->format('d/m/Y') }} , الساعة
+                  {{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('h:i') }}
+                  {{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('A') === 'AM' ? 'ص' : 'م' }}
+                </p>
+              </div>
+              <div id="election_end" class="d-none mt-2">
+                <p class="text-danger mb-0">
+                  حتى تاريخ {{ \Carbon\Carbon::parse($contractor->creator?->election->end_date)->format('d/m/Y') }} , الساعة
+                  {{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('h:i') }}
+                  {{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('A') === 'AM' ? 'ص' : 'م' }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -921,71 +983,6 @@
         </form>
         </div>
 
-        <section class="countDown py-3">
-          <div class="container">
-            <div class="text-center madameenControl mx-auto">
-              <h3 class="textMainColor time-election">
-                باقى على موعد الانتخابات
-              </h3>
-
-              <div class="row g-3 align-items-center mt-3 mb-1">
-                <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor text-center fw-bold">
-                      <span class="fs-2" id="days"></span> <br />
-                      يوم
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor text-center fw-bold">
-                      <span class="fs-2" id="hours"></span> <br />
-                      ساعه
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor text-center fw-bold">
-                      <span class="fs-2" id="minutes"></span> <br />
-                      دقيقه
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-3">
-                  <div class="inner border border-2 p-2 rounded-3 rounded">
-                    <div class="textMainColor text-center fw-bold">
-                      <span class="fs-2" id="seconds"></span> <br />
-                      ثانيه
-                    </div>
-                  </div>
-                </div>
-              </div>
-                <input type="hidden" id="startDate" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->start_date)->format('Y-m-d') }}">
-                <input type="hidden" id="startTime" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('H:i:s') }}">
-                <input type="hidden" id="endDate" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->end_date)->format('Y-m-d') }}">
-                <input type="hidden" id="endTime" value="{{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('H:i:s') }}">
-                <div id="election_start">
-                    <p class="text-danger">
-                        حتى تاريخ {{ \Carbon\Carbon::parse($contractor->creator?->election->start_date)->format('d/m/Y') }} , الساعة
-                        {{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('h:i') }}
-                        {{ \Carbon\Carbon::parse($contractor->creator?->election->start_time)->format('A') === 'AM' ? 'ص' : 'م' }}
-                    </p>
-                </div>
-                <div id="election_end" class="d-none">
-                    <p class="text-danger">
-                        حتى تاريخ {{ \Carbon\Carbon::parse($contractor->creator?->election->end_date)->format('d/m/Y') }} , الساعة
-                        {{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('h:i') }}
-                        {{ \Carbon\Carbon::parse($contractor->creator?->election->end_time)->format('A') === 'AM' ? 'ص' : 'م' }}
-                    </p>
-                </div>
-            </div>
-          </div>
-        </section>
         <div class="banner">
           <img
             src="{{$contractor->creator?->candidate ? ($contractor->creator->candidate ?? $contractor->creator->candidate[0]->banner) : "" }}"
