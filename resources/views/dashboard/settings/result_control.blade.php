@@ -360,6 +360,11 @@
                         $themeDefaultValues[$key] = $meta['default'];
                     }
 
+                    $customThemeValues = [];
+                    foreach ($themeDefaultValues as $key => $default) {
+                        $customThemeValues[$key] = $themeSettingValue($key, (string) $default);
+                    }
+
                     $presetOverrides = [
                         'default' => [],
                         'emerald' => [
@@ -412,7 +417,7 @@
                         'default' => ['name' => 'Default', 'values' => $themeDefaultValues],
                         'emerald' => ['name' => 'Emerald', 'values' => array_replace($themeDefaultValues, $presetOverrides['emerald'])],
                         'violet' => ['name' => 'Violet', 'values' => array_replace($themeDefaultValues, $presetOverrides['violet'])],
-                        'custom' => ['name' => 'Custom', 'values' => $themeDefaultValues],
+                        'custom' => ['name' => 'Custom', 'values' => $customThemeValues],
                     ];
 
                     $themeLibraryRaw = $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value)?->option_value[0] ?? '[]';
