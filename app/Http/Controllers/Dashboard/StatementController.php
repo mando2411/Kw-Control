@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Enums\SettingKey;
 use App\Exports\VotersExport;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessStatementExportJob;
@@ -31,23 +30,7 @@ class StatementController extends Controller
 {
     private function resolveStatementSearchView(): string
     {
-        $uiPolicy = setting(SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
-        $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
-
-        if ($uiPolicy === 'modern') {
-            return 'dashboard.statements.search-modern';
-        }
-
-        if ($uiPolicy === 'classic') {
-            return 'dashboard.statements.search';
-        }
-
-        $uiMode = auth()->check() ? (auth()->user()->ui_mode ?? 'classic') : 'classic';
-        $uiMode = in_array($uiMode, ['classic', 'modern'], true) ? $uiMode : 'classic';
-
-        return $uiMode === 'modern'
-            ? 'dashboard.statements.search-modern'
-            : 'dashboard.statements.search';
+        return 'dashboard.statements.search-modern';
     }
 
     private function buildSearchBootstrapData(): array
