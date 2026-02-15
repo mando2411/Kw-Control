@@ -17,15 +17,34 @@
 
 // navbar scroll
 
-$(window).on("scroll", function () {
-  let windowScroll = $(window).scrollTop();
-  if (windowScroll > 300) {
-    // console.log('aaa');
-    $(".navbar").removeClass("bg-opacity-50");
-  } else {
-    $(".navbar").addClass("bg-opacity-50");
-  }
-});
+(() => {
+  const navbar = document.querySelector(".navbar");
+  if (!navbar) return;
+
+  let lastSolidState = null;
+  let framePending = false;
+
+  const syncNavbarOpacity = () => {
+    const solid = window.scrollY > 300;
+    if (solid !== lastSolidState) {
+      navbar.classList.toggle("bg-opacity-50", !solid);
+      lastSolidState = solid;
+    }
+    framePending = false;
+  };
+
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (framePending) return;
+      framePending = true;
+      window.requestAnimationFrame(syncNavbarOpacity);
+    },
+    { passive: true }
+  );
+
+  syncNavbarOpacity();
+})();
 
 // home video
 
@@ -245,7 +264,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       $("#portfolio .portfolioLayer").on("click", function (e) {
-        console.log(e.target);
         if (e.target == portfolioLayer) {
           closeImg();
         }
@@ -275,7 +293,6 @@ $(function () {
 // services
 
 $(".work .workHead li").on("click", function () {
-  console.log($(this).attr("data-soluation"));
   let attrValue = $(this).attr("data-soluation");
   $(this).parent().next().find(`.row`).addClass("d-none");
   $(this).parent().next().find(`.row.${attrValue}`).removeClass("d-none");

@@ -37,7 +37,7 @@ a,
 a:hover {
   text-decoration: none;
   color: #000;
-  transition: 0.8s all;
+  transition: color 0.25s ease;
 }
 ::selection{
   background-color: var(--mainColor);
@@ -59,7 +59,7 @@ a:hover {
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: all 0.8s;
+  transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .iconBox {
@@ -92,7 +92,7 @@ a:hover {
   border-radius: 5px;
   position: relative;
   overflow: hidden;
-  transition: all 1s ease-out;
+  transition: transform 0.35s ease, color 0.35s ease, background-color 0.35s ease;
   z-index: 1;
 }
 
@@ -108,7 +108,7 @@ a:hover {
   width: 10%;
   height: 100%;
   transform: translate(50%, 2px) rotate(15deg);
-  transition: all 1s;
+  transition: width 0.4s ease, transform 0.4s ease, background-color 0.4s ease;
 
 }
 .mainBtn::before {
@@ -142,7 +142,7 @@ a:hover {
 
 .grayImg{
   filter: grayscale(1);
-  transition: all 1s;
+  transition: filter 0.45s ease;
 }
 .grayImg:hover{
   filter: grayscale(0);
@@ -195,7 +195,7 @@ a:hover {
 /* budinessDesc section */
 .businessDesc figure img {
   filter: grayscale(0.8);
-  transition: all 1s;
+  transition: filter 0.45s ease;
 }
 .businessDesc figure img:hover {
   filter: grayscale(0);
@@ -318,7 +318,7 @@ a:hover {
 }
 .team .cardTeam figure img {
   filter: grayscale(0.8);
-  transition: all 1s;
+  transition: transform 0.45s ease, filter 0.45s ease;
 }
 .team .cardTeam:hover {
   & figure img {
@@ -744,7 +744,8 @@ main {
   left: 10px;
 
   box-shadow: 0px 0px 15px 5px #00000060;
-  animation: wave 1.5s ease 0s infinite normal none;
+  animation: wave 2.2s ease-in-out 0s infinite normal none;
+  will-change: transform;
 }
 
 
@@ -754,10 +755,10 @@ main {
     transform: scale(1);
   }
   20%,70% {
-    transform: scale(1.2);
+    transform: scale(1.08);
   }
   40%,50%,60% {
-    transform: scale(1.3);
+    transform: scale(1.12);
   }
   /* 50% {
     transform: scale(1.5);
@@ -774,7 +775,7 @@ main {
 }
 .nav-item{
   font-size: 20px;
-  transition: all 1s;
+  transition: transform 0.25s ease;
 }
 .nav-item:hover{
   transform: scale(1.2);
@@ -784,7 +785,7 @@ main {
 }
 .navbar-toggler-icon{
   background-image: none;
-  transition: all 1s;
+  transition: transform 0.25s ease;
 }
 .navbar-toggler-icon:hover{
   transform: scale(1.3);
@@ -823,7 +824,7 @@ main {
   top: 0;
   visibility: hidden;
   opacity: 0;
-  transition: all 0.3s ease-in;
+  transition: opacity 0.25s ease;
   cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAAVBAMAAABbObilAAAAMFBMVEVMaXH////////////////////////////////////////////////////////////6w4mEAAAAD3RSTlMAlAX+BKLcA5+b6hJ7foD4ZP1OAAAAkUlEQVR4XkWPoQ3CUBQAL4SktoKAbCUjgAKLJZ2ABYosngTJCHSD6joUI6BZgqSoB/+Shqde7sS9x3OGk81fdO+texMtRVTia+TsQtHEUJLdohJfgNNPJHyEJPZTsWLoxShqsWITazEwqePAn69Sw2TUxk1+euPis3EwaXy8RMHSZBIlRcKKnC5hRctjMf57/wJbBlAIs9k1BAAAAABJRU5ErkJggg==),
     progress;
 }
@@ -847,12 +848,20 @@ main {
   width: 65%;
   transform: translate(-50%, -50%);
   height: 60%;
-  transition: 0.5s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
   visibility: hidden;
   opacity: 0;
   z-index: 9999;
   box-shadow: 0px 2px 69px #97a1b238;
   border-radius: 10px;
+}
+
+@media (max-width: 992px) {
+  .aboutCounter,
+  .counterBox .box1,
+  .homeCounter {
+    background-attachment: scroll;
+  }
 }
 
 
