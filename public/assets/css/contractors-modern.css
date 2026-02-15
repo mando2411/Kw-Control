@@ -134,14 +134,52 @@ body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-content {
     border-radius: 1rem;
     border: 1px solid rgba(14, 165, 233, 0.2);
     box-shadow: 0 18px 40px rgba(2, 6, 23, 0.14);
+    min-height: min(78vh, 760px);
+    max-height: 78vh;
 }
 
 body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-dialog {
-    margin: 1.75rem auto !important;
+    margin: 1.25rem auto !important;
+    width: min(92vw, 1080px);
+    max-width: 1080px;
+}
+
+body.ui-modern .contractors-modern-page #mota3ahdeenDataModern.modal.show .modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 2.5rem);
 }
 
 body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-header {
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(59, 130, 246, 0.10));
+}
+
+body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-body {
+    overflow: auto;
+    max-height: calc(78vh - 92px);
+}
+
+body.ui-modern .contractors-modern-page #mota3ahdeenDataModernLabel {
+    font-size: 1.12rem;
+    font-weight: 900;
+    color: rgba(15, 23, 42, 0.95);
+}
+
+@media (max-width: 991px) {
+    body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-dialog {
+        width: calc(100vw - 1rem);
+        max-width: none;
+        margin: .5rem auto !important;
+    }
+
+    body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-content {
+        min-height: min(86vh, 860px);
+        max-height: 86vh;
+    }
+
+    body.ui-modern .contractors-modern-page #mota3ahdeenDataModern .modal-body {
+        max-height: calc(86vh - 92px);
+    }
 }
 
 body.ui-modern .contractors-modern-page #mota3ahdeenDataModern [data-bs-target="edit-mot"],
