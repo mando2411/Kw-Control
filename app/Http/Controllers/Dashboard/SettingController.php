@@ -60,6 +60,31 @@ class SettingController extends Controller
             return [$policy];
         }
 
+        $selectableSizeSettings = [
+            SettingKey::UI_MODERN_FS_XS->value => ['0.75rem', '0.625rem', '0.875rem', '1rem'],
+            SettingKey::UI_MODERN_FS_SM->value => ['0.875rem', '0.75rem', '1rem', '1.125rem'],
+            SettingKey::UI_MODERN_FS_BASE->value => ['1rem', '0.875rem', '1.125rem', '1.25rem'],
+            SettingKey::UI_MODERN_FS_LG->value => ['1.125rem', '1rem', '1.25rem', '1.375rem'],
+            SettingKey::UI_MODERN_FS_XL->value => ['1.25rem', '1.125rem', '1.5rem', '1.75rem'],
+            SettingKey::UI_MODERN_RADIUS_CARD->value => ['1rem', '0.5rem', '0.75rem', '1.25rem', '1.5rem'],
+            SettingKey::UI_MODERN_RADIUS_INPUT->value => ['0.75rem', '0.375rem', '0.5rem', '1rem'],
+            SettingKey::UI_MODERN_RADIUS_BUTTON->value => ['0.75rem', '0.375rem', '0.5rem', '1rem'],
+            SettingKey::UI_MODERN_SPACE_SECTION->value => ['1.25rem', '0.75rem', '1rem', '1.5rem', '2rem'],
+            SettingKey::UI_MODERN_SPACE_CARD->value => ['1rem', '0.75rem', '1.25rem', '1.5rem'],
+            SettingKey::UI_MODERN_CONTAINER_MAX->value => ['1320px', '1140px', '1200px', '1440px', '1600px'],
+            SettingKey::UI_MODERN_HOME_AVATAR_SIZE->value => ['62px', '48px', '56px', '72px', '84px'],
+        ];
+
+        if (array_key_exists($key, $selectableSizeSettings)) {
+            $current = trim((string) ($value[0] ?? ''));
+            $allowed = $selectableSizeSettings[$key];
+            if (!in_array($current, $allowed, true)) {
+                $current = $allowed[0];
+            }
+
+            return [$current];
+        }
+
         if ($key === SettingKey::UI_MODERN_THEME_PRESET->value) {
             $preset = strtolower(trim((string) ($value[0] ?? '')));
             if (!preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $preset)) {

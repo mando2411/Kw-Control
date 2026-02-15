@@ -318,11 +318,11 @@
                     ];
 
                     $fontDefaults = [
-                        \App\Enums\SettingKey::UI_MODERN_FS_XS->value => ['label' => 'حجم XS', 'default' => '0.75rem'],
-                        \App\Enums\SettingKey::UI_MODERN_FS_SM->value => ['label' => 'حجم SM', 'default' => '0.875rem'],
-                        \App\Enums\SettingKey::UI_MODERN_FS_BASE->value => ['label' => 'الحجم الأساسي', 'default' => '1rem'],
-                        \App\Enums\SettingKey::UI_MODERN_FS_LG->value => ['label' => 'حجم LG', 'default' => '1.125rem'],
-                        \App\Enums\SettingKey::UI_MODERN_FS_XL->value => ['label' => 'حجم XL', 'default' => '1.25rem'],
+                        \App\Enums\SettingKey::UI_MODERN_FS_XS->value => ['label' => 'حجم XS', 'default' => '0.75rem', 'options' => ['0.625rem', '0.75rem', '0.875rem', '1rem']],
+                        \App\Enums\SettingKey::UI_MODERN_FS_SM->value => ['label' => 'حجم SM', 'default' => '0.875rem', 'options' => ['0.75rem', '0.875rem', '1rem', '1.125rem']],
+                        \App\Enums\SettingKey::UI_MODERN_FS_BASE->value => ['label' => 'الحجم الأساسي', 'default' => '1rem', 'options' => ['0.875rem', '1rem', '1.125rem', '1.25rem']],
+                        \App\Enums\SettingKey::UI_MODERN_FS_LG->value => ['label' => 'حجم LG', 'default' => '1.125rem', 'options' => ['1rem', '1.125rem', '1.25rem', '1.375rem']],
+                        \App\Enums\SettingKey::UI_MODERN_FS_XL->value => ['label' => 'حجم XL', 'default' => '1.25rem', 'options' => ['1.125rem', '1.25rem', '1.5rem', '1.75rem']],
                     ];
 
                     $componentDefaults = [
@@ -333,15 +333,16 @@
                         \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG->value => ['label' => 'خلفية بوكسات الرئيسية (Light)', 'default' => '#f8fafc', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER->value => ['label' => 'حدود بوكسات الرئيسية (Light)', 'default' => '#dbe3ef', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_HOME_CARD_BG->value => ['label' => 'خلفية كروت الرئيسية (Light)', 'default' => '#ffffff', 'type' => 'color'],
+                        \App\Enums\SettingKey::UI_MODERN_HOME_AVATAR_SIZE->value => ['label' => 'حجم صورة أفاتار كارت الرئيسية', 'default' => '62px', 'type' => 'size_select', 'options' => ['48px', '56px', '62px', '72px', '84px']],
                         \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG->value => ['label' => 'خلفية بوكسات الرئيسية (Dark)', 'default' => '#1e293b', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER->value => ['label' => 'حدود بوكسات الرئيسية (Dark)', 'default' => '#475569', 'type' => 'color'],
                         \App\Enums\SettingKey::UI_MODERN_DARK_HOME_CARD_BG->value => ['label' => 'خلفية كروت الرئيسية (Dark)', 'default' => '#0f172a', 'type' => 'color'],
-                        \App\Enums\SettingKey::UI_MODERN_RADIUS_CARD->value => ['label' => 'استدارة الكروت', 'default' => '1rem', 'type' => 'size'],
-                        \App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT->value => ['label' => 'استدارة المدخلات', 'default' => '0.75rem', 'type' => 'size'],
-                        \App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON->value => ['label' => 'استدارة الأزرار', 'default' => '0.75rem', 'type' => 'size'],
-                        \App\Enums\SettingKey::UI_MODERN_SPACE_SECTION->value => ['label' => 'تباعد الأقسام', 'default' => '1.25rem', 'type' => 'size'],
-                        \App\Enums\SettingKey::UI_MODERN_SPACE_CARD->value => ['label' => 'Padding الكروت', 'default' => '1rem', 'type' => 'size'],
-                        \App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX->value => ['label' => 'أقصى عرض للمحتوى', 'default' => '1320px', 'type' => 'size'],
+                        \App\Enums\SettingKey::UI_MODERN_RADIUS_CARD->value => ['label' => 'استدارة الكروت', 'default' => '1rem', 'type' => 'size_select', 'options' => ['0.5rem', '0.75rem', '1rem', '1.25rem', '1.5rem']],
+                        \App\Enums\SettingKey::UI_MODERN_RADIUS_INPUT->value => ['label' => 'استدارة المدخلات', 'default' => '0.75rem', 'type' => 'size_select', 'options' => ['0.375rem', '0.5rem', '0.75rem', '1rem']],
+                        \App\Enums\SettingKey::UI_MODERN_RADIUS_BUTTON->value => ['label' => 'استدارة الأزرار', 'default' => '0.75rem', 'type' => 'size_select', 'options' => ['0.375rem', '0.5rem', '0.75rem', '1rem']],
+                        \App\Enums\SettingKey::UI_MODERN_SPACE_SECTION->value => ['label' => 'تباعد الأقسام', 'default' => '1.25rem', 'type' => 'size_select', 'options' => ['0.75rem', '1rem', '1.25rem', '1.5rem', '2rem']],
+                        \App\Enums\SettingKey::UI_MODERN_SPACE_CARD->value => ['label' => 'Padding الكروت', 'default' => '1rem', 'type' => 'size_select', 'options' => ['0.75rem', '1rem', '1.25rem', '1.5rem']],
+                        \App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX->value => ['label' => 'أقصى عرض للمحتوى', 'default' => '1320px', 'type' => 'size_select', 'options' => ['1140px', '1200px', '1320px', '1440px', '1600px']],
                         \App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL->value => ['label' => 'مستوى الظل', 'default' => 'medium', 'type' => 'select'],
                     ];
 
@@ -540,7 +541,7 @@
                             </div>
                             <div class="sm-card-b">
                                 <div class="sm-help">
-                                    اختَر اللون مباشرة من المربع، ويمكنك أيضًا تعديل كود اللون يدويًا. أحجام الخطوط بصيغة <strong>rem</strong> أو <strong>px</strong>.
+                                    اختَر اللون مباشرة من المربع، ويمكنك أيضًا تعديل كود اللون يدويًا. جميع الأحجام هنا أصبحت بخيارات جاهزة.
                                 </div>
 
                                 <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-custom-form">
@@ -585,9 +586,20 @@
                                         </div>
 
                                         @foreach ($fontDefaults as $key => $meta)
+                                            @php
+                                                $fontCurrent = $themeSettingValue($key, $meta['default']);
+                                                $fontOptions = $meta['options'] ?? [];
+                                                if (!in_array($fontCurrent, $fontOptions, true)) {
+                                                    $fontCurrent = $meta['default'];
+                                                }
+                                            @endphp
                                             <div class="col-md-6 col-lg-3">
                                                 <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                                <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                                <select class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}">
+                                                    @foreach ($fontOptions as $fontOption)
+                                                        <option value="{{ $fontOption }}" @selected($fontCurrent === $fontOption)>{{ $fontOption }}</option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         @endforeach
 
@@ -613,6 +625,22 @@
                                                         <option value="soft" @selected($shadowCurrent === 'soft')>خفيف</option>
                                                         <option value="medium" @selected($shadowCurrent === 'medium')>متوسط</option>
                                                         <option value="strong" @selected($shadowCurrent === 'strong')>قوي</option>
+                                                    </select>
+                                                </div>
+                                            @elseif ($meta['type'] === 'size_select')
+                                                @php
+                                                    $sizeCurrent = $themeSettingValue($key, $meta['default']);
+                                                    $sizeOptions = $meta['options'] ?? [];
+                                                    if (!in_array($sizeCurrent, $sizeOptions, true)) {
+                                                        $sizeCurrent = $meta['default'];
+                                                    }
+                                                @endphp
+                                                <div class="col-md-6 col-lg-3">
+                                                    <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                    <select class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}">
+                                                        @foreach ($sizeOptions as $sizeOption)
+                                                            <option value="{{ $sizeOption }}" @selected($sizeCurrent === $sizeOption)>{{ $sizeOption }}</option>
+                                                        @endforeach
                                                     </select>
                                                 </div>
                                             @else

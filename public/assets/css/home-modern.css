@@ -25,6 +25,7 @@
   --hm-box-bg: var(--ui-home-box-bg, #f8fafc);
   --hm-box-border: var(--ui-home-box-border, #dbe3ef);
   --hm-card-bg: var(--ui-home-card-bg, #ffffff);
+  --hm-avatar-size: var(--ui-home-avatar-size, 62px);
   --hm-box-shadow: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 12%, rgba(2, 6, 23, 0.20));
 }
 
@@ -106,8 +107,8 @@
 }
 
 .home-modern-mode .hm-avatar {
-  width: 62px;
-  height: 62px;
+  width: var(--hm-avatar-size);
+  height: var(--hm-avatar-size);
   border-radius: 999px;
   position: relative;
   overflow: hidden;

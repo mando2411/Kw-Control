@@ -77,6 +77,7 @@ enum SettingKey: string
     case UI_MODERN_HOME_BOX_BG      = 'ui_modern_home_box_bg';
     case UI_MODERN_HOME_BOX_BORDER  = 'ui_modern_home_box_border';
     case UI_MODERN_HOME_CARD_BG     = 'ui_modern_home_card_bg';
+    case UI_MODERN_HOME_AVATAR_SIZE = 'ui_modern_home_avatar_size';
     case UI_MODERN_DARK_HOME_BOX_BG = 'ui_modern_dark_home_box_bg';
     case UI_MODERN_DARK_HOME_BOX_BORDER = 'ui_modern_dark_home_box_border';
     case UI_MODERN_DARK_HOME_CARD_BG = 'ui_modern_dark_home_card_bg';
