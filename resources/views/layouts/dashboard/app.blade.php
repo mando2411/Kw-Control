@@ -540,6 +540,13 @@
             --ui-fs-lg: {{ $uiFontScale['lg'] }};
             --ui-fs-xl: {{ $uiFontScale['xl'] }};
 
+            --ui-heading-h1: calc(var(--ui-fs-xl) * 1.45);
+            --ui-heading-h2: calc(var(--ui-fs-xl) * 1.20);
+            --ui-heading-h3: calc(var(--ui-fs-xl) * 1.05);
+            --ui-heading-h4: var(--ui-fs-xl);
+            --ui-heading-h5: var(--ui-fs-lg);
+            --ui-heading-h6: var(--ui-fs-base);
+
             --ui-dark-1: rgba(2, 6, 23, 0.94);
             --ui-dark-2: rgba(15, 23, 42, 0.88);
             --ui-dark-border: rgba(255, 255, 255, 0.10);

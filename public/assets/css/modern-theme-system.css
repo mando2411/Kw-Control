@@ -1,16 +1,7 @@
 /* Modern Theme System
-   Scoped to ui-modern only. Legacy UI stays untouched.
+    Scoped to ui-modern only. Legacy UI stays untouched.
+    Core theme tokens are injected from layout (single source of truth).
 */
-
-html.ui-modern,
-body.ui-modern {
-    --ui-heading-h1: calc(var(--ui-fs-xl) * 1.45);
-    --ui-heading-h2: calc(var(--ui-fs-xl) * 1.20);
-    --ui-heading-h3: calc(var(--ui-fs-xl) * 1.05);
-    --ui-heading-h4: var(--ui-fs-xl);
-    --ui-heading-h5: var(--ui-fs-lg);
-    --ui-heading-h6: var(--ui-fs-base);
-}
 
 html.ui-modern body,
 body.ui-modern {

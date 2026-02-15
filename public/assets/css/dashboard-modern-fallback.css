@@ -1,7 +1,6 @@
 /* Global modern fallback for dashboard pages without dedicated modern templates */
 
-html.ui-modern body,
-body.ui-modern {
+html.ui-modern {
     --ui-fallback-surface: var(--ui-bg-primary, #ffffff);
     --ui-fallback-surface-2: var(--ui-bg-secondary, #f8fafc);
     --ui-fallback-border: var(--ui-border, #dbe3ef);
