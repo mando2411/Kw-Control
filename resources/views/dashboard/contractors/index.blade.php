@@ -291,7 +291,7 @@
                             </h1>
                             <div id="contractorModalStatus" class="cm-modal-status" aria-live="polite"></div>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
+                                aria-label="Close">X</button>
                         </div>
                         <div class="modal-body">
                             <label class="labelStyle">تعيين المتعهد</label>
