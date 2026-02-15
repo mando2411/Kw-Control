@@ -42,10 +42,11 @@ class VoterService
     public function getParents()
     {
         return Contractor::parents()
+            ->with('user:id,name')
             ->get()
             ->map(fn($contractor) => [
                 'id' => $contractor->id,
-                'name' => $contractor->user()->name
+                'name' => $contractor->user?->name ?? $contractor->name
             ]);
     }
 
