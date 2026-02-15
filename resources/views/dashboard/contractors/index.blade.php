@@ -419,7 +419,7 @@
                                 <a href="">
                                     <button class="btn btn-secondary copyLink mb-1" value="link">
                                         <i class="fa fa-book"></i>
-                                        <span>نسخ الرابط</span>
+                                        <span>Aنسخ الرابط</span>
                                     </button>
                                 </a>
                             </div>
