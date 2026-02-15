@@ -941,6 +941,46 @@
             }
         }
 
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar {
+            transition: transform 220ms ease, box-shadow 220ms ease;
+            will-change: transform;
+        }
+
+        html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open,
+        body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open {
+            transform: translateX(calc(-100% - 24px));
+        }
+
+        html[dir="rtl"].ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open,
+        body.rtl.ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open {
+            transform: translateX(calc(100% + 24px));
+        }
+
+        @media (max-width: 991px) {
+            html.ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open,
+            body.ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open {
+                transform: translateX(-100%);
+            }
+
+            html[dir="rtl"].ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open,
+            body.rtl.ui-modern .page-wrapper .page-body-wrapper .page-sidebar.open {
+                transform: translateX(100%);
+            }
+        }
+
+        html.ui-modern .page-main-header,
+        body.ui-modern .page-main-header {
+            display: none !important;
+        }
+
+        html.ui-modern .dashboard-topbar-desktop ~ .dashboard-topbar-desktop,
+        body.ui-modern .dashboard-topbar-desktop ~ .dashboard-topbar-desktop,
+        html.ui-modern .dashboard-topbar-mobile ~ .dashboard-topbar-mobile,
+        body.ui-modern .dashboard-topbar-mobile ~ .dashboard-topbar-mobile {
+            display: none !important;
+        }
+
         /* Mobile: ensure sidebar content isn't hidden behind the bottom bar */
         @media (max-width: 991px) {
             html.ui-modern .page-sidebar .sidebar,
@@ -2467,68 +2507,54 @@
     </script>
 
     <script>
-        // Modern sidebar toggle delegates to the existing #sidebar-toggle behavior
+        // Modern sidebar toggle (single source of truth on .page-sidebar.open)
         (function () {
-            function bind() {
-                var modernBtn = document.getElementById('sidebar-toggle-modern');
-                if (!modernBtn) return;
-                if (modernBtn.dataset.bound === '1') return;
-                modernBtn.dataset.bound = '1';
-
-                modernBtn.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    // Primary: mimic admin.js behavior directly (most reliable)
-                    var sidebar = document.querySelector('.page-sidebar');
-                    var header = document.querySelector('.page-main-header');
-                    if (sidebar) sidebar.classList.toggle('open');
-                    if (header) header.classList.toggle('open');
-
-                    // Fallback: try triggering the legacy handler as well (if bound)
-                    var classicIcon = document.getElementById('sidebar-toggle');
-                    if (!classicIcon) return;
-                    if (window.jQuery) {
-                        window.jQuery(classicIcon).triggerHandler('click');
-                        return;
-                    }
-                    classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                });
+            function isModernMode() {
+                return document.documentElement.classList.contains('ui-modern') ||
+                    (document.body && document.body.classList.contains('ui-modern'));
             }
 
-            function bindMobile() {
-                var mobileBtn = document.getElementById('sidebar-toggle-modern-mobile');
-                if (!mobileBtn) return;
-                if (mobileBtn.dataset.bound === '1') return;
-                mobileBtn.dataset.bound = '1';
+            function getSidebar() {
+                return document.querySelector('.page-sidebar');
+            }
 
-                mobileBtn.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
+            function syncSidebarStateToViewport() {
+                if (!isModernMode()) return;
+                var sidebar = getSidebar();
+                if (!sidebar) return;
 
-                    var sidebar = document.querySelector('.page-sidebar');
-                    var header = document.querySelector('.page-main-header');
-                    if (sidebar) sidebar.classList.toggle('open');
-                    if (header) header.classList.toggle('open');
+                var isMobile = window.matchMedia('(max-width: 991px)').matches;
+                sidebar.classList.toggle('open', isMobile);
+            }
 
-                    var classicIcon = document.getElementById('sidebar-toggle');
-                    if (!classicIcon) return;
-                    if (window.jQuery) {
-                        window.jQuery(classicIcon).triggerHandler('click');
-                        return;
-                    }
-                    classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                });
+            function toggleSidebar(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!isModernMode()) return;
+                var sidebar = getSidebar();
+                if (!sidebar) return;
+                sidebar.classList.toggle('open');
+            }
+
+            function bindButton(buttonId) {
+                var button = document.getElementById(buttonId);
+                if (!button || button.dataset.bound === '1') return;
+                button.dataset.bound = '1';
+                button.addEventListener('click', toggleSidebar);
+            }
+
+            function boot() {
+                bindButton('sidebar-toggle-modern');
+                bindButton('sidebar-toggle-modern-mobile');
+                syncSidebarStateToViewport();
+                window.addEventListener('resize', syncSidebarStateToViewport);
             }
 
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function () {
-                    bind();
-                    bindMobile();
-                }, { once: true });
+                document.addEventListener('DOMContentLoaded', boot, { once: true });
             } else {
-                bind();
-                bindMobile();
+                boot();
             }
         })();
     </script>
