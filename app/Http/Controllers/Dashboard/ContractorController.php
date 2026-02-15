@@ -249,6 +249,27 @@ class ContractorController extends Controller
             });
      
         }
+        $votersQuery->orderBy('name', 'asc');
+
+        $perPage = (int) $request->input('per_page', 0);
+        $page = max((int) $request->input('page', 1), 1);
+
+        if ($perPage > 0) {
+            $perPage = min(max($perPage, 1), 100);
+            $paginated = $votersQuery->paginate($perPage, ['*'], 'page', $page);
+
+            return response()->json([
+                "voters" => $paginated->items(),
+                "pagination" => [
+                    "total" => $paginated->total(),
+                    "per_page" => $paginated->perPage(),
+                    "current_page" => $paginated->currentPage(),
+                    "last_page" => $paginated->lastPage(),
+                    "has_more" => $paginated->hasMorePages(),
+                ],
+            ]);
+        }
+
         $voters = $votersQuery->get();
         return response()->json([
             "voters"=>$voters,

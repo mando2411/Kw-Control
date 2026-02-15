@@ -490,12 +490,6 @@
                 </select>
               </div>
 
-              <button
-                type="submit"
-                class="resultSearchBtn btn btn-secondary w-100"
-              >
-                بحث
-              </button>
             </form>
           </div>
          @endif
@@ -1123,6 +1117,21 @@ var message = selectedOption.data('message'); // Get the data-message attribute
 let users = [];
 const attachRoute = "{{ route('ass', $contractor->id) }}";
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
+const contractorId = "{{ $contractor->id }}";
+const searchEndpoint = '/search';
+const pageSize = 20;
+
+let isLoadingRows = false;
+let hasMoreRows = true;
+let currentPage = 1;
+let searchDebounceTimer = null;
+let currentRequestId = 0;
+let silentFilterUpdate = false;
+let activeFilters = {
+  name: '',
+  family: '',
+  sibling: ''
+};
 
 function submitAttachVoters(voterIds) {
   if (!Array.isArray(voterIds) || voterIds.length === 0) {
@@ -1159,9 +1168,135 @@ function addSingleVoter(voterId) {
 function bindRelativeButtons() {
   document.querySelectorAll('.search-relatives-btn').forEach(function (button) {
     button.onclick = function () {
-      searchRelatives(this.dataset.voterGrand);
+      searchRelatives(this.dataset.voterGrand || '');
     };
   });
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function buildVoterRow(voter) {
+  const voterId = voter?.id ?? '';
+  const voterName = escapeHtml(voter?.name ?? '');
+  const father = escapeHtml(voter?.father ?? '');
+  const isActive = (voter?.restricted ?? '') === 'فعال';
+  const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
+  const trustRate = voter?.pivot?.percentage ?? '-';
+
+  return `<tr class="${statusRowClass}">
+    <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" /></td>
+    <td>
+      <p style="margin:0; padding:0;" class="${isActive ? '' : 'line'}">${voterName}</p>
+      <span style="color:red">${isActive ? '' : ' غير فعال'}</span>
+      <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="${father}" type="button">البحث عن أقارب</button>
+    </td>
+    <td>% ${trustRate}</td>
+    <td>
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${voterId}')">اضافة</button>
+        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+function renderVoters(votersList, appendMode) {
+  const tbody = document.getElementById('resultSearchData');
+  if (!tbody) return;
+
+  if (!Array.isArray(votersList) || votersList.length === 0) {
+    if (!appendMode) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3">لا توجد نتائج</td></tr>';
+    }
+    return;
+  }
+
+  const rowsHtml = votersList.map(buildVoterRow).join('');
+  if (appendMode) {
+    tbody.insertAdjacentHTML('beforeend', rowsHtml);
+  } else {
+    tbody.innerHTML = rowsHtml;
+  }
+
+  bindRelativeButtons();
+}
+
+function currentFiltersFromUI() {
+  return {
+    name: ($('#searchByNameOrNum').val() || '').trim(),
+    family: ($('#searchByFamily').val() || '').trim(),
+    sibling: ''
+  };
+}
+
+function fetchVotersPage(appendMode) {
+  if (isLoadingRows) return;
+  if (appendMode && !hasMoreRows) return;
+
+  isLoadingRows = true;
+  const requestId = ++currentRequestId;
+  const params = new URLSearchParams();
+  params.append('id', contractorId);
+  params.append('page', String(currentPage));
+  params.append('per_page', String(pageSize));
+
+  if (activeFilters.name) params.append('name', activeFilters.name);
+  if (activeFilters.family) params.append('family', activeFilters.family);
+  if (activeFilters.sibling) params.append('sibling', activeFilters.sibling);
+
+  axios.get(searchEndpoint, { params: params })
+    .then(function (response) {
+      if (requestId !== currentRequestId) return;
+
+      const votersList = Array.isArray(response?.data?.voters) ? response.data.voters : [];
+      const pagination = response?.data?.pagination || null;
+
+      renderVoters(votersList, appendMode);
+
+      if (pagination) {
+        hasMoreRows = Boolean(pagination.has_more);
+        $('#search_count').text(pagination.total ?? votersList.length);
+      } else {
+        hasMoreRows = votersList.length >= pageSize;
+        if (!appendMode) {
+          $('#search_count').text(votersList.length);
+        }
+      }
+    })
+    .catch(function (error) {
+      console.error('Search Error:', error);
+    })
+    .finally(function () {
+      isLoadingRows = false;
+    });
+}
+
+function runLiveSearch(filters) {
+  activeFilters = {
+    name: filters?.name ?? '',
+    family: filters?.family ?? '',
+    sibling: filters?.sibling ?? ''
+  };
+
+  currentPage = 1;
+  hasMoreRows = true;
+  fetchVotersPage(false);
+}
+
+function searchRelatives(voterName) {
+  silentFilterUpdate = true;
+  $('#searchByNameOrNum').val('');
+  $('#searchByFamily').val('').trigger('change.select2');
+  silentFilterUpdate = false;
+
+  runLiveSearch({ name: '', family: '', sibling: voterName || '' });
 }
 
 $('#all_voters').on('click', function (event) {
@@ -1172,198 +1307,32 @@ $('#all_voters').on('click', function (event) {
   submitAttachVoters(selectedVoters);
 });
 
-$("#SearchForm").on('submit', function(event){
+$('#SearchForm').on('submit', function (event) {
   event.preventDefault();
-  getResultSearch();
 });
 
-// abdallah
-function getResultSearch() {
+$('#searchByNameOrNum').on('input', function () {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(function () {
+    runLiveSearch(currentFiltersFromUI());
+  }, 250);
+});
 
-  let searchByNameOrNumValue =
-    document.getElementById("searchByNameOrNum").value;
-  let searchByFamilyValue = document.getElementById("searchByFamily").value;
-  let resultSearchDate = document.getElementById("resultSearchData");
-  let cartona = "";
+$('#searchByFamily').on('change', function () {
+  if (silentFilterUpdate) return;
+  runLiveSearch(currentFiltersFromUI());
+});
 
-  if (searchByFamilyValue == "" && searchByNameOrNumValue == "") {
-    alert("يرجي ادخال البيانات");
-  } else {
-    // $(".resultSearchBtn")
-    //   .attr("data-bs-toggle", "modal")
-    //   .attr("data-bs-target", "#resultOfSearch");
-      var url = '/search' ;
-      console.log(searchByFamilyValue, searchByNameOrNumValue);
-      let formData = new FormData($('#SearchForm')[0]);
-      let data = {};
-      let params = new URLSearchParams();
+$('.madameenTable').on('scroll', function () {
+  const element = this;
+  const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 80;
+  if (!nearBottom || isLoadingRows || !hasMoreRows) return;
 
-      formData.forEach((value, key) => {
-          params.append(key, value);
-      });
+  currentPage += 1;
+  fetchVotersPage(true);
+});
 
-
-      axios.get(url, { params: params })
-          .then(function (response) {
-              console.log('Success:', response);
-             users=response.data.voters;
-          console.log(users.length);
-
-$("#search_count").text(users.length)
-
-             for (let i = 0; i < users.length; i++) {
-        var id = users[i].id;
-
-        cartona += `<tr>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="check"
-                    name="voter[]"
-                    value="${id}"
-                  />
-                </td>
-                <td >
-                    <div class="row">
-                      <p style="margin:0; padding:0;"class="${users[i].restricted !='فعال' ? "line" : ""}">
-                                      ${users[i].name}
-                      </p>
-                      <span style="color:red"> ${users[i].restricted != 'فعال' ? " غير فعال" : ""} </span>
-                
-                      </div>  
-                  <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="${users[i].father}" type="button">البحث عن أقارب</button>
-                  </td>
-                <td>
-                  <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${id}')">اضافة</button>
-                </td>
-
-              </tr>`;
-
-    }
-    resultSearchDate.innerHTML = cartona;
-
-             bindRelativeButtons();
-
-                      })
-          .catch(function (error) {
-              console.error('Error:', error);
-              alert('Failed to set votes.');
-          });
-
-  }
-
-}
-function searchRelatives(voterName) {
-  console.log(voterName);
-  
-  var url = '/search';
-  let params = new URLSearchParams();
-	 var con_id={{$contractor->id}}
-		  params.append('id', con_id);
-  params.append('sibling', voterName);
-
-  axios.get(url, { params: params })
-    .then(function (response) {
-      console.log('Relatives Search Success:', response);
-      let relatives = response.data.voters;
-
-      let cartona = "";
-      $("#search_count").text(relatives.length)
-
-      for (let i = 0; i < relatives.length; i++) {
-        var id = relatives[i].id;
-
-        cartona += `<tr>
-          <td>
-            <input
-              type="checkbox"
-              class="check"
-              name="voter[]"
-              value="${id}"
-            />
-          </td>
-          <td >
-                                <div class="row">
-
-              <p style="margin:0; padding:0;" class="${relatives[i].restricted != 'فعال' ? "line" : ""}">
-                ${relatives[i].name}
-                </p>
-                <span style="color:red"> ${relatives[i].restricted != 'فعال' ? " غير فعال" : ""} </span>
-                </div>
-              <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="${relatives[i].father}" type="button">البحث عن أقارب</button>
-          </td>
-          <td>
-            <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${id}')">اضافة</button>
-          </td>
-        </tr>`;
-      }
-
-      document.getElementById("resultSearchData").innerHTML = cartona;
-
-      bindRelativeButtons();
-
-    })
-    .catch(function (error) {
-      console.error('Relatives Search Error:', error);
-      alert('Failed to search for relatives.');
-    });
-}
-$("#search").on('click',function(){
-    let cartona = "";
-    let resultSearchDate = document.getElementById("resultSearchData");
-
-    var url = '/search' ;
-      event.preventDefault();
-      let formData = new FormData($('#Form-Siblings')[0]);
-      let data = {};
-      let params = new URLSearchParams();
-
-      formData.forEach((value, key) => {
-          params.append(key, value);
-      });
-
-
-      axios.get(url, { params: params })
-          .then(function (response) {
-              console.log('Success:', response);
-             users=response.data.voters;
-            console.log(users.length);
-            
-          $("#search_count").text(users.length)
-
-             for (let i = 0; i < users.length; i++) {
-        var id = users[i].id;
-
-        cartona += `<tr>
-                <td>
-                  <input
-                    type="checkbox"
-                    class="check"
-                    name="voter[]"
-                    value="${id}"
-                  />
-                </td>
-                <td >
-                ${users[i].name}
-                </td>
-                <span style="color:red"> ${users[i].restricted != 'فعال' ? " غير فعال" : ""} </span>
-                <td>
-                  <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${id}')">اضافة</button>
-                </td>
-
-              </tr>`;
-
-    }
-    resultSearchDate.innerHTML = cartona;
-    bindRelativeButtons();
-
-                      })
-          .catch(function (error) {
-              console.error('Error:', error);
-              alert('Failed to set votes.');
-          });
-
-})
+runLiveSearch(currentFiltersFromUI());
 $('button[data-bs-target="#ta7reerData"]').on("click", function () {
 
     let group_id=$(this).siblings('#group_id').val();
@@ -1393,7 +1362,7 @@ $('button[data-bs-target="#ta7reerData"]').on("click", function () {
 
 })
 
-bindRelativeButtons();
+
 
 
 
