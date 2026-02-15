@@ -278,6 +278,52 @@
       })();
     </script>
 
+    @php
+      $uiThemeLight = (isset($uiThemeLight) && is_array($uiThemeLight)) ? $uiThemeLight : [
+        'btn_primary' => '#0ea5e9',
+        'btn_secondary' => '#6366f1',
+        'btn_tertiary' => '#14b8a6',
+        'btn_quaternary' => '#f59e0b',
+        'text_primary' => '#0f172a',
+        'text_secondary' => '#475569',
+        'bg_primary' => '#ffffff',
+        'bg_secondary' => '#f8fafc',
+      ];
+
+      $uiThemeDark = (isset($uiThemeDark) && is_array($uiThemeDark)) ? $uiThemeDark : [
+        'btn_primary' => '#38bdf8',
+        'btn_secondary' => '#818cf8',
+        'btn_tertiary' => '#2dd4bf',
+        'btn_quaternary' => '#fbbf24',
+        'text_primary' => '#f1f5f9',
+        'text_secondary' => '#cbd5e1',
+        'bg_primary' => '#0f172a',
+        'bg_secondary' => '#1e293b',
+      ];
+
+      $uiModernSurface = (isset($uiModernSurface) && is_array($uiModernSurface)) ? $uiModernSurface : [
+        'link_light' => '#0ea5e9',
+        'link_dark' => '#38bdf8',
+        'border_light' => '#dbe3ef',
+        'border_dark' => '#64748b',
+        'radius_card' => '1rem',
+        'radius_input' => '0.75rem',
+        'radius_button' => '0.75rem',
+        'space_section' => '1.25rem',
+        'space_card' => '1rem',
+        'container_max' => '1320px',
+        'shadow' => '0 20px 45px rgba(2, 6, 23, 0.14)',
+      ];
+
+      $uiFontScale = (isset($uiFontScale) && is_array($uiFontScale)) ? $uiFontScale : [
+        'xs' => '0.75rem',
+        'sm' => '0.875rem',
+        'base' => '1rem',
+        'lg' => '1.125rem',
+        'xl' => '1.25rem',
+      ];
+    @endphp
+
     <style>
       html.ui-modern,
       body.ui-modern {
