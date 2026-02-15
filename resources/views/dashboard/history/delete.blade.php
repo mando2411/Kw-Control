@@ -185,7 +185,7 @@
                                 <a href="">
                                     <button class="btn mb-1 btn-secondary copyLink" value="link">
                                         <i class="fa fa-clipboard"></i>
-                                        <span>نسخ الرابط</span>
+                                        <span>Aنسخ الرابط</span>
                                     </button>
                                 </a>
                                 <a href="" target="_blank">
