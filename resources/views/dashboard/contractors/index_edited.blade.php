@@ -155,10 +155,10 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="exampleModalLabel">
-                                بيانات المتعهد
+                               A بيانات المتعهد
                             </h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
+                                aria-label="Close">X</button>
                         </div>
                         <div class="modal-body px-4">
 
