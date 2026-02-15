@@ -2008,9 +2008,6 @@
     <!-- Tagsinput -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tagsinput/0.8.0/bootstrap-tagsinput.css"/>
-<!-- Select2 -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
 
     <script>
         (function () {
@@ -2548,7 +2545,6 @@
                 bindButton('sidebar-toggle-modern');
                 bindButton('sidebar-toggle-modern-mobile');
                 syncSidebarStateToViewport();
-                window.addEventListener('resize', syncSidebarStateToViewport);
             }
 
             if (document.readyState === 'loading') {
@@ -2776,11 +2772,7 @@
     @stack('js')
     
     
-    <!-- Ace Editor CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-language_tools.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/mode-css.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/worker-css.min.js"></script>
+    <!-- Ace beautify addon (core Ace already loaded from local assets) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/beautify-css.min.js"></script>
 
 <script>

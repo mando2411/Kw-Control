@@ -1,5 +1,5 @@
 <!-- Page Sidebar Start-->
-<div class="page-sidebar open">
+<div class="page-sidebar">
     <div class="main-header-left d-none d-lg-block">
         <div class="logo-wrapper">
             <a href="{{ route('dashboard') }}">
