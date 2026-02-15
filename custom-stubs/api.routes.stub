@@ -1,4 +1,0 @@
-Route::group(['prefix' => '{{ prefix }}', 'as' => '{{ prefix }}.'], function () {
-        Route::get('/', [{{ controller }}Controller::class, 'index'])->name('index');
-        Route::get('/{id}', [{{ controller }}Controller::class, 'show'])->name('show');
-    });

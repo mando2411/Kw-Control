@@ -1,3 +1,0 @@
-foreach (config('translatable.supported_locales') as $localKey => $local) {
-            {{ columns }}
-        }

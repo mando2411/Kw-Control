@@ -1,9 +1,0 @@
-            <x-dashboard.sidebar.link-with-child
-                title="{{ modelNamePlural }}"
-                icon="book-open"
-                :permissions="['{{ permissionPrefix }}.list','{{ permissionPrefix }}.create','{{ permissionPrefix }}.edit','{{ permissionPrefix }}.delete']"
-                :children="[
-                    ['title' => '{{ modelNamePlural }}', 'link' => route('dashboard.{{ routeName }}.index'), 'permissions' => ['{{ permissionPrefix }}.list','{{ permissionPrefix }}.edit','{{ permissionPrefix }}.delete'] ],
-                    ['title' => 'Create {{ modelNameSingular }}', 'link' => route('dashboard.{{ routeName }}.create'), 'permissions' => ['{{ permissionPrefix }}.create'] ],
-                ]"
-            />
