@@ -362,73 +362,158 @@
 
   </head>
   <style>
-    .headerDetails {
-    justify-content: center;
-
-  figure{
-    width:120px;
-    height:120px;
-  }
-
-  .content {
-    h1{
-      font-size: 45px;
-      font-family: "Gulzar", serif !important;
+    .contractor-top-cta {
+      background: linear-gradient(135deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1));
+      color: #fff;
+      padding: 0.9rem 1rem;
+      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.18);
     }
-  }
-}
 
-@media (max-width: 767px) {
-    .headerDetails {
-        justify-content: space-around;
-        .content h1 {
-            font-size: 30px     ;
-        }
+    .contractor-top-cta__inner {
+      max-width: min(1280px, 94vw);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+      flex-wrap: wrap;
     }
-}
-@media (max-width: 600px) {
-    .headerDetails {
-        & .content {
-            h1 {
-                font-size: 20px ;
-            }
-        }
-    }
-    .headerDetails{
-    justify-content: space-around;
-    .content{
-      h1{font-size: 20px;}
-      p{font-size: px;}
-    }
-  }
-}
 
+    .contractor-top-cta__text {
+      font-size: clamp(0.92rem, 1.6vw, 1.06rem);
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .contractor-top-cta__link {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.42);
+      border-radius: 999px;
+      padding: 0.48rem 1rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 180ms ease, background-color 180ms ease;
+      white-space: nowrap;
+    }
+
+    .contractor-top-cta__link:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .contractor-hero-wrap {
+      padding: 1.25rem 0 0.3rem;
+    }
+
+    .contractor-hero {
+      background: linear-gradient(145deg, var(--ui-bg-primary, #ffffff), var(--ui-bg-secondary, #f8fafc));
+      border: 1px solid var(--ui-border, #dbe3ef);
+      border-radius: calc(var(--ui-radius-card, 1rem) + 0.4rem);
+      box-shadow: var(--ui-shadow, 0 20px 45px rgba(2, 6, 23, 0.14));
+      padding: clamp(1rem, 2.2vw, 1.6rem);
+      display: grid;
+      grid-template-columns: minmax(92px, 140px) 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .contractor-hero-media {
+      width: clamp(92px, 12vw, 140px);
+      height: clamp(92px, 12vw, 140px);
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.22);
+      background: #e2e8f0;
+    }
+
+    .contractor-hero-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .contractor-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 14%, transparent);
+      color: var(--ui-btn-primary, #0ea5e9);
+      border: 1px solid color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 36%, transparent);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-bottom: 0.35rem;
+    }
+
+    .contractor-hero-name {
+      margin: 0;
+      color: var(--ui-text-primary, #0f172a);
+      font-size: clamp(1.25rem, 2.6vw, 2rem);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .contractor-hero-sub {
+      margin: 0.25rem 0 0;
+      color: var(--ui-text-secondary, #475569);
+      font-size: clamp(0.92rem, 1.8vw, 1.04rem);
+      font-weight: 700;
+    }
+
+    .committeDetails {
+      max-width: min(1080px, 92vw);
+      margin: 1rem auto 1.3rem;
+      background: var(--ui-bg-primary, #fff);
+      border: 1px solid var(--ui-border, #dbe3ef);
+      border-radius: var(--ui-radius-card, 1rem);
+      padding: 1rem;
+      box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
+      color: var(--ui-text-primary, #0f172a);
+    }
+
+    .committeDetails p {
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 768px) {
+      .contractor-hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .contractor-hero-media {
+        margin: 0 auto;
+      }
+    }
   </style>
   <body class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
 
-    <section class="rtl">
-      <div class="container-fluid">
-        <div
-          class="headerDetails row bg-secondary py-4 align-items-center "
-        >
-        <div class="col-2">
-            <figure class="mb-0 rounded-circle overflow-hidden" >
-                <img
-                src="{{$contractor->creator ? $contractor->creator->image : ""}}"
-                class="w-100 h-100"
-                alt="{{$contractor->creator?->name}}"
-              />
-            </figure>
-          </div>
-          <div class="col-5">
-            <div class="content text-white text-center">
-              <h1>{{$contractor->creator?->name}}</h1>
-              <p>
+    <div class="contractor-top-cta">
+      <div class="contractor-top-cta__inner">
+        <p class="contractor-top-cta__text">عايز تتعرف أكثر على برنامج كنترول وكيف يطور إدارة الكشوف والمتابعة؟</p>
+        <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer">اضغط هنا</a>
+      </div>
+    </div>
 
-                  مرشح انتخابات جمعيه  {{ $contractor->creator?->election->name }}
-              </p>
-
-            </div>
+    <section class="rtl contractor-hero-wrap">
+      <div class="container-fluid" style="max-width: min(1280px, 95vw);">
+        <div class="contractor-hero">
+          <figure class="contractor-hero-media mb-0">
+            <img
+              src="{{$contractor->creator ? $contractor->creator->image : ''}}"
+              alt="{{$contractor->creator?->name}}"
+            />
+          </figure>
+          <div>
+            <span class="contractor-hero-badge"><i class="fa fa-circle-check"></i> صفحة المتعهد الرسمية</span>
+            <h1 class="contractor-hero-name">{{$contractor->creator?->name}}</h1>
+            <p class="contractor-hero-sub">مرشح انتخابات جمعية {{ $contractor->creator?->election->name }}</p>
           </div>
         </div>
       </div>
