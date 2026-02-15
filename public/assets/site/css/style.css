@@ -893,10 +893,6 @@ main {
     display: none;
   }
 
-  main .skitter .label_skitter{
-    bottom: 40%;
-  }
-
   .video-popup{
     width: 96%;
   }
@@ -1007,7 +1003,10 @@ main {
     font-size: 48px;
     padding-inline: 30px;
   }
+}
 
+/*     601 - 991   */
+@media screen and (min-width: 601px) and (max-width: 991px) {
   main .skitter .label_skitter{
     bottom: 40%;
   }

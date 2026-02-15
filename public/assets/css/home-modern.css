@@ -854,12 +854,6 @@
     height: 100%;
   }
 
-  .home-modern-mode .hm-hero-mini-row .hm-candidate-mini {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
   .home-modern-mode .hm-hero-mini-row .hm-section-mini .hm-section-title {
     margin-bottom: 0.35rem;
     font-size: 0.86rem;
@@ -976,15 +970,5 @@
   .home-modern-mode .hm-table-head,
   .home-modern-mode .hm-row {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 576px) {
-  .home-modern-mode .hm-shell {
-    padding: 1.25rem 0.9rem;
-  }
-
-  .home-modern-mode .hm-hero {
-    padding: 1.15rem 1.05rem;
   }
 }
