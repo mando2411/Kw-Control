@@ -401,6 +401,21 @@
       gap: 0.45rem;
     }
 
+    .contractor-top-cta__offer {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0 0 0.45rem;
+      padding: 0.36rem 0.8rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      color: #fff;
+      font-size: clamp(0.84rem, 1.4vw, 0.98rem);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+
     .contractor-top-cta__hint {
       margin: 0;
       font-size: clamp(0.78rem, 1.2vw, 0.9rem);
@@ -535,6 +550,7 @@
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
         <div>
+          <p class="contractor-top-cta__offer"><i class="fa fa-coins"></i> كن وسيط بين البرنامج والمرشح واربح عمولة مباشرة 20%</p>
           <p class="contractor-top-cta__text"><i class="fa fa-bullhorn"></i> عشان تعرف اكتر عن البرنامج اضغط هنا</p>
           <p class="contractor-top-cta__hint">اكتشف مميزات كنترول وكيف يساعدك في إدارة الكشوف والمتابعة بشكل احترافي.</p>
         </div>
