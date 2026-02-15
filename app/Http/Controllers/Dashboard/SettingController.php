@@ -32,6 +32,7 @@ class SettingController extends Controller
 
             // If a key is marked as present but missing, treat it as explicitly cleared.
             $value = $request->has($key) ? $request->get($key) : [];
+            $value = $this->normalizeSettingValue($key, $value);
 
             Setting::where('option_key', $key)->updateOrCreate(
                 ['option_key' => $key],
@@ -43,6 +44,91 @@ class SettingController extends Controller
         return back();
     }
     //================================================================================================
+
+    private function normalizeSettingValue(string $key, mixed $value): array
+    {
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        if ($key === SettingKey::UI_MODE_POLICY->value) {
+            $policy = trim((string) ($value[0] ?? ''));
+            if (!in_array($policy, ['user_choice', 'modern', 'classic'], true)) {
+                $policy = 'user_choice';
+            }
+
+            return [$policy];
+        }
+
+        if ($key === SettingKey::UI_MODERN_THEME_PRESET->value) {
+            $preset = strtolower(trim((string) ($value[0] ?? '')));
+            if (!preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $preset)) {
+                $preset = 'default';
+            }
+
+            return [$preset];
+        }
+
+        if ($key === SettingKey::UI_MODERN_THEME_LIBRARY->value) {
+            $raw = (string) ($value[0] ?? '[]');
+            $decoded = json_decode($raw, true);
+            $decoded = is_array($decoded) ? $decoded : [];
+
+            $safe = [];
+            foreach ($decoded as $theme) {
+                if (!is_array($theme)) {
+                    continue;
+                }
+
+                $id = strtolower(trim((string) ($theme['id'] ?? '')));
+                if (!preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $id)) {
+                    continue;
+                }
+
+                if (in_array($id, ['default', 'emerald', 'violet', 'custom'], true)) {
+                    continue;
+                }
+
+                $name = trim((string) ($theme['name'] ?? $id));
+                $name = substr($name !== '' ? $name : $id, 0, 80);
+
+                $values = $theme['values'] ?? [];
+                if (!is_array($values)) {
+                    $values = [];
+                }
+
+                $normalizedValues = [];
+                foreach ($values as $valueKey => $valueValue) {
+                    $tokenKey = trim((string) $valueKey);
+                    if ($tokenKey === '') {
+                        continue;
+                    }
+
+                    $tokenValue = trim((string) $valueValue);
+                    if ($tokenValue === '') {
+                        continue;
+                    }
+
+                    $normalizedValues[$tokenKey] = substr($tokenValue, 0, 64);
+                }
+
+                $safe[$id] = [
+                    'id' => $id,
+                    'name' => $name,
+                    'values' => $normalizedValues,
+                ];
+            }
+
+            $safe = array_slice(array_values($safe), 0, 30);
+
+            return [json_encode($safe, JSON_UNESCAPED_UNICODE) ?: '[]'];
+        }
+
+        return array_values($value);
+    }
+
+    //================================================================================================
+
     public function resultControl(){
         $settings = Setting::all();
         $candidates = Candidate::get();

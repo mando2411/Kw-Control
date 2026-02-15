@@ -1035,6 +1035,11 @@
         }
 
         function persistModeToServer(mode) {
+            var policy = window.__UI_MODE_POLICY__ || 'user_choice';
+            if (policy === 'modern' || policy === 'classic') {
+                return;
+            }
+
             if (!(window.__UI_MODE_IS_AUTH__ === true || window.__UI_MODE_IS_AUTH__ === 'true')) {
                 return;
             }

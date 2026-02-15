@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SettingKey;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Role;
 use Illuminate\Http\RedirectResponse;
@@ -34,8 +35,14 @@ class ProfileController extends Controller
     {
         $mode = $request->get('mode');
         $allowedModes = ['classic', 'modern'];
+        $uiPolicy = setting(SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
+        $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
 
-        if (!in_array($mode, $allowedModes, true)) {
+        if ($uiPolicy === 'modern' || $uiPolicy === 'classic') {
+            $mode = $uiPolicy;
+        }
+
+        if ($uiPolicy === 'user_choice' && !in_array($mode, $allowedModes, true)) {
             $currentMode = session('ui_mode', auth()->user()->ui_mode ?? 'classic');
             $mode = $currentMode === 'modern' ? 'classic' : 'modern';
         }
@@ -50,6 +57,7 @@ class ProfileController extends Controller
             return response()->json([
                 'status' => 'ok',
                 'ui_mode' => $mode,
+                'policy' => $uiPolicy,
             ]);
         }
 

@@ -51,8 +51,11 @@
             continue;
         }
 
-        $id = trim((string) ($themeItem['id'] ?? ''));
+        $id = strtolower(trim((string) ($themeItem['id'] ?? '')));
         if ($id === '' || in_array($id, ['default', 'emerald', 'violet', 'custom'], true)) {
+            continue;
+        }
+        if (!preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $id)) {
             continue;
         }
 
@@ -68,7 +71,7 @@
         ];
     }
 
-    $themePreset = trim((string) setting(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value, true));
+    $themePreset = strtolower(trim((string) setting(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value, true)));
     $allowedPresets = array_merge(['default', 'emerald', 'violet', 'custom'], array_keys($themeLibraryById));
     $themePreset = in_array($themePreset, $allowedPresets, true) ? $themePreset : 'default';
 
@@ -312,9 +315,10 @@
             var mode = SERVER_MODE || 'classic';
             var colorMode = 'light';
             var pending = null;
+            var IS_FORCED_POLICY = (UI_POLICY === 'modern' || UI_POLICY === 'classic');
 
             // Global UI policy can force the mode regardless of stored user preference
-            if (UI_POLICY === 'modern' || UI_POLICY === 'classic') {
+            if (IS_FORCED_POLICY) {
                 mode = UI_POLICY;
                 pending = null;
                 try {
@@ -326,10 +330,12 @@
             }
 
             try {
-                pending = localStorage.getItem(PENDING_KEY);
-                var local = localStorage.getItem(STORAGE_KEY);
-                if (pending && (local === 'classic' || local === 'modern')) {
-                    mode = local;
+                if (!IS_FORCED_POLICY) {
+                    pending = localStorage.getItem(PENDING_KEY);
+                    var local = localStorage.getItem(STORAGE_KEY);
+                    if (pending && (local === 'classic' || local === 'modern')) {
+                        mode = local;
+                    }
                 }
 
                 var storedColor = localStorage.getItem(COLOR_STORAGE_KEY);
