@@ -916,9 +916,11 @@
             <h6 class="modal-title">انشاء قائمة جديدة للاسماء</h6>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <form action="{{route('group')}}" method="POST" class="modal-body">
+          <form action="{{route('group')}}" method="POST" class="modal-body" id="createGroupForm">
             @csrf
             <input type="hidden" name="contractor_id" value="{{$contractor->id}}">
+
+            <div id="createGroupFeedback" class="alert d-none py-2" role="alert"></div>
 
             <div class="mb-2">
               <label for="listNameModal" class="form-label">اسم القائمة</label>
@@ -942,7 +944,7 @@
               </select>
             </div>
 
-            <button type="submit" class="btn btn-secondary w-100">انشاء</button>
+            <button type="submit" class="btn btn-secondary w-100" id="createGroupSubmitBtn">انشاء</button>
           </form>
         </div>
       </div>
@@ -1466,6 +1468,44 @@ $('#delete_selected_top').on('click', function (event) {
 
   $('#bulk_action').val('delete');
   $('#form-transfer').trigger('submit');
+});
+
+function showCreateGroupFeedback(type, message) {
+  const feedback = $('#createGroupFeedback');
+  feedback.removeClass('d-none alert-success alert-danger')
+    .addClass(type === 'success' ? 'alert-success' : 'alert-danger')
+    .text(message);
+}
+
+$('#createGroupForm').on('submit', function (event) {
+  event.preventDefault();
+
+  const form = this;
+  const submitBtn = $('#createGroupSubmitBtn');
+  const formData = new FormData(form);
+
+  submitBtn.prop('disabled', true).text('جاري الإنشاء...');
+  $('#createGroupFeedback').addClass('d-none').text('');
+
+  axios.post(form.action, formData, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+    .then(function (response) {
+      const msg = response?.data?.message || 'تم إنشاء القائمة بنجاح';
+      showCreateGroupFeedback('success', msg);
+      alert(msg);
+      form.reset();
+    })
+    .catch(function (error) {
+      const msg = error?.response?.data?.message || error?.response?.data?.errors?.name?.[0] || 'حدث خطأ أثناء إنشاء القائمة';
+      showCreateGroupFeedback('error', msg);
+      alert(msg);
+    })
+    .finally(function () {
+      submitBtn.prop('disabled', false).text('انشاء');
+    });
 });
 
 $('#SearchForm').on('submit', function (event) {

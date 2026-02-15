@@ -281,7 +281,15 @@ class ContractorController extends Controller
                 "type"=>["required","string"],
                 "contractor_id"=>["required"]
             ]);
-            Group::create($data);
+            $group = Group::create($data);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'تم إنشاء القائمة بنجاح',
+                    'group' => $group,
+                ]);
+            }
+
             return redirect()->back();
     }
     public function modify(Request $request){
