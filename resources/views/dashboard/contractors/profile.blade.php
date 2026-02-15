@@ -1,58 +1,34 @@
-<!DOCTYPE html>
-@php
-  $themeValue = static function (\App\Enums\SettingKey $key, string $fallback): string {
-    $value = trim((string) setting($key->value, true));
-    return $value !== '' ? $value : $fallback;
-  };
+    <section class="py-2 rtl">
+      <div class="container-fluid contractor-layout-block">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <h6 class="mb-0">
+            نتائج البحث
+            <span class="namesListCounter listNumber bg-dark text-white rounded-2 p-1 px-3 me-2" id="search_count">0</span>
+          </h6>
+          <button class="btn btn-secondary all" type="button">الكل</button>
+        </div>
 
-  $sanitizeColor = static function (string $value, string $fallback): string {
-    $normalized = trim($value);
-    if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $normalized)) {
-      return $normalized;
-    }
+        <form action="{{route('ass',$contractor->id)}}" method="POST" id="form-attach">
+          @csrf
+          <div class="table-responsive">
+            <table class="table rtl overflow-hidden rounded-3 text-center mt-2 table-striped">
+              <thead class="table-secondary border-0 border-secondary border-bottom border-2">
+                <tr>
+                  <th>#</th>
+                  <th class="w150 fs-6">الأسماء</th>
+                  <th>أدوات</th>
+                </tr>
+              </thead>
+              <tbody id="resultSearchData"></tbody>
+            </table>
+          </div>
 
-    if (preg_match('/^rgba?\((?:\s*\d+\s*,){2,3}\s*(?:\d+|\d*\.\d+)\s*\)$/', $normalized)) {
-      return $normalized;
-    }
-
-    return $fallback;
-  };
-
-  $sanitizeSize = static function (string $value, string $fallback): string {
-    $normalized = trim($value);
-    return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em)$/', $normalized) ? $normalized : $fallback;
-  };
-
-  $sanitizeLengthOrPercent = static function (string $value, string $fallback): string {
-    $normalized = trim($value);
-    return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em|%)$/', $normalized) ? $normalized : $fallback;
-  };
-
-  $themeLibraryRaw = setting(\App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value, true);
-  if (!is_string($themeLibraryRaw) || trim($themeLibraryRaw) === '') {
-    $themeLibraryRaw = '[]';
-  }
-
-  $themeLibraryDecoded = json_decode($themeLibraryRaw, true);
-  $themeLibraryDecoded = is_array($themeLibraryDecoded) ? $themeLibraryDecoded : [];
-
-  $themeLibraryById = [];
-  foreach ($themeLibraryDecoded as $themeItem) {
-    if (!is_array($themeItem)) {
-      continue;
-    }
-
-    $id = strtolower(trim((string) ($themeItem['id'] ?? '')));
-    if ($id === '' || in_array($id, ['default', 'emerald', 'violet', 'custom'], true)) {
-      continue;
-    }
-    if (!preg_match('/^[a-z0-9][a-z0-9-]{0,63}$/', $id)) {
-      continue;
-    }
-
-    $values = $themeItem['values'] ?? null;
-    if (!is_array($values)) {
-      continue;
+          <div class="text-start">
+            <button type="submit" id="all_voters" class="btn btn-primary">اضافة المحدد</button>
+          </div>
+        </form>
+      </div>
+    </section>
     }
 
     $themeLibraryById[$id] = [
@@ -1336,6 +1312,11 @@ var message = selectedOption.data('message'); // Get the data-message attribute
       });
 let users = [];
 
+$("#SearchForm").on('submit', function(event){
+  event.preventDefault();
+  getResultSearch();
+});
+
 // abdallah
 function getResultSearch() {
 
@@ -1353,7 +1334,6 @@ function getResultSearch() {
     //   .attr("data-bs-target", "#resultOfSearch");
       var url = '/search' ;
       console.log(searchByFamilyValue, searchByNameOrNumValue);
-      event.preventDefault();
       let formData = new FormData($('#SearchForm')[0]);
       let data = {};
       let params = new URLSearchParams();
@@ -1408,10 +1388,6 @@ $("#search_count").text(users.length)
 
     }
     resultSearchDate.innerHTML = cartona;
-
-             var myModal = new bootstrap.Modal(document.getElementById('resultOfSearch'), {
-  keyboard: false})
-             myModal.show()
 
              document.querySelectorAll('.search-relatives-btn').forEach(button => {
           button.addEventListener('click', function () {
@@ -1550,10 +1526,6 @@ $("#search").on('click',function(){
 
     }
     resultSearchDate.innerHTML = cartona;
-
-             var myModal = new bootstrap.Modal(document.getElementById('resultOfSearch'), {
-  keyboard: false})
-             myModal.show()
 
                       })
           .catch(function (error) {
