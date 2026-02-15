@@ -699,6 +699,7 @@
     <form action="{{route("modify")}}" method="POST" id="form-transfer">
         @csrf
         <input type="hidden" name="id" value="{{$contractor->id}}" id="con_id">
+      <input type="hidden" name="select" value="" id="bulk_action">
     <section class="py-3 rtl">
       <div class="container-fluid contractor-layout-block">
         <h5>
@@ -713,6 +714,7 @@
         <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
           <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
+          <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
         </div>
 
         <div class="madameenTable table-responsive mt-4">
@@ -769,20 +771,7 @@
             </tbody>
           </table>
         </div>
-        <div class="d-flex align-items-center">
-            <select name="select" id="allSelected" class="form-control mx-2">
-                <option value="" ></option>
-                <option value="" hidden>التطبيق على المحدد</option>
-                @forelse ($contractor->groups as $g )
-                <option value="{{$g->id}}" data-message="نقل الي  {{$g->name}} ({{$g->type}} "> نقل الي  {{$g->name}} ({{$g->type}})  </option>
-              @empty
-              @endforelse
-              @if ($contractor->hasPermissionTo('delete-stat-con'))
-              <option value="delete" data-message="حذف الاسماء" class="btn btn-danger">حذف الأسماء</option>
-                @endif
-            </select>
-            <button class="btn btn-primary" id="sub-btn" disabled>تنفيذ</button>
-          </div>
+
       </div>
     </section>
 </form>
@@ -1429,6 +1418,26 @@ $('#all_voters').on('click', function (event) {
     return checkbox.value;
   });
   submitAttachVoters(selectedVoters);
+});
+
+$('#delete_selected_top').on('click', function (event) {
+  event.preventDefault();
+
+  const selectedVoters = Array.from(document.querySelectorAll('#resultSearchData .check:checked')).map(function (checkbox) {
+    return checkbox.value;
+  });
+
+  if (!selectedVoters.length) {
+    alert('لم يتم اختيار اي ناخب');
+    return;
+  }
+
+  if (!confirm('حذف الاسماء')) {
+    return;
+  }
+
+  $('#bulk_action').val('delete');
+  $('#form-transfer').trigger('submit');
 });
 
 $('#SearchForm').on('submit', function (event) {
