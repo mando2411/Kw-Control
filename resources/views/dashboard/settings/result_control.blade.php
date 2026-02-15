@@ -237,7 +237,6 @@
 
                     $themePresetCurrent = old(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value.'.0',
                         $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value)?->option_value[0] ?? 'default');
-                    $themePresetCurrent = in_array($themePresetCurrent, ['default', 'emerald', 'violet', 'custom'], true) ? $themePresetCurrent : 'default';
 
                     $themeSettingValue = static function (string $key, string $fallback) use ($settings) {
                         $value = old($key.'.0', $settings->firstWhere('option_key', $key)?->option_value[0] ?? $fallback);
@@ -305,6 +304,108 @@
                         \App\Enums\SettingKey::UI_MODERN_CONTAINER_MAX->value => ['label' => 'أقصى عرض للمحتوى', 'default' => '1320px', 'type' => 'size'],
                         \App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL->value => ['label' => 'مستوى الظل', 'default' => 'medium', 'type' => 'select'],
                     ];
+
+                    $themeDefaultValues = [];
+                    foreach ($themeLightDefaults as $key => $meta) {
+                        $themeDefaultValues[$key] = $meta['default'];
+                    }
+                    foreach ($themeDarkDefaults as $key => $meta) {
+                        $themeDefaultValues[$key] = $meta['default'];
+                    }
+                    foreach ($fontDefaults as $key => $meta) {
+                        $themeDefaultValues[$key] = $meta['default'];
+                    }
+                    foreach ($componentDefaults as $key => $meta) {
+                        $themeDefaultValues[$key] = $meta['default'];
+                    }
+
+                    $presetOverrides = [
+                        'default' => [],
+                        'emerald' => [
+                            \App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY->value => '#10b981',
+                            \App\Enums\SettingKey::UI_MODERN_BTN_SECONDARY->value => '#0ea5a4',
+                            \App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY->value => '#22c55e',
+                            \App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY->value => '#052e2b',
+                            \App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY->value => '#0f766e',
+                            \App\Enums\SettingKey::UI_MODERN_BG_SECONDARY->value => '#f0fdfa',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY->value => '#34d399',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BTN_SECONDARY->value => '#2dd4bf',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY->value => '#4ade80',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY->value => '#ecfeff',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY->value => '#99f6e4',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY->value => '#042f2e',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY->value => '#134e4a',
+                            \App\Enums\SettingKey::UI_MODERN_LINK_COLOR->value => '#0f766e',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR->value => '#2dd4bf',
+                            \App\Enums\SettingKey::UI_MODERN_BORDER_COLOR->value => '#99f6e4',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR->value => '#0f766e',
+                            \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG->value => '#ecfdf5',
+                            \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER->value => '#6ee7b7',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG->value => '#14532d',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER->value => '#22c55e',
+                        ],
+                        'violet' => [
+                            \App\Enums\SettingKey::UI_MODERN_BTN_PRIMARY->value => '#8b5cf6',
+                            \App\Enums\SettingKey::UI_MODERN_BTN_TERTIARY->value => '#ec4899',
+                            \App\Enums\SettingKey::UI_MODERN_TEXT_PRIMARY->value => '#1f1147',
+                            \App\Enums\SettingKey::UI_MODERN_TEXT_SECONDARY->value => '#5b21b6',
+                            \App\Enums\SettingKey::UI_MODERN_BG_SECONDARY->value => '#f5f3ff',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BTN_PRIMARY->value => '#a78bfa',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BTN_TERTIARY->value => '#f472b6',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_TEXT_PRIMARY->value => '#f5f3ff',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_TEXT_SECONDARY->value => '#ddd6fe',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BG_PRIMARY->value => '#1e1b4b',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BG_SECONDARY->value => '#312e81',
+                            \App\Enums\SettingKey::UI_MODERN_LINK_COLOR->value => '#7c3aed',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_LINK_COLOR->value => '#a78bfa',
+                            \App\Enums\SettingKey::UI_MODERN_BORDER_COLOR->value => '#ddd6fe',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_BORDER_COLOR->value => '#7c3aed',
+                            \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BG->value => '#f5f3ff',
+                            \App\Enums\SettingKey::UI_MODERN_HOME_BOX_BORDER->value => '#c4b5fd',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BG->value => '#312e81',
+                            \App\Enums\SettingKey::UI_MODERN_DARK_HOME_BOX_BORDER->value => '#8b5cf6',
+                        ],
+                    ];
+
+                    $themePresetsForJs = [
+                        'default' => ['name' => 'Default', 'values' => $themeDefaultValues],
+                        'emerald' => ['name' => 'Emerald', 'values' => array_replace($themeDefaultValues, $presetOverrides['emerald'])],
+                        'violet' => ['name' => 'Violet', 'values' => array_replace($themeDefaultValues, $presetOverrides['violet'])],
+                        'custom' => ['name' => 'Custom', 'values' => $themeDefaultValues],
+                    ];
+
+                    $themeLibraryRaw = $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value)?->option_value[0] ?? '[]';
+                    $themeLibraryDecoded = json_decode(is_string($themeLibraryRaw) ? $themeLibraryRaw : '[]', true);
+                    $themeLibraryDecoded = is_array($themeLibraryDecoded) ? $themeLibraryDecoded : [];
+
+                    $userThemes = [];
+                    foreach ($themeLibraryDecoded as $themeItem) {
+                        if (!is_array($themeItem)) {
+                            continue;
+                        }
+
+                        $themeId = trim((string) ($themeItem['id'] ?? ''));
+                        if ($themeId === '' || in_array($themeId, ['default', 'emerald', 'violet', 'custom'], true)) {
+                            continue;
+                        }
+
+                        $themeName = trim((string) ($themeItem['name'] ?? $themeId));
+                        $themeValues = is_array($themeItem['values'] ?? null)
+                            ? array_replace($themeDefaultValues, $themeItem['values'])
+                            : $themeDefaultValues;
+
+                        $normalizedTheme = [
+                            'id' => $themeId,
+                            'name' => $themeName,
+                            'values' => $themeValues,
+                        ];
+
+                        $userThemes[] = $normalizedTheme;
+                        $themePresetsForJs[$themeId] = ['name' => $themeName, 'values' => $themeValues];
+                    }
+
+                    $validPresetIds = array_merge(['default', 'emerald', 'violet', 'custom'], array_map(fn ($theme) => $theme['id'], $userThemes));
+                    $themePresetCurrent = in_array($themePresetCurrent, $validPresetIds, true) ? $themePresetCurrent : 'default';
                 @endphp
 
                 <div class="sm-card mb-3">

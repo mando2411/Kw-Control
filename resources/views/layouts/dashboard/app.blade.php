@@ -38,8 +38,47 @@
         return preg_match('/^\d+(?:\.\d+)?(?:px|rem|em|%)$/', $normalized) ? $normalized : $fallback;
     };
 
+    $themeLibraryRaw = setting(\App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value, true);
+    if (!is_string($themeLibraryRaw) || trim($themeLibraryRaw) === '') {
+        $themeLibraryRaw = '[]';
+    }
+    $themeLibraryDecoded = json_decode($themeLibraryRaw, true);
+    $themeLibraryDecoded = is_array($themeLibraryDecoded) ? $themeLibraryDecoded : [];
+
+    $themeLibraryById = [];
+    foreach ($themeLibraryDecoded as $themeItem) {
+        if (!is_array($themeItem)) {
+            continue;
+        }
+
+        $id = trim((string) ($themeItem['id'] ?? ''));
+        if ($id === '' || in_array($id, ['default', 'emerald', 'violet', 'custom'], true)) {
+            continue;
+        }
+
+        $values = $themeItem['values'] ?? null;
+        if (!is_array($values)) {
+            continue;
+        }
+
+        $themeLibraryById[$id] = [
+            'id' => $id,
+            'name' => trim((string) ($themeItem['name'] ?? $id)),
+            'values' => $values,
+        ];
+    }
+
     $themePreset = trim((string) setting(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value, true));
-    $themePreset = in_array($themePreset, ['default', 'emerald', 'violet', 'custom'], true) ? $themePreset : 'default';
+    $allowedPresets = array_merge(['default', 'emerald', 'violet', 'custom'], array_keys($themeLibraryById));
+    $themePreset = in_array($themePreset, $allowedPresets, true) ? $themePreset : 'default';
+
+    $baseFontPreset = [
+        'xs' => '0.75rem',
+        'sm' => '0.875rem',
+        'base' => '1rem',
+        'lg' => '1.125rem',
+        'xl' => '1.25rem',
+    ];
 
     $themePresetPalettes = [
         'default' => [
@@ -80,6 +119,7 @@
                 'home_box_bg_dark' => '#1e293b',
                 'home_box_border_dark' => '#475569',
             ],
+            'font' => $baseFontPreset,
         ],
         'emerald' => [
             'light' => [
@@ -119,6 +159,7 @@
                 'home_box_bg_dark' => '#14532d',
                 'home_box_border_dark' => '#22c55e',
             ],
+            'font' => $baseFontPreset,
         ],
         'violet' => [
             'light' => [
@@ -158,13 +199,22 @@
                 'home_box_bg_dark' => '#312e81',
                 'home_box_border_dark' => '#8b5cf6',
             ],
+            'font' => $baseFontPreset,
         ],
     ];
 
-    $activePreset = $themePresetPalettes[$themePreset === 'custom' ? 'default' : $themePreset];
+    $activePreset = $themePresetPalettes[array_key_exists($themePreset, $themePresetPalettes) ? $themePreset : 'default'];
+    $selectedLibraryTheme = $themeLibraryById[$themePreset] ?? null;
 
-    $resolveThemeValue = static function (\App\Enums\SettingKey $key, string $presetValue, callable $sanitize) use ($themePreset, $themeValue) {
-        $value = $themePreset === 'custom' ? $themeValue($key, $presetValue) : $presetValue;
+    $resolveThemeValue = static function (\App\Enums\SettingKey $key, string $presetValue, callable $sanitize) use ($themePreset, $themeValue, $selectedLibraryTheme) {
+        $value = $presetValue;
+
+        if ($themePreset === 'custom') {
+            $value = $themeValue($key, $presetValue);
+        } elseif (is_array($selectedLibraryTheme) && is_array($selectedLibraryTheme['values'] ?? null)) {
+            $value = (string) ($selectedLibraryTheme['values'][$key->value] ?? $presetValue);
+        }
+
         return $sanitize($value, $presetValue);
     };
 
@@ -191,11 +241,11 @@
     ];
 
     $uiFontScale = [
-        'xs' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_XS, '0.75rem'), '0.75rem'),
-        'sm' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_SM, '0.875rem'), '0.875rem'),
-        'base' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_BASE, '1rem'), '1rem'),
-        'lg' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_LG, '1.125rem'), '1.125rem'),
-        'xl' => $sanitizeSize($themeValue(\App\Enums\SettingKey::UI_MODERN_FS_XL, '1.25rem'), '1.25rem'),
+        'xs' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_XS, $activePreset['font']['xs'], $sanitizeSize),
+        'sm' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_SM, $activePreset['font']['sm'], $sanitizeSize),
+        'base' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_BASE, $activePreset['font']['base'], $sanitizeSize),
+        'lg' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_LG, $activePreset['font']['lg'], $sanitizeSize),
+        'xl' => $resolveThemeValue(\App\Enums\SettingKey::UI_MODERN_FS_XL, $activePreset['font']['xl'], $sanitizeSize),
     ];
 
     $uiShadowMap = [
@@ -204,9 +254,11 @@
         'strong' => '0 28px 65px rgba(2, 6, 23, 0.20)',
     ];
 
-    $uiShadowLevel = $themePreset === 'custom'
-        ? trim((string) $themeValue(\App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL, $activePreset['surface']['shadow_level']))
-        : $activePreset['surface']['shadow_level'];
+    $uiShadowLevel = $resolveThemeValue(
+        \App\Enums\SettingKey::UI_MODERN_SHADOW_LEVEL,
+        $activePreset['surface']['shadow_level'],
+        static fn (string $value, string $fallback): string => in_array($value, ['soft', 'medium', 'strong'], true) ? $value : $fallback
+    );
     $uiShadowLevel = array_key_exists($uiShadowLevel, $uiShadowMap) ? $uiShadowLevel : 'medium';
 
     $uiModernSurface = [

@@ -25,6 +25,7 @@ enum SettingKey: string
 
     // Modern UI Theme Preset: default | emerald | violet | custom
     case UI_MODERN_THEME_PRESET     = 'ui_modern_theme_preset';
+    case UI_MODERN_THEME_LIBRARY    = 'ui_modern_theme_library';
 
     // Modern UI Theme Tokens (Light)
     case UI_MODERN_BTN_PRIMARY      = 'ui_modern_btn_primary';
