@@ -116,6 +116,37 @@
                 gap: 14px;
             }
 
+            html.ui-modern #settings-app .sm-tabs,
+            body.ui-modern #settings-app .sm-tabs {
+                border-bottom: 1px solid var(--ui-border);
+                margin-bottom: 14px;
+                gap: 8px;
+            }
+
+            html.ui-modern #settings-app .sm-tabs .nav-link,
+            body.ui-modern #settings-app .sm-tabs .nav-link {
+                border: 1px solid var(--ui-border);
+                border-bottom: none;
+                background: var(--ui-surface-2);
+                color: var(--ui-muted);
+                border-radius: 12px 12px 0 0;
+                font-weight: 800;
+                padding: 10px 14px;
+            }
+
+            html.ui-modern #settings-app .sm-tabs .nav-link.active,
+            body.ui-modern #settings-app .sm-tabs .nav-link.active {
+                background: var(--ui-surface);
+                color: var(--ui-ink);
+                border-color: var(--ui-border);
+            }
+
+            html.ui-modern #settings-app .sm-tab-pane,
+            body.ui-modern #settings-app .sm-tab-pane {
+                display: grid;
+                gap: 14px;
+            }
+
             @media (min-width: 992px) {
                 html.ui-modern #settings-app .sm-split,
                 body.ui-modern #settings-app .sm-split {
@@ -408,241 +439,264 @@
                     $themePresetCurrent = in_array($themePresetCurrent, $validPresetIds, true) ? $themePresetCurrent : 'default';
                 @endphp
 
-                <div class="sm-card mb-3">
-                    <div class="sm-card-h">
-                        <h5>تصميم الواجهة</h5>
-                        <p>حدد سياسة التصميم: هل المستخدم يختار بنفسه، أم يتم اعتماد تصميم واحد للجميع.</p>
-                    </div>
-                    <div class="sm-card-b">
-                        <div class="sm-help">
-                            عند اختيار <strong>اجعل المستخدم يحدد</strong> سيظهر سويتش الواجهة الحديثة في السلايدر وصفحة تسجيل الدخول.
-                            أما عند اختيار تصميم إجباري فسيتم تطبيقه تلقائيًا وإخفاء السويتش.
-                        </div>
+                <ul class="nav nav-tabs sm-tabs" id="settings-modern-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-general-btn" data-bs-toggle="tab" data-bs-target="#tab-general" type="button" role="tab" aria-controls="tab-general" aria-selected="true">إعدادات عامة</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-design-btn" data-bs-toggle="tab" data-bs-target="#tab-design" type="button" role="tab" aria-controls="tab-design" aria-selected="false">التصميم والثيمات</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-results-btn" data-bs-toggle="tab" data-bs-target="#tab-results" type="button" role="tab" aria-controls="tab-results" aria-selected="false">إعدادات النتائج</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-maintenance-btn" data-bs-toggle="tab" data-bs-target="#tab-maintenance" type="button" role="tab" aria-controls="tab-maintenance" aria-selected="false">التهيئة والصيانة</button>
+                    </li>
+                </ul>
 
-                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-
-                            <label class="form-label fw-bold">اختيار تصميم الموقع</label>
-                            <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODE_POLICY->value }}[]" id="ui_mode_policy_rc_modern">
-                                <option value="user_choice" @selected($policyCurrent === 'user_choice')>اجعل المستخدم يحدد (السويتش ظاهر)</option>
-                                <option value="modern" @selected($policyCurrent === 'modern')>التصميم الحديث (إجباري)</option>
-                                <option value="classic" @selected($policyCurrent === 'classic')>التصميم القديم (إجباري)</option>
-                            </select>
-
-                            <div class="sm-actions">
-                                <button type="submit" class="btn btn-primary">حفظ الإعداد</button>
+                <div class="tab-content" id="settings-modern-tabs-content">
+                    <div class="tab-pane fade show active sm-tab-pane" id="tab-general" role="tabpanel" aria-labelledby="tab-general-btn">
+                        <div class="sm-card mb-3">
+                            <div class="sm-card-h">
+                                <h5>تصميم الواجهة</h5>
+                                <p>حدد سياسة التصميم: هل المستخدم يختار بنفسه، أم يتم اعتماد تصميم واحد للجميع.</p>
                             </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="sm-card mb-3">
-                    <div class="sm-card-h">
-                        <h5>نظام الثيمات</h5>
-                        <p>اختر ثيم جاهز متناسق (Light + Dark) أو اختر Custom لتفعيل الإعدادات اليدوية بالأسفل.</p>
-                    </div>
-                    <div class="sm-card-b">
-                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-preset-form">
-                            @csrf
-                            @method('PUT')
-
-                            <label class="form-label fw-bold">الثيم الحالي</label>
-                            <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value }}[]" id="ui_modern_theme_preset">
-                                <option value="default" @selected($themePresetCurrent === 'default')>Default (الثيم الأصلي)</option>
-                                <option value="emerald" @selected($themePresetCurrent === 'emerald')>Emerald (أخضر/تركواز متناسق)</option>
-                                <option value="violet" @selected($themePresetCurrent === 'violet')>Violet (بنفسجي/وردي متناسق)</option>
-                                <option value="custom" @selected($themePresetCurrent === 'custom')>Custom (يدوي)</option>
-                                @foreach ($userThemes as $theme)
-                                    <option data-user-theme="1" value="{{ $theme['id'] }}" @selected($themePresetCurrent === $theme['id'])>{{ $theme['name'] }}</option>
-                                @endforeach
-                            </select>
-
-                            <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value }}[]" id="ui_modern_theme_library_input" value="{{ e(json_encode($userThemes, JSON_UNESCAPED_UNICODE)) }}">
-
-                            <div class="mt-3">
-                                <label class="form-label fw-bold">اسم ثيم جديد</label>
-                                <input type="text" id="new_theme_name" class="form-control" placeholder="مثال: Blue Ocean">
-                            </div>
-
-                            <div class="sm-actions">
-                                <button type="submit" class="btn btn-primary">تطبيق الثيم</button>
-                                <button type="button" class="btn btn-secondary" id="add-theme-btn">إضافة كثيم</button>
-                                <button type="button" class="btn btn-danger" id="delete-theme-btn">حذف الثيم المحدد</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="sm-card mb-3">
-                    <div class="sm-card-h">
-                        <h5>الوضع Custom (تخصيص يدوي)</h5>
-                        <p>هذه الإعدادات تعمل عند اختيار Custom من نظام الثيمات، وتشمل ألوان الواجهة + بوكسات الرئيسية + الخطوط والتخطيط.</p>
-                    </div>
-                    <div class="sm-card-b">
-                        <div class="sm-help">
-                            اختَر اللون مباشرة من المربع، ويمكنك أيضًا تعديل كود اللون يدويًا. أحجام الخطوط بصيغة <strong>rem</strong> أو <strong>px</strong>.
-                        </div>
-
-                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-custom-form">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value }}[]" id="ui_modern_theme_preset_custom_hidden" value="{{ $themePresetCurrent }}">
-                            <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value }}[]" id="ui_modern_theme_library_custom_hidden" value="{{ e(json_encode($userThemes, JSON_UNESCAPED_UNICODE)) }}">
-
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <h6 class="fw-bold mb-2">1) ألوان الواجهة الحديثة (Light)</h6>
+                            <div class="sm-card-b">
+                                <div class="sm-help">
+                                    عند اختيار <strong>اجعل المستخدم يحدد</strong> سيظهر سويتش الواجهة الحديثة في السلايدر وصفحة تسجيل الدخول.
+                                    أما عند اختيار تصميم إجباري فسيتم تطبيقه تلقائيًا وإخفاء السويتش.
                                 </div>
 
-                                @foreach ($themeLightDefaults as $key => $meta)
-                                    @php $colorId = 'theme_color_'.$key; @endphp
-                                    <div class="col-md-6 col-lg-3">
-                                        <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                        <div class="input-group">
-                                            <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
-                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
-                                        </div>
+                                <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <label class="form-label fw-bold">اختيار تصميم الموقع</label>
+                                    <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODE_POLICY->value }}[]" id="ui_mode_policy_rc_modern">
+                                        <option value="user_choice" @selected($policyCurrent === 'user_choice')>اجعل المستخدم يحدد (السويتش ظاهر)</option>
+                                        <option value="modern" @selected($policyCurrent === 'modern')>التصميم الحديث (إجباري)</option>
+                                        <option value="classic" @selected($policyCurrent === 'classic')>التصميم القديم (إجباري)</option>
+                                    </select>
+
+                                    <div class="sm-actions">
+                                        <button type="submit" class="btn btn-primary">حفظ الإعداد</button>
                                     </div>
-                                @endforeach
-
-                                <div class="col-12 mt-2">
-                                    <h6 class="fw-bold mb-2">2) ألوان الوضع الداكن (Dark)</h6>
-                                </div>
-
-                                @foreach ($themeDarkDefaults as $key => $meta)
-                                    @php $colorId = 'theme_color_'.$key; @endphp
-                                    <div class="col-md-6 col-lg-3">
-                                        <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                        <div class="input-group">
-                                            <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
-                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
-                                        </div>
-                                    </div>
-                                @endforeach
-
-                                <div class="col-12 mt-2">
-                                    <h6 class="fw-bold mb-2">3) أحجام الخطوط</h6>
-                                </div>
-
-                                @foreach ($fontDefaults as $key => $meta)
-                                    <div class="col-md-6 col-lg-3">
-                                        <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                        <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
-                                    </div>
-                                @endforeach
-
-                                <div class="col-12 mt-2">
-                                    <h6 class="fw-bold mb-2">4) تحكم شامل للمكونات والتخطيط</h6>
-                                </div>
-
-                                @foreach ($componentDefaults as $key => $meta)
-                                    @if ($meta['type'] === 'color')
-                                        @php $colorId = 'theme_component_'.$key; @endphp
-                                        <div class="col-md-6 col-lg-3">
-                                            <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                            <div class="input-group">
-                                                <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
-                                                <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
-                                            </div>
-                                        </div>
-                                    @elseif ($meta['type'] === 'select')
-                                        @php $shadowCurrent = $themeSettingValue($key, $meta['default']); @endphp
-                                        <div class="col-md-6 col-lg-3">
-                                            <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                            <select class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}">
-                                                <option value="soft" @selected($shadowCurrent === 'soft')>خفيف</option>
-                                                <option value="medium" @selected($shadowCurrent === 'medium')>متوسط</option>
-                                                <option value="strong" @selected($shadowCurrent === 'strong')>قوي</option>
-                                            </select>
-                                        </div>
-                                    @else
-                                        <div class="col-md-6 col-lg-3">
-                                            <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                            <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
-                                        </div>
-                                    @endif
-                                @endforeach
+                                </form>
                             </div>
-
-                            <div class="sm-actions">
-                                <button type="submit" class="btn btn-primary">حفظ نظام الثيم</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="sm-split">
-                    <div class="sm-card">
-                        <div class="sm-card-h">
-                            <h5>التحكم في عرض النتائج العامة</h5>
-                            <p>فعّل/أوقف صفحة النتائج العامة، واختر المرشح المسؤول عن الفرز العام.</p>
                         </div>
-                        <div class="sm-card-b">
-                            <div class="sm-help">
-                                ملاحظة: تأكد من إضافة المرشح المطلوب (مثل "مرشح الفرز العام") قبل تفعيل الميزة.
+                    </div>
+
+                    <div class="tab-pane fade sm-tab-pane" id="tab-design" role="tabpanel" aria-labelledby="tab-design-btn">
+                        <div class="sm-card mb-3">
+                            <div class="sm-card-h">
+                                <h5>نظام الثيمات</h5>
+                                <p>اختر ثيم جاهز متناسق (Light + Dark) أو اختر Custom لتفعيل الإعدادات اليدوية بالأسفل.</p>
                             </div>
+                            <div class="sm-card-b">
+                                <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-preset-form">
+                                    @csrf
+                                    @method('PUT')
 
-                            <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
-                                @csrf
-                                @method('PUT')
-
-                                <input type="hidden" name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}__present" value="1">
-
-                                <x-dashboard.form.input-checkbox
-                                    error-key="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}"
-                                    name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}[]"
-                                    id="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}_modern"
-                                    label-title="عرض النتائج العامة"
-                                    :value="old(\App\Enums\SettingKey::RESULT_CONTROL->value.'.0', $settings->firstWhere('option_key', \App\Enums\SettingKey::RESULT_CONTROL->value)?->option_value[0] ?? '')"
-                                />
-
-                                <div class="mt-3">
-                                    <label class="form-label fw-bold">المرشح</label>
-                                    <select name="{{ \App\Enums\SettingKey::RESULT_CONTROL_CANDIDATE->value }}[]" id="{{ \App\Enums\SettingKey::RESULT_CONTROL_CANDIDATE->value }}_modern" class="form-control">
-                                        <option value="" selected>أختر المرشح</option>
-                                        @foreach ($candidates as $candidate )
-                                            <option value="{{$candidate->user_id}}"
-                                            <?php
-                                                $check_setting=$settings->firstWhere('option_key', \App\Enums\SettingKey::RESULT_CONTROL_CANDIDATE->value);
-                                                if((isset($check_setting)) && ($check_setting->option_value != null) && ($check_setting->option_value[0] == $candidate->user_id) ){
-                                                    echo 'selected';
-                                                }
-                                            ?>
-                                            > ({{$candidate->user_id}}) - {{$candidate->user->name}}</option>
+                                    <label class="form-label fw-bold">الثيم الحالي</label>
+                                    <select class="form-control" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value }}[]" id="ui_modern_theme_preset">
+                                        <option value="default" @selected($themePresetCurrent === 'default')>Default (الثيم الأصلي)</option>
+                                        <option value="emerald" @selected($themePresetCurrent === 'emerald')>Emerald (أخضر/تركواز متناسق)</option>
+                                        <option value="violet" @selected($themePresetCurrent === 'violet')>Violet (بنفسجي/وردي متناسق)</option>
+                                        <option value="custom" @selected($themePresetCurrent === 'custom')>Custom (يدوي)</option>
+                                        @foreach ($userThemes as $theme)
+                                            <option data-user-theme="1" value="{{ $theme['id'] }}" @selected($themePresetCurrent === $theme['id'])>{{ $theme['name'] }}</option>
                                         @endforeach
                                     </select>
+
+                                    <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value }}[]" id="ui_modern_theme_library_input" value="{{ e(json_encode($userThemes, JSON_UNESCAPED_UNICODE)) }}">
+
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">اسم ثيم جديد</label>
+                                        <input type="text" id="new_theme_name" class="form-control" placeholder="مثال: Blue Ocean">
+                                    </div>
+
+                                    <div class="sm-actions">
+                                        <button type="submit" class="btn btn-primary">تطبيق الثيم</button>
+                                        <button type="button" class="btn btn-secondary" id="add-theme-btn">إضافة كثيم</button>
+                                        <button type="button" class="btn btn-danger" id="delete-theme-btn">حذف الثيم المحدد</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="sm-card mb-3">
+                            <div class="sm-card-h">
+                                <h5>الوضع Custom (تخصيص يدوي)</h5>
+                                <p>هذه الإعدادات تعمل عند اختيار Custom من نظام الثيمات، وتشمل ألوان الواجهة + بوكسات الرئيسية + الخطوط والتخطيط.</p>
+                            </div>
+                            <div class="sm-card-b">
+                                <div class="sm-help">
+                                    اختَر اللون مباشرة من المربع، ويمكنك أيضًا تعديل كود اللون يدويًا. أحجام الخطوط بصيغة <strong>rem</strong> أو <strong>px</strong>.
                                 </div>
 
-                                <div class="sm-actions">
-                                    <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
-                                </div>
-                            </form>
+                                <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-custom-form">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value }}[]" id="ui_modern_theme_preset_custom_hidden" value="{{ $themePresetCurrent }}">
+                                    <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value }}[]" id="ui_modern_theme_library_custom_hidden" value="{{ e(json_encode($userThemes, JSON_UNESCAPED_UNICODE)) }}">
+
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <h6 class="fw-bold mb-2">1) ألوان الواجهة الحديثة (Light)</h6>
+                                        </div>
+
+                                        @foreach ($themeLightDefaults as $key => $meta)
+                                            @php $colorId = 'theme_color_'.$key; @endphp
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                <div class="input-group">
+                                                    <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
+                                                    <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                                </div>
+                                            </div>
+                                        @endforeach
+
+                                        <div class="col-12 mt-2">
+                                            <h6 class="fw-bold mb-2">2) ألوان الوضع الداكن (Dark)</h6>
+                                        </div>
+
+                                        @foreach ($themeDarkDefaults as $key => $meta)
+                                            @php $colorId = 'theme_color_'.$key; @endphp
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                <div class="input-group">
+                                                    <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
+                                                    <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                                </div>
+                                            </div>
+                                        @endforeach
+
+                                        <div class="col-12 mt-2">
+                                            <h6 class="fw-bold mb-2">3) أحجام الخطوط</h6>
+                                        </div>
+
+                                        @foreach ($fontDefaults as $key => $meta)
+                                            <div class="col-md-6 col-lg-3">
+                                                <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                            </div>
+                                        @endforeach
+
+                                        <div class="col-12 mt-2">
+                                            <h6 class="fw-bold mb-2">4) تحكم شامل للمكونات والتخطيط</h6>
+                                        </div>
+
+                                        @foreach ($componentDefaults as $key => $meta)
+                                            @if ($meta['type'] === 'color')
+                                                @php $colorId = 'theme_component_'.$key; @endphp
+                                                <div class="col-md-6 col-lg-3">
+                                                    <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                    <div class="input-group">
+                                                        <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
+                                                        <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                                    </div>
+                                                </div>
+                                            @elseif ($meta['type'] === 'select')
+                                                @php $shadowCurrent = $themeSettingValue($key, $meta['default']); @endphp
+                                                <div class="col-md-6 col-lg-3">
+                                                    <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                    <select class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}">
+                                                        <option value="soft" @selected($shadowCurrent === 'soft')>خفيف</option>
+                                                        <option value="medium" @selected($shadowCurrent === 'medium')>متوسط</option>
+                                                        <option value="strong" @selected($shadowCurrent === 'strong')>قوي</option>
+                                                    </select>
+                                                </div>
+                                            @else
+                                                <div class="col-md-6 col-lg-3">
+                                                    <label class="form-label fw-bold">{{ $meta['label'] }}</label>
+                                                    <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    </div>
+
+                                    <div class="sm-actions">
+                                        <button type="submit" class="btn btn-primary">حفظ نظام الثيم</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="sm-card">
-                        <div class="sm-card-h">
-                            <h5>تصفير الحضور لانتخابات معينة</h5>
-                            <p>يعيد تهيئة بيانات الحضور للانتخابات المحددة.</p>
-                        </div>
-                        <div class="sm-card-b">
-                            <form action="{{ route('attendant.initalize' ) }}" method="POST">
-                                @csrf
-                                @method('PUT')
-
-                                <label class="form-label fw-bold">الانتخابات</label>
-                                <select name="election_id" id="election_id_modern" class="form-control" required>
-                                    <option value="" selected>أختر الانتخابات</option>
-                                    @foreach ($elections as $election )
-                                        <option value="{{$election->id}}"> ({{$election->name}})</option>
-                                    @endforeach
-                                </select>
-
-                                <div class="sm-actions">
-                                    <button type="submit" class="btn btn-primary">تصفير الحضور</button>
+                    <div class="tab-pane fade sm-tab-pane" id="tab-results" role="tabpanel" aria-labelledby="tab-results-btn">
+                        <div class="sm-card">
+                            <div class="sm-card-h">
+                                <h5>التحكم في عرض النتائج العامة</h5>
+                                <p>فعّل/أوقف صفحة النتائج العامة، واختر المرشح المسؤول عن الفرز العام.</p>
+                            </div>
+                            <div class="sm-card-b">
+                                <div class="sm-help">
+                                    ملاحظة: تأكد من إضافة المرشح المطلوب (مثل "مرشح الفرز العام") قبل تفعيل الميزة.
                                 </div>
-                            </form>
+
+                                <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <input type="hidden" name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}__present" value="1">
+
+                                    <x-dashboard.form.input-checkbox
+                                        error-key="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}"
+                                        name="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}[]"
+                                        id="{{ \App\Enums\SettingKey::RESULT_CONTROL->value }}_modern"
+                                        label-title="عرض النتائج العامة"
+                                        :value="old(\App\Enums\SettingKey::RESULT_CONTROL->value.'.0', $settings->firstWhere('option_key', \App\Enums\SettingKey::RESULT_CONTROL->value)?->option_value[0] ?? '')"
+                                    />
+
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">المرشح</label>
+                                        <select name="{{ \App\Enums\SettingKey::RESULT_CONTROL_CANDIDATE->value }}[]" id="{{ \App\Enums\SettingKey::RESULT_CONTROL_CANDIDATE->value }}_modern" class="form-control">
+                                            <option value="" selected>أختر المرشح</option>
+                                            @foreach ($candidates as $candidate )
+                                                <option value="{{$candidate->user_id}}"
+                                                <?php
+                                                    $check_setting=$settings->firstWhere('option_key', \App\Enums\SettingKey::RESULT_CONTROL_CANDIDATE->value);
+                                                    if((isset($check_setting)) && ($check_setting->option_value != null) && ($check_setting->option_value[0] == $candidate->user_id) ){
+                                                        echo 'selected';
+                                                    }
+                                                ?>
+                                                > ({{$candidate->user_id}}) - {{$candidate->user->name}}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="sm-actions">
+                                        <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade sm-tab-pane" id="tab-maintenance" role="tabpanel" aria-labelledby="tab-maintenance-btn">
+                        <div class="sm-card">
+                            <div class="sm-card-h">
+                                <h5>تصفير الحضور لانتخابات معينة</h5>
+                                <p>يعيد تهيئة بيانات الحضور للانتخابات المحددة.</p>
+                            </div>
+                            <div class="sm-card-b">
+                                <form action="{{ route('attendant.initalize' ) }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <label class="form-label fw-bold">الانتخابات</label>
+                                    <select name="election_id" id="election_id_modern" class="form-control" required>
+                                        <option value="" selected>أختر الانتخابات</option>
+                                        @foreach ($elections as $election )
+                                            <option value="{{$election->id}}"> ({{$election->name}})</option>
+                                        @endforeach
+                                    </select>
+
+                                    <div class="sm-actions">
+                                        <button type="submit" class="btn btn-primary">تصفير الحضور</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
