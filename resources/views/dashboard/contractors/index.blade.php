@@ -2,7 +2,7 @@
 
 @section('content')
     <link rel="stylesheet" href="/assets/css/contractors-modern.css?v=20260214c">
-    <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260214b">
+    <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260215a">
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <!-- DataTables Buttons CSS -->
@@ -646,6 +646,22 @@
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
 
+            function setExportModalLayeredState(enabled) {
+                if (!document.body) return;
+
+                document.body.classList.toggle('contractor-export-modal-layered', !!enabled);
+
+                if (!pageRoot) return;
+
+                pageRoot.classList.toggle('export-modal-layered', !!enabled);
+
+                if (!enabled) {
+                    document.querySelectorAll('.modal-backdrop.sm-export-backdrop').forEach(function (backdrop) {
+                        backdrop.classList.remove('sm-export-backdrop');
+                    });
+                }
+            }
+
             function showExportStatus(message, tone) {
                 if (!window.toastr) return;
                 if (tone === 'error') {
@@ -1016,6 +1032,8 @@
 
             if (exportModalElement) {
                 exportModalElement.addEventListener('show.bs.modal', function () {
+                    setExportModalLayeredState(true);
+
                     if (exportSearchId) {
                         exportSearchId.value = currentContractorId ? String(currentContractorId) : '';
                     }
@@ -1023,8 +1041,21 @@
                     selectedVoterIdsCache = getSelectedVoterIdsForExport();
                 });
 
+                exportModalElement.addEventListener('shown.bs.modal', function () {
+                    var backdrops = document.querySelectorAll('.modal-backdrop');
+                    var latestBackdrop = backdrops.length ? backdrops[backdrops.length - 1] : null;
+                    if (latestBackdrop) {
+                        latestBackdrop.classList.add('sm-export-backdrop');
+                    }
+                });
+
+                exportModalElement.addEventListener('hide.bs.modal', function () {
+                    setExportModalLayeredState(false);
+                });
+
                 exportModalElement.addEventListener('hidden.bs.modal', function () {
                     isOpeningExportModal = false;
+                    setExportModalLayeredState(false);
                 });
             }
 

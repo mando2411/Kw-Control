@@ -127,3 +127,31 @@
 #smExportModal.show .modal-dialog {
     transform: translateY(0) scale(1);
 }
+
+body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern {
+    z-index: 1060;
+}
+
+body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern .modal-dialog {
+    transform: scale(.985);
+    transition: transform .18s ease;
+}
+
+body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern .modal-content {
+    box-shadow: 0 10px 24px rgba(2, 6, 23, .16);
+    filter: saturate(.96);
+}
+
+body.contractor-export-modal-layered #smExportModal {
+    z-index: 1088;
+}
+
+body.contractor-export-modal-layered #smExportModal .modal-dialog {
+    margin-top: 2.5rem;
+}
+
+.modal-backdrop.sm-export-backdrop {
+    z-index: 1086;
+    opacity: .42;
+    background-color: rgba(2, 6, 23, .62);
+}
