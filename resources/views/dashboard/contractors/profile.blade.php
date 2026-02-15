@@ -436,16 +436,74 @@
     .committeDetails {
       max-width: min(1080px, 92vw);
       margin: 1rem auto 1.3rem;
-      background: var(--ui-bg-primary, #fff);
-      border: 1px solid var(--ui-border, #dbe3ef);
-      border-radius: var(--ui-radius-card, 1rem);
-      padding: 1rem;
-      box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
+      background: linear-gradient(140deg,
+        color-mix(in srgb, var(--ui-bg-primary, #fff) 96%, transparent),
+        color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 94%, transparent));
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 85%, transparent);
+      border-radius: calc(var(--ui-radius-card, 1rem) + 0.2rem);
+      padding: clamp(0.95rem, 1.8vw, 1.35rem);
+      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.1);
       color: var(--ui-text-primary, #0f172a);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .committeDetails::before {
+      content: "";
+      position: absolute;
+      inset-inline-start: -18%;
+      top: -55%;
+      width: 55%;
+      height: 180%;
+      background: radial-gradient(circle,
+        color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 18%, transparent) 0%,
+        transparent 68%);
+      pointer-events: none;
     }
 
     .committeDetails p {
       margin-bottom: 0;
+    }
+
+    .committeDetails__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--ui-btn-primary, #0ea5e9);
+      border: 1px solid color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 38%, transparent);
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 12%, transparent);
+      margin-bottom: 0.45rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .committeDetails__title {
+      margin: 0;
+      font-size: clamp(1.02rem, 2.1vw, 1.35rem);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: var(--ui-text-primary, #0f172a);
+      position: relative;
+      z-index: 1;
+    }
+
+    .committeDetails__title strong {
+      color: var(--ui-btn-primary, #0ea5e9);
+      font-weight: 900;
+    }
+
+    .committeDetails__desc {
+      margin-top: 0.45rem;
+      font-size: clamp(0.88rem, 1.5vw, 0.98rem);
+      font-weight: 600;
+      color: var(--ui-text-secondary, #475569);
+      line-height: 1.75;
+      position: relative;
+      z-index: 1;
     }
 
     @media (max-width: 768px) {
@@ -487,6 +545,14 @@
 
       .hero-countdown__label {
         font-size: 0.68rem;
+      }
+
+      .committeDetails {
+        padding: 0.85rem;
+      }
+
+      .committeDetails__desc {
+        line-height: 1.65;
       }
     }
   </style>
@@ -574,8 +640,9 @@
         </div>
       </div>
       <div class="committeDetails mx-auto my-4 text-center">
-        <p class="fs-5 fw-semibold mb-1">مرحبا {{$contractor->name}}</p>
-        <p>
+        <span class="committeDetails__badge"><i class="fa fa-heart"></i> رسالة ترحيب</span>
+        <p class="committeDetails__title">مرحبا <strong>{{$contractor->name}}</strong></p>
+        <p class="committeDetails__desc">
           هذه الصفحة تمكنكم من متابعة المتعهدين<br />
           ولكم كل الشكر والتقدير على دعمكم لنا 🌹
         </p>
