@@ -67,125 +67,135 @@ $(document).on("click", ".contactIcon", function (e) {
 
 $(document).ready(function () {
   // home team
-  $(".teamSlider").slick({
-    autoplay: true,
-    arrows: false,
-    dots: true,
-    speed: 2500,
-    centerMode: true,
-    centerPadding: "60px",
-    slidesToShow: 3,
-    slickCurrentSlide: arguments,
-    responsive: [
-      {
-        breakpoint: 992,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          // centerPadding: "100px",
-          slidesToShow: 2,
+  if ($(".teamSlider").length) {
+    $(".teamSlider").slick({
+      autoplay: true,
+      autoplaySpeed: 3800,
+      pauseOnHover: true,
+      arrows: false,
+      dots: true,
+      speed: 650,
+      centerMode: true,
+      centerPadding: "60px",
+      slidesToShow: 3,
+      slickCurrentSlide: arguments,
+      responsive: [
+        {
+          breakpoint: 992,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            slidesToShow: 2,
+          },
         },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "40px",
-          slidesToShow: 1,
+        {
+          breakpoint: 768,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "40px",
+            slidesToShow: 1,
+          },
         },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "20px",
-          slidesToShow: 1,
+        {
+          breakpoint: 480,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "20px",
+            slidesToShow: 1,
+          },
         },
-      },
-    ],
-  });
+      ],
+    });
+  }
 
-  $(".logoSlider").slick({
-    autoplay: true,
-    arrows: false,
-    speed: 2500,
-    centerMode: true,
-    centerPadding: "160px",
-    slidesToShow: 3,
-    slickCurrentSlide: arguments,
-    responsive: [
-      {
-        breakpoint: 992,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "100px",
-          slidesToShow: 3,
+  if ($(".logoSlider").length) {
+    $(".logoSlider").slick({
+      autoplay: true,
+      autoplaySpeed: 3600,
+      pauseOnHover: true,
+      arrows: false,
+      speed: 600,
+      centerMode: true,
+      centerPadding: "160px",
+      slidesToShow: 3,
+      slickCurrentSlide: arguments,
+      responsive: [
+        {
+          breakpoint: 992,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "100px",
+            slidesToShow: 3,
+          },
         },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "80px",
-          slidesToShow: 2,
+        {
+          breakpoint: 768,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "80px",
+            slidesToShow: 2,
+          },
         },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "50px",
-          slidesToShow: 1,
+        {
+          breakpoint: 480,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "50px",
+            slidesToShow: 1,
+          },
         },
-      },
-    ],
-  });
+      ],
+    });
+  }
 
   // about page
-  $(".feedbackSlider").slick({
-    autoplay: true,
-    arrows: false,
-    dots: true,
-    speed: 2500,
-    centerMode: true,
-    centerPadding: "60px",
-    slidesToShow: 2,
-    slickCurrentSlide: arguments,
-    responsive: [
-      {
-        breakpoint: 992,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          // centerPadding: "100px",
-          slidesToShow: 1,
+  if ($(".feedbackSlider").length) {
+    $(".feedbackSlider").slick({
+      autoplay: true,
+      autoplaySpeed: 4200,
+      pauseOnHover: true,
+      arrows: false,
+      dots: true,
+      speed: 700,
+      centerMode: true,
+      centerPadding: "60px",
+      slidesToShow: 2,
+      slickCurrentSlide: arguments,
+      responsive: [
+        {
+          breakpoint: 992,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            slidesToShow: 1,
+          },
         },
-      },
-      {
-        breakpoint: 768,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "40px",
-          slidesToShow: 1,
+        {
+          breakpoint: 768,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "40px",
+            slidesToShow: 1,
+          },
         },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          arrows: false,
-          centerMode: true,
-          centerPadding: "20px",
-          slidesToShow: 1,
+        {
+          breakpoint: 480,
+          settings: {
+            arrows: false,
+            centerMode: true,
+            centerPadding: "20px",
+            slidesToShow: 1,
+          },
         },
-      },
-    ],
-  });
+      ],
+    });
+  }
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -203,13 +213,18 @@ $(".soluationHead li").on("click", function () {
 
 // portfolio
 document.addEventListener("DOMContentLoaded", function () {
-  let mixer = mixitup("#portfolio");
+  if (!document.querySelector("#portfolio")) {
+    return;
+  }
+
+  mixitup("#portfolio");
   $(function () {
     let allImages = Array.from(
       document.querySelectorAll("#portfolio .item img")
     );
     let currentIndex;
     let portfolioLayer = document.querySelector("#portfolio .portfolioLayer");
+    let isLayerOpen = false;
     // console.log(allImages);
 
     function getNextImg() {
@@ -237,14 +252,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     function closeImg() {
       $("#portfolio .portfolioLayer").addClass("d-none");
+      isLayerOpen = false;
     }
 
     $("#nextIcon").on("click", getNextImg);
     $("#prevIcon").on("click", getPrevImg);
     $("#closeIcon").on("click", closeImg);
 
+    document.addEventListener("keydown", function (e) {
+      if (!isLayerOpen) return;
+      if (e.key == "ArrowRight") {
+        getNextImg();
+      } else if (e.key == "ArrowLeft") {
+        getPrevImg();
+      } else if (e.key == "Escape") {
+        closeImg();
+      }
+    });
+
+    $("#portfolio .portfolioLayer").on("click", function (e) {
+      if (!isLayerOpen) return;
+      if (e.target == portfolioLayer) {
+        closeImg();
+      }
+    });
+
     $("#portfolio .item img").on("click", function () {
       $("#portfolio .portfolioLayer").removeClass("d-none");
+      isLayerOpen = true;
       // console.log($(this).attr("src"));
       currentIndex = allImages.indexOf(this);
       let currentSrc = $(this).attr("src");
@@ -252,22 +287,6 @@ document.addEventListener("DOMContentLoaded", function () {
         "background-image",
         `url(${currentSrc})`
       );
-      document.addEventListener("keydown", function (e) {
-        // console.log(e.key);
-        if (e.key == "ArrowRight") {
-          getNextImg();
-        } else if (e.key == "ArrowLeft") {
-          getPrevImg();
-        } else if (e.key == "Escape") {
-          closeImg();
-        }
-      });
-
-      $("#portfolio .portfolioLayer").on("click", function (e) {
-        if (e.target == portfolioLayer) {
-          closeImg();
-        }
-      });
     });
   });
 });
@@ -301,9 +320,12 @@ $(".work .workHead li").on("click", function () {
 // home
 
 $(function () {
-  $(".skitter-large").skitter({
-    navigation: true,
-    dots: false,
-    with_animations: ["cubeSpread", "cubeSize", "paralell", "blind"],
-  });
+  if ($(".skitter-large").length) {
+    $(".skitter-large").skitter({
+      navigation: true,
+      dots: false,
+      interval: 4500,
+      with_animations: ["fade", "swapBars"],
+    });
+  }
 });
