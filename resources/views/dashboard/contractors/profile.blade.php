@@ -630,15 +630,7 @@
             <x-dashboard.partials.message-alert />
          @if ($contractor->hasPermissionTo('search-stat-con'))
          <div class="moreSearch ">
-            <div role="button" class="btn w-100">
-              <h6 class="bg-dark py-2 text-white text-center rounded-2">
-                <i class="fa fa-magnifying-glass"></i>
-                البحث بالكشوف
-              </h6>
-            </div>
-
-            <!--  -->
-            <form id="SearchForm"  class="description d-none my-1">
+            <form id="SearchForm"  class="description my-1">
               <div class="d-flex align-items-center mb-2">
                 <label for="searchByNameOrNum">البحث عن</label>
                 <input type="hidden" name="id" value="{{$contractor->id}}">
