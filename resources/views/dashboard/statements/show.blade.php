@@ -17,12 +17,12 @@
 
 }
 
-.copyLink.is-copying {
+#copyConUrlBtn.is-copying {
     opacity: .85;
     transform: translateY(-1px);
 }
 
-.copyLink.is-copied {
+#copyConUrlBtn.is-copied {
     animation: copyPulse .45s ease;
 }
 
@@ -636,7 +636,7 @@
                                 </button>
                             </a>
 
-                        <button type="button" class="btn btn-secondary copyLink mb-1" id="copyConUrlBtn" value="link">
+                        <button type="button" class="btn btn-secondary mb-1" id="copyConUrlBtn">
                                 <i class="fa fa-book"></i>
                                 <span id="copyConUrlText">نسخ الرابط</span>
                             </button>
@@ -1083,11 +1083,13 @@ $("#form-attach").attr("action", url )
 
 $(document).off('click.copyConUrl', '#copyConUrlBtn').on('click.copyConUrl', '#copyConUrlBtn', async function (event) {
     event.preventDefault();
+    event.stopPropagation();
+    if (event.stopImmediatePropagation) event.stopImmediatePropagation();
 
     var btn = this;
     var $btn = $(btn);
     var textNode = document.getElementById('copyConUrlText');
-    var rawUrl = ($btn.attr('data-copy-url') || $('#RedirectLink').attr('href') || $('#con-url').text() || '').trim();
+    var rawUrl = ($btn.attr('data-copy-url') || $('#con-url').text() || '').trim();
 
     if (!rawUrl) {
         if (window.toastr) {
