@@ -1,9 +1,12 @@
-/* Modern Theme System
-   Scoped to ui-modern only. Legacy UI stays untouched.
-*/
+/* =========================================================
+    Modern Theme System (Core Tokens Consumption)
+    - Scoped to ui-modern only
+    - Central place for shared modern primitives
+    ========================================================= */
 
 html.ui-modern,
 body.ui-modern {
+    /* Typography scale roots */
     --ui-heading-h1: calc(var(--ui-fs-xl) * 1.45);
     --ui-heading-h2: calc(var(--ui-fs-xl) * 1.20);
     --ui-heading-h3: calc(var(--ui-fs-xl) * 1.05);
@@ -14,6 +17,7 @@ body.ui-modern {
 
 html.ui-modern body,
 body.ui-modern {
+    /* Base page text + surface */
     color: var(--ui-text-primary);
     background-color: var(--ui-bg-primary);
     font-size: var(--ui-fs-base);
@@ -23,6 +27,7 @@ html.ui-modern .page-body .container-fluid,
 body.ui-modern .page-body .container-fluid,
 html.ui-modern .page-body .container,
 body.ui-modern .page-body .container {
+    /* Content width section */
     max-width: var(--ui-container-max);
     margin-inline: auto;
     width: 100%;
@@ -30,11 +35,13 @@ body.ui-modern .page-body .container {
 
 html.ui-modern a,
 body.ui-modern a {
+    /* Link color section */
     color: var(--ui-link);
 }
 
 html.ui-modern .container-fluid,
 body.ui-modern .container-fluid {
+    /* Main horizontal spacing section */
     --bs-gutter-x: var(--ui-space-section);
 }
 
@@ -44,6 +51,7 @@ html.ui-modern .modal-content,
 body.ui-modern .modal-content,
 html.ui-modern .table-responsive,
 body.ui-modern .table-responsive {
+    /* Shared cards/tables/modals section */
     border-radius: var(--ui-radius-card);
     border-color: var(--ui-border);
     box-shadow: var(--ui-shadow);
@@ -54,6 +62,7 @@ html.ui-modern .card-body,
 body.ui-modern .card-body,
 html.ui-modern .modal-body,
 body.ui-modern .modal-body {
+    /* Card + modal body spacing section */
     padding: var(--ui-space-card);
 }
 
@@ -63,6 +72,7 @@ html.ui-modern .form-select,
 body.ui-modern .form-select,
 html.ui-modern .input-group-text,
 body.ui-modern .input-group-text {
+    /* Inputs/forms section */
     border-radius: var(--ui-radius-input);
     border-color: var(--ui-border);
     color: var(--ui-text-primary);
@@ -71,6 +81,7 @@ body.ui-modern .input-group-text {
 
 html.ui-modern .table,
 body.ui-modern .table {
+    /* Tables section */
     color: var(--ui-text-primary);
 }
 
@@ -83,9 +94,11 @@ html.ui-modern .navbar,
 body.ui-modern .navbar,
 html.ui-modern .breadcrumb,
 body.ui-modern .breadcrumb {
+    /* Navbar/breadcrumb section */
     color: var(--ui-text-primary);
 }
 
+/* Headings section */
 html.ui-modern h1,
 body.ui-modern h1 { font-size: var(--ui-heading-h1); }
 html.ui-modern h2,
@@ -101,6 +114,7 @@ body.ui-modern h6 { font-size: var(--ui-heading-h6); }
 
 html.ui-modern .btn,
 body.ui-modern .btn {
+    /* All buttons base section */
     border-radius: var(--ui-radius-button);
     font-weight: 700;
     font-size: var(--ui-fs-sm);
@@ -110,6 +124,7 @@ html.ui-modern .btn-primary,
 body.ui-modern .btn-primary,
 html.ui-modern .btn-ui-primary,
 body.ui-modern .btn-ui-primary {
+    /* Primary button */
     background-color: var(--ui-btn-primary);
     border-color: var(--ui-btn-primary);
     color: var(--ui-btn-ink);
@@ -119,6 +134,7 @@ html.ui-modern .btn-secondary,
 body.ui-modern .btn-secondary,
 html.ui-modern .btn-ui-secondary,
 body.ui-modern .btn-ui-secondary {
+    /* Secondary button */
     background-color: var(--ui-btn-secondary);
     border-color: var(--ui-btn-secondary);
     color: var(--ui-btn-ink);
@@ -128,6 +144,7 @@ html.ui-modern .btn-ui-tertiary,
 body.ui-modern .btn-ui-tertiary,
 html.ui-modern .btn-info,
 body.ui-modern .btn-info {
+    /* Tertiary button */
     background-color: var(--ui-btn-tertiary);
     border-color: var(--ui-btn-tertiary);
     color: var(--ui-btn-ink);
@@ -137,6 +154,7 @@ html.ui-modern .btn-ui-quaternary,
 body.ui-modern .btn-ui-quaternary,
 html.ui-modern .btn-warning,
 body.ui-modern .btn-warning {
+    /* Quaternary button */
     background-color: var(--ui-btn-quaternary);
     border-color: var(--ui-btn-quaternary);
     color: #111827;
@@ -144,6 +162,7 @@ body.ui-modern .btn-warning {
 
 html.ui-modern .text-ui-primary,
 body.ui-modern .text-ui-primary {
+    /* Text helpers section */
     color: var(--ui-text-primary) !important;
 }
 
@@ -154,6 +173,7 @@ body.ui-modern .text-ui-secondary {
 
 html.ui-modern .bg-ui-primary,
 body.ui-modern .bg-ui-primary {
+    /* Background helpers section */
     background-color: var(--ui-bg-primary) !important;
 }
 
@@ -164,6 +184,7 @@ body.ui-modern .bg-ui-secondary {
 
 html.ui-modern .ui-fs-xs,
 body.ui-modern .ui-fs-xs { font-size: var(--ui-fs-xs) !important; }
+/* Font-size helpers section */
 html.ui-modern .ui-fs-sm,
 body.ui-modern .ui-fs-sm { font-size: var(--ui-fs-sm) !important; }
 html.ui-modern .ui-fs-base,
