@@ -710,7 +710,8 @@
           >
         </h5>
 
-        <div class="d-flex justify-content-start mb-2">
+        <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
+          <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
         </div>
 
@@ -769,7 +770,6 @@
           </table>
         </div>
         <div class="d-flex align-items-center">
-            <label class="btn btn-dark allBtn">تحديد الكل</label>
             <select name="select" id="allSelected" class="form-control mx-2">
                 <option value="" ></option>
                 <option value="" hidden>التطبيق على المحدد</option>
