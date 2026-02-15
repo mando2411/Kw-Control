@@ -2357,11 +2357,42 @@
                 }
             }
 
-            var notificationsPollInterval = null;
+            var notificationsPollTimer = null;
             var notificationsPollingDisabled = false;
+            var notificationsFailureCount = 0;
+            var notificationsBaseInterval = 30000;
+            var notificationsMaxBackoff = 300000;
+
+            function clearNotificationsTimer() {
+                if (notificationsPollTimer) {
+                    clearTimeout(notificationsPollTimer);
+                    notificationsPollTimer = null;
+                }
+            }
+
+            function scheduleNotificationsPoll(delay) {
+                if (notificationsPollingDisabled) {
+                    return;
+                }
+
+                clearNotificationsTimer();
+                notificationsPollTimer = setTimeout(function () {
+                    fetchNotifications();
+                }, typeof delay === 'number' ? delay : notificationsBaseInterval);
+            }
+
+            function notificationsBackoffDelay() {
+                var exponent = Math.max(0, notificationsFailureCount - 1);
+                return Math.min(notificationsBaseInterval * Math.pow(2, exponent), notificationsMaxBackoff);
+            }
 
             function fetchNotifications() {
                 if (notificationsPollingDisabled) {
+                    return;
+                }
+
+                if (document.hidden || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
+                    scheduleNotificationsPoll(notificationsBaseInterval);
                     return;
                 }
 
@@ -2375,10 +2406,7 @@
                 .then(function (response) {
                     if (response.status === 403) {
                         notificationsPollingDisabled = true;
-                        if (notificationsPollInterval) {
-                            clearInterval(notificationsPollInterval);
-                            notificationsPollInterval = null;
-                        }
+                        clearNotificationsTimer();
                         return null;
                     }
 
@@ -2389,15 +2417,22 @@
                 })
                 .then(function (data) {
                     if (!data) {
+                        scheduleNotificationsPoll(notificationsBaseInterval);
                         return;
                     }
 
+                    notificationsFailureCount = 0;
                     hasFetchedNotifications = true;
 
                     renderBadge(data.unread_count || 0);
                     renderItems(data.items || []);
+
+                    scheduleNotificationsPoll(notificationsBaseInterval);
                 })
-                .catch(function () {});
+                .catch(function () {
+                    notificationsFailureCount += 1;
+                    scheduleNotificationsPoll(notificationsBackoffDelay());
+                });
             }
 
             function markNotificationAsRead(id) {
@@ -2492,8 +2527,26 @@
                 });
             });
 
+            window.addEventListener('online', function () {
+                if (notificationsPollingDisabled) {
+                    return;
+                }
+
+                notificationsFailureCount = 0;
+                fetchNotifications();
+            });
+
+            document.addEventListener('visibilitychange', function () {
+                if (notificationsPollingDisabled) {
+                    return;
+                }
+
+                if (!document.hidden) {
+                    fetchNotifications();
+                }
+            });
+
             fetchNotifications();
-            notificationsPollInterval = setInterval(fetchNotifications, 30000);
         })();
     </script>
 
