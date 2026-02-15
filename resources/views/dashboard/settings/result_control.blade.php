@@ -443,7 +443,7 @@
                         <p>اختر ثيم جاهز متناسق (Light + Dark) أو اختر Custom لتفعيل الإعدادات اليدوية بالأسفل.</p>
                     </div>
                     <div class="sm-card-b">
-                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-preset-form">
                             @csrf
                             @method('PUT')
 
@@ -453,10 +453,22 @@
                                 <option value="emerald" @selected($themePresetCurrent === 'emerald')>Emerald (أخضر/تركواز متناسق)</option>
                                 <option value="violet" @selected($themePresetCurrent === 'violet')>Violet (بنفسجي/وردي متناسق)</option>
                                 <option value="custom" @selected($themePresetCurrent === 'custom')>Custom (يدوي)</option>
+                                @foreach ($userThemes as $theme)
+                                    <option data-user-theme="1" value="{{ $theme['id'] }}" @selected($themePresetCurrent === $theme['id'])>{{ $theme['name'] }}</option>
+                                @endforeach
                             </select>
+
+                            <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value }}[]" id="ui_modern_theme_library_input" value="{{ e(json_encode($userThemes, JSON_UNESCAPED_UNICODE)) }}">
+
+                            <div class="mt-3">
+                                <label class="form-label fw-bold">اسم ثيم جديد</label>
+                                <input type="text" id="new_theme_name" class="form-control" placeholder="مثال: Blue Ocean">
+                            </div>
 
                             <div class="sm-actions">
                                 <button type="submit" class="btn btn-primary">تطبيق الثيم</button>
+                                <button type="button" class="btn btn-secondary" id="add-theme-btn">إضافة كثيم</button>
+                                <button type="button" class="btn btn-danger" id="delete-theme-btn">حذف الثيم المحدد</button>
                             </div>
                         </form>
                     </div>
@@ -472,9 +484,11 @@
                             اختَر اللون مباشرة من المربع، ويمكنك أيضًا تعديل كود اللون يدويًا. أحجام الخطوط بصيغة <strong>rem</strong> أو <strong>px</strong>.
                         </div>
 
-                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST">
+                        <form action="{{ route('dashboard.settings.update' ) }}" method="POST" id="theme-custom-form">
                             @csrf
                             @method('PUT')
+                            <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value }}[]" id="ui_modern_theme_preset_custom_hidden" value="{{ $themePresetCurrent }}">
+                            <input type="hidden" name="{{ \App\Enums\SettingKey::UI_MODERN_THEME_LIBRARY->value }}[]" id="ui_modern_theme_library_custom_hidden" value="{{ e(json_encode($userThemes, JSON_UNESCAPED_UNICODE)) }}">
 
                             <div class="row g-3">
                                 <div class="col-12">
@@ -487,7 +501,7 @@
                                         <label class="form-label fw-bold">{{ $meta['label'] }}</label>
                                         <div class="input-group">
                                             <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
-                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
                                         </div>
                                     </div>
                                 @endforeach
@@ -502,7 +516,7 @@
                                         <label class="form-label fw-bold">{{ $meta['label'] }}</label>
                                         <div class="input-group">
                                             <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
-                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                            <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
                                         </div>
                                     </div>
                                 @endforeach
@@ -514,7 +528,7 @@
                                 @foreach ($fontDefaults as $key => $meta)
                                     <div class="col-md-6 col-lg-3">
                                         <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                        <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                        <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
                                     </div>
                                 @endforeach
 
@@ -529,14 +543,14 @@
                                             <label class="form-label fw-bold">{{ $meta['label'] }}</label>
                                             <div class="input-group">
                                                 <input type="color" class="form-control form-control-color" id="{{ $colorId }}_picker" value="{{ $themeHexValue($key, $meta['default']) }}" data-sync-target="{{ $colorId }}_text" title="اختر اللون">
-                                                <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
+                                                <input type="text" class="form-control" id="{{ $colorId }}_text" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeHexValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}" pattern="^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6})$">
                                             </div>
                                         </div>
                                     @elseif ($meta['type'] === 'select')
                                         @php $shadowCurrent = $themeSettingValue($key, $meta['default']); @endphp
                                         <div class="col-md-6 col-lg-3">
                                             <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                            <select class="form-control" name="{{ $key }}[]">
+                                            <select class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}">
                                                 <option value="soft" @selected($shadowCurrent === 'soft')>خفيف</option>
                                                 <option value="medium" @selected($shadowCurrent === 'medium')>متوسط</option>
                                                 <option value="strong" @selected($shadowCurrent === 'strong')>قوي</option>
@@ -545,7 +559,7 @@
                                     @else
                                         <div class="col-md-6 col-lg-3">
                                             <label class="form-label fw-bold">{{ $meta['label'] }}</label>
-                                            <input type="text" class="form-control" name="{{ $key }}[]" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
+                                            <input type="text" class="form-control" name="{{ $key }}[]" data-theme-token="{{ $key }}" value="{{ $themeSettingValue($key, $meta['default']) }}" placeholder="{{ $meta['default'] }}">
                                         </div>
                                     @endif
                                 @endforeach
@@ -637,8 +651,175 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function () {
-                var colorPickers = document.querySelectorAll('#settings-app input[type="color"][data-sync-target]');
-                colorPickers.forEach(function (picker) {
+                var presetSelect = document.getElementById('ui_modern_theme_preset');
+                var presetForm = document.getElementById('theme-preset-form');
+                var customForm = document.getElementById('theme-custom-form');
+                var addThemeBtn = document.getElementById('add-theme-btn');
+                var deleteThemeBtn = document.getElementById('delete-theme-btn');
+                var newThemeNameInput = document.getElementById('new_theme_name');
+                var libraryPresetHidden = document.getElementById('ui_modern_theme_library_input');
+                var libraryCustomHidden = document.getElementById('ui_modern_theme_library_custom_hidden');
+                var presetCustomHidden = document.getElementById('ui_modern_theme_preset_custom_hidden');
+
+                if (!presetSelect || !presetForm || !customForm || !libraryPresetHidden || !libraryCustomHidden || !presetCustomHidden) {
+                    return;
+                }
+
+                var builtInPresetIds = ['default', 'emerald', 'violet', 'custom'];
+                var presets = @json($themePresetsForJs);
+                var defaults = (presets.default && presets.default.values) ? presets.default.values : {};
+                var isApplyingPreset = false;
+
+                var parseLibrary = function (raw) {
+                    try {
+                        var parsed = JSON.parse(raw || '[]');
+                        return Array.isArray(parsed) ? parsed : [];
+                    } catch (error) {
+                        return [];
+                    }
+                };
+
+                var userThemes = parseLibrary(libraryPresetHidden.value);
+
+                var normalizeHex = function (value) {
+                    var v = (value || '').trim();
+                    if (/^#([a-fA-F0-9]{6})$/.test(v)) {
+                        return v.toLowerCase();
+                    }
+                    if (/^#([a-fA-F0-9]{3})$/.test(v)) {
+                        var s = v.substring(1).toLowerCase();
+                        return '#' + s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+                    }
+                    return null;
+                };
+
+                var themeFieldElements = Array.prototype.slice.call(customForm.querySelectorAll('[data-theme-token]'));
+
+                var snapshotValues = function () {
+                    var snapshot = {};
+                    themeFieldElements.forEach(function (field) {
+                        var key = field.getAttribute('data-theme-token');
+                        if (!key) {
+                            return;
+                        }
+                        snapshot[key] = field.value;
+                    });
+                    return snapshot;
+                };
+
+                var setFieldValues = function (values) {
+                    themeFieldElements.forEach(function (field) {
+                        var key = field.getAttribute('data-theme-token');
+                        if (!key) {
+                            return;
+                        }
+                        var nextValue = (values && values[key] != null) ? values[key] : defaults[key];
+                        if (nextValue != null) {
+                            field.value = String(nextValue);
+                        }
+                    });
+                    syncColorPickersFromText();
+                };
+
+                var findUserTheme = function (id) {
+                    return userThemes.find(function (theme) {
+                        return theme && theme.id === id;
+                    }) || null;
+                };
+
+                var getPresetValues = function (presetId) {
+                    if (presets[presetId] && presets[presetId].values) {
+                        return presets[presetId].values;
+                    }
+                    var userTheme = findUserTheme(presetId);
+                    if (userTheme && userTheme.values) {
+                        return Object.assign({}, defaults, userTheme.values);
+                    }
+                    return defaults;
+                };
+
+                var syncHiddenLibrary = function () {
+                    var payload = JSON.stringify(userThemes);
+                    libraryPresetHidden.value = payload;
+                    libraryCustomHidden.value = payload;
+                };
+
+                var renderUserThemeOptions = function () {
+                    var current = presetSelect.value;
+                    Array.prototype.slice.call(presetSelect.querySelectorAll('option[data-user-theme="1"]')).forEach(function (option) {
+                        option.remove();
+                    });
+
+                    userThemes.forEach(function (theme) {
+                        var option = document.createElement('option');
+                        option.value = theme.id;
+                        option.textContent = theme.name;
+                        option.setAttribute('data-user-theme', '1');
+                        presetSelect.appendChild(option);
+                    });
+
+                    if (presetSelect.querySelector('option[value="' + current + '"]')) {
+                        presetSelect.value = current;
+                    }
+                };
+
+                var applyPresetToCustom = function (presetId) {
+                    isApplyingPreset = true;
+                    setFieldValues(getPresetValues(presetId));
+                    presetCustomHidden.value = presetId;
+                    isApplyingPreset = false;
+                };
+
+                var toSlug = function (name) {
+                    return (name || '')
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9\s-]/g, '')
+                        .replace(/\s+/g, '-')
+                        .replace(/-+/g, '-')
+                        .replace(/^-|-$/g, '') || 'theme';
+                };
+
+                var uniqueThemeId = function (baseId) {
+                    var id = baseId;
+                    var counter = 2;
+                    var exists = function (value) {
+                        if (builtInPresetIds.indexOf(value) !== -1) {
+                            return true;
+                        }
+                        return userThemes.some(function (theme) { return theme.id === value; });
+                    };
+                    while (exists(id)) {
+                        id = baseId + '-' + counter;
+                        counter += 1;
+                    }
+                    return id;
+                };
+
+                var markAsCustom = function () {
+                    if (isApplyingPreset) {
+                        return;
+                    }
+                    presetSelect.value = 'custom';
+                    presetCustomHidden.value = 'custom';
+                };
+
+                var syncColorPickersFromText = function () {
+                    var colorPickers = document.querySelectorAll('#settings-app input[type="color"][data-sync-target]');
+                    colorPickers.forEach(function (picker) {
+                        var targetId = picker.getAttribute('data-sync-target');
+                        var targetInput = document.getElementById(targetId);
+                        if (!targetInput) {
+                            return;
+                        }
+                        var normalized = normalizeHex(targetInput.value);
+                        if (normalized) {
+                            picker.value = normalized;
+                        }
+                    });
+                };
+
+                document.querySelectorAll('#settings-app input[type="color"][data-sync-target]').forEach(function (picker) {
                     var targetId = picker.getAttribute('data-sync-target');
                     var targetInput = document.getElementById(targetId);
                     if (!targetInput) {
@@ -647,18 +828,76 @@
 
                     picker.addEventListener('input', function () {
                         targetInput.value = picker.value;
+                        markAsCustom();
                     });
 
                     targetInput.addEventListener('input', function () {
-                        var value = (targetInput.value || '').trim();
-                        if (/^#([a-fA-F0-9]{6})$/.test(value)) {
-                            picker.value = value;
-                        } else if (/^#([a-fA-F0-9]{3})$/.test(value)) {
-                            var shortHex = value.substring(1);
-                            picker.value = '#' + shortHex[0] + shortHex[0] + shortHex[1] + shortHex[1] + shortHex[2] + shortHex[2];
+                        var normalized = normalizeHex(targetInput.value);
+                        if (normalized) {
+                            picker.value = normalized;
                         }
+                        markAsCustom();
                     });
                 });
+
+                themeFieldElements.forEach(function (field) {
+                    field.addEventListener('change', markAsCustom);
+                    field.addEventListener('input', markAsCustom);
+                });
+
+                presetSelect.addEventListener('change', function () {
+                    applyPresetToCustom(presetSelect.value);
+                });
+
+                addThemeBtn.addEventListener('click', function () {
+                    var themeName = (newThemeNameInput.value || '').trim();
+                    if (!themeName) {
+                        alert('اكتب اسم الثيم أولاً.');
+                        return;
+                    }
+
+                    var newId = uniqueThemeId(toSlug(themeName));
+                    var values = snapshotValues();
+                    var themeObject = { id: newId, name: themeName, values: values };
+
+                    userThemes.push(themeObject);
+                    presets[newId] = { name: themeName, values: Object.assign({}, defaults, values) };
+                    syncHiddenLibrary();
+                    renderUserThemeOptions();
+
+                    presetSelect.value = newId;
+                    presetCustomHidden.value = newId;
+                    newThemeNameInput.value = '';
+                    presetForm.submit();
+                });
+
+                deleteThemeBtn.addEventListener('click', function () {
+                    var selected = presetSelect.value;
+                    if (builtInPresetIds.indexOf(selected) !== -1) {
+                        alert('لا يمكن حذف الثيمات الأساسية.');
+                        return;
+                    }
+
+                    var before = userThemes.length;
+                    userThemes = userThemes.filter(function (theme) {
+                        return theme.id !== selected;
+                    });
+
+                    if (userThemes.length === before) {
+                        return;
+                    }
+
+                    delete presets[selected];
+                    syncHiddenLibrary();
+                    renderUserThemeOptions();
+                    presetSelect.value = 'default';
+                    presetCustomHidden.value = 'default';
+                    presetForm.submit();
+                });
+
+                syncHiddenLibrary();
+                renderUserThemeOptions();
+                applyPresetToCustom(presetSelect.value || 'default');
             });
         </script>
     </div>
