@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Http\Controllers\Dashboard;
+
+use {{ namespacedModel }};
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Dashboard\{{ model }}Request;
+use App\DataTables\{{ model }}DataTable;
+
+class {{ class }}Controller extends Controller
+{
+
+    public function index({{ model }}DataTable $dataTable)
+    {
+        return $dataTable->render('dashboard.{{ viewFolder }}.index');
+    }
+
+
+    public function create()
+    {
+        return view('dashboard.{{ viewFolder }}.create');
+    }
+
+
+    public function store({{ model }}Request $request)
+    {
+        ${{ modelVariable }} = {{ model }}::create($request->getSanitized());
+        session()->flash('message', '{{ model }} Created Successfully!');
+        session()->flash('type', 'success');
+        return redirect()->route('dashboard.{{ viewFolder }}.edit', ${{ modelVariable }});
+    }
+
+
+    public function show({{ model }} ${{ modelVariable }})
+    {
+        //
+    }
+
+
+    public function edit({{ model }} ${{ modelVariable }})
+    {
+        return view('dashboard.{{ viewFolder }}.edit', compact('{{ modelVariable }}'));
+    }
+
+
+    public function update({{ model }}Request $request, {{ model }} ${{ modelVariable }})
+    {
+        ${{ modelVariable }}->update($request->getSanitized());
+        session()->flash('message', '{{ model }} Updated Successfully!');
+        session()->flash('type', 'success');
+        return back();
+    }
+
+
+    public function destroy({{ model }} ${{ modelVariable }})
+    {
+        ${{ modelVariable }}->delete();
+        return response()->json([
+            'message' => '{{ model }} Deleted Successfully!'
+        ]);
+    }
+}

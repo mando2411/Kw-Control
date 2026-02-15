@@ -1,0 +1,3 @@
+foreach (config('translatable.locales') as $local) {
+{{ fields }}
+        }

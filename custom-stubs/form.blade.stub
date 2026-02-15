@@ -1,0 +1,28 @@
+@extends('layouts.dashboard.app')
+
+@section('content')
+    <form action="{{ route('dashboard.{{ routePrefix }}.{{ action }}' {{ param }}) }}" method="POST" class="page-body">
+        @csrf
+
+        <!-- Container-fluid starts-->
+        <x-dashboard.partials.breadcrumb title="{{ breadCrumbMainTitle }}" :hideFirst="true">
+            <li class="breadcrumb-item">
+                <a href="{{ route('dashboard.{{ routePrefix }}.index') }}">{{ breadCrumbTitle }}</a>
+            </li>
+        </x-dashboard.partials.breadcrumb>
+        <!-- Container-fluid Ends-->
+
+        <!-- Container-fluid starts-->
+        <div class="container-fluid">
+            <div class="row">
+                <x-dashboard.partials.message-alert />
+
+                //translatableFields
+                //basicFields
+                //SeoForm
+            </div>
+        </div>
+        <!-- Container-fluid Ends-->
+
+    </form>
+@endsection
