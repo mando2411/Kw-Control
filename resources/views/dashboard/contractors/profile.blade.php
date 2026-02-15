@@ -650,6 +650,12 @@
       <div class="container contractor-page-container">
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
+            <div class="d-flex justify-content-end mb-2">
+              <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+                <i class="fa fa-plus ms-1"></i>
+                انشاء قائمة جديدة للاسماء
+              </button>
+            </div>
          @if ($contractor->hasPermissionTo('search-stat-con'))
          <div class="moreSearch ">
             <form id="SearchForm"  class="description my-1">
@@ -898,6 +904,50 @@
       </div>
     </div>
 
+    <div
+      class="modal rtl"
+      id="createGroupModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header py-2">
+            <h6 class="modal-title">انشاء قائمة جديدة للاسماء</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form action="{{route('group')}}" method="POST" class="modal-body">
+            @csrf
+            <input type="hidden" name="contractor_id" value="{{$contractor->id}}">
+
+            <div class="mb-2">
+              <label for="listNameModal" class="form-label">اسم القائمة</label>
+              <input
+               type="text"
+               class="form-control"
+               name="name"
+               id="listNameModal"
+               placeholder="اسم القائمة"
+               value=""
+               required
+             />
+            </div>
+
+            <div class="mb-3">
+              <label for="listTypeModal" class="form-label">نوع القائمة</label>
+              <select name="type" id="listTypeModal" class="form-control" required>
+                <option value="" hidden>نوع القائمة</option>
+                <option value="مضمون">مضمون</option>
+                <option value="تحت المراجعة">تحت المراجعة</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-secondary w-100">انشاء</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <section class="pt-4 pb-2">
         <!-- <div class="container-fluid px-0"> -->
       <div class="container contractor-layout-block">
@@ -1074,29 +1124,7 @@
             </div>
           </div>
 
-          <h6 class="bg-dark py-2 text-white text-center rounded-2">
-            انشاء قائمة جديدة للاسماء
-          </h6>
-          <form action="{{route('group')}}" method="POST" class="d-flex my-3 rtl">
-            @csrf
-            <input type="hidden" name="contractor_id" value="{{$contractor->id}}">
-            <input
-             type="text"
-             class="form-control"
-             name="name"
-             id="listName"
-             placeholder="اسم القائمة"
-             value=""
-           />
-           <select name="type" id="listType" class="form-control">
-                <option value="" hidden>نوع القائمة</option>
-                <option value="مضمون">مضمون</option>
-                <option value="تحت المراجعة">تحت المراجعة</option>
-                </select>
-                <button type="submit" class="btn btn-secondary">
-                    انشاء
-                </button>
-        </form>
+
         </div>
 
         <div class="banner">
