@@ -367,6 +367,26 @@
       text-align: right;
     }
 
+    .contractor-page-container {
+      width: min(var(--ui-container-max, 1320px), 95vw);
+      margin-inline: auto;
+    }
+
+    .contractor-layout-block {
+      width: min(var(--ui-container-max, 1320px), 95vw);
+      margin: 1rem auto;
+      background: var(--ui-bg-primary, #fff);
+      border: 1px solid var(--ui-border, #dbe3ef);
+      border-radius: calc(var(--ui-radius-card, 1rem) + 0.15rem);
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.09);
+      padding: clamp(0.85rem, 1.8vw, 1.3rem);
+    }
+
+    .contractor-layout-block .table-responsive {
+      border-radius: var(--ui-radius-card, 1rem);
+      overflow: auto;
+    }
+
     .contractor-top-cta {
       background: linear-gradient(120deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1), var(--ui-btn-tertiary, #14b8a6));
       color: #fff;
@@ -540,6 +560,16 @@
     }
 
     @media (max-width: 768px) {
+      .contractor-layout-block {
+        width: 95vw;
+        padding: 0.8rem;
+        margin: 0.8rem auto;
+      }
+
+      .contractor-page-container {
+        width: 95vw;
+      }
+
       .contractor-top-cta__inner {
         justify-content: center;
         text-align: center;
@@ -573,7 +603,7 @@
     </div>
 
     <section class="rtl contractor-hero-wrap">
-      <div class="container-fluid" style="max-width: min(1280px, 95vw);">
+      <div class="container-fluid contractor-page-container">
         <div class="contractor-hero">
           <figure class="contractor-hero-media mb-0">
             <img
@@ -595,7 +625,7 @@
           ولكم كل الشكر والتقدير على دعمكم لنا 🌹
         </p>
       </div>
-      <div class="container">
+      <div class="container contractor-page-container">
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
          @if ($contractor->hasPermissionTo('search-stat-con'))
@@ -718,8 +748,8 @@
     <form action="{{route("modify")}}" method="POST" id="form-transfer">
         @csrf
         <input type="hidden" name="id" value="{{$contractor->id}}" id="con_id">
-    <section class="py-3 rtl bg-secondary">
-      <div class="container-fluid">
+    <section class="py-3 rtl">
+      <div class="container-fluid contractor-layout-block">
         <h5>
           قائمة الأسماء
           <span
@@ -918,9 +948,9 @@
       </div>
     </div>
 
-    <section class="pt-5 pb-1">
+    <section class="pt-4 pb-2">
         <!-- <div class="container-fluid px-0"> -->
-        <div class="container">
+      <div class="container contractor-layout-block">
             @forelse ($contractor->groups as $g )
             <div
          class="ta7reerContent @if ($g->type == 'مضمون')
