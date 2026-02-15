@@ -504,7 +504,7 @@
                                     </div>
                                 </form>
 
-                                <button type="button" id="smOpenExport" data-bs-toggle="modal" data-bs-target="#smExportModal" class="my-2 btn btn-dark"> استخراج الكشوف</button>
+                                <button type="button" id="smOpenExport" class="my-2 btn btn-dark"> استخراج الكشوف</button>
 
 
                                 <div class="table-responsive mt-2">
@@ -644,6 +644,7 @@
             var exportCloseBtn = document.getElementById('smExportCloseBtn');
             var exportOpenBtn = document.getElementById('smOpenExport');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
+            var isOpeningExportModal = false;
 
             function showExportStatus(message, tone) {
                 if (!window.toastr) return;
@@ -680,6 +681,25 @@
 
                 if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
                     window.jQuery(exportModalElement).modal('hide');
+                }
+            }
+
+            function openExportModal() {
+                if (!exportModalElement) return;
+
+                if (window.bootstrap && window.bootstrap.Modal) {
+                    var modal = window.bootstrap.Modal.getOrCreateInstance
+                        ? window.bootstrap.Modal.getOrCreateInstance(exportModalElement)
+                        : new window.bootstrap.Modal(exportModalElement);
+
+                    if (modal && typeof modal.show === 'function') {
+                        modal.show();
+                        return;
+                    }
+                }
+
+                if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
+                    window.jQuery(exportModalElement).modal('show');
                 }
             }
 
@@ -950,6 +970,10 @@
                 });
 
             modalEl.addEventListener('hidden.bs.modal', function () {
+                if (isOpeningExportModal) {
+                    return;
+                }
+
                 if (exportModalElement && (exportModalElement.classList.contains('show') || exportModalElement.style.display === 'block')) {
                     return;
                 }
@@ -964,8 +988,22 @@
             });
 
             if (exportOpenBtn) {
-                exportOpenBtn.addEventListener('click', function () {
+                exportOpenBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
                     selectedVoterIdsCache = getSelectedVoterIdsForExport();
+
+                    if (!selectedVoterIdsCache.length) {
+                        showExportStatus('اختر ناخبًا واحدًا على الأقل قبل فتح خيارات الاستخراج', 'error');
+                        return;
+                    }
+
+                    isOpeningExportModal = true;
+                    openExportModal();
+                    setTimeout(function () {
+                        isOpeningExportModal = false;
+                    }, 250);
                 });
             }
 
@@ -983,6 +1021,10 @@
                     }
 
                     selectedVoterIdsCache = getSelectedVoterIdsForExport();
+                });
+
+                exportModalElement.addEventListener('hidden.bs.modal', function () {
+                    isOpeningExportModal = false;
                 });
             }
 

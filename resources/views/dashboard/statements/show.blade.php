@@ -611,7 +611,7 @@
 
                         <div class="text-center">
                         <span>رابط المتعهد</span>
-                        <span class="bg-body-secondary p-1 px-3 rounded-pill me-2" id="con-url">md-kw.com/./?q=NTEy</span>
+                       <!-- <span class="bg-body-secondary p-1 px-3 rounded-pill me-2" id="con-url">md-kw.com/./?q=NTEy</span> -->
                         </div>
                         <div class="text-center">
                             <a href="" id="RedirectLink">
