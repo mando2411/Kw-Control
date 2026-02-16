@@ -1557,8 +1557,8 @@
           <label class="contractor-rows-control" for="rowsPerPageSelect">
             <span>عدد صفوف العرض</span>
             <select id="rowsPerPageSelect" aria-label="عدد صفوف العرض">
-              <option value="10">10</option>
-              <option value="20" selected>20</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
               <option value="50">50</option>
               <option value="100">100</option>
               <option value="all">الكل</option>
@@ -2234,7 +2234,7 @@ const csrfToken = $('meta[name="csrf-token"]').attr('content');
 const contractorId = "{{ $contractor->id }}";
 const searchEndpoint = '/search';
 const lazyLoadChunkSize = 20;
-let selectedRowsPerView = '20';
+let selectedRowsPerView = '10';
 let totalSearchRows = 0;
 let totalSearchPages = 1;
 
@@ -2953,7 +2953,7 @@ $('#searchByFamily').on('change', function () {
 });
 
 $('#rowsPerPageSelect').on('change', function () {
-  selectedRowsPerView = ($(this).val() || '20').toString();
+  selectedRowsPerView = ($(this).val() || '10').toString();
   runLiveSearch(currentFiltersFromUI());
 });
 
