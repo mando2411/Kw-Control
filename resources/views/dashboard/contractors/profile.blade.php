@@ -459,16 +459,100 @@
       animation: voterActionSwitch 320ms ease;
     }
 
+    .contractor-tab-switcher-hint {
+      margin: 0 0 0.35rem;
+      color: var(--ui-text-secondary, #475569);
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.32rem;
+      opacity: 0.9;
+    }
+
     .contractor-tab-nav {
-      display: flex;
+      display: inline-flex;
       justify-content: center;
-      gap: 0.55rem;
-      margin: 0.4rem auto 0.85rem;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.42rem;
+      margin: 0.4rem auto 0.9rem;
+      flex-wrap: nowrap;
+      padding: 0.35rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 88%, transparent);
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 88%, transparent);
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--ui-border, #dbe3ef) 35%, transparent);
     }
 
     .contractor-tab-btn {
-      min-width: 130px;
+      min-width: 180px;
+      border-radius: 999px !important;
+      border: 1px solid transparent !important;
+      background: transparent;
+      color: var(--ui-text-secondary, #475569) !important;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.48rem;
+      padding: 0.48rem 1rem;
+      transition: all 220ms ease;
+    }
+
+    .contractor-tab-btn__icon {
+      width: 1.65rem;
+      height: 1.65rem;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 55%, transparent);
+    }
+
+    .contractor-tab-btn__meta {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.15;
+      text-align: right;
+      gap: 0.08rem;
+    }
+
+    .contractor-tab-btn__title {
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: inherit;
+    }
+
+    .contractor-tab-btn__sub {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--ui-text-secondary, #475569) 78%, transparent);
+    }
+
+    .contractor-tab-btn.btn-outline-secondary:hover {
+      border-color: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 40%, transparent) !important;
+      color: var(--ui-btn-primary, #0ea5e9) !important;
+      transform: translateY(-1px);
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 10%, transparent);
+    }
+
+    .contractor-tab-btn.active,
+    .contractor-tab-btn.btn-secondary {
+      background: linear-gradient(120deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1));
+      color: #fff !important;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 40%, transparent);
+    }
+
+    .contractor-tab-btn.active .contractor-tab-btn__sub,
+    .contractor-tab-btn.btn-secondary .contractor-tab-btn__sub {
+      color: color-mix(in srgb, #ffffff 92%, transparent);
+    }
+
+    .contractor-tab-btn.active .contractor-tab-btn__icon,
+    .contractor-tab-btn.btn-secondary .contractor-tab-btn__icon {
+      background: color-mix(in srgb, #ffffff 18%, transparent);
     }
 
     .contractor-tab-pane {
@@ -866,6 +950,40 @@
         line-height: 1.65;
       }
 
+      .contractor-tab-switcher-hint {
+        margin-bottom: 0.3rem;
+        font-size: 0.72rem;
+      }
+
+      .contractor-tab-nav {
+        display: flex;
+        width: 100%;
+        border-radius: 0.9rem;
+        padding: 0.28rem;
+        gap: 0.28rem;
+      }
+
+      .contractor-tab-btn {
+        min-width: 0;
+        flex: 1 1 0;
+        padding: 0.42rem 0.5rem;
+        gap: 0.3rem;
+      }
+
+      .contractor-tab-btn__icon {
+        width: 1.45rem;
+        height: 1.45rem;
+        font-size: 0.75rem;
+      }
+
+      .contractor-tab-btn__title {
+        font-size: 0.82rem;
+      }
+
+      .contractor-tab-btn__sub {
+        display: none;
+      }
+
       .madameenTable.table-responsive {
         overflow-x: hidden;
         padding: 0.2rem;
@@ -1022,6 +1140,7 @@
       </div>
 
       <div class="container contractor-page-container">
+        <p class="contractor-tab-switcher-hint"><i class="bi bi-layout-three-columns-gap"></i> اختر طريقة العرض</p>
         <div class="contractor-tab-nav nav" id="contractorTabNav" role="tablist">
           <button
             type="button"
@@ -1032,7 +1151,13 @@
             role="tab"
             aria-controls="contractorTabSearch"
             aria-selected="true"
-          >البحث</button>
+          >
+            <span class="contractor-tab-btn__icon"><i class="bi bi-search"></i></span>
+            <span class="contractor-tab-btn__meta">
+              <span class="contractor-tab-btn__title">البحث</span>
+              <span class="contractor-tab-btn__sub">عرض نتائج البحث</span>
+            </span>
+          </button>
           <button
             type="button"
             class="btn btn-outline-secondary contractor-tab-btn"
@@ -1042,7 +1167,13 @@
             role="tab"
             aria-controls="contractorTabLists"
             aria-selected="false"
-          >القوائم</button>
+          >
+            <span class="contractor-tab-btn__icon"><i class="bi bi-card-checklist"></i></span>
+            <span class="contractor-tab-btn__meta">
+              <span class="contractor-tab-btn__title">القوائم</span>
+              <span class="contractor-tab-btn__sub">عرض القوائم المحفوظة</span>
+            </span>
+          </button>
         </div>
       </div>
 
