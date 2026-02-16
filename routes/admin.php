@@ -160,7 +160,8 @@ Route::get('group/{id}', function ($id) {
 });
 Route::get("voter/{id}/{con_id}", function($id,$con_id){
     $voter =Voter::findOrFail($id);
-    $percent=$voter->contractors()->where('contractor_id',$con_id)->first()->pivot->percentage;
+    $contractorPivot = $voter->contractors()->where('contractor_id', $con_id)->first()?->pivot;
+    $percent = $contractorPivot?->percentage ?? 0;
     // dd($percent);
     return response()->json([
         "voter"=>$voter,
