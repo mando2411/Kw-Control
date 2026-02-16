@@ -956,6 +956,16 @@
       color: var(--ui-text-secondary, #475569);
       font-size: 0.78rem;
       font-weight: 700;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity 170ms ease, transform 170ms ease, visibility 170ms ease;
+    }
+
+    .contractor-lazy-loader.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
     }
 
     .contractor-lazy-loader__dots {
@@ -1833,7 +1843,7 @@
         </div>
 
         <div class="text-center">
-          <div id="searchLazyLoader" class="contractor-lazy-loader d-none" role="status" aria-live="polite">
+          <div id="searchLazyLoader" class="contractor-lazy-loader" role="status" aria-live="polite">
             <span>جاري تحميل المزيد من النتائج</span>
             <span class="contractor-lazy-loader__dots" aria-hidden="true">
               <span class="contractor-lazy-loader__dot"></span>
@@ -2807,7 +2817,7 @@ function renderTableSkeleton() {
 }
 
 function setLazyLoaderVisibility(visible) {
-  $('#searchLazyLoader').toggleClass('d-none', !visible);
+  $('#searchLazyLoader').toggleClass('is-visible', !!visible);
 }
 
 function currentFiltersFromUI() {
@@ -2967,6 +2977,8 @@ function runLiveSearch(filters) {
 function loadNextPageIfAvailable() {
   if (!isAllRowsMode()) return;
   if (isLoadingRows || !hasMoreRows) return;
+
+  setLazyLoaderVisibility(true);
   currentPage += 1;
   fetchVotersPage(true);
 }
@@ -3215,8 +3227,13 @@ $('#rowsPerPageSelect').on('change', function () {
 $('.madameenTable').on('scroll', function () {
   if (!isAllRowsMode()) return;
   const element = this;
-  const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 80;
+  const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 180;
   if (!nearBottom) return;
+
+  if (!isLoadingRows && hasMoreRows) {
+    setLazyLoaderVisibility(true);
+  }
+
   loadNextPageIfAvailable();
 });
 
@@ -3238,11 +3255,14 @@ $(window).on('scroll', function () {
       document.documentElement.offsetHeight
     );
 
-    const nearPageBottom = scrollTop + viewportHeight >= fullHeight - 180;
+    const nearPageBottom = scrollTop + viewportHeight >= fullHeight - 320;
     if (nearPageBottom) {
+      if (!isLoadingRows && hasMoreRows) {
+        setLazyLoaderVisibility(true);
+      }
       loadNextPageIfAvailable();
     }
-  }, 120);
+  }, 60);
 });
 
 runLiveSearch(currentFiltersFromUI());
