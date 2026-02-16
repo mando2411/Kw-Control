@@ -557,6 +557,116 @@
 
     .contractor-tab-pane {
       width: 100%;
+      position: relative;
+    }
+
+    .contractor-tab-skeleton {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      padding: 0.8rem;
+      border-radius: calc(var(--ui-radius-card, 1rem) + 0.05rem);
+      background: color-mix(in srgb, var(--ui-bg-primary, #ffffff) 88%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 180ms ease, visibility 180ms ease;
+    }
+
+    .contractor-tab-skeleton.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .contractor-tab-skeleton__surface {
+      height: 100%;
+      border-radius: calc(var(--ui-radius-card, 1rem) - 0.04rem);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 88%, transparent);
+      background: color-mix(in srgb, var(--ui-bg-primary, #ffffff) 94%, transparent);
+      padding: 0.9rem;
+      display: grid;
+      gap: 0.62rem;
+      align-content: start;
+      overflow: hidden;
+    }
+
+    .contractor-tab-skeleton__line {
+      position: relative;
+      overflow: hidden;
+      display: block;
+      height: 0.9rem;
+      border-radius: 0.48rem;
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 84%, #e2e8f0);
+    }
+
+    .contractor-tab-skeleton__line::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.58) 50%,
+        rgba(255, 255, 255, 0) 100%);
+      animation: tableSkeletonShimmer 1.1s infinite;
+    }
+
+    .contractor-tab-skeleton__line--btn {
+      width: 10rem;
+      height: 2.2rem;
+      border-radius: 0.7rem;
+      justify-self: end;
+    }
+
+    .contractor-tab-skeleton__line--title {
+      width: 9.2rem;
+      height: 1.1rem;
+    }
+
+    .contractor-tab-skeleton__line--chip {
+      width: 4.2rem;
+      height: 1.1rem;
+      border-radius: 999px;
+    }
+
+    .contractor-tab-skeleton__line--input {
+      width: 100%;
+      height: 2.5rem;
+      border-radius: 0.7rem;
+    }
+
+    .contractor-tab-skeleton__line--th {
+      height: 1.85rem;
+      border-radius: 0.55rem;
+    }
+
+    .contractor-tab-skeleton__line--row {
+      height: 3.95rem;
+      border-radius: 0.72rem;
+    }
+
+    .contractor-tab-skeleton__line--card {
+      height: 4.1rem;
+      border-radius: 0.78rem;
+    }
+
+    .contractor-tab-skeleton__row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .contractor-tab-skeleton__grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.58rem;
+    }
+
+    .contractor-tab-skeleton__table {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.22rem;
     }
 
     .tab-content > .contractor-tab-pane {
@@ -1427,6 +1537,32 @@
         display: none;
       }
 
+      .contractor-tab-skeleton {
+        padding: 0.45rem;
+      }
+
+      .contractor-tab-skeleton__surface {
+        padding: 0.55rem;
+        gap: 0.45rem;
+      }
+
+      .contractor-tab-skeleton__line--btn {
+        width: 7.5rem;
+        height: 1.95rem;
+      }
+
+      .contractor-tab-skeleton__line--input {
+        height: 2.25rem;
+      }
+
+      .contractor-tab-skeleton__line--row {
+        height: 3.4rem;
+      }
+
+      .contractor-tab-skeleton__line--card {
+        height: 3.55rem;
+      }
+
       .madameenTable.table-responsive {
         overflow-x: hidden;
         padding: 0.2rem;
@@ -1696,6 +1832,24 @@
 
       <div class="tab-content">
       <div id="contractorTabSearch" class="contractor-tab-pane tab-pane fade show active" data-tab-pane="search" role="tabpanel" aria-labelledby="contractor-tab-search">
+      <div class="contractor-tab-skeleton contractor-tab-skeleton--search" aria-hidden="true">
+        <div class="contractor-tab-skeleton__surface">
+          <div class="contractor-tab-skeleton__grid">
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--input"></span>
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--input"></span>
+          </div>
+          <div class="contractor-tab-skeleton__row">
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--title"></span>
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--chip"></span>
+          </div>
+          <div class="contractor-tab-skeleton__table">
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--th"></span>
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--row"></span>
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--row"></span>
+            <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--row"></span>
+          </div>
+        </div>
+      </div>
       <div class="container contractor-page-container">
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
@@ -2029,6 +2183,16 @@
     </div>
 
     <div id="contractorTabLists" class="contractor-tab-pane tab-pane fade" data-tab-pane="lists" role="tabpanel" aria-labelledby="contractor-tab-lists">
+    <div class="contractor-tab-skeleton contractor-tab-skeleton--lists" aria-hidden="true">
+      <div class="contractor-tab-skeleton__surface">
+        <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--btn"></span>
+        <div class="contractor-tab-skeleton__table">
+          <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--card"></span>
+          <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--card"></span>
+          <span class="contractor-tab-skeleton__line contractor-tab-skeleton__line--card"></span>
+        </div>
+      </div>
+    </div>
     <section class="pt-4 pb-2">
         <!-- <div class="container-fluid px-0"> -->
       <div class="container contractor-page-container mb-2">
@@ -2882,6 +3046,25 @@ function renderSearchPagination() {
   paginationWrap.removeClass('d-none').html(html);
 }
 
+function showTabSwitchSkeleton(targetSelector) {
+  if (!targetSelector) return;
+
+  const pane = document.querySelector(targetSelector);
+  if (!pane) return;
+
+  const skeleton = pane.querySelector('.contractor-tab-skeleton');
+  if (!skeleton) return;
+
+  if (skeleton._hideTimer) {
+    clearTimeout(skeleton._hideTimer);
+  }
+
+  skeleton.classList.add('is-visible');
+  skeleton._hideTimer = setTimeout(function () {
+    skeleton.classList.remove('is-visible');
+  }, 340);
+}
+
 function fetchVotersPage(appendMode) {
   if (!isAllRowsMode()) {
     appendMode = false;
@@ -3041,6 +3224,11 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
     .removeClass('btn-outline-secondary')
     .addClass('btn-secondary active')
     .attr('aria-selected', 'true');
+});
+
+$('#contractorTabNav').on('show.bs.tab', '.contractor-tab-btn', function () {
+  const targetSelector = $(this).attr('data-bs-target') || '';
+  showTabSwitchSkeleton(targetSelector);
 });
 
 $('#all_voters').off('click');
