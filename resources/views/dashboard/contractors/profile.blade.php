@@ -788,7 +788,7 @@
     <section class="py-3 rtl">
       <div class="container contractor-page-container">
         <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
-          <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
+          <button type="button" class="btn btn-dark allBtn mb-0" id="toggle_select_all_search" data-select-all="off">تحديد الكل</button>
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
           <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
         </div>
@@ -1514,6 +1514,12 @@ function renderVoters(votersList, appendMode) {
   const tbody = document.getElementById('resultSearchData');
   if (!tbody) return;
 
+  if (!appendMode) {
+    $('#toggle_select_all_search')
+      .attr('data-select-all', 'off')
+      .text('تحديد الكل');
+  }
+
   if (!Array.isArray(votersList) || votersList.length === 0) {
     if (!appendMode) {
       tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3">لا توجد نتائج</td></tr>';
@@ -1653,6 +1659,19 @@ $('#all_voters').on('click', function (event) {
     return checkbox.value;
   });
   submitAttachVoters(selectedVoters);
+});
+
+$('#toggle_select_all_search').on('click', function (event) {
+  event.preventDefault();
+
+  const shouldSelectAll = $(this).attr('data-select-all') !== 'on';
+  document.querySelectorAll('#resultSearchData .check').forEach(function (checkbox) {
+    checkbox.checked = shouldSelectAll;
+  });
+
+  $(this)
+    .attr('data-select-all', shouldSelectAll ? 'on' : 'off')
+    .text(shouldSelectAll ? 'إلغاء تحديد الكل' : 'تحديد الكل');
 });
 
 $('#delete_selected_top').on('click', function (event) {
