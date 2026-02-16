@@ -1430,69 +1430,35 @@ function collectAllFilteredVoterIds() {
 function submitAttachVoters(voterIds) {
   if (!Array.isArray(voterIds) || voterIds.length === 0) {
     alert('يرجى تحديد ناخب واحد على الأقل');
-    return;
+    return Promise.reject(new Error('no-voters-selected'));
   }
 
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = attachRoute;
-
-  const csrf = document.createElement('input');
-  csrf.type = 'hidden';
-  csrf.name = '_token';
-  csrf.value = csrfToken;
-  form.appendChild(csrf);
-
-  voterIds.forEach(function (id) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'voter[]';
-    input.value = id;
-    form.appendChild(input);
+  return axios.post(attachRoute, {
+    _token: csrfToken,
+    voter: voterIds
+  }, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
   });
-
-  document.body.appendChild(form);
-  form.submit();
 }
 
 function submitDeleteVoters(voterIds) {
   if (!Array.isArray(voterIds) || voterIds.length === 0) {
     alert('لم يتم اختيار اي ناخب');
-    return;
+    return Promise.reject(new Error('no-voters-selected'));
   }
 
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = modifyRoute;
-
-  const csrf = document.createElement('input');
-  csrf.type = 'hidden';
-  csrf.name = '_token';
-  csrf.value = csrfToken;
-  form.appendChild(csrf);
-
-  const contractorInput = document.createElement('input');
-  contractorInput.type = 'hidden';
-  contractorInput.name = 'id';
-  contractorInput.value = contractorId;
-  form.appendChild(contractorInput);
-
-  const selectInput = document.createElement('input');
-  selectInput.type = 'hidden';
-  selectInput.name = 'select';
-  selectInput.value = 'delete';
-  form.appendChild(selectInput);
-
-  voterIds.forEach(function (id) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'voters[]';
-    input.value = id;
-    form.appendChild(input);
+  return axios.post(modifyRoute, {
+    _token: csrfToken,
+    id: contractorId,
+    select: 'delete',
+    voters: voterIds
+  }, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
   });
-
-  document.body.appendChild(form);
-  form.submit();
 }
 
 function addSingleVoter(voterId) {
@@ -1758,7 +1724,25 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
 $('#all_voters').on('click', function (event) {
   event.preventDefault();
   const selectedVoters = getBulkActionVoterIds();
-  submitAttachVoters(selectedVoters);
+  const actionBtn = $(this);
+  actionBtn.prop('disabled', true).text('جاري الإضافة...');
+
+  submitAttachVoters(selectedVoters)
+    .then(function (response) {
+      const msg = response?.data?.message || 'تمت الاضافه بنجاح';
+      showCreateGroupFeedback('success', msg);
+      resetBulkSelectAllState(true);
+      runLiveSearch({ ...activeFilters });
+    })
+    .catch(function (error) {
+      if (error?.message === 'no-voters-selected') return;
+      const msg = error?.response?.data?.message || 'حدث خطأ أثناء الاضافة';
+      showCreateGroupFeedback('error', msg);
+      alert(msg);
+    })
+    .finally(function () {
+      actionBtn.prop('disabled', false).text('اضافة المحدد');
+    });
 });
 
 $('#toggle_select_all_search').on('click', function (event) {
@@ -1816,7 +1800,25 @@ $('#delete_selected_top').on('click', function (event) {
     return;
   }
 
-  submitDeleteVoters(selectedVoters);
+  const actionBtn = $(this);
+  actionBtn.prop('disabled', true).text('جاري الحذف...');
+
+  submitDeleteVoters(selectedVoters)
+    .then(function (response) {
+      const msg = response?.data?.message || 'تم الحذف بنجاح';
+      showCreateGroupFeedback('success', msg);
+      resetBulkSelectAllState(true);
+      runLiveSearch({ ...activeFilters });
+    })
+    .catch(function (error) {
+      if (error?.message === 'no-voters-selected') return;
+      const msg = error?.response?.data?.message || 'حدث خطأ أثناء الحذف';
+      showCreateGroupFeedback('error', msg);
+      alert(msg);
+    })
+    .finally(function () {
+      actionBtn.prop('disabled', false).text('حذف');
+    });
 });
 
 function showCreateGroupFeedback(type, message) {
