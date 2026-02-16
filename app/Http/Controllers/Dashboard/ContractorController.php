@@ -323,6 +323,17 @@ class ContractorController extends Controller
         }
         $votersQuery->orderBy('name', 'asc');
 
+        if ((string) $request->input('ids_only', '0') === '1') {
+            $allIds = $votersQuery->pluck('id')
+                ->map(fn ($value) => (int) $value)
+                ->values();
+
+            return response()->json([
+                'ids' => $allIds,
+                'total' => $allIds->count(),
+            ]);
+        }
+
         $perPage = (int) $request->input('per_page', 0);
         $page = max((int) $request->input('page', 1), 1);
 

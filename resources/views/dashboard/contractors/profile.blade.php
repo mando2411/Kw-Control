@@ -1369,6 +1369,9 @@ let searchDebounceTimer = null;
 let currentRequestId = 0;
 let silentFilterUpdate = false;
 let windowLoadMoreThrottle = null;
+let isSelectAllLoading = false;
+let bulkSelectAllActive = false;
+let bulkSelectedVoterIds = [];
 let activeFilters = {
   name: '',
   family: '',
@@ -1376,6 +1379,53 @@ let activeFilters = {
   siblingExcludeId: '',
   membershipScope: 'all'
 };
+
+function getCurrentlyCheckedVoterIds() {
+  return Array.from(document.querySelectorAll('#resultSearchData .check:checked')).map(function (checkbox) {
+    return checkbox.value;
+  });
+}
+
+function getBulkActionVoterIds() {
+  if (bulkSelectAllActive && Array.isArray(bulkSelectedVoterIds) && bulkSelectedVoterIds.length > 0) {
+    return bulkSelectedVoterIds.slice();
+  }
+
+  return getCurrentlyCheckedVoterIds();
+}
+
+function resetBulkSelectAllState(uncheckLoadedRows) {
+  bulkSelectAllActive = false;
+  bulkSelectedVoterIds = [];
+
+  $('#toggle_select_all_search')
+    .attr('data-select-all', 'off')
+    .text('تحديد الكل');
+
+  if (uncheckLoadedRows) {
+    document.querySelectorAll('#resultSearchData .check').forEach(function (checkbox) {
+      checkbox.checked = false;
+    });
+  }
+}
+
+function collectAllFilteredVoterIds() {
+  return axios.get(searchEndpoint, {
+    params: {
+      id: contractorId,
+      scope: activeFilters.membershipScope || 'all',
+      exclude_grouped: '1',
+      ids_only: '1',
+      name: activeFilters.name || '',
+      family: activeFilters.family || '',
+      sibling: activeFilters.sibling || '',
+      sibling_exclude_id: activeFilters.siblingExcludeId || ''
+    }
+  }).then(function (response) {
+    const ids = Array.isArray(response?.data?.ids) ? response.data.ids : [];
+    return ids.map(function (id) { return String(id); });
+  });
+}
 
 function submitAttachVoters(voterIds) {
   if (!Array.isArray(voterIds) || voterIds.length === 0) {
@@ -1516,9 +1566,7 @@ function renderVoters(votersList, appendMode) {
   if (!tbody) return;
 
   if (!appendMode) {
-    $('#toggle_select_all_search')
-      .attr('data-select-all', 'off')
-      .text('تحديد الكل');
+    resetBulkSelectAllState(true);
   }
 
   if (!Array.isArray(votersList) || votersList.length === 0) {
@@ -1533,6 +1581,12 @@ function renderVoters(votersList, appendMode) {
     tbody.insertAdjacentHTML('beforeend', rowsHtml);
   } else {
     tbody.innerHTML = rowsHtml;
+  }
+
+  if (bulkSelectAllActive) {
+    document.querySelectorAll('#resultSearchData .check').forEach(function (checkbox) {
+      checkbox.checked = true;
+    });
   }
 
   bindRelativeButtons();
@@ -1663,31 +1717,55 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
 
 $('#all_voters').on('click', function (event) {
   event.preventDefault();
-  const selectedVoters = Array.from(document.querySelectorAll('#resultSearchData .check:checked')).map(function (checkbox) {
-    return checkbox.value;
-  });
+  const selectedVoters = getBulkActionVoterIds();
   submitAttachVoters(selectedVoters);
 });
 
 $('#toggle_select_all_search').on('click', function (event) {
   event.preventDefault();
 
-  const shouldSelectAll = $(this).attr('data-select-all') !== 'on';
-  document.querySelectorAll('#resultSearchData .check').forEach(function (checkbox) {
-    checkbox.checked = shouldSelectAll;
-  });
+  if (isSelectAllLoading) return;
 
-  $(this)
-    .attr('data-select-all', shouldSelectAll ? 'on' : 'off')
-    .text(shouldSelectAll ? 'إلغاء تحديد الكل' : 'تحديد الكل');
+  if (bulkSelectAllActive) {
+    resetBulkSelectAllState(true);
+    return;
+  }
+
+  isSelectAllLoading = true;
+  const triggerBtn = $(this);
+  triggerBtn.prop('disabled', true).text('جاري تحديد الكل...');
+
+  collectAllFilteredVoterIds()
+    .then(function (allIds) {
+      bulkSelectedVoterIds = allIds;
+      bulkSelectAllActive = allIds.length > 0;
+
+      document.querySelectorAll('#resultSearchData .check').forEach(function (checkbox) {
+        checkbox.checked = bulkSelectAllActive;
+      });
+
+      triggerBtn
+        .attr('data-select-all', bulkSelectAllActive ? 'on' : 'off')
+        .text(bulkSelectAllActive ? `إلغاء تحديد الكل (${allIds.length})` : 'تحديد الكل');
+
+      if (!bulkSelectAllActive) {
+        alert('لا توجد نتائج لتحديدها');
+      }
+    })
+    .catch(function () {
+      alert('تعذر تحديد كل النتائج، حاول مرة أخرى');
+      resetBulkSelectAllState(true);
+    })
+    .finally(function () {
+      isSelectAllLoading = false;
+      triggerBtn.prop('disabled', false);
+    });
 });
 
 $('#delete_selected_top').on('click', function (event) {
   event.preventDefault();
 
-  const selectedVoters = Array.from(document.querySelectorAll('#resultSearchData .check:checked')).map(function (checkbox) {
-    return checkbox.value;
-  });
+  const selectedVoters = getBulkActionVoterIds();
 
   if (!selectedVoters.length) {
     alert('لم يتم اختيار اي ناخب');
