@@ -2159,7 +2159,7 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             $('#successModal .fa-check-circle').removeClass('text-danger').addClass('text-success');
             $('#successModal').modal('show');
           }
-          //========================================================================
+          //=========================================================================
       });
 let users = [];
 const attachRoute = "{{ route('ass', $contractor->id) }}";
