@@ -46,8 +46,14 @@
   $pageThemeToken = (string) ($contractor->token ?? 'default');
   $pageThemeStorageKey = 'contractor_profile_theme_' . $pageThemeToken;
   $pageThemeCookieKey = 'contractor_profile_theme_' . substr(md5($pageThemeToken), 0, 20);
-  $initialPageTheme = request()->cookie($pageThemeCookieKey, 'light');
-  $initialPageTheme = in_array($initialPageTheme, ['light', 'dark'], true) ? $initialPageTheme : 'light';
+  $initialPageThemePreference = request()->cookie($pageThemeCookieKey, 'system');
+  $initialPageThemePreference = in_array($initialPageThemePreference, ['light', 'dark', 'system'], true)
+    ? $initialPageThemePreference
+    : 'system';
+
+  $initialPageTheme = in_array($initialPageThemePreference, ['light', 'dark'], true)
+    ? $initialPageThemePreference
+    : 'light';
 @endphp
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="ui-modern ui-{{ $initialPageTheme }}" data-ui-mode="modern" data-ui-color-mode="{{ $initialPageTheme }}" data-bs-theme="{{ $initialPageTheme === 'dark' ? 'dark' : 'light' }}">
@@ -61,16 +67,29 @@
     <script>
       (function () {
         var root = document.documentElement;
-        var mode = @json($initialPageTheme);
+        var preference = @json($initialPageThemePreference);
         var pageThemeStorageKey = @json($pageThemeStorageKey);
         var pageThemeCookieKey = @json($pageThemeCookieKey);
 
+        function resolveMode(pref) {
+          if (pref === 'dark' || pref === 'light') return pref;
+
+          var prefersDark = false;
+          try {
+            prefersDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          } catch (e) {}
+
+          return prefersDark ? 'dark' : 'light';
+        }
+
         try {
-          var storedMode = localStorage.getItem(pageThemeStorageKey);
-          if (storedMode === 'dark' || storedMode === 'light') {
-            mode = storedMode;
+          var storedPreference = localStorage.getItem(pageThemeStorageKey);
+          if (storedPreference === 'dark' || storedPreference === 'light' || storedPreference === 'system') {
+            preference = storedPreference;
           }
         } catch (e) {}
+
+        var mode = resolveMode(preference);
 
         root.classList.remove('ui-light', 'ui-dark');
         root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
@@ -80,7 +99,7 @@
         root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
 
         try {
-          document.cookie = pageThemeCookieKey + '=' + mode + ';path=/;max-age=31536000;SameSite=Lax';
+          document.cookie = pageThemeCookieKey + '=' + preference + ';path=/;max-age=31536000;SameSite=Lax';
         } catch (e) {}
       })();
     </script>
@@ -96,9 +115,21 @@
     <script>
       (function () {
         var root = document.documentElement;
+        var preference = @json($initialPageThemePreference);
         var colorMode = @json($initialPageTheme);
         var pageThemeStorageKey = @json($pageThemeStorageKey);
         var pageThemeCookieKey = @json($pageThemeCookieKey);
+
+        function resolveMode(pref) {
+          if (pref === 'dark' || pref === 'light') return pref;
+
+          var prefersDark = false;
+          try {
+            prefersDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          } catch (e) {}
+
+          return prefersDark ? 'dark' : 'light';
+        }
 
         function applyPageColorMode(mode) {
           root.classList.remove('ui-light', 'ui-dark');
@@ -118,11 +149,13 @@
         }
 
         try {
-          var storedColor = localStorage.getItem(pageThemeStorageKey);
-          if (storedColor === 'dark' || storedColor === 'light') {
-            colorMode = storedColor;
+          var storedPreference = localStorage.getItem(pageThemeStorageKey);
+          if (storedPreference === 'dark' || storedPreference === 'light' || storedPreference === 'system') {
+            preference = storedPreference;
           }
         } catch (e) {}
+
+        colorMode = resolveMode(preference);
 
         applyPageColorMode(colorMode);
 
@@ -156,17 +189,18 @@
 
           themeToggleBtn.addEventListener('click', function () {
             colorMode = colorMode === 'dark' ? 'light' : 'dark';
+            preference = colorMode;
             applyPageColorMode(colorMode);
             syncThemeToggleUi(colorMode);
 
             try {
-              localStorage.setItem(pageThemeStorageKey, colorMode);
-              document.cookie = pageThemeCookieKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
+              localStorage.setItem(pageThemeStorageKey, preference);
+              document.cookie = pageThemeCookieKey + '=' + preference + ';path=/;max-age=31536000;SameSite=Lax';
             } catch (e) {}
           });
 
           try {
-            document.cookie = pageThemeCookieKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
+            document.cookie = pageThemeCookieKey + '=' + preference + ';path=/;max-age=31536000;SameSite=Lax';
           } catch (e) {}
         });
       })();
