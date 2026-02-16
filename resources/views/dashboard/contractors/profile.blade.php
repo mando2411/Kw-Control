@@ -3089,6 +3089,22 @@ function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
       showCreateGroupFeedback('success', msg);
 
       const nextIsAdded = !isCurrentlyAdded;
+      const rowEl = buttonEl ? buttonEl.closest('tr') : null;
+      const activeScope = activeFilters?.membershipScope || 'all';
+
+      if (rowEl) {
+        const checkbox = rowEl.querySelector('.check');
+        if (checkbox) {
+          checkbox.checked = false;
+        }
+      }
+
+      if (Array.isArray(bulkSelectedVoterIds) && bulkSelectedVoterIds.length > 0) {
+        bulkSelectedVoterIds = bulkSelectedVoterIds.filter(function (id) {
+          return String(id) !== String(voterId);
+        });
+      }
+
       if (buttonEl) {
         buttonEl.classList.add('is-switching');
         buttonEl.disabled = true;
@@ -3108,15 +3124,27 @@ function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
         }, 340);
       }
 
-      setTimeout(function () {
-        runLiveSearch({
-          name: ($('#searchByNameOrNum').val() || '').trim(),
-          family: ($('#searchByFamily').val() || '').trim(),
-          sibling: '',
-          siblingExcludeId: '',
-          membershipScope: activeFilters.membershipScope || 'all'
-        });
-      }, 260);
+      const shouldRemoveRow = (activeScope === 'attached' && !nextIsAdded) || (activeScope === 'available' && nextIsAdded);
+      if (shouldRemoveRow && rowEl) {
+        rowEl.style.transition = 'opacity 180ms ease, transform 180ms ease';
+        rowEl.style.opacity = '0';
+        rowEl.style.transform = 'translateY(-4px)';
+
+        setTimeout(function () {
+          rowEl.remove();
+
+          const countEl = document.getElementById('search_count');
+          if (countEl) {
+            const currentCount = Number(String(countEl.textContent || '0').replace(/\D/g, '')) || 0;
+            countEl.textContent = String(Math.max(0, currentCount - 1));
+          }
+
+          const tbody = document.getElementById('resultSearchData');
+          if (tbody && !tbody.querySelector('tr')) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3">لا توجد نتائج</td></tr>';
+          }
+        }, 190);
+      }
     })
     .catch(function (error) {
       const msg = error?.response?.data?.message || 'حدث خطأ أثناء تنفيذ العملية';
