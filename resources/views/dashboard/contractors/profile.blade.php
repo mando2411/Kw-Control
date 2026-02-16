@@ -1196,8 +1196,8 @@
                   <i class="pt-1 fs-5 fa fa-pen"></i>
                 </button>
                 
-                <a href="" class="d-inline-block px-2 py-1 mx-1 text-white bg-primary rounded-circle"><i class="pt-1 fs-5 fa fa-phone"></i></a>
-                <a href="" class="d-inline-block px-2 py-1 mx-1 text-white bg-success rounded-circle"><i class="pt-1 fs-5 fa-brands fa-whatsapp"></i></a>
+                <a href="" id="mota3ahedDetailsCallLink" class="d-inline-block px-2 py-1 mx-1 text-white bg-primary rounded-circle"><i class="pt-1 fs-5 fa fa-phone"></i></a>
+                <a href="" id="mota3ahedDetailsWhatsAppLink" target="_blank" rel="noopener noreferrer" class="d-inline-block px-2 py-1 mx-1 text-white bg-success rounded-circle"><i class="pt-1 fs-5 fa-brands fa-whatsapp"></i></a>
               </div>
             <!-- </form> -->
             <!-- ================================================================================ -->
@@ -1610,6 +1610,7 @@ var message = selectedOption.data('message'); // Get the data-message attribute
                 $('#mota3ahedDetailsTrustingRate').val(response?.data?.percent || 0);
                 $('#percent').text(response?.data?.percent || 0);
                 $('#father').val(response?.data?.voter?.father || '');
+                syncVoterContactLinks(response?.data?.voter?.phone1 || '');
               })
               .catch(function () {
                 alert('تعذر تحميل تفاصيل الناخب');
@@ -1625,6 +1626,42 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             var voter_phone = $('#mota3ahedDetailsPhone').val();
             var voter_id    = $('#mota3ahedDetailsVoterId').val();
             updateVoterPhone(voter_phone,voter_id);
+            syncVoterContactLinks(voter_phone);
+          });
+
+          $('#mota3ahedDetailsPhone').on('input', function () {
+            syncVoterContactLinks($(this).val());
+          });
+
+          $('#mota3ahedDetailsTrustingRate').on('input', function () {
+            $('#percent').text($(this).val());
+          });
+
+          $('#mota3ahedDetailsTrustingRate').on('change', function () {
+            const value = Number($(this).val() || 0);
+            $('#percent').text(value);
+
+            if (trustRateSaveTimer) {
+              clearTimeout(trustRateSaveTimer);
+            }
+
+            trustRateSaveTimer = setTimeout(function () {
+              saveTrustRateIfNeeded(value);
+            }, 180);
+          });
+
+          $('#Form-Siblings').on('submit', function (event) {
+            event.preventDefault();
+
+            const voterName = ($('#mota3ahedDetailsName').val() || '').trim();
+            const voterId = ($('#mota3ahedDetailsVoterId').val() || '').trim();
+
+            if (!voterName) {
+              alert('تعذر تحديد اسم الناخب');
+              return;
+            }
+
+            searchRelatives(voterName, voterId);
           });
           //========================================================================
           function updateVoterPhone(voter_phone,voter_id) {
@@ -1679,6 +1716,7 @@ let searchDebounceTimer = null;
 let currentRequestId = 0;
 let silentFilterUpdate = false;
 let windowLoadMoreThrottle = null;
+let trustRateSaveTimer = null;
 let isSelectAllLoading = false;
 let bulkSelectAllActive = false;
 let bulkSelectedVoterIds = [];
@@ -1796,6 +1834,31 @@ function collectAllFilteredVoterIds() {
     const ids = Array.isArray(response?.data?.ids) ? response.data.ids : [];
     return ids.map(function (id) { return String(id); });
   });
+}
+
+function syncVoterContactLinks(rawPhone) {
+  const normalizedPhone = String(rawPhone || '').replace(/\s+/g, '').trim();
+  const callHref = normalizedPhone ? `tel:${normalizedPhone}` : '#';
+  const whatsappNumber = normalizedPhone ? normalizedPhone.replace(/^\+/, '') : '';
+  const whatsappHref = whatsappNumber ? `https://wa.me/${whatsappNumber}` : '#';
+
+  $('#mota3ahedDetailsCallLink').attr('href', callHref).toggleClass('disabled', !normalizedPhone);
+  $('#mota3ahedDetailsWhatsAppLink').attr('href', whatsappHref).toggleClass('disabled', !whatsappNumber);
+}
+
+function saveTrustRateIfNeeded(value) {
+  const voterId = $('#mota3ahedDetailsVoterId').val();
+  if (!voterId) return;
+
+  axios.get(`/percent/${voterId}/${contractorId}/${value}`)
+    .then(function (response) {
+      const msg = response?.data?.message === 'success' ? 'تم تحديث نسبة الالتزام' : (response?.data?.message || 'تم تحديث نسبة الالتزام');
+      showCreateGroupFeedback('success', msg);
+    })
+    .catch(function (error) {
+      const msg = error?.response?.data?.message || 'تعذر تحديث نسبة الالتزام';
+      showCreateGroupFeedback('error', msg);
+    });
 }
 
 function submitAttachVoters(voterIds) {

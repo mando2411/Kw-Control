@@ -184,7 +184,14 @@ Route::get("voter/{id}", function($id){
 });
 Route::get("percent/{id}/{con_id}/{val}", function($id,$con_id,$val){
     $voter =Voter::findOrFail($id);
-    $voter_pivot=$voter->contractors()->where('contractor_id',$con_id)->first()->pivot;
+    $voter_pivot = $voter->contractors()->where('contractor_id', $con_id)->first()?->pivot;
+
+    if (!$voter_pivot) {
+        return response()->json([
+            "message" => "الناخب غير مضاف لهذا المتعهد"
+        ], 422);
+    }
+
     $voter_pivot->percentage=$val;
     $voter_pivot->save();
     return response()->json(["message"=>"success"]);
