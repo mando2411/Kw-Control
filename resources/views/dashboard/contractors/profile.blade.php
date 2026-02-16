@@ -463,6 +463,10 @@
       width: 100%;
     }
 
+    .contractor-tab-pane[hidden] {
+      display: none !important;
+    }
+
     @keyframes voterActionSwitch {
       0% {
         transform: scale(1);
@@ -700,7 +704,7 @@
         </div>
       </div>
 
-      <div id="contractorTabSearch" class="contractor-tab-pane">
+      <div id="contractorTabSearch" class="contractor-tab-pane" data-tab-pane="search">
       <div class="container contractor-page-container">
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
@@ -1006,7 +1010,7 @@
       </div>
     </div>
 
-    <div id="contractorTabLists" class="contractor-tab-pane d-none">
+    <div id="contractorTabLists" class="contractor-tab-pane d-none" data-tab-pane="lists" hidden>
     <section class="pt-4 pb-2">
         <!-- <div class="container-fluid px-0"> -->
       <div class="container contractor-page-container mb-2">
@@ -1602,7 +1606,21 @@ $('#membershipFilterButtons .membership-filter-btn').on('click', function () {
   });
 });
 
-$('#contractorTabNav .contractor-tab-btn').on('click', function () {
+function setContractorTab(target) {
+  const showLists = target === 'lists';
+
+  $('#contractorTabSearch')
+    .toggleClass('d-none', showLists)
+    .prop('hidden', showLists)
+    .css('display', showLists ? 'none' : 'block');
+
+  $('#contractorTabLists')
+    .toggleClass('d-none', !showLists)
+    .prop('hidden', !showLists)
+    .css('display', showLists ? 'block' : 'none');
+}
+
+$('#contractorTabNav').on('click', '.contractor-tab-btn', function () {
   const target = $(this).data('tabTarget');
 
   $('#contractorTabNav .contractor-tab-btn')
@@ -1613,14 +1631,10 @@ $('#contractorTabNav .contractor-tab-btn').on('click', function () {
     .removeClass('btn-outline-secondary')
     .addClass('btn-secondary active');
 
-  if (target === 'lists') {
-    $('#contractorTabSearch').addClass('d-none');
-    $('#contractorTabLists').removeClass('d-none');
-  } else {
-    $('#contractorTabLists').addClass('d-none');
-    $('#contractorTabSearch').removeClass('d-none');
-  }
+  setContractorTab(target);
 });
+
+setContractorTab('search');
 
 $('#all_voters').on('click', function (event) {
   event.preventDefault();
