@@ -775,6 +775,38 @@
       margin-inline: 0.25rem;
     }
 
+    .contractor-bulk-actions {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+
+    #toggle_select_all_search,
+    #all_voters,
+    #delete_selected_top {
+      min-height: 2.45rem;
+      padding: 0.46rem 0.95rem;
+      font-size: 0.88rem;
+      font-weight: 800;
+      border-radius: 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+      box-shadow: 0 7px 18px rgba(2, 6, 23, 0.12);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    #toggle_select_all_search:hover,
+    #all_voters:hover,
+    #delete_selected_top:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(2, 6, 23, 0.17);
+    }
+
     .madameenTable {
       border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
       border-radius: calc(var(--ui-radius-card, 1rem) - 0.05rem);
@@ -1350,11 +1382,17 @@
         margin-inline: 0;
       }
 
+      .contractor-bulk-actions {
+        gap: 0.38rem;
+      }
+
       #toggle_select_all_search,
       #all_voters,
       #delete_selected_top {
-        padding: 0.32rem 0.58rem;
-        font-size: 0.74rem;
+        min-height: 2.18rem;
+        padding: 0.38rem 0.64rem;
+        font-size: 0.8rem;
+        border-radius: 0.62rem;
       }
 
     }
@@ -1545,7 +1583,7 @@
       <input type="hidden" name="select" value="" id="bulk_action">
     <section class="py-3 rtl">
       <div class="container contractor-page-container">
-        <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
+        <div class="contractor-bulk-actions">
           <button type="button" class="btn btn-dark allBtn mb-0" id="toggle_select_all_search" data-select-all="off">تحديد الكل</button>
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
           <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
