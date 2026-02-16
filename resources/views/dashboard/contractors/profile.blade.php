@@ -685,6 +685,12 @@
                 </select>
               </div>
 
+              <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
+                <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
+                <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
+                <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
+              </div>
+
             </form>
           </div>
          @endif
@@ -716,12 +722,6 @@
             >{{$voters->count()}}</span
           >
         </h5>
-
-        <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
-          <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
-          <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
-          <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
-        </div>
 
         <div class="madameenTable table-responsive mt-4">
           <table
