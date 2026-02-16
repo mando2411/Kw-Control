@@ -974,7 +974,7 @@
 
       .voter-details-modal .modal-dialog {
         margin: 0.6rem auto;
-        max-width: calc(100vw - 0.9rem);
+        max-width: min(520px, calc(100vw - 1rem));
         animation: voterDetailsMobileIn 300ms cubic-bezier(.2,.85,.25,1);
       }
 
@@ -987,14 +987,23 @@
       }
 
       .voter-details-modal .modal-body > .d-flex.align-items-center {
-        flex-direction: column;
-        align-items: stretch !important;
-        gap: 0.34rem;
+        flex-wrap: wrap;
+        gap: 0.4rem;
       }
 
       .voter-details-modal .modal-body > .d-flex.align-items-center > label {
-        min-width: 0;
-        font-size: 0.75rem;
+        min-width: 72px;
+        font-size: 0.74rem;
+      }
+
+      .voter-details-modal #mota3ahedDetailsName,
+      .voter-details-modal #mota3ahedDetailsPhone,
+      .voter-details-modal #mota3ahedDetailsNote,
+      .voter-details-modal #mota3ahedDetailsTrustingRate,
+      .voter-details-modal #mota3ahedDetailsRegiterNumber,
+      .voter-details-modal #mota3ahedDetailsCommitte,
+      .voter-details-modal #mota3ahedDetailsSchool {
+        width: 100%;
       }
 
       .voter-details-modal #update_voter_phone_btn,
@@ -1005,12 +1014,15 @@
       }
 
       .voter-details-modal #Form-Siblings {
-        flex-direction: column;
-        align-items: stretch;
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.35rem;
       }
 
       .voter-details-modal #Form-Siblings .btn {
-        width: 100%;
+        width: auto;
+        white-space: nowrap;
       }
 
       .voter-details-modal h5 {
