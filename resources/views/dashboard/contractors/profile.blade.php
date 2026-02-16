@@ -713,12 +713,6 @@
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
           <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
         </div>
-
-        <div class="d-flex justify-content-start align-items-center gap-2 mb-2" id="membershipFilterButtons">
-          <button type="button" class="btn btn-secondary membership-filter-btn active" data-membership-scope="all">الكل</button>
-          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="attached">تمت اضافتهم</button>
-          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="available">لم تتم اضافتهم</button>
-        </div>
       </div>
       <div class="container-fluid contractor-layout-block">
         <h5>
@@ -729,6 +723,12 @@
             >{{$voters->count()}}</span
           >
         </h5>
+
+        <div class="d-flex justify-content-center align-items-center gap-2 mb-3" id="membershipFilterButtons">
+          <button type="button" class="btn btn-secondary membership-filter-btn active" data-membership-scope="all">الكل</button>
+          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="attached">تمت اضافتهم</button>
+          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="available">لم تتم اضافتهم</button>
+        </div>
 
         <div class="madameenTable table-responsive mt-4">
           <table
