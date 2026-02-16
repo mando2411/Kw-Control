@@ -621,99 +621,6 @@
       color: var(--ui-text-primary, #0f172a);
     }
 
-    .voter-details-modal .modal-dialog {
-      transform: translateY(20px) scale(0.985);
-      transition: transform 280ms cubic-bezier(.21,.9,.28,1);
-    }
-
-    .voter-details-modal.show .modal-dialog {
-      transform: translateY(0) scale(1);
-    }
-
-    .voter-details-modal .modal-content {
-      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 88%, transparent);
-      border-radius: calc(var(--ui-radius-card, 1rem) + 0.25rem);
-      box-shadow: 0 22px 44px rgba(2, 6, 23, 0.18);
-      overflow: hidden;
-      background: linear-gradient(160deg,
-        color-mix(in srgb, var(--ui-bg-primary, #fff) 96%, transparent),
-        color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 95%, transparent));
-    }
-
-    .voter-details-modal .modal-header {
-      border-bottom: 0;
-      padding: 0.4rem 0.55rem;
-      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 92%, transparent);
-    }
-
-    .voter-details-modal .modal-body {
-      padding: 0.8rem;
-    }
-
-    .voter-details-modal h5 {
-      border-radius: 0.72rem;
-      margin-bottom: 0.8rem;
-      font-size: 0.96rem;
-      font-weight: 800;
-    }
-
-    .voter-details-modal .modal-body > .d-flex.align-items-center {
-      gap: 0.5rem;
-    }
-
-    .voter-details-modal .modal-body > .d-flex.align-items-center > label {
-      min-width: 88px;
-      margin: 0;
-      font-size: 0.81rem;
-      font-weight: 800;
-      color: var(--ui-text-secondary, #475569);
-    }
-
-    .voter-details-modal .form-control,
-    .voter-details-modal textarea,
-    .voter-details-modal select {
-      border-radius: 0.72rem;
-      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
-      box-shadow: none;
-    }
-
-    .voter-details-modal .form-control:focus,
-    .voter-details-modal textarea:focus,
-    .voter-details-modal select:focus {
-      border-color: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 55%, transparent);
-      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 18%, transparent);
-    }
-
-    .voter-details-modal #update_voter_phone_btn {
-      width: 2.2rem;
-      height: 2.2rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-      flex: 0 0 auto;
-    }
-
-    .voter-details-modal #mota3ahedDetailsCallLink,
-    .voter-details-modal #mota3ahedDetailsWhatsAppLink {
-      width: 2.2rem;
-      height: 2.2rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-
-    .voter-details-modal #Form-Siblings {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      width: 100%;
-    }
-
-    .voter-details-modal #Form-Siblings .form-control {
-      margin: 0;
-    }
 
     .contractor-confirm-modal__icon {
       width: 52px;
@@ -972,74 +879,6 @@
         font-size: 0.74rem;
       }
 
-      .voter-details-modal .modal-dialog {
-        margin: 0.6rem auto;
-        max-width: min(520px, calc(100vw - 1rem));
-        animation: voterDetailsMobileIn 300ms cubic-bezier(.2,.85,.25,1);
-      }
-
-      .voter-details-modal .modal-content {
-        border-radius: 1rem;
-      }
-
-      .voter-details-modal .modal-body {
-        padding: 0.62rem;
-      }
-
-      .voter-details-modal .modal-body > .d-flex.align-items-center {
-        flex-wrap: wrap;
-        gap: 0.4rem;
-      }
-
-      .voter-details-modal .modal-body > .d-flex.align-items-center > label {
-        min-width: 72px;
-        font-size: 0.74rem;
-      }
-
-      .voter-details-modal #mota3ahedDetailsName,
-      .voter-details-modal #mota3ahedDetailsPhone,
-      .voter-details-modal #mota3ahedDetailsNote,
-      .voter-details-modal #mota3ahedDetailsTrustingRate,
-      .voter-details-modal #mota3ahedDetailsRegiterNumber,
-      .voter-details-modal #mota3ahedDetailsCommitte,
-      .voter-details-modal #mota3ahedDetailsSchool {
-        width: 100%;
-      }
-
-      .voter-details-modal #update_voter_phone_btn,
-      .voter-details-modal #mota3ahedDetailsCallLink,
-      .voter-details-modal #mota3ahedDetailsWhatsAppLink {
-        width: 2rem;
-        height: 2rem;
-      }
-
-      .voter-details-modal #Form-Siblings {
-        width: 100%;
-        flex-direction: row;
-        align-items: center;
-        gap: 0.35rem;
-      }
-
-      .voter-details-modal #Form-Siblings .btn {
-        width: auto;
-        white-space: nowrap;
-      }
-
-      .voter-details-modal h5 {
-        font-size: 0.88rem;
-        padding-block: 0.52rem !important;
-      }
-    }
-
-    @keyframes voterDetailsMobileIn {
-      0% {
-        transform: translateY(20px) scale(0.98);
-        opacity: 0;
-      }
-      100% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
     }
   </style>
   <body class="ui-modern ui-light contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
@@ -1303,7 +1142,7 @@
     <!-- Modal nameChechedDetails-->
     <!-- لسه هيتعمل -->
     <div
-      class="modal modal-lg rtl voter-details-modal"
+      class="modal modal-lg rtl"
       id="nameChechedDetails"
       tabindex="-1"
       aria-labelledby="exampleModalLabel"
