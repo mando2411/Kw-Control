@@ -463,6 +463,15 @@
       width: 100%;
     }
 
+    .tab-content > .contractor-tab-pane {
+      display: none;
+    }
+
+    .tab-content > .contractor-tab-pane.active,
+    .tab-content > .contractor-tab-pane.show.active {
+      display: block;
+    }
+
     .contractor-tab-pane[hidden] {
       display: none !important;
     }
@@ -761,7 +770,6 @@
          @endif
         </div>
       </div>
-    </section>
 
     @php
     $id=$contractor->id;
@@ -777,7 +785,7 @@
         @csrf
         <input type="hidden" name="id" value="{{$contractor->id}}" id="con_id">
       <input type="hidden" name="select" value="" id="bulk_action">
-    <section class="py-3 rtl" class="contractor-tab-pane tab-pane fade show active">
+    <section class="py-3 rtl">
       <div class="container contractor-page-container">
         <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
           <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
@@ -1227,6 +1235,7 @@
             alt="description banner image project "
           />
         </div>
+    </section>
 
         <!-- ================================================================================================================= -->
         <!-- this form for update voter phone -->
