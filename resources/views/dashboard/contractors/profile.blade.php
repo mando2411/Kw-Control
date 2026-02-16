@@ -43,8 +43,10 @@
     'xl' => '1.25rem',
   ];
 
-  $pageThemeStorageKey = 'contractor_profile_theme_' . ($contractor->token ?? 'default');
-  $initialPageTheme = request()->cookie($pageThemeStorageKey, 'light');
+  $pageThemeToken = (string) ($contractor->token ?? 'default');
+  $pageThemeStorageKey = 'contractor_profile_theme_' . $pageThemeToken;
+  $pageThemeCookieKey = 'contractor_profile_theme_' . substr(md5($pageThemeToken), 0, 20);
+  $initialPageTheme = request()->cookie($pageThemeCookieKey, 'light');
   $initialPageTheme = in_array($initialPageTheme, ['light', 'dark'], true) ? $initialPageTheme : 'light';
 @endphp
 <!DOCTYPE html>
@@ -61,6 +63,7 @@
         var root = document.documentElement;
         var mode = @json($initialPageTheme);
         var pageThemeStorageKey = @json($pageThemeStorageKey);
+        var pageThemeCookieKey = @json($pageThemeCookieKey);
 
         try {
           var storedMode = localStorage.getItem(pageThemeStorageKey);
@@ -75,6 +78,10 @@
         root.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
         root.style.backgroundColor = mode === 'dark' ? '#0f172a' : '#ffffff';
         root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
+
+        try {
+          document.cookie = pageThemeCookieKey + '=' + mode + ';path=/;max-age=31536000;SameSite=Lax';
+        } catch (e) {}
       })();
     </script>
 
@@ -91,6 +98,7 @@
         var root = document.documentElement;
         var colorMode = @json($initialPageTheme);
         var pageThemeStorageKey = @json($pageThemeStorageKey);
+        var pageThemeCookieKey = @json($pageThemeCookieKey);
 
         function applyPageColorMode(mode) {
           root.classList.remove('ui-light', 'ui-dark');
@@ -153,12 +161,12 @@
 
             try {
               localStorage.setItem(pageThemeStorageKey, colorMode);
-              document.cookie = pageThemeStorageKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
+              document.cookie = pageThemeCookieKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
             } catch (e) {}
           });
 
           try {
-            document.cookie = pageThemeStorageKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
+            document.cookie = pageThemeCookieKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
           } catch (e) {}
         });
       })();
