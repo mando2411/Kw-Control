@@ -64,27 +64,67 @@
       (function () {
         var root = document.documentElement;
         var colorMode = 'light';
+        var pageThemeStorageKey = 'contractor_profile_theme_' + @json($contractor->token);
+
+        function applyPageColorMode(mode) {
+          root.classList.remove('ui-light', 'ui-dark');
+          root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
+          root.setAttribute('data-ui-color-mode', mode);
+          root.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
+
+          if (!document.body) return;
+          document.body.classList.remove('ui-light', 'ui-dark');
+          document.body.classList.add('ui-modern');
+          document.body.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
+          document.body.setAttribute('data-ui-mode', 'modern');
+          document.body.setAttribute('data-ui-color-mode', mode);
+          document.body.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
+        }
 
         try {
-          var storedColor = localStorage.getItem('ui_color_mode');
+          var storedColor = localStorage.getItem(pageThemeStorageKey);
           if (storedColor === 'dark' || storedColor === 'light') {
             colorMode = storedColor;
           }
         } catch (e) {}
 
-        root.classList.remove('ui-light', 'ui-dark');
-        root.classList.add(colorMode === 'dark' ? 'ui-dark' : 'ui-light');
-        root.setAttribute('data-ui-color-mode', colorMode);
-        root.setAttribute('data-bs-theme', colorMode === 'dark' ? 'dark' : 'light');
+        applyPageColorMode(colorMode);
 
         document.addEventListener('DOMContentLoaded', function () {
-          if (!document.body) return;
-          document.body.classList.remove('ui-light', 'ui-dark');
-          document.body.classList.add('ui-modern');
-          document.body.classList.add(colorMode === 'dark' ? 'ui-dark' : 'ui-light');
-          document.body.setAttribute('data-ui-mode', 'modern');
-          document.body.setAttribute('data-ui-color-mode', colorMode);
-          document.body.setAttribute('data-bs-theme', colorMode === 'dark' ? 'dark' : 'light');
+          applyPageColorMode(colorMode);
+
+          var themeToggleBtn = document.getElementById('contractorThemeToggle');
+          if (!themeToggleBtn) return;
+
+          var labelEl = themeToggleBtn.querySelector('[data-theme-label]');
+          var iconEl = themeToggleBtn.querySelector('[data-theme-icon]');
+
+          function syncThemeToggleUi(mode) {
+            var isDark = mode === 'dark';
+            themeToggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+            themeToggleBtn.setAttribute('title', isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن');
+            themeToggleBtn.classList.toggle('is-dark', isDark);
+
+            if (labelEl) {
+              labelEl.textContent = isDark ? 'الوضع الفاتح' : 'الوضع الداكن';
+            }
+
+            if (iconEl) {
+              iconEl.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+            }
+          }
+
+          syncThemeToggleUi(colorMode);
+
+          themeToggleBtn.addEventListener('click', function () {
+            colorMode = colorMode === 'dark' ? 'light' : 'dark';
+            applyPageColorMode(colorMode);
+            syncThemeToggleUi(colorMode);
+
+            try {
+              localStorage.setItem(pageThemeStorageKey, colorMode);
+            } catch (e) {}
+          });
         });
       })();
     </script>
@@ -312,6 +352,40 @@
       background: #ffffff;
       transform: translateY(-2px);
       box-shadow: 0 14px 30px rgba(2, 6, 23, 0.26);
+    }
+
+    .contractor-top-cta__actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .contractor-theme-toggle {
+      color: #0f172a;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.84));
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 999px;
+      padding: 0.56rem 0.95rem;
+      font-weight: 900;
+      font-size: 0.88rem;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.2);
+      transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .contractor-theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.26);
+    }
+
+    .contractor-theme-toggle.is-dark {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.86), rgba(30, 41, 59, 0.86));
+      color: #f8fafc;
+      border-color: rgba(148, 163, 184, 0.44);
     }
 
     .contractor-hero-wrap {
@@ -1440,6 +1514,15 @@
         justify-content: center;
       }
 
+      .contractor-top-cta__actions {
+        justify-content: center;
+      }
+
+      .contractor-theme-toggle {
+        font-size: 0.8rem;
+        padding: 0.46rem 0.78rem;
+      }
+
       .contractor-hero {
         grid-template-columns: 1fr;
         text-align: center;
@@ -1709,7 +1792,13 @@
           <p class="contractor-top-cta__text"><i class="fa fa-bullhorn"></i> عشان تعرف اكتر عن البرنامج اضغط هنا</p>
           <p class="contractor-top-cta__hint">اكتشف مميزات كنترول وكيف يساعدك في إدارة الكشوف والمتابعة بشكل احترافي.</p>
         </div>
-        <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer"><i class="fa fa-arrow-up-left-from-circle"></i> اضغط هنا</a>
+        <div class="contractor-top-cta__actions">
+          <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer"><i class="fa fa-arrow-up-left-from-circle"></i> اضغط هنا</a>
+          <button type="button" class="contractor-theme-toggle" id="contractorThemeToggle" aria-pressed="false" title="تفعيل الوضع الداكن">
+            <i class="bi bi-moon-stars-fill" data-theme-icon></i>
+            <span data-theme-label>الوضع الداكن</span>
+          </button>
+        </div>
       </div>
     </div>
 
