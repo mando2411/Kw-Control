@@ -1876,6 +1876,8 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
     .attr('aria-selected', 'true');
 });
 
+$('#all_voters').off('click');
+
 $('#all_voters').on('click', function (event) {
   event.preventDefault();
   const selectedVoters = getBulkActionVoterIds();
