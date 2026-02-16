@@ -1193,6 +1193,8 @@
 
 
         </div>
+      </section>
+    </div>
 
         <div class="banner">
           <img
@@ -1201,8 +1203,6 @@
             alt="description banner image project "
           />
         </div>
-      </section>
-    </div>
 
         <!-- ================================================================================================================= -->
         <!-- this form for update voter phone -->
