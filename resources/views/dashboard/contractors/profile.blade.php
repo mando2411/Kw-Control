@@ -438,6 +438,18 @@
       will-change: transform, background-color;
     }
 
+    .voter-action-toggle--icon {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      line-height: 1;
+      font-size: 0.9rem;
+    }
+
     .voter-action-toggle:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 18px rgba(2, 6, 23, 0.15);
@@ -804,6 +816,67 @@
       .committeDetails__desc {
         line-height: 1.65;
       }
+
+      .madameenTable.table-responsive {
+        overflow-x: hidden;
+        padding: 0.2rem;
+      }
+
+      .contractor-voters-table {
+        min-width: 100%;
+        width: 100%;
+        table-layout: fixed;
+        border-spacing: 0 0.3rem;
+      }
+
+      .contractor-voters-table thead th,
+      .contractor-voters-table tbody td {
+        padding: 0.46rem 0.3rem;
+        font-size: 0.76rem;
+      }
+
+      .contractor-voters-table th:nth-child(1),
+      .contractor-voters-table td:nth-child(1) {
+        width: 36px;
+      }
+
+      .contractor-voters-table th:nth-child(2),
+      .contractor-voters-table td:nth-child(2) {
+        width: auto;
+      }
+
+      .contractor-voters-table th:nth-child(3),
+      .contractor-voters-table td:nth-child(3) {
+        width: 62px;
+      }
+
+      .contractor-voters-table th:nth-child(4),
+      .contractor-voters-table td:nth-child(4) {
+        width: 48px;
+      }
+
+      .voter-name-details {
+        font-size: 1rem;
+      }
+
+      .search-relatives-btn {
+        margin-top: 0.38rem;
+        padding: 0.14rem 0.42rem;
+        font-size: 0.68rem;
+      }
+
+      .voter-action-toggle--icon {
+        width: 1.78rem;
+        height: 1.78rem;
+        font-size: 0.82rem;
+      }
+
+      #toggle_select_all_search,
+      #all_voters,
+      #delete_selected_top {
+        padding: 0.32rem 0.58rem;
+        font-size: 0.74rem;
+      }
     }
   </style>
   <body class="ui-modern ui-light contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
@@ -1050,7 +1123,7 @@
 
                 <td>
                   <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-danger voter-action-toggle" onclick="toggleVoterStatus(this, '{{$voter->id}}', true)">حذف</button>
+                    <button type="button" class="btn btn-danger voter-action-toggle voter-action-toggle--icon" title="حذف" aria-label="حذف" onclick="toggleVoterStatus(this, '{{$voter->id}}', true)"><i class="fa fa-trash"></i></button>
                   </div>
                 </td>
               </tr>
@@ -1793,7 +1866,9 @@ function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
         setTimeout(function () {
           buttonEl.classList.remove('btn-success', 'btn-danger');
           buttonEl.classList.add(nextIsAdded ? 'btn-danger' : 'btn-success');
-          buttonEl.textContent = nextIsAdded ? 'حذف' : 'اضافة';
+          buttonEl.innerHTML = nextIsAdded ? '<i class="fa fa-trash"></i>' : '<i class="fa fa-plus"></i>';
+          buttonEl.setAttribute('title', nextIsAdded ? 'حذف' : 'اضافة');
+          buttonEl.setAttribute('aria-label', nextIsAdded ? 'حذف' : 'اضافة');
           buttonEl.setAttribute('onclick', `toggleVoterStatus(this, '${voterId}', ${nextIsAdded})`);
         }, 120);
 
@@ -1845,8 +1920,9 @@ function buildVoterRow(voter) {
   const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
   const trustRate = voter?.pivot?.percentage ?? '-';
   const isAdded = Boolean(voter?.is_added);
-  const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle' : 'btn btn-success voter-action-toggle';
-  const actionBtnText = isAdded ? 'حذف' : 'اضافة';
+  const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle voter-action-toggle--icon' : 'btn btn-success voter-action-toggle voter-action-toggle--icon';
+  const actionBtnIcon = isAdded ? '<i class="fa fa-trash"></i>' : '<i class="fa fa-plus"></i>';
+  const actionBtnLabel = isAdded ? 'حذف' : 'اضافة';
 
   return `<tr class="${statusRowClass}">
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" /></td>
@@ -1858,7 +1934,7 @@ function buildVoterRow(voter) {
     <td>% ${trustRate}</td>
     <td>
       <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button type="button" class="${actionBtnClass}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnText}</button>
+        <button type="button" class="${actionBtnClass}" title="${actionBtnLabel}" aria-label="${actionBtnLabel}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnIcon}</button>
       </div>
     </td>
   </tr>`;
