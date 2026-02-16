@@ -433,6 +433,35 @@
       line-height: 1.35;
     }
 
+    .voter-action-toggle {
+      transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+      will-change: transform, background-color;
+    }
+
+    .voter-action-toggle:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(2, 6, 23, 0.15);
+    }
+
+    .voter-action-toggle.is-switching {
+      animation: voterActionSwitch 320ms ease;
+    }
+
+    @keyframes voterActionSwitch {
+      0% {
+        transform: scale(1);
+        filter: saturate(100%);
+      }
+      45% {
+        transform: scale(0.92);
+        filter: saturate(120%);
+      }
+      100% {
+        transform: scale(1);
+        filter: saturate(100%);
+      }
+    }
+
     .committeDetails {
       max-width: min(1080px, 92vw);
       margin: 1rem auto 1.3rem;
@@ -775,7 +804,7 @@
 
                 <td>
                   <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-danger" onclick="toggleVoterStatus('{{$voter->id}}', true)">حذف</button>
+                    <button type="button" class="btn btn-danger voter-action-toggle" onclick="toggleVoterStatus(this, '{{$voter->id}}', true)">حذف</button>
                     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
                   </div>
                 </td>
@@ -1318,7 +1347,7 @@ function addSingleVoter(voterId) {
   submitAttachVoters([voterId]);
 }
 
-function toggleVoterStatus(voterId, isCurrentlyAdded) {
+function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
   const targetUrl = isCurrentlyAdded ? modifyRoute : attachRoute;
   const payload = {
     _token: csrfToken,
@@ -1339,13 +1368,34 @@ function toggleVoterStatus(voterId, isCurrentlyAdded) {
     .then(function (response) {
       const msg = response?.data?.message || (isCurrentlyAdded ? 'تم الحذف بنجاح' : 'تمت الاضافة بنجاح');
       showCreateGroupFeedback('success', msg);
-      runLiveSearch({
-        name: ($('#searchByNameOrNum').val() || '').trim(),
-        family: ($('#searchByFamily').val() || '').trim(),
-        sibling: '',
-        siblingExcludeId: '',
-        membershipScope: activeFilters.membershipScope || 'all'
-      });
+
+      const nextIsAdded = !isCurrentlyAdded;
+      if (buttonEl) {
+        buttonEl.classList.add('is-switching');
+        buttonEl.disabled = true;
+
+        setTimeout(function () {
+          buttonEl.classList.remove('btn-success', 'btn-danger');
+          buttonEl.classList.add(nextIsAdded ? 'btn-danger' : 'btn-success');
+          buttonEl.textContent = nextIsAdded ? 'حذف' : 'اضافة';
+          buttonEl.setAttribute('onclick', `toggleVoterStatus(this, '${voterId}', ${nextIsAdded})`);
+        }, 120);
+
+        setTimeout(function () {
+          buttonEl.classList.remove('is-switching');
+          buttonEl.disabled = false;
+        }, 340);
+      }
+
+      setTimeout(function () {
+        runLiveSearch({
+          name: ($('#searchByNameOrNum').val() || '').trim(),
+          family: ($('#searchByFamily').val() || '').trim(),
+          sibling: '',
+          siblingExcludeId: '',
+          membershipScope: activeFilters.membershipScope || 'all'
+        });
+      }, 260);
     })
     .catch(function (error) {
       const msg = error?.response?.data?.message || 'حدث خطأ أثناء تنفيذ العملية';
@@ -1379,7 +1429,7 @@ function buildVoterRow(voter) {
   const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
   const trustRate = voter?.pivot?.percentage ?? '-';
   const isAdded = Boolean(voter?.is_added);
-  const actionBtnClass = isAdded ? 'btn btn-danger' : 'btn btn-success';
+  const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle' : 'btn btn-success voter-action-toggle';
   const actionBtnText = isAdded ? 'حذف' : 'اضافة';
 
   return `<tr class="${statusRowClass}">
@@ -1392,7 +1442,7 @@ function buildVoterRow(voter) {
     <td>% ${trustRate}</td>
     <td>
       <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button type="button" class="${actionBtnClass}" onclick="toggleVoterStatus('${voterId}', ${isAdded})">${actionBtnText}</button>
+        <button type="button" class="${actionBtnClass}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnText}</button>
         <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
       </div>
     </td>
