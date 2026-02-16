@@ -685,12 +685,6 @@
                 </select>
               </div>
 
-              <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
-                <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
-                <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
-                <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
-              </div>
-
             </form>
           </div>
          @endif
@@ -713,6 +707,13 @@
         <input type="hidden" name="id" value="{{$contractor->id}}" id="con_id">
       <input type="hidden" name="select" value="" id="bulk_action">
     <section class="py-3 rtl">
+      <div class="container contractor-page-container">
+        <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
+          <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
+          <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
+          <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
+        </div>
+      </div>
       <div class="container-fluid contractor-layout-block">
         <h5>
           قائمة الأسماء
