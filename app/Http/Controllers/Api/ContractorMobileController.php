@@ -6,6 +6,7 @@ use App\Helpers\ArabicHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Contractor;
 use App\Models\Family;
+use App\Models\Group;
 use App\Models\Voter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class ContractorMobileController extends Controller
         $contractor = $this->resolveContractor($token);
 
         $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
+        $election = optional($contractor->creator)->election;
 
         $families = Family::query()
             ->select('id', 'name')
@@ -32,15 +34,34 @@ class ContractorMobileController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        $groups = $contractor->groups()
+            ->withCount('voters')
+            ->latest('updated_at')
+            ->get(['id', 'name', 'type', 'contractor_id', 'updated_at']);
+
         return response()->json([
             'contractor' => [
                 'id' => $contractor->id,
                 'name' => $contractor->name,
                 'token' => $contractor->token,
                 'creator_name' => optional($contractor->creator)->name,
+                'creator_image' => optional($contractor->creator)->image,
                 'election_name' => optional(optional($contractor->creator)->election)->name,
             ],
+            'election' => [
+                'name' => optional($election)->name,
+                'start_date' => $election?->start_date ? $election->start_date->format('Y-m-d') : null,
+                'start_time' => $election?->start_time ? $election->start_time->format('H:i:s') : null,
+                'end_date' => $election?->end_date ? $election->end_date->format('Y-m-d') : null,
+                'end_time' => $election?->end_time ? $election->end_time->format('H:i:s') : null,
+            ],
+            'links' => [
+                'about_url' => 'https://kw-control.com/about-control',
+                'support_path' => '/contract/' . $contractor->token . '/support',
+                'download_path' => '/download/contractor-app',
+            ],
             'families' => $families,
+            'groups' => $groups,
         ]);
     }
 
@@ -55,6 +76,7 @@ class ContractorMobileController extends Controller
             'sibling_exclude_id' => ['nullable', 'integer'],
             'scope' => ['nullable', 'in:all,attached,available'],
             'exclude_grouped' => ['nullable', 'in:0,1'],
+            'ids_only' => ['nullable', 'in:0,1'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
@@ -139,6 +161,17 @@ class ContractorMobileController extends Controller
 
         $votersQuery->orderBy('name', 'asc');
 
+        if ((string) $request->input('ids_only', '0') === '1') {
+            $allIds = $votersQuery->pluck('id')
+                ->map(fn ($value) => (int) $value)
+                ->values();
+
+            return response()->json([
+                'ids' => $allIds,
+                'total' => $allIds->count(),
+            ]);
+        }
+
         $perPage = (int) $request->input('per_page', 20);
         $page = max((int) $request->input('page', 1), 1);
 
@@ -147,17 +180,25 @@ class ContractorMobileController extends Controller
         $itemIds = $items->pluck('id')->filter()->values();
 
         $attachedIds = [];
+        $pivotPercentages = [];
         if ($itemIds->isNotEmpty()) {
-            $attachedIds = DB::table('contractor_voter')
+            $pivotRows = DB::table('contractor_voter')
                 ->where('contractor_id', $contractor->id)
                 ->whereIn('voter_id', $itemIds->all())
+                ->get(['voter_id', 'percentage']);
+
+            $attachedIds = $pivotRows
                 ->pluck('voter_id')
                 ->map(fn ($value) => (int) $value)
                 ->all();
+
+            foreach ($pivotRows as $pivotRow) {
+                $pivotPercentages[(int) $pivotRow->voter_id] = (int) ($pivotRow->percentage ?? 0);
+            }
         }
 
         $attachedLookup = array_flip($attachedIds);
-        $mappedItems = $items->map(function ($voter) use ($attachedLookup) {
+        $mappedItems = $items->map(function ($voter) use ($attachedLookup, $pivotPercentages) {
             return [
                 'id' => $voter->id,
                 'name' => $voter->name,
@@ -166,6 +207,8 @@ class ContractorMobileController extends Controller
                 'phone1' => $voter->phone1,
                 'committee_id' => $voter->committee_id,
                 'family_id' => $voter->family_id,
+                'updated_at' => $voter->updated_at,
+                'percentage' => $pivotPercentages[(int) $voter->id] ?? 0,
                 'is_added' => isset($attachedLookup[(int) $voter->id]),
             ];
         })->values();
@@ -275,6 +318,245 @@ class ContractorMobileController extends Controller
 
         return response()->json([
             'message' => 'تم الحذف بنجاح',
+        ]);
+    }
+
+    public function setVotersAttachmentBulk(Request $request, string $token): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+
+        $data = $request->validate([
+            'action' => ['required', 'in:attach,detach'],
+            'voter_ids' => ['required', 'array', 'min:1'],
+            'voter_ids.*' => ['integer'],
+        ]);
+
+        $voterIds = collect($data['voter_ids'])
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($voterIds->isEmpty()) {
+            return response()->json([
+                'message' => 'لم يتم اختيار اي ناخب',
+            ], 422);
+        }
+
+        if ($data['action'] === 'attach') {
+            foreach ($voterIds as $voterId) {
+                $isInVoters = $contractor->voters()->where('voter_id', $voterId)->exists();
+                $isInSoftDeletes = $contractor->softDelete()->where('voter_id', $voterId)->exists();
+
+                if ($isInSoftDeletes) {
+                    $contractor->softDelete()->detach($voterId);
+                }
+
+                if (!$isInVoters) {
+                    $contractor->voters()->attach($voterId);
+                }
+            }
+
+            return response()->json([
+                'message' => 'تمت الاضافة بنجاح',
+                'count' => $voterIds->count(),
+            ]);
+        }
+
+        $contractor->voters()->detach($voterIds->all());
+        $contractor->softDelete()->syncWithoutDetaching($voterIds->all());
+
+        return response()->json([
+            'message' => 'تم الحذف بنجاح',
+            'count' => $voterIds->count(),
+        ]);
+    }
+
+    public function groups(string $token): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+
+        $groups = $contractor->groups()
+            ->withCount('voters')
+            ->latest('updated_at')
+            ->get(['id', 'name', 'type', 'updated_at']);
+
+        return response()->json([
+            'groups' => $groups,
+        ]);
+    }
+
+    public function createGroup(Request $request, string $token): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:مضمون,تحت المراجعة'],
+        ]);
+
+        $group = Group::create([
+            'name' => $data['name'],
+            'type' => $data['type'],
+            'contractor_id' => $contractor->id,
+        ]);
+
+        return response()->json([
+            'message' => 'تم إنشاء القائمة بنجاح',
+            'group' => $group,
+        ]);
+    }
+
+    public function groupDetails(Request $request, string $token, int $groupId): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+
+        $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $group = $contractor->groups()->where('id', $groupId)->firstOrFail();
+        $perPage = (int) $request->input('per_page', 20);
+        $page = max((int) $request->input('page', 1), 1);
+
+        $paginated = $group->voters()
+            ->orderBy('name', 'asc')
+            ->paginate($perPage, ['voters.*'], 'page', $page);
+
+        $items = collect($paginated->items());
+        $itemIds = $items->pluck('id')->filter()->values();
+        $pivotPercentages = [];
+
+        if ($itemIds->isNotEmpty()) {
+            $pivotRows = DB::table('contractor_voter')
+                ->where('contractor_id', $contractor->id)
+                ->whereIn('voter_id', $itemIds->all())
+                ->get(['voter_id', 'percentage']);
+
+            foreach ($pivotRows as $pivotRow) {
+                $pivotPercentages[(int) $pivotRow->voter_id] = (int) ($pivotRow->percentage ?? 0);
+            }
+        }
+
+        $mappedItems = $items->map(function ($voter) use ($pivotPercentages) {
+            return [
+                'id' => $voter->id,
+                'name' => $voter->name,
+                'status' => $voter->status,
+                'restricted' => $voter->restricted,
+                'phone1' => $voter->phone1,
+                'committee_id' => $voter->committee_id,
+                'family_id' => $voter->family_id,
+                'updated_at' => $voter->updated_at,
+                'percentage' => $pivotPercentages[(int) $voter->id] ?? 0,
+                'is_added' => true,
+            ];
+        })->values();
+
+        return response()->json([
+            'group' => [
+                'id' => $group->id,
+                'name' => $group->name,
+                'type' => $group->type,
+            ],
+            'voters' => $mappedItems,
+            'pagination' => [
+                'total' => $paginated->total(),
+                'per_page' => $paginated->perPage(),
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'has_more' => $paginated->hasMorePages(),
+            ],
+        ]);
+    }
+
+    public function updateGroup(Request $request, string $token, int $groupId): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+        $group = $contractor->groups()->where('id', $groupId)->firstOrFail();
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'in:مضمون,تحت المراجعة'],
+        ]);
+
+        $group->update($data);
+
+        return response()->json([
+            'message' => 'تم تعديل القائمة بنجاح',
+            'group' => $group,
+        ]);
+    }
+
+    public function deleteGroup(string $token, int $groupId): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+        $group = $contractor->groups()->where('id', $groupId)->firstOrFail();
+
+        $group->voters()->detach();
+        $group->delete();
+
+        return response()->json([
+            'message' => 'تم حذف المجموعة بنجاح',
+        ]);
+    }
+
+    public function groupVotersAction(Request $request, string $token, int $groupId): JsonResponse
+    {
+        $contractor = $this->resolveContractor($token);
+        $group = $contractor->groups()->where('id', $groupId)->firstOrFail();
+
+        $data = $request->validate([
+            'action' => ['required', 'in:delete_from_group,delete_from_contractor,move_to_group'],
+            'voter_ids' => ['required', 'array', 'min:1'],
+            'voter_ids.*' => ['integer'],
+            'target_group_id' => ['nullable', 'integer'],
+        ]);
+
+        $voterIds = collect($data['voter_ids'])
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($voterIds->isEmpty()) {
+            return response()->json([
+                'message' => 'لم يتم اختيار اي ناخب',
+            ], 422);
+        }
+
+        $group->voters()->detach($voterIds->all());
+
+        if ($data['action'] === 'delete_from_contractor') {
+            $contractor->voters()->detach($voterIds->all());
+            $contractor->softDelete()->syncWithoutDetaching($voterIds->all());
+
+            return response()->json([
+                'message' => 'تم حذف الاسماء من المضامين',
+                'count' => $voterIds->count(),
+            ]);
+        }
+
+        if ($data['action'] === 'move_to_group') {
+            $targetGroupId = (int) ($data['target_group_id'] ?? 0);
+            $targetGroup = $contractor->groups()
+                ->where('id', $targetGroupId)
+                ->where('id', '!=', $group->id)
+                ->firstOrFail();
+
+            $targetGroup->voters()->syncWithoutDetaching($voterIds->all());
+
+            return response()->json([
+                'message' => 'تم النقل بنجاح',
+                'count' => $voterIds->count(),
+                'target_group_id' => $targetGroup->id,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'تم حذف الاسماء من المجموعة',
+            'count' => $voterIds->count(),
         ]);
     }
 }
