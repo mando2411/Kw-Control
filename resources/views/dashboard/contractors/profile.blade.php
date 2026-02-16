@@ -1586,7 +1586,7 @@
         <div class="contractor-bulk-actions">
           <button type="button" class="btn btn-dark allBtn mb-0" id="toggle_select_all_search" data-select-all="off">تحديد الكل</button>
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
-          <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
+          <button type="button" class="btn btn-danger" id="delete_selected_top">حذف المحدد</button>
         </div>
       </div>
       <div class="container-fluid contractor-layout-block">
