@@ -476,6 +476,82 @@
       display: none !important;
     }
 
+    .contractor-confirm-modal .modal-dialog {
+      transform: translateY(14px) scale(0.98);
+      transition: transform 220ms ease;
+    }
+
+    .contractor-confirm-modal.show .modal-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .contractor-confirm-modal .modal-content {
+      border-radius: calc(var(--ui-radius-card, 1rem) + 0.2rem);
+      border: 1px solid var(--ui-border, #dbe3ef);
+      box-shadow: var(--ui-shadow, 0 20px 45px rgba(2, 6, 23, 0.14));
+      background: var(--ui-bg-primary, #fff);
+      color: var(--ui-text-primary, #0f172a);
+    }
+
+    .contractor-confirm-modal__icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 0.8rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: var(--ui-btn-primary, #0ea5e9);
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 36%, transparent);
+      animation: confirmIconPulse 480ms ease;
+    }
+
+    .contractor-confirm-modal__icon.is-danger {
+      color: var(--ui-btn-quaternary, #f59e0b);
+      background: color-mix(in srgb, var(--ui-btn-quaternary, #f59e0b) 16%, transparent);
+      border-color: color-mix(in srgb, var(--ui-btn-quaternary, #f59e0b) 38%, transparent);
+    }
+
+    .contractor-confirm-modal__title {
+      margin: 0 0 0.35rem;
+      font-size: 1.05rem;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .contractor-confirm-modal__message {
+      margin: 0;
+      text-align: center;
+      color: var(--ui-text-secondary, #475569);
+      font-weight: 600;
+      line-height: 1.7;
+    }
+
+    .contractor-confirm-modal__actions {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @keyframes confirmIconPulse {
+      0% {
+        transform: scale(0.86);
+        opacity: 0;
+      }
+      60% {
+        transform: scale(1.06);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
     @keyframes voterActionSwitch {
       0% {
         transform: scale(1);
@@ -1242,6 +1318,24 @@
         @include('dashboard.contractors.update_phone_pop_up')
         <!-- ================================================================================================================= -->
 
+    <div class="modal fade contractor-confirm-modal" id="bulkActionConfirmModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body p-4">
+            <div class="contractor-confirm-modal__icon" id="bulkActionConfirmIcon">
+              <i class="fa fa-circle-check"></i>
+            </div>
+            <h6 class="contractor-confirm-modal__title" id="bulkActionConfirmTitle">تأكيد العملية</h6>
+            <p class="contractor-confirm-modal__message" id="bulkActionConfirmMessage">هل تريد الاستمرار؟</p>
+            <div class="contractor-confirm-modal__actions">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+              <button type="button" class="btn btn-primary" id="bulkActionConfirmApproveBtn">تأكيد</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
@@ -1372,6 +1466,8 @@ let windowLoadMoreThrottle = null;
 let isSelectAllLoading = false;
 let bulkSelectAllActive = false;
 let bulkSelectedVoterIds = [];
+let bulkActionConfirmModalInstance = null;
+let bulkActionConfirmResolver = null;
 let activeFilters = {
   name: '',
   family: '',
@@ -1379,6 +1475,65 @@ let activeFilters = {
   siblingExcludeId: '',
   membershipScope: 'all'
 };
+
+function ensureBulkActionConfirmModal() {
+  const modalEl = document.getElementById('bulkActionConfirmModal');
+  if (!modalEl || typeof bootstrap === 'undefined') return null;
+
+  if (!bulkActionConfirmModalInstance) {
+    bulkActionConfirmModalInstance = new bootstrap.Modal(modalEl, {
+      backdrop: true,
+      keyboard: true
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      if (bulkActionConfirmResolver) {
+        bulkActionConfirmResolver(false);
+        bulkActionConfirmResolver = null;
+      }
+    });
+  }
+
+  return bulkActionConfirmModalInstance;
+}
+
+function openBulkActionConfirm(options) {
+  const modal = ensureBulkActionConfirmModal();
+  if (!modal) {
+    return Promise.resolve(window.confirm(options?.message || 'هل تريد الاستمرار؟'));
+  }
+
+  const title = options?.title || 'تأكيد العملية';
+  const message = options?.message || 'هل تريد الاستمرار؟';
+  const approveText = options?.approveText || 'تأكيد';
+  const isDanger = options?.isDanger === true;
+
+  $('#bulkActionConfirmTitle').text(title);
+  $('#bulkActionConfirmMessage').text(message);
+  $('#bulkActionConfirmApproveBtn')
+    .text(approveText)
+    .removeClass('btn-primary btn-danger')
+    .addClass(isDanger ? 'btn-danger' : 'btn-primary');
+
+  const iconWrap = $('#bulkActionConfirmIcon');
+  iconWrap
+    .toggleClass('is-danger', isDanger)
+    .html(`<i class="fa ${isDanger ? 'fa-trash' : 'fa-plus-circle'}"></i>`);
+
+  return new Promise(function (resolve) {
+    bulkActionConfirmResolver = resolve;
+
+    $('#bulkActionConfirmApproveBtn').off('click').on('click', function () {
+      if (bulkActionConfirmResolver) {
+        bulkActionConfirmResolver(true);
+        bulkActionConfirmResolver = null;
+      }
+      modal.hide();
+    });
+
+    modal.show();
+  });
+}
 
 function getCurrentlyCheckedVoterIds() {
   return Array.from(document.querySelectorAll('#resultSearchData .check:checked')).map(function (checkbox) {
@@ -1725,24 +1880,39 @@ $('#all_voters').on('click', function (event) {
   event.preventDefault();
   const selectedVoters = getBulkActionVoterIds();
   const actionBtn = $(this);
-  actionBtn.prop('disabled', true).text('جاري الإضافة...');
 
-  submitAttachVoters(selectedVoters)
-    .then(function (response) {
-      const msg = response?.data?.message || 'تمت الاضافه بنجاح';
-      showCreateGroupFeedback('success', msg);
-      resetBulkSelectAllState(true);
-      runLiveSearch({ ...activeFilters });
-    })
-    .catch(function (error) {
-      if (error?.message === 'no-voters-selected') return;
-      const msg = error?.response?.data?.message || 'حدث خطأ أثناء الاضافة';
-      showCreateGroupFeedback('error', msg);
-      alert(msg);
-    })
-    .finally(function () {
-      actionBtn.prop('disabled', false).text('اضافة المحدد');
-    });
+  if (!selectedVoters.length) {
+    alert('يرجى تحديد ناخب واحد على الأقل');
+    return;
+  }
+
+  openBulkActionConfirm({
+    title: 'تأكيد الإضافة',
+    message: `سيتم إضافة ${selectedVoters.length} اسم إلى قائمتك. هل تريد المتابعة؟`,
+    approveText: 'تأكيد الإضافة',
+    isDanger: false
+  }).then(function (confirmed) {
+    if (!confirmed) return;
+
+    actionBtn.prop('disabled', true).text('جاري الإضافة...');
+
+    submitAttachVoters(selectedVoters)
+      .then(function (response) {
+        const msg = response?.data?.message || 'تمت الاضافه بنجاح';
+        showCreateGroupFeedback('success', msg);
+        resetBulkSelectAllState(true);
+        runLiveSearch({ ...activeFilters });
+      })
+      .catch(function (error) {
+        if (error?.message === 'no-voters-selected') return;
+        const msg = error?.response?.data?.message || 'حدث خطأ أثناء الاضافة';
+        showCreateGroupFeedback('error', msg);
+        alert(msg);
+      })
+      .finally(function () {
+        actionBtn.prop('disabled', false).text('اضافة المحدد');
+      });
+  });
 });
 
 $('#toggle_select_all_search').on('click', function (event) {
@@ -1796,29 +1966,34 @@ $('#delete_selected_top').on('click', function (event) {
     return;
   }
 
-  if (!confirm('حذف الاسماء')) {
-    return;
-  }
-
   const actionBtn = $(this);
-  actionBtn.prop('disabled', true).text('جاري الحذف...');
+  openBulkActionConfirm({
+    title: 'تأكيد الحذف',
+    message: `سيتم حذف ${selectedVoters.length} اسم من قائمتك الحالية. هل تريد المتابعة؟`,
+    approveText: 'تأكيد الحذف',
+    isDanger: true
+  }).then(function (confirmed) {
+    if (!confirmed) return;
 
-  submitDeleteVoters(selectedVoters)
-    .then(function (response) {
-      const msg = response?.data?.message || 'تم الحذف بنجاح';
-      showCreateGroupFeedback('success', msg);
-      resetBulkSelectAllState(true);
-      runLiveSearch({ ...activeFilters });
-    })
-    .catch(function (error) {
-      if (error?.message === 'no-voters-selected') return;
-      const msg = error?.response?.data?.message || 'حدث خطأ أثناء الحذف';
-      showCreateGroupFeedback('error', msg);
-      alert(msg);
-    })
-    .finally(function () {
-      actionBtn.prop('disabled', false).text('حذف');
-    });
+    actionBtn.prop('disabled', true).text('جاري الحذف...');
+
+    submitDeleteVoters(selectedVoters)
+      .then(function (response) {
+        const msg = response?.data?.message || 'تم الحذف بنجاح';
+        showCreateGroupFeedback('success', msg);
+        resetBulkSelectAllState(true);
+        runLiveSearch({ ...activeFilters });
+      })
+      .catch(function (error) {
+        if (error?.message === 'no-voters-selected') return;
+        const msg = error?.response?.data?.message || 'حدث خطأ أثناء الحذف';
+        showCreateGroupFeedback('error', msg);
+        alert(msg);
+      })
+      .finally(function () {
+        actionBtn.prop('disabled', false).text('حذف');
+      });
+  });
 });
 
 function showCreateGroupFeedback(type, message) {
