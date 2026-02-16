@@ -8,6 +8,7 @@ use App\Models\Contractor;
 use App\Models\Family;
 use App\Models\Group;
 use App\Models\Voter;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,22 @@ class ContractorMobileController extends Controller
             ->latest('updated_at')
             ->get(['id', 'name', 'type', 'contractor_id', 'updated_at']);
 
+        $formatElectionValue = function ($value, string $format): ?string {
+            if (blank($value)) {
+                return null;
+            }
+
+            if ($value instanceof \DateTimeInterface) {
+                return $value->format($format);
+            }
+
+            try {
+                return Carbon::parse((string) $value)->format($format);
+            } catch (\Throwable $e) {
+                return null;
+            }
+        };
+
         return response()->json([
             'contractor' => [
                 'id' => $contractor->id,
@@ -50,10 +67,10 @@ class ContractorMobileController extends Controller
             ],
             'election' => [
                 'name' => optional($election)->name,
-                'start_date' => $election?->start_date ? $election->start_date->format('Y-m-d') : null,
-                'start_time' => $election?->start_time ? $election->start_time->format('H:i:s') : null,
-                'end_date' => $election?->end_date ? $election->end_date->format('Y-m-d') : null,
-                'end_time' => $election?->end_time ? $election->end_time->format('H:i:s') : null,
+                'start_date' => $formatElectionValue($election?->start_date, 'Y-m-d'),
+                'start_time' => $formatElectionValue($election?->start_time, 'H:i:s'),
+                'end_date' => $formatElectionValue($election?->end_date, 'Y-m-d'),
+                'end_time' => $formatElectionValue($election?->end_time, 'H:i:s'),
             ],
             'links' => [
                 'about_url' => 'https://kw-control.com/about-control',
