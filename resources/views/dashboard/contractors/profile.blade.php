@@ -1306,16 +1306,23 @@
       }
 
       .contractor-list-head {
-        align-items: flex-start;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        gap: 0.45rem;
       }
 
       .contractor-list-head h5 {
         font-size: 1rem;
+        min-width: 0;
+        flex: 1 1 auto;
       }
 
       .contractor-rows-control {
-        width: 100%;
-        justify-content: space-between;
+        width: auto;
+        justify-content: center;
+        flex: 0 0 auto;
+        white-space: nowrap;
         font-size: 0.75rem;
         padding: 0.2rem 0.2rem 0.2rem 0.45rem;
       }
