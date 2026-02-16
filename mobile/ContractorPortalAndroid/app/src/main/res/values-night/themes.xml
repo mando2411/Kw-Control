@@ -1,7 +1,0 @@
-<resources>
-    <style name="Theme.ContractorPortalAndroid" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#38BDF8</item>
-        <item name="colorPrimaryVariant">#0EA5E9</item>
-        <item name="colorOnPrimary">#0F172A</item>
-    </style>
-</resources>

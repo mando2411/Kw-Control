@@ -19,3 +19,7 @@ yarn-error.log
 /resources/assets
 .rnd
 /storage/api-docs
+/mobile/
+/.mobile/
+/public/downloads/*
+!/public/downloads/contractor-portal-latest.apk

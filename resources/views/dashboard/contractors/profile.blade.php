@@ -51,8 +51,6 @@
     ? $initialPageThemePreference
     : 'system';
 
-  $contractorAppApkAvailable = \Illuminate\Support\Facades\File::exists(public_path('downloads/contractor-portal-latest.apk'));
-
   $initialPageTheme = in_array($initialPageThemePreference, ['light', 'dark'], true)
     ? $initialPageThemePreference
     : 'light';
@@ -1953,11 +1951,7 @@
           <p class="contractor-top-cta__text"><i class="fa fa-bullhorn"></i> عشان تعرف اكتر عن البرنامج اضغط هنا</p>
           <p class="contractor-top-cta__hint">اكتشف مميزات كنترول وكيف يساعدك في إدارة الكشوف والمتابعة بشكل احترافي.</p>
           <p class="contractor-top-cta__download">حمل تطبيق المتعهد الآن من هنا
-            @if($contractorAppApkAvailable)
-              <a class="contractor-top-cta__download-link" href="{{ route('contractor-app.download') }}">من هنا</a>
-            @else
-              <span class="contractor-top-cta__download-link" aria-disabled="true">غير متاح حالياً</span>
-            @endif
+            <a class="contractor-top-cta__download-link" href="{{ route('contractor-app.download') }}">من هنا</a>
           </p>
         </div>
         <div class="contractor-top-cta__actions">

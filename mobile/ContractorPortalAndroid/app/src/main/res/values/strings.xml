@@ -1,9 +1,0 @@
-<resources>
-    <string name="app_name">Contractor Portal</string>
-    <string name="title_input">بوابة المتعهد</string>
-    <string name="subtitle_input">ادخل رابط صفحة المتعهد لفتح المحتوى (الصفحة الرئيسية + الدعم + التسويق)</string>
-    <string name="hint_url">https://example.com/contract/{token}/profile</string>
-    <string name="btn_open_portal">فتح البوابة</string>
-    <string name="title_portal">محتوى المتعهد</string>
-    <string name="btn_logout">تسجيل خروج</string>
-</resources>
