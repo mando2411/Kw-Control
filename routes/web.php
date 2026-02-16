@@ -27,15 +27,18 @@ Route::get('/download/contractor-app', function () {
     $apkPath = public_path('downloads/contractor-portal-latest.apk');
 
     if (File::exists($apkPath)) {
+        $timestamp = File::lastModified($apkPath);
+        $downloadName = 'control-app-' . date('Ymd-His', $timestamp) . '.apk';
+
         return response()->download(
             $apkPath,
-            'contractor-portal-latest.apk',
+            $downloadName,
             [
                 'Content-Type' => 'application/vnd.android.package-archive',
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
                 'Pragma' => 'no-cache',
                 'Expires' => '0',
-                'Content-Disposition' => 'attachment; filename=contractor-portal-latest.apk',
+                'Content-Disposition' => 'attachment; filename=' . $downloadName,
             ]
         );
     }
