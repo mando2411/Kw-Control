@@ -698,13 +698,32 @@
       </div>
 
       <div class="container contractor-page-container">
-        <div class="contractor-tab-nav" id="contractorTabNav">
-          <button type="button" class="btn btn-secondary contractor-tab-btn active" data-tab-target="search">البحث</button>
-          <button type="button" class="btn btn-outline-secondary contractor-tab-btn" data-tab-target="lists">القوائم</button>
+        <div class="contractor-tab-nav nav" id="contractorTabNav" role="tablist">
+          <button
+            type="button"
+            class="btn btn-secondary contractor-tab-btn active"
+            id="contractor-tab-search"
+            data-bs-toggle="tab"
+            data-bs-target="#contractorTabSearch"
+            role="tab"
+            aria-controls="contractorTabSearch"
+            aria-selected="true"
+          >البحث</button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary contractor-tab-btn"
+            id="contractor-tab-lists"
+            data-bs-toggle="tab"
+            data-bs-target="#contractorTabLists"
+            role="tab"
+            aria-controls="contractorTabLists"
+            aria-selected="false"
+          >القوائم</button>
         </div>
       </div>
 
-      <div id="contractorTabSearch" class="contractor-tab-pane" data-tab-pane="search">
+      <div class="tab-content">
+      <div id="contractorTabSearch" class="contractor-tab-pane tab-pane fade show active" data-tab-pane="search" role="tabpanel" aria-labelledby="contractor-tab-search">
       <div class="container contractor-page-container">
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
@@ -1010,7 +1029,7 @@
       </div>
     </div>
 
-    <div id="contractorTabLists" class="contractor-tab-pane d-none" data-tab-pane="lists" hidden>
+    <div id="contractorTabLists" class="contractor-tab-pane tab-pane fade" data-tab-pane="lists" role="tabpanel" aria-labelledby="contractor-tab-lists">
     <section class="pt-4 pb-2">
         <!-- <div class="container-fluid px-0"> -->
       <div class="container contractor-page-container mb-2">
@@ -1198,6 +1217,7 @@
 
         </div>
       </section>
+    </div>
     </div>
 
         <div class="banner">
@@ -1606,35 +1626,17 @@ $('#membershipFilterButtons .membership-filter-btn').on('click', function () {
   });
 });
 
-function setContractorTab(target) {
-  const showLists = target === 'lists';
-
-  $('#contractorTabSearch')
-    .toggleClass('d-none', showLists)
-    .prop('hidden', showLists)
-    .css('display', showLists ? 'none' : 'block');
-
-  $('#contractorTabLists')
-    .toggleClass('d-none', !showLists)
-    .prop('hidden', !showLists)
-    .css('display', showLists ? 'block' : 'none');
-}
-
-$('#contractorTabNav').on('click', '.contractor-tab-btn', function () {
-  const target = $(this).data('tabTarget');
-
+$('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
   $('#contractorTabNav .contractor-tab-btn')
     .removeClass('btn-secondary active')
-    .addClass('btn-outline-secondary');
+    .addClass('btn-outline-secondary')
+    .attr('aria-selected', 'false');
 
   $(this)
     .removeClass('btn-outline-secondary')
-    .addClass('btn-secondary active');
-
-  setContractorTab(target);
+    .addClass('btn-secondary active')
+    .attr('aria-selected', 'true');
 });
-
-setContractorTab('search');
 
 $('#all_voters').on('click', function (event) {
   event.preventDefault();
