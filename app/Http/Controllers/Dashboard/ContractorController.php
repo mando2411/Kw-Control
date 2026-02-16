@@ -156,9 +156,23 @@ class ContractorController extends Controller
             
         }
 
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'تمت الاضافه بنجاح',
+                'status' => 'success',
+            ]);
+        }
+
         session()->flash('message', 'تمت الاضافه بنجاح');
         session()->flash('type', 'success');
     } else {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => 'لم يتم اختيار اي ناخب',
+                'status' => 'error',
+            ], 422);
+        }
+
         session()->flash('message', 'لم يتم اختيار اي ناخب');
         session()->flash('type', 'danger');
     }
@@ -316,8 +330,27 @@ class ContractorController extends Controller
             $perPage = min(max($perPage, 1), 100);
             $paginated = $votersQuery->paginate($perPage, ['*'], 'page', $page);
 
+            $items = collect($paginated->items());
+            $itemIds = $items->pluck('id')->filter()->values();
+            $attachedIds = [];
+
+            if ($itemIds->isNotEmpty()) {
+                $attachedIds = DB::table('contractor_voter')
+                    ->where('contractor_id', $contractorId)
+                    ->whereIn('voter_id', $itemIds->all())
+                    ->pluck('voter_id')
+                    ->map(fn ($value) => (int) $value)
+                    ->all();
+            }
+
+            $attachedLookup = array_flip($attachedIds);
+            $mappedItems = $items->map(function ($voter) use ($attachedLookup) {
+                $voter->is_added = isset($attachedLookup[(int) $voter->id]);
+                return $voter;
+            })->values();
+
             return response()->json([
-                "voters" => $paginated->items(),
+                "voters" => $mappedItems,
                 "pagination" => [
                     "total" => $paginated->total(),
                     "per_page" => $paginated->perPage(),
@@ -356,11 +389,32 @@ class ContractorController extends Controller
             if($request->select == 'delete'){
                 $contractor->voters()->detach($request->voters);
                 $contractor->softDelete()->attach($request->voters);
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'تم الحذف بنجاح',
+                        'status' => 'success',
+                    ]);
+                }
             }else{
                 $group=Group::findOrFail($request->select);
                 $group->voters()->attach($request->voters);
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'تم النقل بنجاح',
+                        'status' => 'success',
+                    ]);
+                }
             }
         }else{
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'لم يتم اختيار اي ناخب',
+                    'status' => 'error',
+                ], 422);
+            }
+
             session()->flash('message', 'لم يتم اختيار اي ناخب');
             session()->flash('type', 'danger');
 

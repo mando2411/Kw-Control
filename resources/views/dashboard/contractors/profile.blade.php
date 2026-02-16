@@ -775,7 +775,7 @@
 
                 <td>
                   <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-secondary" onclick="addSingleVoter('{{$voter->id}}')">اضافة</button>
+                    <button type="button" class="btn btn-danger" onclick="toggleVoterStatus('{{$voter->id}}', true)">حذف</button>
                     <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
                   </div>
                 </td>
@@ -1266,6 +1266,7 @@ var message = selectedOption.data('message'); // Get the data-message attribute
       });
 let users = [];
 const attachRoute = "{{ route('ass', $contractor->id) }}";
+const modifyRoute = "{{ route('modify') }}";
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
 const contractorId = "{{ $contractor->id }}";
 const searchEndpoint = '/search';
@@ -1317,6 +1318,42 @@ function addSingleVoter(voterId) {
   submitAttachVoters([voterId]);
 }
 
+function toggleVoterStatus(voterId, isCurrentlyAdded) {
+  const targetUrl = isCurrentlyAdded ? modifyRoute : attachRoute;
+  const payload = {
+    _token: csrfToken,
+    voter: [voterId]
+  };
+
+  if (isCurrentlyAdded) {
+    payload.id = contractorId;
+    payload.voters = [voterId];
+    payload.select = 'delete';
+  }
+
+  axios.post(targetUrl, payload, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+    .then(function (response) {
+      const msg = response?.data?.message || (isCurrentlyAdded ? 'تم الحذف بنجاح' : 'تمت الاضافة بنجاح');
+      showCreateGroupFeedback('success', msg);
+      runLiveSearch({
+        name: ($('#searchByNameOrNum').val() || '').trim(),
+        family: ($('#searchByFamily').val() || '').trim(),
+        sibling: '',
+        siblingExcludeId: '',
+        membershipScope: activeFilters.membershipScope || 'all'
+      });
+    })
+    .catch(function (error) {
+      const msg = error?.response?.data?.message || 'حدث خطأ أثناء تنفيذ العملية';
+      showCreateGroupFeedback('error', msg);
+      alert(msg);
+    });
+}
+
 function bindRelativeButtons() {
   document.querySelectorAll('.search-relatives-btn').forEach(function (button) {
     button.onclick = function () {
@@ -1341,6 +1378,9 @@ function buildVoterRow(voter) {
   const isActive = (voter?.restricted ?? '') === 'فعال';
   const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
   const trustRate = voter?.pivot?.percentage ?? '-';
+  const isAdded = Boolean(voter?.is_added);
+  const actionBtnClass = isAdded ? 'btn btn-danger' : 'btn btn-success';
+  const actionBtnText = isAdded ? 'حذف' : 'اضافة';
 
   return `<tr class="${statusRowClass}">
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" /></td>
@@ -1352,7 +1392,7 @@ function buildVoterRow(voter) {
     <td>% ${trustRate}</td>
     <td>
       <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button type="button" class="btn btn-secondary" onclick="addSingleVoter('${voterId}')">اضافة</button>
+        <button type="button" class="${actionBtnClass}" onclick="toggleVoterStatus('${voterId}', ${isAdded})">${actionBtnText}</button>
         <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
       </div>
     </td>
