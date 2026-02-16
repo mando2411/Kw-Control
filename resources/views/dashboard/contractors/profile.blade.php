@@ -546,6 +546,54 @@
       transform: translateY(-1px);
     }
 
+    .contractor-search-inline .description {
+      margin: 0;
+    }
+
+    .contractor-search-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+
+    .contractor-search-field .form-control {
+      height: 2.55rem;
+      border-radius: calc(var(--ui-radius-input, 0.75rem) + 0.05rem);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 94%, transparent);
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: none;
+    }
+
+    .contractor-search-field .form-control:focus {
+      border-color: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 55%, transparent);
+      box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 16%, transparent);
+    }
+
+    .contractor-search-inline .select2-container {
+      width: 100% !important;
+    }
+
+    .contractor-search-inline .select2-container--default .select2-selection--single {
+      height: 2.55rem;
+      border-radius: calc(var(--ui-radius-input, 0.75rem) + 0.05rem);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 94%, transparent);
+      display: flex;
+      align-items: center;
+    }
+
+    .contractor-search-inline .select2-selection__rendered {
+      line-height: 2.45rem !important;
+      padding-right: 0.7rem !important;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ui-text-secondary, #475569);
+    }
+
+    .contractor-search-inline .select2-selection__arrow {
+      height: 2.55rem !important;
+    }
+
     .madameenTable {
       border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
       border-radius: calc(var(--ui-radius-card, 1rem) - 0.05rem);
@@ -1004,32 +1052,32 @@
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
          @if ($contractor->hasPermissionTo('search-stat-con'))
-         <div class="moreSearch ">
+         <div class="moreSearch contractor-search-inline">
             <form id="SearchForm"  class="description my-1">
-              <div class="d-flex align-items-center mb-2">
-                <label for="searchByNameOrNum">البحث عن</label>
-                <input type="hidden" name="id" value="{{$contractor->id}}">
-                <input
-                  type="text"
-                  class="form-control"
-                  name="name"
-                  id="searchByNameOrNum"
-                  placeholder=" البحث عن الأسم او الرقم"
-                  value=""
-                />
-              </div>
-              <div class="d-flex align-items-center mb-2">
-                <label for="searchByFamily"> العائلة</label>
-                <select
-                  name="family"
-                  id="searchByFamily"
-                  class="form-control js-example-basic-single"
-                >
-                  <option value="" hidden>حصر نتائج البحث حسب العائلة</option>
-                    @foreach ($families as $fam )
-                        <option value="{{$fam->id}}"> {{$fam->name}} </option>
-                    @endforeach
-                </select>
+              <input type="hidden" name="id" value="{{$contractor->id}}">
+              <div class="contractor-search-grid">
+                <div class="contractor-search-field">
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="name"
+                    id="searchByNameOrNum"
+                    placeholder="البحث بالاسم أو الرقم"
+                    value=""
+                  />
+                </div>
+                <div class="contractor-search-field">
+                  <select
+                    name="family"
+                    id="searchByFamily"
+                    class="form-control js-example-basic-single"
+                  >
+                    <option value="" selected>حصر النتائج حسب العائلة</option>
+                      @foreach ($families as $fam )
+                          <option value="{{$fam->id}}"> {{$fam->name}} </option>
+                      @endforeach
+                  </select>
+                </div>
               </div>
 
             </form>
