@@ -2435,7 +2435,7 @@
             <i class="fa fa-arrow-up-left-from-circle"></i>
             اكتشف مميزات كنترول
           </a>
-          <a class="contractor-marketing-footer__cta-link is-outline" href="https://kw-control.com/contact-us" target="_blank" rel="noopener noreferrer">
+          <a class="contractor-marketing-footer__cta-link is-outline" href="{{ route('con-support', ['token' => $contractor->token]) }}">
             <i class="fa fa-headset"></i>
             تواصل مع فريق الدعم
           </a>
