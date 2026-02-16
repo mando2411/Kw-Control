@@ -482,16 +482,114 @@
       padding: 0;
       margin: 0;
       color: var(--ui-text-primary, #0f172a);
-      font-weight: 700;
+      font-size: clamp(1rem, 1.45vw, 1.12rem);
+      font-weight: 900;
+      line-height: 1.45;
       text-align: right;
       cursor: pointer;
-      text-decoration: underline;
-      text-decoration-style: dotted;
-      text-underline-offset: 2px;
+      text-decoration: none;
+      display: block;
+      width: fit-content;
+      max-width: 100%;
     }
 
     .voter-name-details:hover {
       color: var(--ui-btn-primary, #0ea5e9);
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 3px;
+    }
+
+    .voter-inactive-flag {
+      display: block;
+      margin-top: 0.2rem;
+      color: color-mix(in srgb, var(--ui-btn-quaternary, #f59e0b) 74%, #991b1b);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .voter-inactive-flag:empty {
+      display: none;
+    }
+
+    .search-relatives-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.48rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 90%, transparent);
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 80%, transparent);
+      color: var(--ui-text-secondary, #475569);
+      font-size: 0.76rem;
+      font-weight: 700;
+      transition: all 180ms ease;
+    }
+
+    .search-relatives-btn:hover {
+      color: var(--ui-btn-primary, #0ea5e9);
+      border-color: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 42%, transparent);
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 10%, transparent);
+      transform: translateY(-1px);
+    }
+
+    .madameenTable {
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
+      border-radius: calc(var(--ui-radius-card, 1rem) - 0.05rem);
+      background: color-mix(in srgb, var(--ui-bg-primary, #fff) 96%, transparent);
+      padding: 0.4rem;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-border, #dbe3ef) 50%, transparent);
+    }
+
+    .contractor-voters-table {
+      margin-bottom: 0;
+      border-collapse: separate;
+      border-spacing: 0 0.42rem;
+      min-width: 760px;
+    }
+
+    .contractor-voters-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border: 0;
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 14%, #ffffff),
+        color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 96%, transparent));
+      color: var(--ui-text-primary, #0f172a);
+      font-size: 0.83rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      padding: 0.78rem 0.75rem;
+    }
+
+    .contractor-voters-table tbody tr {
+      background: color-mix(in srgb, var(--ui-bg-primary, #fff) 98%, transparent);
+      box-shadow: 0 6px 16px rgba(2, 6, 23, 0.06);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .contractor-voters-table tbody tr:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(2, 6, 23, 0.1);
+    }
+
+    .contractor-voters-table tbody td {
+      border: 0;
+      padding: 0.78rem 0.7rem;
+      vertical-align: middle;
+      background: transparent;
+    }
+
+    .contractor-voters-table tbody tr td:first-child {
+      border-top-right-radius: 0.72rem;
+      border-bottom-right-radius: 0.72rem;
+    }
+
+    .contractor-voters-table tbody tr td:last-child {
+      border-top-left-radius: 0.72rem;
+      border-bottom-left-radius: 0.72rem;
     }
 
     .contractor-confirm-modal .modal-dialog {
@@ -905,7 +1003,7 @@
 
         <div class="madameenTable table-responsive mt-4">
           <table
-            class="table rtl overflow-hidden rounded-3 text-center"
+            class="table contractor-voters-table rtl overflow-hidden rounded-3 text-center align-middle"
           >
             <thead
               class="table-primary border-0 border-secondary border-bottom border-2"
@@ -939,7 +1037,7 @@
                     data-bs-target="#nameChechedDetails"
                   >{{$voter->name}}</button>
 
-                    <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-name="{{$voter->name}}" data-voter-id="{{$voter->id}}" type="button">البحث عن أقارب</button>
+                    <button class="search-relatives-btn" data-voter-name="{{$voter->name}}" data-voter-id="{{$voter->id}}" type="button">البحث عن أقارب</button>
 
                     @if ($voter->status == 1)
                 <p class=" my-1">
@@ -1253,6 +1351,7 @@
           </div>
 
 
+          
          @else
          <div class="fs-5 bg-white px-3 d-none">لا يوجد</div>
 
@@ -1753,8 +1852,8 @@ function buildVoterRow(voter) {
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" /></td>
     <td>
       <button type="button" class="voter-name-details ${isActive ? '' : 'line'}" data-voter-id="${voterId}" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">${voterName}</button>
-      <span style="color:red">${isActive ? '' : ' غير فعال'}</span>
-      <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-name="${voterFullName}" data-voter-id="${voterId}" type="button">البحث عن أقارب</button>
+      <span class="voter-inactive-flag">${isActive ? '' : 'غير فعال'}</span>
+      <button class="search-relatives-btn" data-voter-name="${voterFullName}" data-voter-id="${voterId}" type="button">البحث عن أقارب</button>
     </td>
     <td>% ${trustRate}</td>
     <td>
