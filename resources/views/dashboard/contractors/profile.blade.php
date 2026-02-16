@@ -777,7 +777,7 @@
         @csrf
         <input type="hidden" name="id" value="{{$contractor->id}}" id="con_id">
       <input type="hidden" name="select" value="" id="bulk_action">
-    <section class="py-3 rtl">
+    <section class="py-3 rtl" class="contractor-tab-pane tab-pane fade show active">
       <div class="container contractor-page-container">
         <div class="d-flex justify-content-start align-items-center gap-2 mb-2">
           <label class="btn btn-dark allBtn mb-0">تحديد الكل</label>
