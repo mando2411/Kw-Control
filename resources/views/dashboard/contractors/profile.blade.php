@@ -3277,13 +3277,52 @@ $('#toggle_select_all_search').on('click', function (event) {
 
   if (isSelectAllLoading) return;
 
+  const triggerBtn = $(this);
+
+  if (!isAllRowsMode()) {
+    const loadedCheckboxes = Array.from(document.querySelectorAll('#resultSearchData .check'));
+    if (!loadedCheckboxes.length) {
+      alert('لا توجد صفوف معروضة لتحديدها');
+      return;
+    }
+
+    const allLoadedChecked = loadedCheckboxes.every(function (checkbox) {
+      return checkbox.checked;
+    });
+
+    if (allLoadedChecked) {
+      loadedCheckboxes.forEach(function (checkbox) {
+        checkbox.checked = false;
+      });
+
+      bulkSelectAllActive = false;
+      bulkSelectedVoterIds = [];
+
+      triggerBtn
+        .attr('data-select-all', 'off')
+        .text('تحديد الكل');
+    } else {
+      loadedCheckboxes.forEach(function (checkbox) {
+        checkbox.checked = true;
+      });
+
+      bulkSelectAllActive = false;
+      bulkSelectedVoterIds = [];
+
+      triggerBtn
+        .attr('data-select-all', 'on')
+        .text(`إلغاء تحديد المعروض (${loadedCheckboxes.length})`);
+    }
+
+    return;
+  }
+
   if (bulkSelectAllActive) {
     resetBulkSelectAllState(true);
     return;
   }
 
   isSelectAllLoading = true;
-  const triggerBtn = $(this);
   triggerBtn.prop('disabled', true).text('جاري تحديد الكل...');
 
   collectAllFilteredVoterIds()
