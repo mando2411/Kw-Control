@@ -1227,14 +1227,14 @@
       </section>
     </div>
     </div>
-
+<!--
         <div class="banner">
           <img
             src="{{$contractor->creator?->candidate ? ($contractor->creator->candidate ?? $contractor->creator->candidate[0]->banner) : "" }}"
             class="w-100 h-100"
             alt="description banner image project "
           />
-        </div>
+        </div> -->
     </section>
 
         <!-- ================================================================================================================= -->
