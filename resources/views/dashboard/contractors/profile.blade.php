@@ -890,7 +890,7 @@
           </div>
           <form class="modal-body">
             <div>
-              <img src="./image/image4.jpg" class="w-100" alt="">
+              <img src="{{ asset('assets/admin/images/image4.jpg') }}" class="w-100" alt="">
             </div>
             <h5
               class=" bg-dark text-center py-2 pe-2 text-white"
