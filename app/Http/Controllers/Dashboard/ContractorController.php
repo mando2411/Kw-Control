@@ -217,9 +217,32 @@ class ContractorController extends Controller
             $log[]="بحث العائله :".$family_name;
         }
         if ($request->filled('sibling')) {
-            $sibling = $request->input('sibling');
-            $votersQuery->where('father',$sibling);
-            $log[]="بحث عن الاقارب  :". $sibling;
+            $sibling = trim((string) $request->input('sibling'));
+            $parts = preg_split('/\s+/u', $sibling, -1, PREG_SPLIT_NO_EMPTY);
+
+            $tail = '';
+            if (is_array($parts) && count($parts) > 1) {
+                array_shift($parts);
+                $tail = trim(implode(' ', $parts));
+            }
+
+            if ($tail !== '') {
+                $normalizedTail = ArabicHelper::normalizeArabic($tail);
+                $votersQuery->where(function ($query) use ($normalizedTail) {
+                    $query->where('normalized_name', $normalizedTail)
+                          ->orWhere('normalized_name', 'LIKE', $normalizedTail . ' %')
+                          ->orWhere('normalized_name', 'LIKE', '% ' . $normalizedTail);
+                });
+                $log[] = "بحث عن الاخوة (بدون الاسم الاول): " . $tail;
+            } else {
+                $normalizedSibling = ArabicHelper::normalizeArabic($sibling);
+                $votersQuery->where('normalized_name', 'LIKE', $normalizedSibling . '%');
+                $log[] = "بحث عن الاخوة: " . $sibling;
+            }
+
+            if ($request->filled('sibling_exclude_id')) {
+                $votersQuery->where('id', '!=', (int) $request->input('sibling_exclude_id'));
+            }
         }
         
         $contractor = Contractor::find($request->id);

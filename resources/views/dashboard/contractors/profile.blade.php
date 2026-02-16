@@ -755,7 +755,7 @@
                       line
                   @endif">{{$voter->name}}</p>
 
-                  <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="{{$voter->father}}" type="button">البحث عن أقارب</button>
+                    <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-name="{{$voter->name}}" data-voter-id="{{$voter->id}}" type="button">البحث عن أقارب</button>
 
                     @if ($voter->status == 1)
                 <p class=" my-1">
@@ -1273,7 +1273,8 @@ let silentFilterUpdate = false;
 let activeFilters = {
   name: '',
   family: '',
-  sibling: ''
+  sibling: '',
+  siblingExcludeId: ''
 };
 
 function submitAttachVoters(voterIds) {
@@ -1311,7 +1312,7 @@ function addSingleVoter(voterId) {
 function bindRelativeButtons() {
   document.querySelectorAll('.search-relatives-btn').forEach(function (button) {
     button.onclick = function () {
-      searchRelatives(this.dataset.voterGrand || '');
+      searchRelatives(this.dataset.voterName || '', this.dataset.voterId || '');
     };
   });
 }
@@ -1328,7 +1329,7 @@ function escapeHtml(value) {
 function buildVoterRow(voter) {
   const voterId = voter?.id ?? '';
   const voterName = escapeHtml(voter?.name ?? '');
-  const father = escapeHtml(voter?.father ?? '');
+  const voterFullName = escapeHtml(voter?.name ?? '');
   const isActive = (voter?.restricted ?? '') === 'فعال';
   const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
   const trustRate = voter?.pivot?.percentage ?? '-';
@@ -1338,7 +1339,7 @@ function buildVoterRow(voter) {
     <td>
       <p style="margin:0; padding:0;" class="${isActive ? '' : 'line'}">${voterName}</p>
       <span style="color:red">${isActive ? '' : ' غير فعال'}</span>
-      <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-grand="${father}" type="button">البحث عن أقارب</button>
+      <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-name="${voterFullName}" data-voter-id="${voterId}" type="button">البحث عن أقارب</button>
     </td>
     <td>% ${trustRate}</td>
     <td>
@@ -1375,7 +1376,8 @@ function currentFiltersFromUI() {
   return {
     name: ($('#searchByNameOrNum').val() || '').trim(),
     family: ($('#searchByFamily').val() || '').trim(),
-    sibling: ''
+    sibling: '',
+    siblingExcludeId: ''
   };
 }
 
@@ -1395,6 +1397,7 @@ function fetchVotersPage(appendMode) {
   if (activeFilters.name) params.append('name', activeFilters.name);
   if (activeFilters.family) params.append('family', activeFilters.family);
   if (activeFilters.sibling) params.append('sibling', activeFilters.sibling);
+  if (activeFilters.siblingExcludeId) params.append('sibling_exclude_id', activeFilters.siblingExcludeId);
 
   axios.get(searchEndpoint, { params: params })
     .then(function (response) {
@@ -1427,7 +1430,8 @@ function runLiveSearch(filters) {
   activeFilters = {
     name: filters?.name ?? '',
     family: filters?.family ?? '',
-    sibling: filters?.sibling ?? ''
+    sibling: filters?.sibling ?? '',
+    siblingExcludeId: filters?.siblingExcludeId ?? ''
   };
 
   currentPage = 1;
@@ -1435,13 +1439,13 @@ function runLiveSearch(filters) {
   fetchVotersPage(false);
 }
 
-function searchRelatives(voterName) {
+function searchRelatives(voterName, voterId) {
   silentFilterUpdate = true;
   $('#searchByNameOrNum').val('');
   $('#searchByFamily').val('').trigger('change.select2');
   silentFilterUpdate = false;
 
-  runLiveSearch({ name: '', family: '', sibling: voterName || '' });
+  runLiveSearch({ name: '', family: '', sibling: voterName || '', siblingExcludeId: voterId || '' });
 }
 
 $('#all_voters').on('click', function (event) {
