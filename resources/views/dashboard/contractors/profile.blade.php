@@ -901,6 +901,142 @@
       z-index: 1;
     }
 
+    .contractor-marketing-footer {
+      width: min(var(--ui-container-max, 1320px), 95vw);
+      margin: 1rem auto 1.5rem;
+      border-radius: calc(var(--ui-radius-card, 1rem) + 0.2rem);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 86%, transparent);
+      background: linear-gradient(130deg,
+        color-mix(in srgb, var(--ui-bg-primary, #ffffff) 96%, transparent),
+        color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 92%, transparent));
+      box-shadow: var(--ui-shadow, 0 20px 45px rgba(2, 6, 23, 0.14));
+      overflow: hidden;
+      position: relative;
+    }
+
+    .contractor-marketing-footer::after {
+      content: "";
+      position: absolute;
+      inset-inline-end: -8%;
+      top: -35%;
+      width: 40%;
+      height: 165%;
+      background: radial-gradient(circle,
+        color-mix(in srgb, var(--ui-btn-secondary, #6366f1) 18%, transparent) 0%,
+        transparent 72%);
+      pointer-events: none;
+    }
+
+    .contractor-marketing-footer__inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: center;
+      padding: clamp(0.9rem, 2vw, 1.3rem);
+      position: relative;
+      z-index: 1;
+    }
+
+    .contractor-marketing-footer__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-bottom: 0.45rem;
+      padding: 0.24rem 0.64rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--ui-btn-primary, #0ea5e9);
+      border: 1px solid color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 40%, transparent);
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 12%, transparent);
+    }
+
+    .contractor-marketing-footer__title {
+      margin: 0;
+      font-size: clamp(1rem, 1.8vw, 1.26rem);
+      font-weight: 900;
+      line-height: 1.45;
+      color: var(--ui-text-primary, #0f172a);
+      letter-spacing: -0.01em;
+    }
+
+    .contractor-marketing-footer__desc {
+      margin: 0.4rem 0 0;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ui-text-secondary, #475569);
+      line-height: 1.7;
+    }
+
+    .contractor-marketing-footer__points {
+      list-style: none;
+      margin: 0.7rem 0 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.48rem;
+    }
+
+    .contractor-marketing-footer__points li {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.26rem 0.58rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ui-text-secondary, #475569);
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 88%, transparent);
+    }
+
+    .contractor-marketing-footer__cta {
+      display: grid;
+      gap: 0.52rem;
+      justify-items: stretch;
+      align-content: center;
+    }
+
+    .contractor-marketing-footer__cta-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.42rem;
+      min-height: 2.55rem;
+      padding: 0.55rem 0.95rem;
+      border-radius: calc(var(--ui-radius-button, 0.75rem) + 0.08rem);
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+    }
+
+    .contractor-marketing-footer__cta-link.is-primary {
+      background: linear-gradient(120deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1));
+      color: #ffffff;
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 36%, transparent);
+    }
+
+    .contractor-marketing-footer__cta-link.is-outline {
+      border-color: color-mix(in srgb, var(--ui-border, #dbe3ef) 90%, transparent);
+      color: var(--ui-text-primary, #0f172a);
+      background: color-mix(in srgb, var(--ui-bg-primary, #ffffff) 92%, transparent);
+    }
+
+    .contractor-marketing-footer__cta-link:hover {
+      transform: translateY(-1px);
+    }
+
+    .contractor-marketing-footer__copyright {
+      margin: 0;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--ui-text-secondary, #475569) 78%, transparent);
+      padding: 0 1rem 0.9rem;
+    }
+
     @media (max-width: 768px) {
       .contractor-layout-block {
         width: 95vw;
@@ -948,6 +1084,40 @@
 
       .committeDetails__desc {
         line-height: 1.65;
+      }
+
+      .contractor-marketing-footer {
+        margin-bottom: 1rem;
+      }
+
+      .contractor-marketing-footer__inner {
+        grid-template-columns: 1fr;
+        gap: 0.7rem;
+      }
+
+      .contractor-marketing-footer__title {
+        font-size: 0.96rem;
+      }
+
+      .contractor-marketing-footer__desc {
+        font-size: 0.84rem;
+      }
+
+      .contractor-marketing-footer__points {
+        gap: 0.35rem;
+      }
+
+      .contractor-marketing-footer__points li {
+        font-size: 0.7rem;
+      }
+
+      .contractor-marketing-footer__cta-link {
+        min-height: 2.35rem;
+        font-size: 0.84rem;
+      }
+
+      .contractor-marketing-footer__copyright {
+        font-size: 0.68rem;
       }
 
       .contractor-tab-switcher-hint {
@@ -1711,6 +1881,32 @@
         </div>
       </div>
     </div>
+
+    <footer class="contractor-marketing-footer" aria-label="الفوتر التسويقي">
+      <div class="contractor-marketing-footer__inner">
+        <div>
+          <span class="contractor-marketing-footer__badge"><i class="fa fa-bullhorn"></i> تسويق ذكي للمتعهد</span>
+          <h6 class="contractor-marketing-footer__title">كبّر تأثيرك الانتخابي مع كنترول بخطة متابعة يومية وتحديث لحظي للنتائج</h6>
+          <p class="contractor-marketing-footer__desc">منصة واحدة لإدارة الأسماء، تنظيم القوائم، ومراقبة الأداء بسرعة أعلى وقرار أدق طوال الحملة.</p>
+          <ul class="contractor-marketing-footer__points">
+            <li><i class="fa fa-circle-check"></i> متابعة فورية</li>
+            <li><i class="fa fa-circle-check"></i> تنظيم ذكي للقوائم</li>
+            <li><i class="fa fa-circle-check"></i> تقارير أوضح</li>
+          </ul>
+        </div>
+        <div class="contractor-marketing-footer__cta">
+          <a class="contractor-marketing-footer__cta-link is-primary" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer">
+            <i class="fa fa-arrow-up-left-from-circle"></i>
+            اكتشف مميزات كنترول
+          </a>
+          <a class="contractor-marketing-footer__cta-link is-outline" href="https://kw-control.com/contact-us" target="_blank" rel="noopener noreferrer">
+            <i class="fa fa-headset"></i>
+            تواصل مع فريق الدعم
+          </a>
+        </div>
+      </div>
+      <p class="contractor-marketing-footer__copyright">جميع الحقوق محفوظة © كنترول - إدارة انتخابية حديثة للفرق الميدانية</p>
+    </footer>
 
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
