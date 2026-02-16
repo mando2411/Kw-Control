@@ -44,35 +44,13 @@
   ];
 @endphp
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="ui-modern" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+<html lang="ar" dir="rtl" class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <title>{{$contractor->name}}</title>
-
-    <script>
-      (function () {
-        var root = document.documentElement;
-        var colorMode = 'light';
-        var pageThemeStorageKey = 'contractor_profile_theme_' + @json($contractor->token);
-
-        try {
-          var storedColor = localStorage.getItem(pageThemeStorageKey);
-          if (storedColor === 'dark' || storedColor === 'light') {
-            colorMode = storedColor;
-          }
-        } catch (e) {}
-
-        root.classList.remove('ui-light', 'ui-dark');
-        root.classList.add(colorMode === 'dark' ? 'ui-dark' : 'ui-light');
-        root.setAttribute('data-ui-color-mode', colorMode);
-        root.setAttribute('data-bs-theme', colorMode === 'dark' ? 'dark' : 'light');
-        root.style.backgroundColor = colorMode === 'dark' ? '#0f172a' : '#ffffff';
-        root.style.colorScheme = colorMode === 'dark' ? 'dark' : 'light';
-      })();
-    </script>
 
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
@@ -93,8 +71,6 @@
           root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
           root.setAttribute('data-ui-color-mode', mode);
           root.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
-          root.style.backgroundColor = mode === 'dark' ? '#0f172a' : '#ffffff';
-          root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
 
           if (!document.body) return;
           document.body.classList.remove('ui-light', 'ui-dark');
@@ -1858,7 +1834,7 @@
 
     }
   </style>
-  <body class="ui-modern contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+  <body class="ui-modern ui-light contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
 
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
