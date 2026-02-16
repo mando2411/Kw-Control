@@ -279,6 +279,12 @@ class ContractorController extends Controller
                         $query->where('contractor_id', $contractorId);
                     });
                 }
+            } elseif ($scope === 'all') {
+                if ((string) $request->input('exclude_grouped', '0') === '1') {
+                    $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
+                        $query->where('contractor_id', $contractorId);
+                    });
+                }
             } else {
                 $votersQuery->whereDoesntHave('contractors', function ($query) use ($contractorId) {
                     $query->where('contractor_id', $contractorId);

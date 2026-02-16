@@ -713,6 +713,12 @@
           <button type="button" class="btn btn-primary" id="all_voters">اضافة المحدد</button>
           <button type="button" class="btn btn-danger" id="delete_selected_top">حذف</button>
         </div>
+
+        <div class="d-flex justify-content-start align-items-center gap-2 mb-2" id="membershipFilterButtons">
+          <button type="button" class="btn btn-secondary membership-filter-btn active" data-membership-scope="all">الكل</button>
+          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="attached">تمت اضافتهم</button>
+          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="available">لم تتم اضافتهم</button>
+        </div>
       </div>
       <div class="container-fluid contractor-layout-block">
         <h5>
@@ -1275,7 +1281,8 @@ let activeFilters = {
   name: '',
   family: '',
   sibling: '',
-  siblingExcludeId: ''
+  siblingExcludeId: '',
+  membershipScope: 'all'
 };
 
 function submitAttachVoters(voterIds) {
@@ -1378,7 +1385,8 @@ function currentFiltersFromUI() {
     name: ($('#searchByNameOrNum').val() || '').trim(),
     family: ($('#searchByFamily').val() || '').trim(),
     sibling: '',
-    siblingExcludeId: ''
+    siblingExcludeId: '',
+    membershipScope: activeFilters.membershipScope || 'all'
   };
 }
 
@@ -1390,7 +1398,7 @@ function fetchVotersPage(appendMode) {
   const requestId = ++currentRequestId;
   const params = new URLSearchParams();
   params.append('id', contractorId);
-  params.append('scope', 'attached');
+  params.append('scope', activeFilters.membershipScope || 'all');
   params.append('exclude_grouped', '1');
   params.append('page', String(currentPage));
   params.append('per_page', String(pageSize));
@@ -1432,7 +1440,8 @@ function runLiveSearch(filters) {
     name: filters?.name ?? '',
     family: filters?.family ?? '',
     sibling: filters?.sibling ?? '',
-    siblingExcludeId: filters?.siblingExcludeId ?? ''
+    siblingExcludeId: filters?.siblingExcludeId ?? '',
+    membershipScope: filters?.membershipScope ?? activeFilters.membershipScope ?? 'all'
   };
 
   currentPage = 1;
@@ -1446,8 +1455,34 @@ function searchRelatives(voterName, voterId) {
   $('#searchByFamily').val('').trigger('change.select2');
   silentFilterUpdate = false;
 
-  runLiveSearch({ name: '', family: '', sibling: voterName || '', siblingExcludeId: voterId || '' });
+  runLiveSearch({
+    name: '',
+    family: '',
+    sibling: voterName || '',
+    siblingExcludeId: voterId || '',
+    membershipScope: activeFilters.membershipScope || 'all'
+  });
 }
+
+$('#membershipFilterButtons .membership-filter-btn').on('click', function () {
+  const scope = $(this).data('membershipScope') || 'all';
+
+  $('#membershipFilterButtons .membership-filter-btn')
+    .removeClass('btn-secondary active')
+    .addClass('btn-outline-secondary');
+
+  $(this)
+    .removeClass('btn-outline-secondary')
+    .addClass('btn-secondary active');
+
+  runLiveSearch({
+    name: ($('#searchByNameOrNum').val() || '').trim(),
+    family: ($('#searchByFamily').val() || '').trim(),
+    sibling: '',
+    siblingExcludeId: '',
+    membershipScope: scope
+  });
+});
 
 $('#all_voters').on('click', function (event) {
   event.preventDefault();
