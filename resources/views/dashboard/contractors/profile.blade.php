@@ -1387,6 +1387,8 @@ function fetchVotersPage(appendMode) {
   const requestId = ++currentRequestId;
   const params = new URLSearchParams();
   params.append('id', contractorId);
+  params.append('scope', 'attached');
+  params.append('exclude_grouped', '1');
   params.append('page', String(currentPage));
   params.append('per_page', String(pageSize));
 

@@ -243,11 +243,24 @@ class ContractorController extends Controller
         ->log($logString);
 
         if ($request->filled('id')) {
-            $contractorId = $request->input('id');
-            $votersQuery->whereDoesntHave('contractors', function ($query) use ($contractorId) {
-                $query->where('contractor_id', $contractorId);
-            });
-     
+            $contractorId = (int) $request->input('id');
+            $scope = (string) $request->input('scope', 'available');
+
+            if ($scope === 'attached') {
+                $votersQuery->whereHas('contractors', function ($query) use ($contractorId) {
+                    $query->where('contractor_id', $contractorId);
+                });
+
+                if ((string) $request->input('exclude_grouped', '0') === '1') {
+                    $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
+                        $query->where('contractor_id', $contractorId);
+                    });
+                }
+            } else {
+                $votersQuery->whereDoesntHave('contractors', function ($query) use ($contractorId) {
+                    $query->where('contractor_id', $contractorId);
+                });
+            }
         }
         $votersQuery->orderBy('name', 'asc');
 
