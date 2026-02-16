@@ -476,6 +476,24 @@
       display: none !important;
     }
 
+    .voter-name-details {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      color: var(--ui-text-primary, #0f172a);
+      font-weight: 700;
+      text-align: right;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 2px;
+    }
+
+    .voter-name-details:hover {
+      color: var(--ui-btn-primary, #0ea5e9);
+    }
+
     .contractor-confirm-modal .modal-dialog {
       transform: translateY(14px) scale(0.98);
       transition: transform 220ms ease;
@@ -913,9 +931,13 @@
                 </td>
 
                 <td>
-                  <p class="@if ($voter->restricted != 'فعال')
-                      line
-                  @endif">{{$voter->name}}</p>
+                  <button
+                    type="button"
+                    class="voter-name-details @if ($voter->restricted != 'فعال') line @endif"
+                    data-voter-id="{{$voter->id}}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#nameChechedDetails"
+                  >{{$voter->name}}</button>
 
                     <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-name="{{$voter->name}}" data-voter-id="{{$voter->id}}" type="button">البحث عن أقارب</button>
 
@@ -931,7 +953,6 @@
                 <td>
                   <div class="d-flex justify-content-center gap-2 flex-wrap">
                     <button type="button" class="btn btn-danger voter-action-toggle" onclick="toggleVoterStatus(this, '{{$voter->id}}', true)">حذف</button>
-                    <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
                   </div>
                 </td>
               </tr>
@@ -1186,7 +1207,14 @@
                         <input type="checkbox" id="voter_id" class="check" name="voters[]" value="{{$voter->id}}" />
                       </td>
 
-                    <td>{{$voter->name}}
+                    <td>
+                    <button
+                      type="button"
+                      class="voter-name-details"
+                      data-voter-id="{{$voter->id}}"
+                      data-bs-toggle="modal"
+                      data-bs-target="#nameChechedDetails"
+                    >{{$voter->name}}</button>
 
                     @if ($voter->status == 1)
                 <p class=" my-1">
@@ -1196,12 +1224,7 @@
             @endif
                     </td>
                     <td>{{$voter->contractors()->where('contractor_id' , $contractor->id)->first()?->pivot->percentage}} % </td>
-                    <td
-                      data-bs-toggle="modal"
-                      data-bs-target="#nameChechedDetails"
-                    >
-                      <button class="btn btn-dark voter_details">تفاصيل</button>
-                    </td>
+                    <td>-</td>
                   </tr>
                 @endforeach
               </tbody>
@@ -1395,9 +1418,30 @@ var message = selectedOption.data('message'); // Get the data-message attribute
       $(document).ready(function () {
       
         //========================================================================
-          //update voter phone
-          $('.voter_details').on('click', function(event) {
-            event.preventDefault(); // Prevent the default button action
+          //load voter details by clicking voter name
+          $(document).on('click', '.voter-name-details', function(event) {
+            event.preventDefault();
+
+            const voterId = $(this).data('voterId') || $(this).attr('data-voter-id');
+            if (!voterId) return;
+
+            const detailsUrl = '/voter/' + voterId + '/' + contractorId;
+
+            axios.get(detailsUrl)
+              .then(function (response) {
+                $('#mota3ahedDetailsVoterId').val(response?.data?.voter?.id || '');
+                $('#mota3ahedDetailsName').val(response?.data?.voter?.name || '');
+                $('#mota3ahedDetailsPhone').val(response?.data?.voter?.phone1 || '');
+                $('#mota3ahedDetailsCommitte').val(response?.data?.committee_name || '');
+                $('#mota3ahedDetailsRegiterNumber').val(response?.data?.voter?.alsndok || '');
+                $('#mota3ahedDetailsSchool').val(response?.data?.school || '');
+                $('#mota3ahedDetailsTrustingRate').val(response?.data?.percent || 0);
+                $('#percent').text(response?.data?.percent || 0);
+                $('#father').val(response?.data?.voter?.father || '');
+              })
+              .catch(function () {
+                alert('تعذر تحميل تفاصيل الناخب');
+              });
           });
         //========================================================================
       
@@ -1708,7 +1752,7 @@ function buildVoterRow(voter) {
   return `<tr class="${statusRowClass}">
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" /></td>
     <td>
-      <p style="margin:0; padding:0;" class="${isActive ? '' : 'line'}">${voterName}</p>
+      <button type="button" class="voter-name-details ${isActive ? '' : 'line'}" data-voter-id="${voterId}" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">${voterName}</button>
       <span style="color:red">${isActive ? '' : ' غير فعال'}</span>
       <button class="btn btn-sm btn-outline-secondary p-0 m-0 search-relatives-btn" style="font-size: 10px;" data-voter-name="${voterFullName}" data-voter-id="${voterId}" type="button">البحث عن أقارب</button>
     </td>
@@ -1716,7 +1760,6 @@ function buildVoterRow(voter) {
     <td>
       <div class="d-flex justify-content-center gap-2 flex-wrap">
         <button type="button" class="${actionBtnClass}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnText}</button>
-        <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">تفاصيل</button>
       </div>
     </td>
   </tr>`;
