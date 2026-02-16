@@ -678,6 +678,56 @@
       height: 2.55rem !important;
     }
 
+    .contractor-list-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.2rem;
+    }
+
+    .contractor-list-head h5 {
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .contractor-rows-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.42rem;
+      color: var(--ui-text-secondary, #475569);
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 92%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 88%, transparent);
+      border-radius: 999px;
+      padding: 0.2rem 0.24rem 0.2rem 0.5rem;
+    }
+
+    .contractor-rows-control select {
+      min-width: 92px;
+      height: 2rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
+      background: var(--ui-bg-primary, #fff);
+      color: var(--ui-text-primary, #0f172a);
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding-inline: 0.55rem 1.55rem;
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .contractor-rows-control select:focus {
+      border-color: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 55%, transparent);
+      box-shadow: 0 0 0 0.16rem color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 16%, transparent);
+      outline: none;
+    }
+
     .madameenTable {
       border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
       border-radius: calc(var(--ui-radius-card, 1rem) - 0.05rem);
@@ -1208,6 +1258,27 @@
         font-size: 0.82rem;
       }
 
+      .contractor-list-head {
+        align-items: flex-start;
+      }
+
+      .contractor-list-head h5 {
+        font-size: 1rem;
+      }
+
+      .contractor-rows-control {
+        width: 100%;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.2rem 0.2rem 0.45rem;
+      }
+
+      .contractor-rows-control select {
+        min-width: 84px;
+        height: 1.88rem;
+        font-size: 0.74rem;
+      }
+
       #toggle_select_all_search,
       #all_voters,
       #delete_selected_top {
@@ -1410,14 +1481,26 @@
         </div>
       </div>
       <div class="container-fluid contractor-layout-block">
-        <h5>
-          قائمة الأسماء
-          <span
-            id="search_count"
-            class="bg-dark text-white rounded-2 p-1 px-3 me-2"
-            >{{$voters->count()}}</span
-          >
-        </h5>
+        <div class="contractor-list-head">
+          <h5>
+            قائمة الأسماء
+            <span
+              id="search_count"
+              class="bg-dark text-white rounded-2 p-1 px-3 me-2"
+              >{{$voters->count()}}</span
+            >
+          </h5>
+          <label class="contractor-rows-control" for="rowsPerPageSelect">
+            <span>عدد صفوف العرض</span>
+            <select id="rowsPerPageSelect" aria-label="عدد صفوف العرض">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="all">الكل</option>
+            </select>
+          </label>
+        </div>
 
         <div class="d-flex justify-content-center align-items-center gap-2 mb-3" id="membershipFilterButtons">
           <button type="button" class="btn btn-secondary membership-filter-btn active" data-membership-scope="all">الكل</button>
@@ -2084,7 +2167,8 @@ const modifyRoute = "{{ route('modify') }}";
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
 const contractorId = "{{ $contractor->id }}";
 const searchEndpoint = '/search';
-const pageSize = 20;
+const lazyLoadChunkSize = 20;
+let selectedRowsPerView = '20';
 
 let isLoadingRows = false;
 let hasMoreRows = true;
@@ -2421,6 +2505,15 @@ function currentFiltersFromUI() {
   };
 }
 
+function getSearchPerPage() {
+  if (selectedRowsPerView === 'all') {
+    return lazyLoadChunkSize;
+  }
+
+  const parsed = Number(selectedRowsPerView);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : lazyLoadChunkSize;
+}
+
 function fetchVotersPage(appendMode) {
   if (isLoadingRows) return;
   if (appendMode && !hasMoreRows) return;
@@ -2432,7 +2525,7 @@ function fetchVotersPage(appendMode) {
   params.append('scope', activeFilters.membershipScope || 'all');
   params.append('exclude_grouped', '1');
   params.append('page', String(currentPage));
-  params.append('per_page', String(pageSize));
+  params.append('per_page', String(getSearchPerPage()));
 
   if (activeFilters.name) params.append('name', activeFilters.name);
   if (activeFilters.family) params.append('family', activeFilters.family);
@@ -2453,7 +2546,7 @@ function fetchVotersPage(appendMode) {
         hasMoreRows = hasMoreValue === true || hasMoreValue === 1 || hasMoreValue === '1';
         $('#search_count').text(pagination.total ?? votersList.length);
       } else {
-        hasMoreRows = votersList.length >= pageSize;
+        hasMoreRows = votersList.length >= getSearchPerPage();
         if (!appendMode) {
           $('#search_count').text(votersList.length);
         }
@@ -2707,6 +2800,11 @@ $('#searchByNameOrNum').on('input', function () {
 
 $('#searchByFamily').on('change', function () {
   if (silentFilterUpdate) return;
+  runLiveSearch(currentFiltersFromUI());
+});
+
+$('#rowsPerPageSelect').on('change', function () {
+  selectedRowsPerView = ($(this).val() || '20').toString();
   runLiveSearch(currentFiltersFromUI());
 });
 
