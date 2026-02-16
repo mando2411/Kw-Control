@@ -865,6 +865,106 @@
       border-bottom-left-radius: 0.72rem;
     }
 
+    .contractor-voters-table tbody tr.table-skeleton-row {
+      background: color-mix(in srgb, var(--ui-bg-primary, #fff) 98%, transparent);
+      box-shadow: 0 6px 16px rgba(2, 6, 23, 0.05);
+      pointer-events: none;
+    }
+
+    .contractor-voters-table tbody tr.table-skeleton-row:hover {
+      transform: none;
+      box-shadow: 0 6px 16px rgba(2, 6, 23, 0.05);
+    }
+
+    .table-skeleton-cell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 0.45rem;
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 88%, transparent);
+      height: 0.92rem;
+      width: 100%;
+    }
+
+    .table-skeleton-cell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      transform: translateX(-100%);
+      background: linear-gradient(90deg,
+        transparent 0%,
+        color-mix(in srgb, #ffffff 56%, transparent) 45%,
+        transparent 100%);
+      animation: tableSkeletonShimmer 1.25s infinite;
+    }
+
+    .table-skeleton-cell--sm {
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 0.38rem;
+      margin-inline: auto;
+    }
+
+    .table-skeleton-cell--name {
+      width: min(100%, 12rem);
+      height: 0.98rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .table-skeleton-cell--sub {
+      width: min(100%, 7rem);
+      height: 0.78rem;
+    }
+
+    .table-skeleton-cell--percent {
+      width: 3.25rem;
+      margin-inline: auto;
+    }
+
+    .table-skeleton-cell--action {
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 0.58rem;
+      margin-inline: auto;
+    }
+
+    .contractor-lazy-loader {
+      margin-top: 0.55rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      min-height: 1.9rem;
+      padding: 0.34rem 0.68rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 86%, transparent);
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 88%, transparent);
+      color: var(--ui-text-secondary, #475569);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .contractor-lazy-loader__dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+
+    .contractor-lazy-loader__dot {
+      width: 0.35rem;
+      height: 0.35rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 78%, transparent);
+      animation: lazyLoadDotPulse 900ms ease-in-out infinite;
+    }
+
+    .contractor-lazy-loader__dot:nth-child(2) {
+      animation-delay: 140ms;
+    }
+
+    .contractor-lazy-loader__dot:nth-child(3) {
+      animation-delay: 280ms;
+    }
+
     .contractor-confirm-modal .modal-dialog {
       transform: translateY(14px) scale(0.98);
       transition: transform 220ms ease;
@@ -954,6 +1054,25 @@
       100% {
         transform: scale(1);
         filter: saturate(100%);
+      }
+    }
+
+    @keyframes tableSkeletonShimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    @keyframes lazyLoadDotPulse {
+      0%,
+      80%,
+      100% {
+        transform: scale(0.65);
+        opacity: 0.42;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
       }
     }
 
@@ -1375,6 +1494,11 @@
         font-size: 0.7rem;
       }
 
+      .contractor-lazy-loader {
+        font-size: 0.72rem;
+        padding: 0.28rem 0.58rem;
+      }
+
       .contractor-search-pagination__meta {
         width: 100%;
         text-align: center;
@@ -1673,6 +1797,17 @@
               @endforeach
             </tbody>
           </table>
+        </div>
+
+        <div class="text-center">
+          <div id="searchLazyLoader" class="contractor-lazy-loader d-none" role="status" aria-live="polite">
+            <span>جاري تحميل المزيد من النتائج</span>
+            <span class="contractor-lazy-loader__dots" aria-hidden="true">
+              <span class="contractor-lazy-loader__dot"></span>
+              <span class="contractor-lazy-loader__dot"></span>
+              <span class="contractor-lazy-loader__dot"></span>
+            </span>
+          </div>
         </div>
 
         <div id="searchPagination" class="contractor-search-pagination d-none" aria-label="تنقل صفحات نتائج البحث"></div>
@@ -2608,6 +2743,41 @@ function renderVoters(votersList, appendMode) {
   bindRelativeButtons();
 }
 
+function getSkeletonRowsCount() {
+  const perPage = getSearchPerPage();
+  if (isAllRowsMode()) {
+    return Math.max(6, Math.min(perPage, 10));
+  }
+
+  return Math.max(6, Math.min(perPage, 12));
+}
+
+function renderTableSkeleton() {
+  const tbody = document.getElementById('resultSearchData');
+  if (!tbody) return;
+
+  const rowsCount = getSkeletonRowsCount();
+  let html = '';
+
+  for (let index = 0; index < rowsCount; index += 1) {
+    html += `<tr class="table-skeleton-row">
+      <td><span class="table-skeleton-cell table-skeleton-cell--sm"></span></td>
+      <td>
+        <span class="table-skeleton-cell table-skeleton-cell--name"></span>
+        <span class="table-skeleton-cell table-skeleton-cell--sub"></span>
+      </td>
+      <td><span class="table-skeleton-cell table-skeleton-cell--percent"></span></td>
+      <td><span class="table-skeleton-cell table-skeleton-cell--action"></span></td>
+    </tr>`;
+  }
+
+  tbody.innerHTML = html;
+}
+
+function setLazyLoaderVisibility(visible) {
+  $('#searchLazyLoader').toggleClass('d-none', !visible);
+}
+
 function currentFiltersFromUI() {
   return {
     name: ($('#searchByNameOrNum').val() || '').trim(),
@@ -2678,6 +2848,13 @@ function fetchVotersPage(appendMode) {
   if (isLoadingRows) return;
   if (appendMode && !hasMoreRows) return;
 
+  if (appendMode) {
+    setLazyLoaderVisibility(true);
+  } else {
+    setLazyLoaderVisibility(false);
+    renderTableSkeleton();
+  }
+
   isLoadingRows = true;
   const requestId = ++currentRequestId;
   const params = new URLSearchParams();
@@ -2734,6 +2911,7 @@ function fetchVotersPage(appendMode) {
       console.error('Search Error:', error);
     })
     .finally(function () {
+      setLazyLoaderVisibility(false);
       isLoadingRows = false;
     });
 }
