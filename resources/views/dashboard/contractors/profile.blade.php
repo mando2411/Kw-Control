@@ -407,6 +407,26 @@
       opacity: 0.94;
     }
 
+    .contractor-top-cta__download {
+      margin: 0.42rem 0 0;
+      font-size: clamp(0.77rem, 1.15vw, 0.88rem);
+      font-weight: 700;
+      opacity: 0.96;
+    }
+
+    .contractor-top-cta__download-link {
+      color: #ffffff;
+      text-decoration: underline;
+      text-decoration-thickness: 1.8px;
+      text-underline-offset: 2px;
+      font-weight: 900;
+    }
+
+    .contractor-top-cta__download-link:hover {
+      color: #ffffff;
+      opacity: 0.88;
+    }
+
     .contractor-top-cta__link {
       color: #0f172a;
       background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.88));
@@ -1649,6 +1669,10 @@
         justify-content: center;
       }
 
+      .contractor-top-cta__download {
+        text-align: center;
+      }
+
       .contractor-top-cta__actions {
         justify-content: center;
       }
@@ -1926,6 +1950,9 @@
           <p class="contractor-top-cta__offer"><i class="fa fa-coins"></i> كن وسيط بين البرنامج والمرشح واربح عمولة مباشرة <span class="ltr-fragment">20%</span></p>
           <p class="contractor-top-cta__text"><i class="fa fa-bullhorn"></i> عشان تعرف اكتر عن البرنامج اضغط هنا</p>
           <p class="contractor-top-cta__hint">اكتشف مميزات كنترول وكيف يساعدك في إدارة الكشوف والمتابعة بشكل احترافي.</p>
+          <p class="contractor-top-cta__download">حمل تطبيق المتعهد الآن من هنا
+            <a class="contractor-top-cta__download-link" href="{{ route('contractor-app.download') }}" download>من هنا</a>
+          </p>
         </div>
         <div class="contractor-top-cta__actions">
           <a class="contractor-top-cta__link" href="https://kw-control.com/about-control" target="_blank" rel="noopener noreferrer"><i class="fa fa-arrow-up-left-from-circle"></i> اضغط هنا</a>
