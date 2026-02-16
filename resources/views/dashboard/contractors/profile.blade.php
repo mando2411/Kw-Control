@@ -1140,7 +1140,7 @@
       </div>
 
       <div class="container contractor-page-container">
-        <p class="contractor-tab-switcher-hint"><i class="bi bi-layout-three-columns-gap"></i> اختر طريقة العرض</p>
+        <p class="contractor-tab-switcher-hint"><i class="bi bi-layout-three-columns-gap"></i> اختر قسم العرض</p>
         <div class="contractor-tab-nav nav" id="contractorTabNav" role="tablist">
           <button
             type="button"
