@@ -42,9 +42,13 @@
     'lg' => '1.125rem',
     'xl' => '1.25rem',
   ];
+
+  $pageThemeStorageKey = 'contractor_profile_theme_' . ($contractor->token ?? 'default');
+  $initialPageTheme = request()->cookie($pageThemeStorageKey, 'light');
+  $initialPageTheme = in_array($initialPageTheme, ['light', 'dark'], true) ? $initialPageTheme : 'light';
 @endphp
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="ui-modern" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+<html lang="ar" dir="rtl" class="ui-modern ui-{{ $initialPageTheme }}" data-ui-mode="modern" data-ui-color-mode="{{ $initialPageTheme }}" data-bs-theme="{{ $initialPageTheme === 'dark' ? 'dark' : 'light' }}">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -55,8 +59,8 @@
     <script>
       (function () {
         var root = document.documentElement;
-        var mode = 'light';
-        var pageThemeStorageKey = 'contractor_profile_theme_' + @json($contractor->token);
+        var mode = @json($initialPageTheme);
+        var pageThemeStorageKey = @json($pageThemeStorageKey);
 
         try {
           var storedMode = localStorage.getItem(pageThemeStorageKey);
@@ -83,8 +87,8 @@
     <script>
       (function () {
         var root = document.documentElement;
-        var colorMode = 'light';
-        var pageThemeStorageKey = 'contractor_profile_theme_' + @json($contractor->token);
+        var colorMode = @json($initialPageTheme);
+        var pageThemeStorageKey = @json($pageThemeStorageKey);
 
         function applyPageColorMode(mode) {
           root.classList.remove('ui-light', 'ui-dark');
@@ -145,8 +149,13 @@
 
             try {
               localStorage.setItem(pageThemeStorageKey, colorMode);
+              document.cookie = pageThemeStorageKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
             } catch (e) {}
           });
+
+          try {
+            document.cookie = pageThemeStorageKey + '=' + colorMode + ';path=/;max-age=31536000;SameSite=Lax';
+          } catch (e) {}
         });
       })();
     </script>
@@ -1863,7 +1872,7 @@
 
     }
   </style>
-  <body class="ui-modern contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+  <body class="ui-modern contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="{{ $initialPageTheme }}" data-bs-theme="{{ $initialPageTheme === 'dark' ? 'dark' : 'light' }}">
 
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
