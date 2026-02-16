@@ -15,6 +15,7 @@ use App\DataTables\ContractorDataTable;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use App\Helpers\ArabicHelper;
@@ -269,10 +270,25 @@ class ContractorController extends Controller
             $contractorId = (int) $request->input('id');
             $scope = (string) $request->input('scope', 'available');
 
+            $attachedIdsSubQuery = DB::table('contractor_voter')
+                ->select('voter_id')
+                ->where('contractor_id', $contractorId);
+
+            $notAddedIdsSubQuery = DB::table('contractor_voter_delete')
+                ->select('voter_id')
+                ->where('contractor_id', $contractorId);
+
+            $allRegisteredIdsSubQuery = DB::table('contractor_voter')
+                ->select('voter_id')
+                ->where('contractor_id', $contractorId)
+                ->union(
+                    DB::table('contractor_voter_delete')
+                        ->select('voter_id')
+                        ->where('contractor_id', $contractorId)
+                );
+
             if ($scope === 'attached') {
-                $votersQuery->whereHas('contractors', function ($query) use ($contractorId) {
-                    $query->where('contractor_id', $contractorId);
-                });
+                $votersQuery->whereIn('id', $attachedIdsSubQuery);
 
                 if ((string) $request->input('exclude_grouped', '0') === '1') {
                     $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
@@ -280,15 +296,15 @@ class ContractorController extends Controller
                     });
                 }
             } elseif ($scope === 'all') {
+                $votersQuery->whereIn('id', $allRegisteredIdsSubQuery);
+
                 if ((string) $request->input('exclude_grouped', '0') === '1') {
                     $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
                         $query->where('contractor_id', $contractorId);
                     });
                 }
             } else {
-                $votersQuery->whereDoesntHave('contractors', function ($query) use ($contractorId) {
-                    $query->where('contractor_id', $contractorId);
-                });
+                $votersQuery->whereIn('id', $notAddedIdsSubQuery);
             }
         }
         $votersQuery->orderBy('name', 'asc');
