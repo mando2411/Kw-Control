@@ -1368,6 +1368,7 @@ let currentPage = 1;
 let searchDebounceTimer = null;
 let currentRequestId = 0;
 let silentFilterUpdate = false;
+let windowLoadMoreThrottle = null;
 let activeFilters = {
   name: '',
   family: '',
@@ -1575,7 +1576,8 @@ function fetchVotersPage(appendMode) {
       renderVoters(votersList, appendMode);
 
       if (pagination) {
-        hasMoreRows = Boolean(pagination.has_more);
+        const hasMoreValue = pagination.has_more;
+        hasMoreRows = hasMoreValue === true || hasMoreValue === 1 || hasMoreValue === '1';
         $('#search_count').text(pagination.total ?? votersList.length);
       } else {
         hasMoreRows = votersList.length >= pageSize;
@@ -1604,6 +1606,12 @@ function runLiveSearch(filters) {
   currentPage = 1;
   hasMoreRows = true;
   fetchVotersPage(false);
+}
+
+function loadNextPageIfAvailable() {
+  if (isLoadingRows || !hasMoreRows) return;
+  currentPage += 1;
+  fetchVotersPage(true);
 }
 
 function searchRelatives(voterName, voterId) {
@@ -1751,10 +1759,32 @@ $('#searchByFamily').on('change', function () {
 $('.madameenTable').on('scroll', function () {
   const element = this;
   const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 80;
-  if (!nearBottom || isLoadingRows || !hasMoreRows) return;
+  if (!nearBottom) return;
+  loadNextPageIfAvailable();
+});
 
-  currentPage += 1;
-  fetchVotersPage(true);
+$(window).on('scroll', function () {
+  if ($('#contractorTabSearch').length && !$('#contractorTabSearch').hasClass('active')) return;
+
+  if (windowLoadMoreThrottle) {
+    clearTimeout(windowLoadMoreThrottle);
+  }
+
+  windowLoadMoreThrottle = setTimeout(function () {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const fullHeight = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.offsetHeight
+    );
+
+    const nearPageBottom = scrollTop + viewportHeight >= fullHeight - 180;
+    if (nearPageBottom) {
+      loadNextPageIfAvailable();
+    }
+  }, 120);
 });
 
 runLiveSearch(currentFiltersFromUI());
