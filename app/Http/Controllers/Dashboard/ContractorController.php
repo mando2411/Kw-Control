@@ -282,43 +282,22 @@ class ContractorController extends Controller
 
         if ($request->filled('id')) {
             $contractorId = (int) $request->input('id');
-            $scope = (string) $request->input('scope', 'available');
+            $scope = (string) $request->input('scope', 'all');
 
             $attachedIdsSubQuery = DB::table('contractor_voter')
                 ->select('voter_id')
                 ->where('contractor_id', $contractorId);
 
-            $notAddedIdsSubQuery = DB::table('contractor_voter_delete')
-                ->select('voter_id')
-                ->where('contractor_id', $contractorId);
-
-            $allRegisteredIdsSubQuery = DB::table('contractor_voter')
-                ->select('voter_id')
-                ->where('contractor_id', $contractorId)
-                ->union(
-                    DB::table('contractor_voter_delete')
-                        ->select('voter_id')
-                        ->where('contractor_id', $contractorId)
-                );
-
             if ($scope === 'attached') {
                 $votersQuery->whereIn('id', $attachedIdsSubQuery);
+            } elseif ($scope === 'available') {
+                $votersQuery->whereNotIn('id', $attachedIdsSubQuery);
+            }
 
-                if ((string) $request->input('exclude_grouped', '0') === '1') {
-                    $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
-                        $query->where('contractor_id', $contractorId);
-                    });
-                }
-            } elseif ($scope === 'all') {
-                $votersQuery->whereIn('id', $allRegisteredIdsSubQuery);
-
-                if ((string) $request->input('exclude_grouped', '0') === '1') {
-                    $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
-                        $query->where('contractor_id', $contractorId);
-                    });
-                }
-            } else {
-                $votersQuery->whereIn('id', $notAddedIdsSubQuery);
+            if ((string) $request->input('exclude_grouped', '0') === '1') {
+                $votersQuery->whereDoesntHave('groups', function ($query) use ($contractorId) {
+                    $query->where('contractor_id', $contractorId);
+                });
             }
         }
         $votersQuery->orderBy('name', 'asc');

@@ -126,31 +126,16 @@ class ContractorMobileController extends Controller
             });
         }
 
-        $scope = (string) $request->input('scope', 'available');
+        $scope = (string) $request->input('scope', 'all');
 
         $attachedIdsSubQuery = DB::table('contractor_voter')
             ->select('voter_id')
             ->where('contractor_id', $contractor->id);
 
-        $notAddedIdsSubQuery = DB::table('contractor_voter_delete')
-            ->select('voter_id')
-            ->where('contractor_id', $contractor->id);
-
-        $allRegisteredIdsSubQuery = DB::table('contractor_voter')
-            ->select('voter_id')
-            ->where('contractor_id', $contractor->id)
-            ->union(
-                DB::table('contractor_voter_delete')
-                    ->select('voter_id')
-                    ->where('contractor_id', $contractor->id)
-            );
-
         if ($scope === 'attached') {
             $votersQuery->whereIn('id', $attachedIdsSubQuery);
-        } elseif ($scope === 'all') {
-            $votersQuery->whereIn('id', $allRegisteredIdsSubQuery);
-        } else {
-            $votersQuery->whereIn('id', $notAddedIdsSubQuery);
+        } elseif ($scope === 'available') {
+            $votersQuery->whereNotIn('id', $attachedIdsSubQuery);
         }
 
         if ((string) $request->input('exclude_grouped', '0') === '1') {
