@@ -862,6 +862,46 @@
       height: 2.55rem !important;
     }
 
+    html.ui-modern.ui-dark .contractor-search-inline .select2-container--default .select2-selection--single {
+      background: color-mix(in srgb, var(--ui-bg-secondary, #1e293b) 92%, transparent);
+      border-color: color-mix(in srgb, var(--ui-border, #64748b) 80%, transparent);
+    }
+
+    html.ui-modern.ui-dark .contractor-search-inline .select2-selection__rendered {
+      color: var(--ui-text-primary, #f1f5f9) !important;
+    }
+
+    html.ui-modern.ui-dark .select2-container--default .select2-selection--single .select2-selection__arrow b {
+      border-color: var(--ui-text-secondary, #cbd5e1) transparent transparent transparent;
+    }
+
+    html.ui-modern.ui-dark .select2-container--open .select2-dropdown {
+      background: color-mix(in srgb, var(--ui-bg-secondary, #1e293b) 96%, #0f172a);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #64748b) 82%, transparent);
+      box-shadow: 0 12px 30px rgba(2, 6, 23, 0.35);
+    }
+
+    html.ui-modern.ui-dark .select2-container--default .select2-results__option {
+      color: var(--ui-text-primary, #f1f5f9);
+      background: transparent;
+    }
+
+    html.ui-modern.ui-dark .select2-container--default .select2-results__option--selected {
+      color: var(--ui-text-primary, #f1f5f9);
+      background: color-mix(in srgb, var(--ui-btn-primary, #38bdf8) 22%, transparent);
+    }
+
+    html.ui-modern.ui-dark .select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+      color: #ffffff;
+      background: linear-gradient(120deg, var(--ui-btn-primary, #38bdf8), var(--ui-btn-secondary, #818cf8));
+    }
+
+    html.ui-modern.ui-dark .select2-container--default .select2-search--dropdown .select2-search__field {
+      color: var(--ui-text-primary, #f1f5f9);
+      background: color-mix(in srgb, var(--ui-bg-primary, #0f172a) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--ui-border, #64748b) 80%, transparent);
+    }
+
     .contractor-list-head {
       display: flex;
       align-items: center;
