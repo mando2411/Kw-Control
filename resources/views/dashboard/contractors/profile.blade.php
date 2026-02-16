@@ -73,6 +73,8 @@
         root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
         root.setAttribute('data-ui-color-mode', mode);
         root.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
+        root.style.backgroundColor = mode === 'dark' ? '#0f172a' : '#ffffff';
+        root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
       })();
     </script>
 
@@ -95,6 +97,8 @@
           root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
           root.setAttribute('data-ui-color-mode', mode);
           root.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
+          root.style.backgroundColor = mode === 'dark' ? '#0f172a' : '#ffffff';
+          root.style.colorScheme = mode === 'dark' ? 'dark' : 'light';
 
           if (!document.body) return;
           document.body.classList.remove('ui-light', 'ui-dark');
