@@ -1061,6 +1061,17 @@
       padding: 0.78rem 0.75rem;
     }
 
+    html.ui-modern.ui-dark .contractor-voters-table thead th,
+    body.ui-modern.ui-dark .contractor-voters-table thead th {
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--ui-btn-primary, #38bdf8) 24%, #0f172a),
+        color-mix(in srgb, var(--ui-bg-secondary, #1e293b) 92%, #0b1220));
+      color: #f8fafc;
+      border-bottom: 1px solid color-mix(in srgb, var(--ui-border, #64748b) 70%, transparent);
+      box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--ui-border, #64748b) 62%, transparent);
+      text-shadow: 0 1px 0 rgba(2, 6, 23, 0.35);
+    }
+
     .contractor-voters-table tbody tr {
       background: color-mix(in srgb, var(--ui-bg-primary, #fff) 98%, transparent);
       box-shadow: 0 6px 16px rgba(2, 6, 23, 0.06);
