@@ -876,12 +876,20 @@
       box-shadow: 0 6px 16px rgba(2, 6, 23, 0.05);
     }
 
+    .table-skeleton-stack {
+      display: grid;
+      gap: 0.44rem;
+      align-content: center;
+      min-height: 4.25rem;
+      width: 100%;
+    }
+
     .table-skeleton-cell {
       position: relative;
       overflow: hidden;
-      border-radius: 0.45rem;
-      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 88%, transparent);
-      height: 0.92rem;
+      border-radius: 0.5rem;
+      background: color-mix(in srgb, var(--ui-bg-secondary, #f8fafc) 86%, #e2e8f0);
+      height: 1rem;
       width: 100%;
     }
 
@@ -891,39 +899,46 @@
       inset: 0;
       transform: translateX(-100%);
       background: linear-gradient(90deg,
-        transparent 0%,
-        color-mix(in srgb, #ffffff 56%, transparent) 45%,
-        transparent 100%);
-      animation: tableSkeletonShimmer 1.25s infinite;
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.55) 48%,
+        rgba(255, 255, 255, 0) 100%);
+      animation: tableSkeletonShimmer 1.1s infinite;
     }
 
-    .table-skeleton-cell--sm {
-      width: 1.15rem;
-      height: 1.15rem;
-      border-radius: 0.38rem;
+    .table-skeleton-cell--check {
+      width: 1.06rem;
+      height: 1.06rem;
+      border-radius: 0.32rem;
       margin-inline: auto;
     }
 
     .table-skeleton-cell--name {
-      width: min(100%, 12rem);
-      height: 0.98rem;
-      margin-bottom: 0.35rem;
+      width: min(96%, 16rem);
+      height: 1.05rem;
     }
 
-    .table-skeleton-cell--sub {
-      width: min(100%, 7rem);
-      height: 0.78rem;
+    .table-skeleton-cell--meta {
+      width: min(70%, 10rem);
+      height: 0.82rem;
+      opacity: 0.92;
+    }
+
+    .table-skeleton-cell--pill {
+      width: min(52%, 7.5rem);
+      height: 1.28rem;
+      border-radius: 999px;
     }
 
     .table-skeleton-cell--percent {
-      width: 3.25rem;
+      width: 3.6rem;
+      height: 1rem;
       margin-inline: auto;
     }
 
     .table-skeleton-cell--action {
-      width: 1.8rem;
-      height: 1.8rem;
-      border-radius: 0.58rem;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.64rem;
       margin-inline: auto;
     }
 
@@ -1492,6 +1507,24 @@
         min-width: 1.85rem;
         height: 1.85rem;
         font-size: 0.7rem;
+      }
+
+      .table-skeleton-stack {
+        min-height: 3.65rem;
+        gap: 0.34rem;
+      }
+
+      .table-skeleton-cell--name {
+        width: min(98%, 11rem);
+      }
+
+      .table-skeleton-cell--meta {
+        width: min(74%, 7rem);
+      }
+
+      .table-skeleton-cell--pill {
+        width: min(62%, 6.2rem);
+        height: 1.08rem;
       }
 
       .contractor-lazy-loader {
@@ -2745,11 +2778,7 @@ function renderVoters(votersList, appendMode) {
 
 function getSkeletonRowsCount() {
   const perPage = getSearchPerPage();
-  if (isAllRowsMode()) {
-    return Math.max(6, Math.min(perPage, 10));
-  }
-
-  return Math.max(6, Math.min(perPage, 12));
+  return Math.max(1, perPage);
 }
 
 function renderTableSkeleton() {
@@ -2761,10 +2790,13 @@ function renderTableSkeleton() {
 
   for (let index = 0; index < rowsCount; index += 1) {
     html += `<tr class="table-skeleton-row">
-      <td><span class="table-skeleton-cell table-skeleton-cell--sm"></span></td>
+      <td><span class="table-skeleton-cell table-skeleton-cell--check"></span></td>
       <td>
-        <span class="table-skeleton-cell table-skeleton-cell--name"></span>
-        <span class="table-skeleton-cell table-skeleton-cell--sub"></span>
+        <div class="table-skeleton-stack">
+          <span class="table-skeleton-cell table-skeleton-cell--name"></span>
+          <span class="table-skeleton-cell table-skeleton-cell--meta"></span>
+          <span class="table-skeleton-cell table-skeleton-cell--pill"></span>
+        </div>
       </td>
       <td><span class="table-skeleton-cell table-skeleton-cell--percent"></span></td>
       <td><span class="table-skeleton-cell table-skeleton-cell--action"></span></td>
