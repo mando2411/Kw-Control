@@ -44,13 +44,33 @@
   ];
 @endphp
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="ui-modern ui-light" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+<html lang="ar" dir="rtl" class="ui-modern" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     <title>{{$contractor->name}}</title>
+
+    <script>
+      (function () {
+        var root = document.documentElement;
+        var mode = 'light';
+        var pageThemeStorageKey = 'contractor_profile_theme_' + @json($contractor->token);
+
+        try {
+          var storedMode = localStorage.getItem(pageThemeStorageKey);
+          if (storedMode === 'dark' || storedMode === 'light') {
+            mode = storedMode;
+          }
+        } catch (e) {}
+
+        root.classList.remove('ui-light', 'ui-dark');
+        root.classList.add(mode === 'dark' ? 'ui-dark' : 'ui-light');
+        root.setAttribute('data-ui-color-mode', mode);
+        root.setAttribute('data-bs-theme', mode === 'dark' ? 'dark' : 'light');
+      })();
+    </script>
 
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/all.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/bootstrap.min.css') }}">
@@ -112,6 +132,8 @@
             if (iconEl) {
               iconEl.className = isDark ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
             }
+
+            themeToggleBtn.classList.add('is-ready');
           }
 
           syncThemeToggleUi(colorMode);
@@ -375,6 +397,13 @@
       gap: 0.35rem;
       box-shadow: 0 10px 24px rgba(2, 6, 23, 0.2);
       transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .contractor-theme-toggle.is-ready {
+      opacity: 1;
+      visibility: visible;
     }
 
     .contractor-theme-toggle:hover {
@@ -1834,7 +1863,7 @@
 
     }
   </style>
-  <body class="ui-modern ui-light contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
+  <body class="ui-modern contractor-profile-page" dir="rtl" data-ui-mode="modern" data-ui-color-mode="light" data-bs-theme="light">
 
     <div class="contractor-top-cta">
       <div class="contractor-top-cta__inner">
