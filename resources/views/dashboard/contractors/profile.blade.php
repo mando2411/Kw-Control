@@ -447,6 +447,22 @@
       animation: voterActionSwitch 320ms ease;
     }
 
+    .contractor-tab-nav {
+      display: flex;
+      justify-content: center;
+      gap: 0.55rem;
+      margin: 0.4rem auto 0.85rem;
+      flex-wrap: wrap;
+    }
+
+    .contractor-tab-btn {
+      min-width: 130px;
+    }
+
+    .contractor-tab-pane {
+      width: 100%;
+    }
+
     @keyframes voterActionSwitch {
       0% {
         transform: scale(1);
@@ -676,15 +692,18 @@
           ولكم كل الشكر والتقدير على دعمكم لنا 🌹
         </p>
       </div>
+
+      <div class="container contractor-page-container">
+        <div class="contractor-tab-nav" id="contractorTabNav">
+          <button type="button" class="btn btn-secondary contractor-tab-btn active" data-tab-target="search">البحث</button>
+          <button type="button" class="btn btn-outline-secondary contractor-tab-btn" data-tab-target="lists">القوائم</button>
+        </div>
+      </div>
+
+      <div id="contractorTabSearch" class="contractor-tab-pane">
       <div class="container contractor-page-container">
         <div class="mx-auto my-3">
             <x-dashboard.partials.message-alert />
-            <div class="d-flex justify-content-end mb-2">
-              <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createGroupModal">
-                <i class="fa fa-plus ms-1"></i>
-                انشاء قائمة جديدة للاسماء
-              </button>
-            </div>
          @if ($contractor->hasPermissionTo('search-stat-con'))
          <div class="moreSearch ">
             <form id="SearchForm"  class="description my-1">
@@ -817,6 +836,7 @@
       </div>
     </section>
 </form>
+    </div>
 
     <!-- Modal nameChechedDetails-->
     <!-- لسه هيتعمل -->
@@ -986,8 +1006,17 @@
       </div>
     </div>
 
+    <div id="contractorTabLists" class="contractor-tab-pane d-none">
     <section class="pt-4 pb-2">
         <!-- <div class="container-fluid px-0"> -->
+      <div class="container contractor-page-container mb-2">
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#createGroupModal">
+            <i class="fa fa-plus ms-1"></i>
+            انشاء قائمة جديدة للاسماء
+          </button>
+        </div>
+      </div>
       <div class="container contractor-layout-block">
             @forelse ($contractor->groups as $g )
             <div
@@ -1172,14 +1201,13 @@
             alt="description banner image project "
           />
         </div>
-        
+      </section>
+    </div>
+
         <!-- ================================================================================================================= -->
         <!-- this form for update voter phone -->
         @include('dashboard.contractors.update_phone_pop_up')
         <!-- ================================================================================================================= -->
-    
-        <!-- </div> -->
-      </section>
 
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -1572,6 +1600,26 @@ $('#membershipFilterButtons .membership-filter-btn').on('click', function () {
     siblingExcludeId: '',
     membershipScope: scope
   });
+});
+
+$('#contractorTabNav .contractor-tab-btn').on('click', function () {
+  const target = $(this).data('tabTarget');
+
+  $('#contractorTabNav .contractor-tab-btn')
+    .removeClass('btn-secondary active')
+    .addClass('btn-outline-secondary');
+
+  $(this)
+    .removeClass('btn-outline-secondary')
+    .addClass('btn-secondary active');
+
+  if (target === 'lists') {
+    $('#contractorTabSearch').addClass('d-none');
+    $('#contractorTabLists').removeClass('d-none');
+  } else {
+    $('#contractorTabLists').addClass('d-none');
+    $('#contractorTabSearch').removeClass('d-none');
+  }
 });
 
 $('#all_voters').on('click', function (event) {
