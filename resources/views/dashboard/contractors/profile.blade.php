@@ -728,6 +728,53 @@
       outline: none;
     }
 
+    .contractor-search-pagination {
+      margin-top: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .contractor-search-pagination .page-btn {
+      min-width: 2rem;
+      height: 2rem;
+      padding: 0 0.55rem;
+      border-radius: 0.55rem;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 88%, transparent);
+      background: color-mix(in srgb, var(--ui-bg-primary, #ffffff) 96%, transparent);
+      color: var(--ui-text-secondary, #475569);
+      font-size: 0.76rem;
+      font-weight: 800;
+      transition: all 180ms ease;
+    }
+
+    .contractor-search-pagination .page-btn:hover:not(:disabled) {
+      color: var(--ui-btn-primary, #0ea5e9);
+      border-color: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 44%, transparent);
+      background: color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 8%, transparent);
+    }
+
+    .contractor-search-pagination .page-btn.is-active {
+      background: linear-gradient(120deg, var(--ui-btn-primary, #0ea5e9), var(--ui-btn-secondary, #6366f1));
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--ui-btn-primary, #0ea5e9) 35%, transparent);
+    }
+
+    .contractor-search-pagination .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .contractor-search-pagination__meta {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ui-text-secondary, #475569);
+      margin-inline: 0.25rem;
+    }
+
     .madameenTable {
       border: 1px solid color-mix(in srgb, var(--ui-border, #dbe3ef) 92%, transparent);
       border-radius: calc(var(--ui-radius-card, 1rem) - 0.05rem);
@@ -1279,6 +1326,23 @@
         font-size: 0.74rem;
       }
 
+      .contractor-search-pagination {
+        gap: 0.3rem;
+      }
+
+      .contractor-search-pagination .page-btn {
+        min-width: 1.85rem;
+        height: 1.85rem;
+        font-size: 0.7rem;
+      }
+
+      .contractor-search-pagination__meta {
+        width: 100%;
+        text-align: center;
+        font-size: 0.7rem;
+        margin-inline: 0;
+      }
+
       #toggle_select_all_search,
       #all_voters,
       #delete_selected_top {
@@ -1565,6 +1629,8 @@
             </tbody>
           </table>
         </div>
+
+        <div id="searchPagination" class="contractor-search-pagination d-none" aria-label="تنقل صفحات نتائج البحث"></div>
 
       </div>
     </section>
@@ -2169,6 +2235,8 @@ const contractorId = "{{ $contractor->id }}";
 const searchEndpoint = '/search';
 const lazyLoadChunkSize = 20;
 let selectedRowsPerView = '20';
+let totalSearchRows = 0;
+let totalSearchPages = 1;
 
 let isLoadingRows = false;
 let hasMoreRows = true;
@@ -2505,8 +2573,12 @@ function currentFiltersFromUI() {
   };
 }
 
+function isAllRowsMode() {
+  return selectedRowsPerView === 'all';
+}
+
 function getSearchPerPage() {
-  if (selectedRowsPerView === 'all') {
+  if (isAllRowsMode()) {
     return lazyLoadChunkSize;
   }
 
@@ -2514,7 +2586,50 @@ function getSearchPerPage() {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : lazyLoadChunkSize;
 }
 
+function renderSearchPagination() {
+  const paginationWrap = $('#searchPagination');
+  if (!paginationWrap.length) return;
+
+  if (isAllRowsMode()) {
+    paginationWrap.addClass('d-none').empty();
+    return;
+  }
+
+  const perPage = getSearchPerPage();
+  const resolvedTotal = Number(totalSearchRows) || 0;
+  const computedPages = Math.max(1, Math.ceil(resolvedTotal / perPage));
+  totalSearchPages = computedPages;
+
+  if (computedPages <= 1) {
+    paginationWrap.addClass('d-none').empty();
+    return;
+  }
+
+  const safeCurrentPage = Math.min(Math.max(1, Number(currentPage) || 1), computedPages);
+  currentPage = safeCurrentPage;
+
+  let startPage = Math.max(1, safeCurrentPage - 2);
+  let endPage = Math.min(computedPages, startPage + 4);
+  startPage = Math.max(1, endPage - 4);
+
+  let html = '';
+  html += `<button type="button" class="page-btn" data-page="${safeCurrentPage - 1}" ${safeCurrentPage <= 1 ? 'disabled' : ''}>السابق</button>`;
+
+  for (let page = startPage; page <= endPage; page += 1) {
+    html += `<button type="button" class="page-btn ${page === safeCurrentPage ? 'is-active' : ''}" data-page="${page}">${page}</button>`;
+  }
+
+  html += `<button type="button" class="page-btn" data-page="${safeCurrentPage + 1}" ${safeCurrentPage >= computedPages ? 'disabled' : ''}>التالي</button>`;
+  html += `<span class="contractor-search-pagination__meta">صفحة ${safeCurrentPage} من ${computedPages}</span>`;
+
+  paginationWrap.removeClass('d-none').html(html);
+}
+
 function fetchVotersPage(appendMode) {
+  if (!isAllRowsMode()) {
+    appendMode = false;
+  }
+
   if (isLoadingRows) return;
   if (appendMode && !hasMoreRows) return;
 
@@ -2542,15 +2657,33 @@ function fetchVotersPage(appendMode) {
       renderVoters(votersList, appendMode);
 
       if (pagination) {
+        totalSearchRows = Number(pagination.total ?? votersList.length) || 0;
+        const currentFromApi = Number(pagination.current_page ?? currentPage) || currentPage;
+        const lastFromApi = Number(pagination.last_page ?? 0) || 0;
+
+        if (!appendMode) {
+          currentPage = currentFromApi;
+        }
+
         const hasMoreValue = pagination.has_more;
-        hasMoreRows = hasMoreValue === true || hasMoreValue === 1 || hasMoreValue === '1';
-        $('#search_count').text(pagination.total ?? votersList.length);
+        if (isAllRowsMode()) {
+          hasMoreRows = hasMoreValue === true || hasMoreValue === 1 || hasMoreValue === '1';
+        } else {
+          const resolvedLastPage = lastFromApi > 0 ? lastFromApi : Math.max(1, Math.ceil(totalSearchRows / getSearchPerPage()));
+          totalSearchPages = resolvedLastPage;
+          hasMoreRows = currentPage < resolvedLastPage;
+        }
+
+        $('#search_count').text(totalSearchRows || votersList.length);
       } else {
-        hasMoreRows = votersList.length >= getSearchPerPage();
+        totalSearchRows = !appendMode ? votersList.length : Math.max(totalSearchRows, votersList.length);
+        hasMoreRows = isAllRowsMode() ? votersList.length >= getSearchPerPage() : false;
         if (!appendMode) {
           $('#search_count').text(votersList.length);
         }
       }
+
+      renderSearchPagination();
     })
     .catch(function (error) {
       console.error('Search Error:', error);
@@ -2571,14 +2704,30 @@ function runLiveSearch(filters) {
 
   currentPage = 1;
   hasMoreRows = true;
+  totalSearchRows = 0;
+  totalSearchPages = 1;
   fetchVotersPage(false);
 }
 
 function loadNextPageIfAvailable() {
+  if (!isAllRowsMode()) return;
   if (isLoadingRows || !hasMoreRows) return;
   currentPage += 1;
   fetchVotersPage(true);
 }
+
+$(document).on('click', '#searchPagination .page-btn[data-page]', function () {
+  if (isAllRowsMode()) return;
+
+  const nextPage = Number($(this).attr('data-page') || 0);
+  if (!Number.isFinite(nextPage) || nextPage < 1) return;
+  if (nextPage === currentPage) return;
+  if (totalSearchPages > 0 && nextPage > totalSearchPages) return;
+
+  currentPage = nextPage;
+  hasMoreRows = currentPage < totalSearchPages;
+  fetchVotersPage(false);
+});
 
 function searchRelatives(voterName, voterId) {
   silentFilterUpdate = true;
@@ -2809,6 +2958,7 @@ $('#rowsPerPageSelect').on('change', function () {
 });
 
 $('.madameenTable').on('scroll', function () {
+  if (!isAllRowsMode()) return;
   const element = this;
   const nearBottom = element.scrollTop + element.clientHeight >= element.scrollHeight - 80;
   if (!nearBottom) return;
@@ -2816,6 +2966,7 @@ $('.madameenTable').on('scroll', function () {
 });
 
 $(window).on('scroll', function () {
+  if (!isAllRowsMode()) return;
   if ($('#contractorTabSearch').length && !$('#contractorTabSearch').hasClass('active')) return;
 
   if (windowLoadMoreThrottle) {
