@@ -541,16 +541,17 @@
     }
 
     .candidates-index-page .candidate-card-actions {
-        display: flex;
-        gap: .45rem;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .42rem;
         margin-top: .1rem;
     }
 
     .candidates-index-page .candidate-card-actions .btn {
         font-size: .78rem;
         font-weight: 800;
-        min-width: 96px;
+        min-width: 0;
+        width: 100%;
         border-radius: 11px;
         padding: .36rem .66rem;
         border-width: 1px;
