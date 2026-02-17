@@ -76,6 +76,7 @@
                                 $maxRepresentatives = max(0, (int) ($candidate->max_represent ?? 0));
                                 $contractorsPercent = $maxContractors > 0 ? min(100, (int) round(($currentContractors / $maxContractors) * 100)) : 0;
                                 $representativesPercent = $maxRepresentatives > 0 ? min(100, (int) round(($currentRepresentatives / $maxRepresentatives) * 100)) : 0;
+                                $createdAt = optional($candidate->created_at)->format('Y/m/d') ?? '—';
                             @endphp
 
                             <article class="candidate-card-item">
@@ -90,7 +91,10 @@
                                     </div>
 
                                     <div class="candidate-card-overlay">
-                                        <h5 class="candidate-card-name">{{ $candidate->user?->name ?? '—' }}</h5>
+                                        <div class="candidate-card-created">
+                                            <i class="fa fa-calendar me-1"></i>
+                                            تم إضافته في {{ $createdAt }}
+                                        </div>
 
                                         <div class="candidate-card-meta">
                                             <div class="candidate-metric">
@@ -420,24 +424,32 @@
         background: linear-gradient(to top, rgba(2, 6, 23, .97), rgba(2, 6, 23, .86) 54%, rgba(2, 6, 23, .28));
         transform: translateY(64%);
         opacity: .96;
-        transition: transform .3s ease;
+        transition: transform .34s cubic-bezier(.2,.8,.2,1), opacity .28s ease;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
         gap: .5rem;
-        backdrop-filter: blur(3px);
+        backdrop-filter: blur(4px);
         z-index: 2;
+        border-top: 1px solid rgba(255,255,255,.13);
     }
 
     .candidates-index-page .candidate-card-item:hover .candidate-card-overlay {
         transform: translateY(0);
     }
 
-    .candidates-index-page .candidate-card-name {
-        margin: 0;
-        font-weight: 900;
-        font-size: 1.05rem;
-        text-shadow: 0 2px 6px rgba(0,0,0,.45);
+    .candidates-index-page .candidate-card-created {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        font-size: .76rem;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: .28rem .6rem;
+        color: #f8fafc;
+        background: rgba(255,255,255,.14);
+        border: 1px solid rgba(255,255,255,.22);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .candidates-index-page .candidate-card-meta {
@@ -499,16 +511,30 @@
         font-size: .78rem;
         font-weight: 800;
         min-width: 92px;
-        border-radius: 10px;
-        padding-top: .3rem;
-        padding-bottom: .3rem;
+        border-radius: 11px;
+        padding: .34rem .62rem;
         border-width: 1px;
-        transition: transform .2s ease, box-shadow .2s ease;
+        transition: transform .24s ease, box-shadow .24s ease, background-color .24s ease;
     }
 
     .candidates-index-page .candidate-card-actions .btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 8px 16px rgba(2, 6, 23, .22);
+        box-shadow: 0 10px 18px rgba(2, 6, 23, .26);
+    }
+
+    .candidates-index-page .candidate-card-actions .btn-light {
+        background: rgba(255,255,255,.94);
+        border-color: rgba(255,255,255,.98);
+        color: #0f172a;
+    }
+
+    .candidates-index-page .candidate-card-actions .btn-light:hover {
+        background: #ffffff;
+    }
+
+    .candidates-index-page .candidate-card-actions .btn-danger {
+        background: linear-gradient(120deg, #dc2626, #b91c1c);
+        border-color: rgba(239,68,68,.9);
     }
 
     .candidates-index-page #tableCandidatesView {
