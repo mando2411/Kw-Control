@@ -8,6 +8,9 @@
         @php
             $candidateRoleId = optional($relations['roles']->firstWhere('name', 'مرشح'))->id;
             $selectedRoles = old('roles', $candidate->user->roles->pluck('id')->toArray());
+            $isCurrentListLeaderViewer = isset($currentListLeaderCandidate) && $currentListLeaderCandidate;
+            $resolvedCandidateType = old('candidate_type', $candidate->candidate_type ?: 'candidate');
+            $isListLeaderCandidate = $resolvedCandidateType === 'list_leader';
             if (empty($selectedRoles) && $candidateRoleId) {
                 $selectedRoles = [$candidateRoleId];
             }
@@ -70,7 +73,7 @@
                     <h2 class="candidate-profile-name-text mb-1">{{ old('name', $candidate->user->name) }}</h2>
 
                     <div class="candidate-profile-meta__chips justify-content-center mt-2">
-                        <span class="chip">مرشح</span>
+                        <span class="chip">{{ $isListLeaderCandidate ? 'مرشح رئيس قائمة' : 'مرشح' }}</span>
                         <span class="chip">{{ $candidate->election?->name ?? 'انتخابات غير محددة' }}</span>
                         <span class="chip">#{{ $candidate->id }}</span>
                     </div>
@@ -182,6 +185,28 @@
                                 @error('election_id')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
                             </div>
 
+                            <div class="profile-inline-item" data-field="candidateTypeInput">
+                                <div class="profile-inline-item__label">نوع المرشح</div>
+                                <div class="profile-inline-item__view js-display" data-target="candidateTypeInput">
+                                    <span class="js-display-text">{{ $resolvedCandidateType === 'list_leader' ? 'مرشح رئيس قائمة' : 'مرشح' }}</span>
+                                    <i class="fa fa-pen"></i>
+                                </div>
+                                <div class="profile-inline-item__edit d-none js-edit-wrap">
+                                    <select class="form-control js-input" id="candidateTypeInput" name="candidate_type" @if($isCurrentListLeaderViewer) disabled @endif>
+                                        <option value="candidate" @selected($resolvedCandidateType === 'candidate')>مرشح</option>
+                                        <option value="list_leader" @selected($resolvedCandidateType === 'list_leader')>مرشح رئيس قائمة</option>
+                                    </select>
+                                    @if($isCurrentListLeaderViewer)
+                                        <input type="hidden" name="candidate_type" value="{{ $resolvedCandidateType }}">
+                                    @endif
+                                    <div class="profile-inline-item__actions">
+                                        <button type="button" class="btn btn-sm btn-primary js-save">حفظ</button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary js-cancel">إلغاء</button>
+                                    </div>
+                                </div>
+                                @error('candidate_type')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                            </div>
+
                             <div class="profile-inline-item" data-field="maxContractorInput">
                                 <div class="profile-inline-item__label">الحد الأقصى للمتعهدين</div>
                                 <div class="profile-inline-item__view js-display" data-target="maxContractorInput">
@@ -212,6 +237,69 @@
                                     </div>
                                 </div>
                                 @error('max_represent')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                            </div>
+
+                            <div id="listLeaderFieldsWrap" @if(!$isListLeaderCandidate) class="d-none" @endif>
+                                <div class="list-leader-fields-head">بيانات القائمة</div>
+
+                                <div class="profile-inline-item" data-field="listCandidatesCountInput">
+                                    <div class="profile-inline-item__label">عدد مرشحي القائمة</div>
+                                    <div class="profile-inline-item__view js-display" data-target="listCandidatesCountInput">
+                                        <span class="js-display-text">{{ old('list_candidates_count', $candidate->list_candidates_count) ?: '—' }}</span>
+                                        <i class="fa fa-pen"></i>
+                                    </div>
+                                    <div class="profile-inline-item__edit d-none js-edit-wrap">
+                                        <input type="number" min="1" class="form-control js-input list-leader-input" id="listCandidatesCountInput" name="list_candidates_count" value="{{ old('list_candidates_count', $candidate->list_candidates_count) }}">
+                                        <div class="profile-inline-item__actions">
+                                            <button type="button" class="btn btn-sm btn-primary js-save">حفظ</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-cancel">إلغاء</button>
+                                        </div>
+                                    </div>
+                                    @error('list_candidates_count')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                </div>
+
+                                <div class="profile-inline-item" data-field="listNameInput">
+                                    <div class="profile-inline-item__label">اسم القائمة</div>
+                                    <div class="profile-inline-item__view js-display" data-target="listNameInput">
+                                        <span class="js-display-text">{{ old('list_name', $candidate->list_name) ?: '—' }}</span>
+                                        <i class="fa fa-pen"></i>
+                                    </div>
+                                    <div class="profile-inline-item__edit d-none js-edit-wrap">
+                                        <input type="text" class="form-control js-input list-leader-input" id="listNameInput" name="list_name" value="{{ old('list_name', $candidate->list_name) }}">
+                                        <div class="profile-inline-item__actions">
+                                            <button type="button" class="btn btn-sm btn-primary js-save">حفظ</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-cancel">إلغاء</button>
+                                        </div>
+                                    </div>
+                                    @error('list_name')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                </div>
+
+                                <div class="profile-inline-item" data-field="isActualListCandidateInput">
+                                    <div class="profile-inline-item__label">حالة المرشح داخل القائمة</div>
+                                    <div class="profile-inline-item__view js-display" data-target="isActualListCandidateInput">
+                                        <span class="js-display-text">{{ (string) old('is_actual_list_candidate', $candidate->is_actual_list_candidate ? '1' : '0') === '1' ? 'مرشح فعلي داخل القائمة' : 'تنظيم وإدارة فقط' }}</span>
+                                        <i class="fa fa-pen"></i>
+                                    </div>
+                                    <div class="profile-inline-item__edit d-none js-edit-wrap">
+                                        <select class="form-control js-input list-leader-input" id="isActualListCandidateInput" name="is_actual_list_candidate">
+                                            <option value="1" @selected((string) old('is_actual_list_candidate', $candidate->is_actual_list_candidate ? '1' : '0') === '1')>مرشح فعلي داخل القائمة</option>
+                                            <option value="0" @selected((string) old('is_actual_list_candidate', $candidate->is_actual_list_candidate ? '1' : '0') === '0')>تنظيم وإدارة فقط</option>
+                                        </select>
+                                        <div class="profile-inline-item__actions">
+                                            <button type="button" class="btn btn-sm btn-primary js-save">حفظ</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary js-cancel">إلغاء</button>
+                                        </div>
+                                    </div>
+                                    @error('is_actual_list_candidate')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                </div>
+
+                                <div class="profile-inline-item mb-0">
+                                    <div class="profile-inline-item__label">لوجو القائمة</div>
+                                    <div class="list-logo-wrap" id="listLogoWrap">
+                                        <x-dashboard.form.media title="تغيير لوجو القائمة" :images="old('list_logo', $candidate->list_logo)" name="list_logo" />
+                                    </div>
+                                    @error('list_logo')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -500,6 +588,24 @@
         transform: translateY(-1px);
     }
 
+    .list-leader-fields-head {
+        margin-bottom: .6rem;
+        padding: .5rem .65rem;
+        border-radius: 10px;
+        border: 1px dashed rgba(99, 102, 241, .36);
+        background: rgba(99, 102, 241, .07);
+        font-size: .86rem;
+        font-weight: 800;
+        color: #312e81;
+    }
+
+    .list-logo-wrap {
+        border: 1px solid rgba(148, 163, 184, .28);
+        border-radius: 10px;
+        padding: .55rem;
+        background: #f8fafc;
+    }
+
     @media (max-width: 768px) {
         .candidate-cover {
             min-height: 250px;
@@ -553,6 +659,10 @@
     (function () {
         const items = document.querySelectorAll('.profile-inline-item');
         const profileNameDisplay = document.querySelector('.candidate-profile-name-text');
+        const candidateTypeInput = document.getElementById('candidateTypeInput');
+        const listLeaderFieldsWrap = document.getElementById('listLeaderFieldsWrap');
+        const listLeaderInputs = document.querySelectorAll('.list-leader-input');
+        const listLogoWrap = document.getElementById('listLogoWrap');
 
         const closeAllMediaMenus = () => {
             document.querySelectorAll('.candidate-media-menu').forEach((menu) => menu.classList.add('d-none'));
@@ -636,6 +746,29 @@
             return input.value?.trim() ? input.value.trim() : '—';
         };
 
+        const syncListLeaderFieldsVisibility = () => {
+            if (!candidateTypeInput || !listLeaderFieldsWrap) return;
+
+            const isListLeader = candidateTypeInput.value === 'list_leader';
+            listLeaderFieldsWrap.classList.toggle('d-none', !isListLeader);
+
+            listLeaderInputs.forEach((input) => {
+                if (isListLeader) {
+                    input.removeAttribute('disabled');
+                } else {
+                    input.setAttribute('disabled', 'disabled');
+                }
+            });
+
+            if (listLogoWrap) {
+                const mediaOpenBtn = listLogoWrap.querySelector('.open-media');
+                if (mediaOpenBtn) {
+                    mediaOpenBtn.style.pointerEvents = isListLeader ? 'auto' : 'none';
+                    mediaOpenBtn.style.opacity = isListLeader ? '1' : '.55';
+                }
+            }
+        };
+
         const enterEditMode = (item) => {
             const view = item.querySelector('.js-display');
             const edit = item.querySelector('.js-edit-wrap');
@@ -700,6 +833,11 @@
                 leaveEditMode(item, false);
             }
         });
+
+        if (candidateTypeInput) {
+            candidateTypeInput.addEventListener('change', syncListLeaderFieldsVisibility);
+        }
+        syncListLeaderFieldsVisibility();
     })();
 </script>
 @endpush

@@ -216,22 +216,38 @@ class CandidateController extends Controller
 
         $candidateData = $request->getSanitized();
 
+        $existingMembersCount = Candidate::withoutGlobalScopes()
+            ->where('list_leader_candidate_id', (int) $candidate->id)
+            ->count();
+
+        if ((string) ($candidateData['candidate_type'] ?? $candidate->candidate_type) === 'list_leader') {
+            $requestedListCount = (int) ($candidateData['list_candidates_count'] ?? $candidate->list_candidates_count ?? 0);
+            if ($requestedListCount > 0 && $requestedListCount < $existingMembersCount) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'list_candidates_count' => 'لا يمكن تقليل عدد مرشحي القائمة عن العدد الحالي للأعضاء.',
+                    ]);
+            }
+        }
+
         if ($currentListLeaderCandidate) {
             $isLeaderSelf = (int) $candidate->id === (int) $currentListLeaderCandidate->id;
 
             if ($isLeaderSelf) {
                 $candidateData['candidate_type'] = 'list_leader';
                 $candidateData['list_leader_candidate_id'] = null;
+                $user->syncRoles(['مرشح', 'مرشح رئيس قائمة']);
             } else {
                 $candidateData['candidate_type'] = 'candidate';
                 $candidateData['list_leader_candidate_id'] = $currentListLeaderCandidate->id;
                 $candidateData['list_name'] = (string) ($currentListLeaderCandidate->list_name ?? '');
                 $candidateData['list_logo'] = (string) ($currentListLeaderCandidate->list_logo ?? '');
                 $candidateData['list_candidates_count'] = null;
+                $user->syncRoles(['مرشح']);
             }
 
             $candidateData['election_id'] = $currentListLeaderCandidate->election_id;
-            $user->syncRoles(['مرشح']);
         } else {
             $candidateType = (string) ($candidateData['candidate_type'] ?? 'candidate');
             if ($candidateType !== 'list_leader') {
@@ -251,6 +267,15 @@ class CandidateController extends Controller
         }
 
         $candidate->update($candidateData);
+
+        if ($candidate->isListLeader()) {
+            Candidate::withoutGlobalScopes()
+                ->where('list_leader_candidate_id', (int) $candidate->id)
+                ->update([
+                    'list_name' => (string) ($candidate->list_name ?? ''),
+                    'list_logo' => (string) ($candidate->list_logo ?? ''),
+                ]);
+        }
 
         session()->flash('message', 'Candidate Updated Successfully!');
         session()->flash('type', 'success');
