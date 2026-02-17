@@ -116,12 +116,15 @@ class ContractorJoinRequestController extends Controller
         ]);
 
         if ($validated['decision'] === 'approved' && $candidate) {
+            $parentContractor = $this->resolveOrCreateParentContractor($candidate);
+
             $contractor = Contractor::firstOrCreate(
                 [
                     'user_id' => $joinRequest->requester_user_id,
                     'creator_id' => $candidate->user_id,
                 ],
                 [
+                    'parent_id' => $parentContractor->id,
                     'name' => $joinRequest->requester_name,
                     'phone' => $joinRequest->requester_phone,
                     'email' => $joinRequest->requester?->email,
@@ -132,6 +135,7 @@ class ContractorJoinRequestController extends Controller
             );
 
             $contractor->update([
+                'parent_id' => $parentContractor->id,
                 'status' => 'approved',
                 'election_id' => $candidate->election_id,
                 'name' => $joinRequest->requester_name,
@@ -174,6 +178,31 @@ class ContractorJoinRequestController extends Controller
             ->where('data->kind', 'contractor_join_request')
             ->where('data->join_request_id', (int) $joinRequest->id)
             ->exists();
+    }
+
+    private function resolveOrCreateParentContractor(Candidate $candidate): Contractor
+    {
+        $parent = Contractor::withoutGlobalScopes()
+            ->where('creator_id', (int) $candidate->user_id)
+            ->whereNull('parent_id')
+            ->orderBy('id')
+            ->first();
+
+        if ($parent) {
+            return $parent;
+        }
+
+        return Contractor::withoutGlobalScopes()->create([
+            'parent_id' => null,
+            'creator_id' => (int) $candidate->user_id,
+            'user_id' => null,
+            'election_id' => $candidate->election_id,
+            'name' => 'متعهد رئيسي - ' . ($candidate->user?->name ?? 'المرشح'),
+            'email' => null,
+            'phone' => null,
+            'status' => 'approved',
+            'token' => Str::random(32),
+        ]);
     }
 
     private function submitForUser(Candidate $candidate, User $user): RedirectResponse
