@@ -31,6 +31,9 @@
                             <i class="fa fa-flag me-1"></i>
                             {{ $candidateElection }}
                         </div>
+                        @if(!$candidate)
+                            <div class="pending-candidate-note">تعذر تحميل بيانات المرشح الكاملة مؤقتًا.</div>
+                        @endif
                         <a href="{{ route('candidates.public-profile', ['slug' => $candidateSlug]) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm mt-2">
                             عرض ملف المرشح
                         </a>
@@ -108,6 +111,13 @@
         color: #475569;
         font-weight: 700;
         font-size: .86rem;
+    }
+
+    .pending-candidate-note {
+        margin-top: .35rem;
+        color: #b45309;
+        font-size: .78rem;
+        font-weight: 700;
     }
 
     .pending-status-alert {

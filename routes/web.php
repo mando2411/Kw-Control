@@ -110,11 +110,20 @@ Route::get('/storage/media/{path}', function (string $path) {
 Route::get('/', function () {
     $show_all_result=false;
     $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
-        ->with(['candidate.user', 'candidate.election'])
         ->where('requester_user_id', (int) auth()->id())
         ->where('status', 'pending')
         ->latest()
         ->first();
+
+    if ($pendingJoinRequest) {
+        $candidate = \App\Models\Candidate::withoutGlobalScopes()
+            ->with(['user', 'election'])
+            ->find($pendingJoinRequest->candidate_id);
+
+        if ($candidate) {
+            $pendingJoinRequest->setRelation('candidate', $candidate);
+        }
+    }
 
     $check_Setting=Setting::where('option_key', 'result_control')->first();
     if($check_Setting && $check_Setting->option_value != NULL ){
