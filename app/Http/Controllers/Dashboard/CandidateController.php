@@ -80,22 +80,38 @@ class CandidateController extends Controller
     public function publicProfile(string $slug)
     {
         $rawSlug = trim(urldecode($slug));
-        $nameFromSlug = trim(str_replace('-', ' ', $rawSlug));
+        $candidateId = null;
 
-        $candidate = Candidate::withoutGlobalScopes()
+        if (preg_match('/-(\d+)$/', $rawSlug, $matches)) {
+            $candidateId = (int) $matches[1];
+        }
+
+        $namePart = $candidateId
+            ? preg_replace('/-\d+$/', '', $rawSlug)
+            : $rawSlug;
+
+        $nameFromSlug = trim(str_replace('-', ' ', $namePart));
+
+        $candidateQuery = Candidate::withoutGlobalScopes()
             ->with([
                 'election',
                 'user' => function ($query) {
                     $query->withCount(['contractors', 'representatives']);
                 },
-            ])
-            ->whereHas('user', function ($query) use ($rawSlug, $nameFromSlug) {
-                $query->where('name', $nameFromSlug)
-                    ->orWhere('name', $rawSlug)
-                    ->orWhereRaw("REPLACE(name, ' ', '-') = ?", [$rawSlug])
-                    ->orWhereRaw("REPLACE(name, ' ', '-') = ?", [Str::replace(' ', '-', $nameFromSlug)]);
-            })
-            ->firstOrFail();
+            ]);
+
+        if ($candidateId) {
+            $candidate = (clone $candidateQuery)->findOrFail($candidateId);
+        } else {
+            $candidate = (clone $candidateQuery)
+                ->whereHas('user', function ($query) use ($rawSlug, $nameFromSlug) {
+                    $query->where('name', $nameFromSlug)
+                        ->orWhere('name', $rawSlug)
+                        ->orWhereRaw("REPLACE(name, ' ', '-') = ?", [$rawSlug])
+                        ->orWhereRaw("REPLACE(name, ' ', '-') = ?", [Str::replace(' ', '-', $nameFromSlug)]);
+                })
+                ->firstOrFail();
+        }
 
         return view('public.candidates.profile', compact('candidate'));
     }
