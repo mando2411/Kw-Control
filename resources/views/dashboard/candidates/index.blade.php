@@ -315,14 +315,15 @@
         border-radius: 14px;
         overflow: hidden;
         border: 1px solid rgba(148, 163, 184, .3);
-        background: #fff;
-        box-shadow: 0 8px 18px rgba(15, 23, 42, .09);
-        transition: transform .24s ease, box-shadow .24s ease;
+        background: linear-gradient(160deg, rgba(255,255,255,.95), rgba(248,250,252,.9));
+        box-shadow: 0 10px 20px rgba(15, 23, 42, .1), 0 1px 0 rgba(255,255,255,.5) inset;
+        transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
     }
 
     .candidates-index-page .candidate-card-item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 16px 28px rgba(15, 23, 42, .14);
+        transform: translateY(-6px);
+        border-color: rgba(99, 102, 241, .38);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, .18), 0 0 0 1px rgba(99,102,241,.12);
     }
 
     .candidates-index-page .candidate-card-image {
@@ -331,6 +332,20 @@
         background-size: cover;
         background-position: center;
         isolation: isolate;
+        transition: transform .38s ease;
+    }
+
+    .candidates-index-page .candidate-card-image::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 18% 12%, rgba(255,255,255,.24), transparent 44%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .candidates-index-page .candidate-card-item:hover .candidate-card-image {
+        transform: scale(1.02);
     }
 
     .candidates-index-page .candidate-card-name-badge {
@@ -405,17 +420,18 @@
         left: 0;
         bottom: 0;
         height: 60%;
-        padding: .9rem;
+        padding: .95rem;
         color: #fff;
-        background: linear-gradient(to top, rgba(2, 6, 23, .96), rgba(2, 6, 23, .82) 58%, rgba(2, 6, 23, .25));
-        transform: translateY(66%);
+        background: linear-gradient(to top, rgba(2, 6, 23, .97), rgba(2, 6, 23, .86) 54%, rgba(2, 6, 23, .28));
+        transform: translateY(64%);
         opacity: .96;
-        transition: transform .28s ease;
+        transition: transform .3s ease;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        gap: .45rem;
-        backdrop-filter: blur(2px);
+        gap: .5rem;
+        backdrop-filter: blur(3px);
+        z-index: 2;
     }
 
     .candidates-index-page .candidate-card-item:hover .candidate-card-overlay {
@@ -436,9 +452,10 @@
         font-size: .78rem;
         font-weight: 700;
         border-radius: 999px;
-        padding: .26rem .58rem;
-        background: rgba(255,255,255,.14);
-        border: 1px solid rgba(255,255,255,.2);
+        padding: .28rem .62rem;
+        background: rgba(255,255,255,.16);
+        border: 1px solid rgba(255,255,255,.24);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .candidates-index-page .candidate-card-meta {
@@ -447,10 +464,11 @@
     }
 
     .candidates-index-page .candidate-metric {
-        background: rgba(255,255,255,.08);
-        border: 1px solid rgba(255,255,255,.14);
+        background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.06));
+        border: 1px solid rgba(255,255,255,.18);
         border-radius: 10px;
-        padding: .34rem .45rem;
+        padding: .38rem .46rem;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.13);
     }
 
     .candidates-index-page .candidate-metric__head {
@@ -475,7 +493,7 @@
     .candidates-index-page .candidate-metric__bar {
         width: 100%;
         height: 6px;
-        background: rgba(255,255,255,.2);
+        background: rgba(255,255,255,.24);
         border-radius: 999px;
         overflow: hidden;
     }
@@ -497,9 +515,18 @@
 
     .candidates-index-page .candidate-card-actions .btn {
         font-size: .78rem;
-        font-weight: 700;
+        font-weight: 800;
         min-width: 92px;
-        border-radius: 9px;
+        border-radius: 10px;
+        padding-top: .3rem;
+        padding-bottom: .3rem;
+        border-width: 1px;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .candidates-index-page .candidate-card-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(2, 6, 23, .22);
     }
 
     .candidates-index-page #tableCandidatesView {
