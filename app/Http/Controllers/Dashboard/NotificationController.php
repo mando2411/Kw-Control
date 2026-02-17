@@ -41,12 +41,14 @@ class NotificationController extends Controller
             ->map(function ($notification) {
                 $data = is_array($notification->data) ? $notification->data : [];
                 $safePageUrl = route('dashboard.notifications.page', ['open' => $notification->id]);
+                $rawUrl = (string) ($data['url'] ?? '');
+                $resolvedUrl = trim($rawUrl) !== '' && trim($rawUrl) !== '#' ? $rawUrl : $safePageUrl;
 
                 return [
                     'id' => $notification->id,
                     'title' => (string) ($data['title'] ?? 'إشعار جديد'),
                     'body' => (string) ($data['body'] ?? ''),
-                    'url' => (string) ($data['url'] ?? $safePageUrl),
+                    'url' => $resolvedUrl,
                     'kind' => (string) ($data['kind'] ?? ''),
                     'join_request_id' => (int) ($data['join_request_id'] ?? 0),
                     'lock_read_until_decision' => (bool) ($data['lock_read_until_decision'] ?? false),

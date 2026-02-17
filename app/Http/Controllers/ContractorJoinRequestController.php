@@ -74,16 +74,17 @@ class ContractorJoinRequestController extends Controller
 
     public function review(Request $request, ContractorJoinRequest $joinRequest): JsonResponse
     {
-        $joinRequest->load(['candidate.user', 'requester']);
+        $candidate = Candidate::withoutGlobalScopes()->with('user')->findOrFail($joinRequest->candidate_id);
+        $joinRequest->load('requester');
 
-        if ((int) $joinRequest->candidate->user_id !== (int) $request->user()->id) {
+        if ((int) $candidate->user_id !== (int) $request->user()->id) {
             abort(403);
         }
 
         return response()->json([
             'id' => $joinRequest->id,
             'status' => $joinRequest->status,
-            'candidate_name' => $joinRequest->candidate->user?->name,
+            'candidate_name' => $candidate->user?->name,
             'requester_name' => $joinRequest->requester_name,
             'requester_phone' => $joinRequest->requester_phone,
             'created_at' => optional($joinRequest->created_at)->diffForHumans(),
@@ -93,9 +94,10 @@ class ContractorJoinRequestController extends Controller
 
     public function decide(Request $request, ContractorJoinRequest $joinRequest): JsonResponse
     {
-        $joinRequest->load(['candidate.user', 'requester']);
+        $candidate = Candidate::withoutGlobalScopes()->with('user')->findOrFail($joinRequest->candidate_id);
+        $joinRequest->load('requester');
 
-        if ((int) $joinRequest->candidate->user_id !== (int) $request->user()->id) {
+        if ((int) $candidate->user_id !== (int) $request->user()->id) {
             abort(403);
         }
 
@@ -122,13 +124,13 @@ class ContractorJoinRequestController extends Controller
             Contractor::firstOrCreate(
                 [
                     'user_id' => $joinRequest->requester_user_id,
-                    'creator_id' => $joinRequest->candidate->user_id,
+                    'creator_id' => $candidate->user_id,
                 ],
                 [
                     'name' => $joinRequest->requester_name,
                     'phone' => $joinRequest->requester_phone,
                     'email' => $joinRequest->requester?->email,
-                    'election_id' => $joinRequest->candidate->election_id,
+                    'election_id' => $candidate->election_id,
                     'status' => 'approved',
                     'token' => Str::random(32),
                 ]
@@ -166,7 +168,7 @@ class ContractorJoinRequestController extends Controller
             $candidateOwner->notify(new \App\Notifications\SystemNotification([
                 'title' => 'طلب انضمام جديد كمتعهد',
                 'body' => 'شخص ما أرسل إليك طلب الانضمام كمتعهد. اضغط للمراجعة واتخاذ القرار.',
-                'url' => '#',
+                'url' => route('dashboard.notifications.page'),
                 'kind' => 'contractor_join_request',
                 'join_request_id' => $joinRequest->id,
                 'lock_read_until_decision' => true,

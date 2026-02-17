@@ -2584,7 +2584,11 @@
                         joinReviewModal.show();
                     }
                 })
-                .catch(function () {});
+                .catch(function () {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('تعذر فتح نافذة المراجعة. حاول تحديث الصفحة.');
+                    }
+                });
             }
 
             function submitJoinDecision(decision) {
