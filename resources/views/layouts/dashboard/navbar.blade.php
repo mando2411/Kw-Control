@@ -1,4 +1,12 @@
 <?php if(auth()->user()){ ?>
+    @php
+        $canToggleSidebar = auth()->user()->hasRole('Administrator')
+            || auth()->user()->hasRole('مرشح رئيس قائمة')
+            || \App\Models\Candidate::withoutGlobalScopes()
+                ->where('user_id', (int) auth()->id())
+                ->where('candidate_type', 'list_leader')
+                ->exists();
+    @endphp
     <!-- Desktop header (kept as-is, modern gets a separate mobile header) -->
     <div class="nav dashboard-topbar dashboard-topbar-desktop d-flex justify-content-between align-items-center px-2 bg-dark fixed-top w-100 flex-wrap">
         <div class="desktop-header-left d-flex align-items-center">
@@ -8,7 +16,7 @@
                 </button>
             </a>
 
-            @if (auth()->user()->hasRole("Administrator") || auth()->user()->hasRole("مرشح رئيس قائمة"))
+            @if ($canToggleSidebar)
                 <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
                     <label class="switch">
                         <a href="javascript:void(0)" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
@@ -104,7 +112,7 @@
                     </div>
                 </div>
 
-                @if (auth()->user()->hasRole("Administrator") || auth()->user()->hasRole("مرشح رئيس قائمة"))
+                @if ($canToggleSidebar)
                     <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
                         <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
