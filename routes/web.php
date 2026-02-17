@@ -111,7 +111,7 @@ Route::get('/', function () {
     $show_all_result=false;
     $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
         ->where('requester_user_id', (int) auth()->id())
-        ->where('status', 'pending')
+        ->whereIn('status', ['pending', 'rejected'])
         ->latest()
         ->first();
 

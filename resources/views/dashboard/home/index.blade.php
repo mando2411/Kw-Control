@@ -5,6 +5,7 @@
 @if(isset($pendingJoinRequest) && $pendingJoinRequest)
 @php
     $candidate = $pendingJoinRequest->candidate;
+    $joinStatus = (string) ($pendingJoinRequest->status ?? 'pending');
     $candidateName = $candidate?->user?->name ?? 'المرشح';
     $candidateElection = $candidate?->election?->name ?? 'حملة غير محددة';
     $candidateImage = $candidate?->user?->image ?: ('https://ui-avatars.com/api/?name=' . urlencode($candidateName) . '&background=2563eb&color=fff&size=300');
@@ -12,6 +13,23 @@
     $candidateSlug = preg_replace('/\s+/u', '-', $candidateSlug);
     $candidateSlug = trim((string) $candidateSlug, '-');
     $candidateSlug = ($candidateSlug !== '' ? $candidateSlug : 'candidate') . '-' . ($candidate?->id ?? 0);
+
+    $statusConfig = [
+        'pending' => [
+            'class' => 'pending-status-alert--pending',
+            'icon' => 'fa-clock-o',
+            'text' => 'جاري مراجعة طلب انضمامك من قبل المرشح',
+        ],
+        'rejected' => [
+            'class' => 'pending-status-alert--rejected',
+            'icon' => 'fa-times-circle',
+            'text' => 'لقد تم رفض طلبك من قبل المرشح',
+        ],
+    ][$joinStatus] ?? [
+        'class' => 'pending-status-alert--pending',
+        'icon' => 'fa-clock-o',
+        'text' => 'جاري مراجعة طلب انضمامك من قبل المرشح',
+    ];
 @endphp
 
 <div class="page-body">
@@ -40,9 +58,9 @@
                     </div>
                 </div>
 
-                <div class="pending-status-alert">
-                    <i class="fa fa-clock-o me-2"></i>
-                    جاري مراجعة طلب انضمامك من قبل المرشح
+                <div class="pending-status-alert {{ $statusConfig['class'] }}">
+                    <i class="fa {{ $statusConfig['icon'] }} me-2"></i>
+                    {{ $statusConfig['text'] }}
                 </div>
             </div>
         </div>
@@ -122,13 +140,22 @@
 
     .pending-status-alert {
         margin-top: .95rem;
-        border: 1px solid #facc15;
-        background: #fef9c3;
-        color: #854d0e;
         border-radius: 12px;
         padding: .75rem .85rem;
         font-weight: 800;
         font-size: .92rem;
+    }
+
+    .pending-status-alert.pending-status-alert--pending {
+        border: 1px solid #facc15;
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .pending-status-alert.pending-status-alert--rejected {
+        border: 1px solid #fca5a5;
+        background: #fef2f2;
+        color: #991b1b;
     }
 
     @media (max-width: 576px) {
