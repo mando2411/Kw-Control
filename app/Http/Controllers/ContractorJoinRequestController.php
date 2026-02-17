@@ -152,6 +152,10 @@ class ContractorJoinRequestController extends Controller
             return true;
         }
 
+        if ($candidate && (int) ($user->creator_id ?? 0) === (int) $candidate->user_id) {
+            return true;
+        }
+
         return $user->notifications()
             ->where('data->kind', 'contractor_join_request')
             ->where('data->join_request_id', (int) $joinRequest->id)

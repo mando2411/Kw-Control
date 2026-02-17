@@ -35,11 +35,8 @@ Route::group(['prefix' => 'dashboard',
         Route::post('translate'  , [AutoTranslationController::class, 'translate'])->name('model.auto.translate');
         Route::get('notifications/page', [NotificationController::class, 'page'])->name('notifications.page');
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::get('notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
         Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
-        Route::get('contractor-join-requests/{joinRequest}', [ContractorJoinRequestController::class, 'review'])->name('contractor-join-requests.review');
-        Route::post('contractor-join-requests/{joinRequest}/decision', [ContractorJoinRequestController::class, 'decide'])->name('contractor-join-requests.decision');
         Route::get('toggle-theme', [ProfileController::class, 'toggleTheme'])->name('toggle-theme');
         Route::resource('users', UserController::class)->except('show');
         Route::resource('roles', RoleController::class)->except('show');
@@ -102,6 +99,17 @@ Route::group(['prefix' => 'dashboard',
 
     //RoutePlace
 });
+
+Route::group([
+    'prefix' => 'dashboard',
+    'middleware' => ['auth:web'],
+    'as' => 'dashboard.'
+], function () {
+    Route::get('notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
+    Route::get('contractor-join-requests/{joinRequest}', [ContractorJoinRequestController::class, 'review'])->name('contractor-join-requests.review');
+    Route::post('contractor-join-requests/{joinRequest}/decision', [ContractorJoinRequestController::class, 'decide'])->name('contractor-join-requests.decision');
+});
+
 Route::post('/keep-alive', [UserController::class, 'keepAlive'])->middleware('auth');
 Route::post('committee/status/{id}',[CommitteeController::class,'status'])->name('committee.status');
 Route::post('ass/{id}',[ContractorController::class,'ass'])->name('ass');
