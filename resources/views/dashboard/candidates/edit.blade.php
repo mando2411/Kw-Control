@@ -51,9 +51,8 @@
                              style="background-image:url('{{ $candidate->user->image ?: 'https://ui-avatars.com/api/?name='.urlencode($candidate->user->name ?? 'Candidate').'&background=0ea5e9&color=fff&size=256' }}')">
                         </div>
                         <div class="candidate-avatar-edit">
-                            <button type="button" class="candidate-media-trigger js-media-trigger" data-menu="avatarMenu">
-                                <i class="fa fa-camera me-1"></i>
-                                تعديل الصورة
+                            <button type="button" class="candidate-media-trigger candidate-media-trigger--avatar js-media-trigger" data-menu="avatarMenu" aria-label="تعديل الصورة الشخصية">
+                                <i class="fa fa-camera"></i>
                             </button>
                             <div class="candidate-media-menu d-none" id="avatarMenu">
                                 <button type="button" class="candidate-media-menu__item js-media-change" data-field="image">تغيير الصورة الشخصية</button>
@@ -355,11 +354,35 @@
 
     .candidate-avatar-edit {
         position: absolute;
-        top: calc(100% + 10px);
+        top: 68%;
+        left: 76%;
+        transform: translate(-50%, -50%);
+        min-width: auto;
+        z-index: 9;
+    }
+
+    .candidate-media-trigger--avatar {
+        width: 44px;
+        height: 44px;
+        min-height: 44px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, .8);
+        border: 2px solid rgba(255, 255, 255, .92);
+        box-shadow: 0 8px 18px rgba(2, 6, 23, .34);
+    }
+
+    .candidate-media-trigger--avatar i {
+        font-size: .95rem;
+    }
+
+    .candidate-avatar-edit .candidate-media-menu {
+        top: calc(100% + 8px);
         left: 50%;
         transform: translateX(-50%);
-        min-width: 190px;
-        z-index: 6;
     }
 
     .candidate-profile-name-text {
@@ -494,6 +517,12 @@
         .candidate-cover__actions,
         .candidate-avatar-edit {
             min-width: 164px;
+        }
+
+        .candidate-avatar-edit {
+            top: 70%;
+            left: 74%;
+            min-width: auto;
         }
 
         .candidate-cover__actions {
