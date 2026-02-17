@@ -84,6 +84,9 @@
 
                             <article class="candidate-card-item">
                                 <div class="candidate-card-image" style="background-image: url('{{ $image }}')">
+                                    <div class="candidate-card-name-badge">
+                                        <span>{{ $candidate->user?->name ?? '—' }}</span>
+                                    </div>
                                     <div class="candidate-card-overlay">
                                         <h5 class="candidate-card-name">{{ $candidate->user?->name ?? '—' }}</h5>
 
@@ -328,6 +331,38 @@
         isolation: isolate;
     }
 
+    .candidates-index-page .candidate-card-name-badge {
+        position: absolute;
+        top: .65rem;
+        right: .65rem;
+        left: .65rem;
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        pointer-events: none;
+    }
+
+    .candidates-index-page .candidate-card-name-badge span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 100%;
+        min-height: 38px;
+        padding: .35rem .8rem;
+        border-radius: 999px;
+        background: linear-gradient(120deg, rgba(15, 23, 42, .82), rgba(30, 41, 59, .76));
+        border: 1px solid rgba(255, 255, 255, .26);
+        box-shadow: 0 10px 20px rgba(2, 6, 23, .35);
+        color: #ffffff;
+        font-size: .95rem;
+        font-weight: 900;
+        letter-spacing: .2px;
+        text-shadow: 0 1px 2px rgba(0,0,0,.35);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .candidates-index-page .candidate-card-overlay {
         position: absolute;
         right: 0;
@@ -353,8 +388,9 @@
 
     .candidates-index-page .candidate-card-name {
         margin: 0;
-        font-weight: 800;
-        font-size: 1.02rem;
+        font-weight: 900;
+        font-size: 1.05rem;
+        text-shadow: 0 2px 6px rgba(0,0,0,.45);
     }
 
     .candidates-index-page .candidate-card-election {
@@ -480,6 +516,11 @@
 
         .candidates-index-page .candidate-card-image {
             min-height: 290px;
+        }
+
+        .candidates-index-page .candidate-card-name-badge span {
+            font-size: .88rem;
+            min-height: 34px;
         }
     }
 </style>
