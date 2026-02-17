@@ -119,6 +119,10 @@
                                         </div>
 
                                         <div class="candidate-card-actions">
+                                            <a href="{{ route('dashboard.candidates.edit', $candidate->id) }}" class="btn btn-sm btn-outline-light">
+                                                <i class="fa fa-eye me-1"></i>عرض
+                                            </a>
+
                                             <a href="{{ route('dashboard.candidates.edit', $candidate->id) }}" class="btn btn-sm btn-light">
                                                 <i class="fa fa-edit me-1"></i>تعديل
                                             </a>
@@ -570,6 +574,18 @@
 
     .candidates-index-page .candidate-card-actions .btn-light:hover {
         background: #ffffff;
+    }
+
+    .candidates-index-page .candidate-card-actions .btn-outline-light {
+        background: rgba(255,255,255,.08);
+        border-color: rgba(255,255,255,.55);
+        color: #ffffff;
+    }
+
+    .candidates-index-page .candidate-card-actions .btn-outline-light:hover {
+        background: rgba(255,255,255,.16);
+        border-color: rgba(255,255,255,.9);
+        color: #ffffff;
     }
 
     .candidates-index-page .candidate-card-actions .btn-danger {
