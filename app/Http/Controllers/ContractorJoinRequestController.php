@@ -106,12 +106,7 @@ class ContractorJoinRequestController extends Controller
             'decision_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        if ($joinRequest->status !== 'pending') {
-            return response()->json([
-                'success' => false,
-                'message' => 'تم اتخاذ قرار سابقًا على هذا الطلب.',
-            ], 422);
-        }
+        $previousStatus = (string) $joinRequest->status;
 
         $joinRequest->update([
             'status' => $validated['decision'],
@@ -121,7 +116,7 @@ class ContractorJoinRequestController extends Controller
         ]);
 
         if ($validated['decision'] === 'approved' && $candidate) {
-            Contractor::firstOrCreate(
+            $contractor = Contractor::firstOrCreate(
                 [
                     'user_id' => $joinRequest->requester_user_id,
                     'creator_id' => $candidate->user_id,
@@ -135,14 +130,33 @@ class ContractorJoinRequestController extends Controller
                     'token' => Str::random(32),
                 ]
             );
+
+            $contractor->update([
+                'status' => 'approved',
+                'election_id' => $candidate->election_id,
+                'name' => $joinRequest->requester_name,
+                'phone' => $joinRequest->requester_phone,
+                'email' => $joinRequest->requester?->email,
+            ]);
         }
 
-        $this->finalizeDecisionNotification($request->user(), $joinRequest);
+        if ($validated['decision'] === 'rejected' && $candidate) {
+            Contractor::query()
+                ->where('user_id', $joinRequest->requester_user_id)
+                ->where('creator_id', $candidate->user_id)
+                ->update([
+                    'status' => 'rejected',
+                ]);
+        }
+
+        $this->finalizeDecisionNotification($request->user(), $joinRequest, $previousStatus);
 
         return response()->json([
             'success' => true,
             'status' => $joinRequest->status,
-            'message' => $joinRequest->status === 'approved' ? 'تمت الموافقة على الطلب.' : 'تم رفض الطلب.',
+            'message' => $previousStatus === $joinRequest->status
+                ? ($joinRequest->status === 'approved' ? 'الطلب ما زال في حالة موافقة.' : 'الطلب ما زال في حالة رفض.')
+                : ($joinRequest->status === 'approved' ? 'تم تعديل القرار إلى الموافقة.' : 'تم تعديل القرار إلى الرفض.'),
         ]);
     }
 
@@ -182,13 +196,15 @@ class ContractorJoinRequestController extends Controller
         $candidateOwner = $candidate->user;
         if ($candidateOwner && !$alreadyPending) {
             $candidateOwner->notify(new \App\Notifications\SystemNotification([
-                'title' => 'طلب انضمام جديد كمتعهد',
-                'body' => 'شخص ما أرسل إليك طلب الانضمام كمتعهد. اضغط للمراجعة واتخاذ القرار.',
+                'title' => 'طلب انضمام جديد: ' . $joinRequest->requester_name,
+                'body' => 'المتعهد ' . $joinRequest->requester_name . ' بانتظار قرارك. اضغط للمراجعة واتخاذ القرار.',
                 'url' => route('dashboard.notifications.page'),
                 'kind' => 'contractor_join_request',
                 'join_request_id' => $joinRequest->id,
+                'requester_name' => $joinRequest->requester_name,
                 'lock_read_until_decision' => true,
                 'decision' => 'pending',
+                'decision_closed' => false,
             ]));
         }
 
@@ -197,7 +213,7 @@ class ContractorJoinRequestController extends Controller
         return redirect()->route('candidates.join.pending', ['slug' => $slug]);
     }
 
-    private function finalizeDecisionNotification(User $candidateUser, ContractorJoinRequest $joinRequest): void
+    private function finalizeDecisionNotification(User $candidateUser, ContractorJoinRequest $joinRequest, string $previousStatus): void
     {
         $notification = $candidateUser->notifications()
             ->where('data->kind', 'contractor_join_request')
@@ -211,15 +227,21 @@ class ContractorJoinRequestController extends Controller
 
         $data = is_array($notification->data) ? $notification->data : [];
         $isApproved = $joinRequest->status === 'approved';
+        $requesterName = (string) ($joinRequest->requester_name ?? ($data['requester_name'] ?? 'المتعهد'));
+        $changed = $previousStatus !== $joinRequest->status;
 
-        $data['title'] = $isApproved ? 'تمت الموافقة على طلب الانضمام' : 'تم رفض طلب الانضمام';
-        $data['body'] = $isApproved
-            ? 'تم قبول المتعهد وإغلاق الطلب.'
-            : 'تم رفض طلب الانضمام وإغلاق الطلب.';
+        $data['title'] = $isApproved
+            ? ('تم قبول: ' . $requesterName)
+            : ('تم رفض: ' . $requesterName);
+        $data['body'] = ($changed ? 'تم تعديل قرار ' : 'القرار الحالي ') . $requesterName
+            . ' إلى '
+            . ($isApproved ? 'القبول' : 'الرفض')
+            . '. يمكنك الضغط لتعديل القرار مرة أخرى.';
         $data['url'] = '#';
         $data['lock_read_until_decision'] = false;
         $data['decision'] = $joinRequest->status;
-        $data['decision_closed'] = true;
+        $data['decision_closed'] = false;
+        $data['requester_name'] = $requesterName;
 
         $notification->data = $data;
         $notification->read_at = now();

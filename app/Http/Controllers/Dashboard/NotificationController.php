@@ -43,16 +43,46 @@ class NotificationController extends Controller
                 $safePageUrl = route('dashboard.notifications.page', ['open' => $notification->id]);
                 $rawUrl = (string) ($data['url'] ?? '');
                 $resolvedUrl = trim($rawUrl) !== '' && trim($rawUrl) !== '#' ? $rawUrl : $safePageUrl;
+                $kind = (string) ($data['kind'] ?? '');
+                $requesterName = (string) ($data['requester_name'] ?? '');
+                $decision = (string) ($data['decision'] ?? '');
+
+                $title = (string) ($data['title'] ?? 'إشعار جديد');
+                $body = (string) ($data['body'] ?? '');
+
+                if ($kind === 'contractor_join_request') {
+                    $effectiveName = $requesterName !== '' ? $requesterName : 'متعهد';
+
+                    if ($title === '' || $title === 'إشعار جديد') {
+                        if ($decision === 'approved') {
+                            $title = 'تم قبول: ' . $effectiveName;
+                        } elseif ($decision === 'rejected') {
+                            $title = 'تم رفض: ' . $effectiveName;
+                        } else {
+                            $title = 'طلب انضمام جديد: ' . $effectiveName;
+                        }
+                    }
+
+                    if ($body === '') {
+                        if ($decision === 'approved') {
+                            $body = 'المتعهد ' . $effectiveName . ' حالته الحالية: تم القبول. يمكنك الضغط لتعديل القرار.';
+                        } elseif ($decision === 'rejected') {
+                            $body = 'المتعهد ' . $effectiveName . ' حالته الحالية: تم الرفض. يمكنك الضغط لتعديل القرار.';
+                        } else {
+                            $body = 'المتعهد ' . $effectiveName . ' بانتظار قرارك. اضغط للمراجعة.';
+                        }
+                    }
+                }
 
                 return [
                     'id' => $notification->id,
-                    'title' => (string) ($data['title'] ?? 'إشعار جديد'),
-                    'body' => (string) ($data['body'] ?? ''),
+                    'title' => $title,
+                    'body' => $body,
                     'url' => $resolvedUrl,
-                    'kind' => (string) ($data['kind'] ?? ''),
+                    'kind' => $kind,
                     'join_request_id' => (int) ($data['join_request_id'] ?? 0),
                     'lock_read_until_decision' => (bool) ($data['lock_read_until_decision'] ?? false),
-                    'decision' => (string) ($data['decision'] ?? ''),
+                    'decision' => $decision,
                     'decision_closed' => (bool) ($data['decision_closed'] ?? false),
                     'read_at' => $notification->read_at,
                     'created_at' => optional($notification->created_at)->diffForHumans(),
