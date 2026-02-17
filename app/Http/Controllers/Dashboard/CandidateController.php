@@ -12,6 +12,7 @@ use App\Models\Committee;
 use App\Traits\ImageTrait;
 use Illuminate\Http\Request;
 use App\Services\VoteService;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -76,8 +77,11 @@ class CandidateController extends Controller
         //
     }
 
-    public function publicProfile($id)
+    public function publicProfile(string $slug)
     {
+        $rawSlug = trim(urldecode($slug));
+        $nameFromSlug = trim(str_replace('-', ' ', $rawSlug));
+
         $candidate = Candidate::withoutGlobalScopes()
             ->with([
                 'election',
@@ -85,7 +89,13 @@ class CandidateController extends Controller
                     $query->withCount(['contractors', 'representatives']);
                 },
             ])
-            ->findOrFail($id);
+            ->whereHas('user', function ($query) use ($rawSlug, $nameFromSlug) {
+                $query->where('name', $nameFromSlug)
+                    ->orWhere('name', $rawSlug)
+                    ->orWhereRaw("REPLACE(name, ' ', '-') = ?", [$rawSlug])
+                    ->orWhereRaw("REPLACE(name, ' ', '-') = ?", [Str::replace(' ', '-', $nameFromSlug)]);
+            })
+            ->firstOrFail();
 
         return view('public.candidates.profile', compact('candidate'));
     }

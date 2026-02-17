@@ -24,8 +24,7 @@ require __DIR__.'/client.php';
 
 Route::view('/about-control', 'landing.control')->name('landing.control');
 
-Route::get('/candidates/{id}/profile', [CandidateController::class, 'publicProfile'])
-    ->whereNumber('id')
+Route::get('/candidates/{slug}/profile', [CandidateController::class, 'publicProfile'])
     ->name('candidates.public-profile');
 
 Route::get('/download/contractor-app', function () {

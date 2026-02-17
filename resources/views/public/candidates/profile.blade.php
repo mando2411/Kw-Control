@@ -1,6 +1,13 @@
-@extends('layouts.site.app')
-
-@section('content')
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $candidate->user?->name ?? 'المرشح' }}</title>
+    <link rel="stylesheet" href="{{ asset('assets/dashboard/css/vendors/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/dashboard/css/vendors/font-awesome.css') }}">
+</head>
+<body>
 <div class="candidate-public-page" dir="rtl">
     @php
         $name = $candidate->user?->name ?? 'مرشح';
@@ -60,9 +67,6 @@
         </div>
     </section>
 </div>
-@endsection
-
-@push('css')
 <style>
     .candidate-public-page { background: #f8fafc; min-height: 100vh; }
     .candidate-public-hero {
@@ -106,4 +110,5 @@
         .meta-grid { grid-template-columns: 1fr; }
     }
 </style>
-@endpush
+</body>
+</html>

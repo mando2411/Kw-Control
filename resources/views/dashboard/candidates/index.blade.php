@@ -70,6 +70,7 @@
                         @foreach($candidates as $candidate)
                             @php
                                 $image = $candidate->user?->image ?: 'https://ui-avatars.com/api/?name=' . urlencode($candidate->user?->name ?? 'Candidate') . '&background=0ea5e9&color=fff&size=400';
+                                $publicProfileSlug = \Illuminate\Support\Str::of($candidate->user?->name ?? 'candidate')->trim()->replace(' ', '-')->value();
                                 $currentContractors = (int) ($candidate->user?->contractors_count ?? 0);
                                 $currentRepresentatives = (int) ($candidate->user?->representatives_count ?? 0);
                                 $maxContractors = max(0, (int) ($candidate->max_contractor ?? 0));
@@ -119,7 +120,7 @@
                                         </div>
 
                                         <div class="candidate-card-actions">
-                                            <a href="{{ route('candidates.public-profile', $candidate->id) }}" class="btn btn-sm btn-outline-light" target="_blank" rel="noopener noreferrer">
+                                            <a href="{{ route('candidates.public-profile', ['slug' => $publicProfileSlug]) }}" class="btn btn-sm btn-outline-light" target="_blank" rel="noopener noreferrer">
                                                 <i class="fa fa-eye me-1"></i>عرض
                                             </a>
 
