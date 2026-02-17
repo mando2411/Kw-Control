@@ -154,13 +154,20 @@
         background: #fff;
         padding: .8rem 1rem;
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: flex-end;
         gap: .8rem;
         flex-wrap: wrap;
     }
 
-    .profile-head__main { display: flex; align-items: flex-end; gap: .8rem; flex-direction: row-reverse; }
+    .profile-head__main {
+        width: 100%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        gap: .8rem;
+        text-align: right;
+    }
 
     .profile-avatar {
         width: 168px;
@@ -187,7 +194,12 @@
         font-weight: 700;
     }
 
-    .profile-actions { display: flex; gap: .45rem; }
+    .profile-actions {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        gap: .45rem;
+    }
     .profile-actions .btn { border-radius: 6px; font-weight: 700; font-size: .86rem; min-height: 36px; }
 
     .profile-tabs {
