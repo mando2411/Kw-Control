@@ -2824,6 +2824,19 @@
                 });
             }
 
+            function bindClassicButton() {
+                var classicBtn = document.getElementById('sidebar-toggle-classic-btn');
+                if (!classicBtn) return;
+                if (classicBtn.dataset.bound === '1') return;
+                classicBtn.dataset.bound = '1';
+
+                classicBtn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    triggerLegacyToggleOrFallback();
+                });
+            }
+
             function bindMobile() {
                 var mobileBtn = document.getElementById('sidebar-toggle-modern-mobile');
                 if (!mobileBtn) return;
@@ -2841,10 +2854,12 @@
                 document.addEventListener('DOMContentLoaded', function () {
                     bind();
                     bindMobile();
+                    bindClassicButton();
                 }, { once: true });
             } else {
                 bind();
                 bindMobile();
+                bindClassicButton();
             }
         })();
     </script>

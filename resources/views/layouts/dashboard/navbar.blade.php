@@ -19,7 +19,7 @@
             @if ($canToggleSidebar)
                 <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
                     <label class="switch">
-                        <a href="javascript:void(0)" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
+                        <a href="javascript:void(0)" id="sidebar-toggle-classic-btn" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
                             <i id="sidebar-toggle" data-feather="align-left"></i>
                         </a>
                     </label>
