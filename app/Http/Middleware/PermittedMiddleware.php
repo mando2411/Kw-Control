@@ -58,6 +58,10 @@ class PermittedMiddleware
             return false;
         }
 
+        if (Str::startsWith($permission, 'candidates.')) {
+            return true;
+        }
+
         $candidateRole = Role::where('name', 'مرشح')->first();
         if (!$candidateRole) {
             return false;

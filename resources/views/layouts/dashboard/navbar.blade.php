@@ -36,12 +36,8 @@
                         <i class="fa fa-users"></i>
                     </button>
                     <div id="listleader-candidates-panel" class="dropdown-menu" dir="rtl">
-                        @if(admin()->can('candidates.list'))
-                            <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
-                        @endif
-                        @if(admin()->can('candidates.create'))
-                            <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
-                        @endif
+                        <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
+                        <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
                     </div>
                 </div>
             @endif
@@ -136,12 +132,8 @@
                             <i class="fa fa-users"></i>
                         </button>
                         <div id="listleader-candidates-panel-mobile" class="dropdown-menu dtm-notif-panel" dir="rtl">
-                            @if(admin()->can('candidates.list'))
-                                <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
-                            @endif
-                            @if(admin()->can('candidates.create'))
-                                <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
-                            @endif
+                            <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
+                            <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
                         </div>
                     </div>
                 @endif

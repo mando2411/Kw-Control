@@ -1,6 +1,13 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
+@php
+    $isListLeaderQuick = admin()->hasRole('مرشح رئيس قائمة')
+        || \App\Models\Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) admin()->id)
+            ->where('candidate_type', 'list_leader')
+            ->exists();
+@endphp
 <div class="page-body candidates-index-page">
     <x-dashboard.partials.breadcrumb title="المرشحون">
         <li class="breadcrumb-item active">المرشحون</li>
@@ -43,7 +50,7 @@
                 </div>
 
                 <div class="candidate-toolbar__actions">
-                    @if(\Illuminate\Support\Facades\Route::has('dashboard.candidates.create') && admin()->can('candidates.create'))
+                    @if(\Illuminate\Support\Facades\Route::has('dashboard.candidates.create') && (admin()->can('candidates.create') || $isListLeaderQuick))
                         <a href="{{ route('dashboard.candidates.create') }}" class="btn btn-primary add-row">
                             <i class="fa fa-plus me-1"></i>
                             إضافة مرشح
