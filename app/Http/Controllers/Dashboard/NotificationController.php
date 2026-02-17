@@ -91,6 +91,26 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function show(Request $request, string $id): JsonResponse
+    {
+        $notification = $request->user()
+            ->notifications()
+            ->whereKey($id)
+            ->firstOrFail();
+
+        $data = is_array($notification->data) ? $notification->data : [];
+
+        return response()->json([
+            'id' => $notification->id,
+            'title' => (string) ($data['title'] ?? 'إشعار جديد'),
+            'body' => (string) ($data['body'] ?? ''),
+            'kind' => (string) ($data['kind'] ?? ''),
+            'join_request_id' => (int) ($data['join_request_id'] ?? 0),
+            'decision' => (string) ($data['decision'] ?? ''),
+            'lock_read_until_decision' => (bool) ($data['lock_read_until_decision'] ?? false),
+        ]);
+    }
+
     public function markAllAsRead(Request $request): JsonResponse
     {
         $request->user()->unreadNotifications->each(function ($notification) {

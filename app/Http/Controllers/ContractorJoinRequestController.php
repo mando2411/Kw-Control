@@ -74,17 +74,17 @@ class ContractorJoinRequestController extends Controller
 
     public function review(Request $request, ContractorJoinRequest $joinRequest): JsonResponse
     {
-        $candidate = Candidate::withoutGlobalScopes()->with('user')->findOrFail($joinRequest->candidate_id);
+        $candidate = Candidate::withoutGlobalScopes()->with('user')->find($joinRequest->candidate_id);
         $joinRequest->load('requester');
 
-        if ((int) $candidate->user_id !== (int) $request->user()->id) {
+        if (!$this->canManageJoinRequest($request->user(), $joinRequest, $candidate)) {
             abort(403);
         }
 
         return response()->json([
             'id' => $joinRequest->id,
             'status' => $joinRequest->status,
-            'candidate_name' => $candidate->user?->name,
+            'candidate_name' => $candidate?->user?->name,
             'requester_name' => $joinRequest->requester_name,
             'requester_phone' => $joinRequest->requester_phone,
             'created_at' => optional($joinRequest->created_at)->diffForHumans(),
@@ -94,10 +94,10 @@ class ContractorJoinRequestController extends Controller
 
     public function decide(Request $request, ContractorJoinRequest $joinRequest): JsonResponse
     {
-        $candidate = Candidate::withoutGlobalScopes()->with('user')->findOrFail($joinRequest->candidate_id);
+        $candidate = Candidate::withoutGlobalScopes()->with('user')->find($joinRequest->candidate_id);
         $joinRequest->load('requester');
 
-        if ((int) $candidate->user_id !== (int) $request->user()->id) {
+        if (!$this->canManageJoinRequest($request->user(), $joinRequest, $candidate)) {
             abort(403);
         }
 
@@ -120,7 +120,7 @@ class ContractorJoinRequestController extends Controller
             'decided_by_user_id' => (int) $request->user()->id,
         ]);
 
-        if ($validated['decision'] === 'approved') {
+        if ($validated['decision'] === 'approved' && $candidate) {
             Contractor::firstOrCreate(
                 [
                     'user_id' => $joinRequest->requester_user_id,
@@ -144,6 +144,18 @@ class ContractorJoinRequestController extends Controller
             'status' => $joinRequest->status,
             'message' => $joinRequest->status === 'approved' ? 'تمت الموافقة على الطلب.' : 'تم رفض الطلب.',
         ]);
+    }
+
+    private function canManageJoinRequest(User $user, ContractorJoinRequest $joinRequest, ?Candidate $candidate): bool
+    {
+        if ($candidate && (int) $candidate->user_id === (int) $user->id) {
+            return true;
+        }
+
+        return $user->notifications()
+            ->where('data->kind', 'contractor_join_request')
+            ->where('data->join_request_id', (int) $joinRequest->id)
+            ->exists();
     }
 
     private function submitForUser(Candidate $candidate, User $user): RedirectResponse

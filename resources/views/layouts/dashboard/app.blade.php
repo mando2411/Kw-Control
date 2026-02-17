@@ -2537,12 +2537,22 @@
                 .catch(function () {});
             }
 
-            function openJoinReviewModal(joinRequestId) {
-                if (!joinRequestId || !joinReviewModalEl) {
+            function openJoinReviewModal(joinRequestId, notificationId) {
+                if (!joinReviewModalEl) {
                     return;
                 }
 
-                var reviewUrl = "{{ route('dashboard.contractor-join-requests.review', ['joinRequest' => '__ID__']) }}".replace('__ID__', String(joinRequestId));
+                var fallbackUrl = notificationId
+                    ? "{{ url('dashboard/notifications') }}/" + String(notificationId)
+                    : null;
+
+                var reviewUrl = joinRequestId
+                    ? "{{ route('dashboard.contractor-join-requests.review', ['joinRequest' => '__ID__']) }}".replace('__ID__', String(joinRequestId))
+                    : fallbackUrl;
+
+                if (!reviewUrl) {
+                    return;
+                }
 
                 fetch(reviewUrl, {
                     method: 'GET',
@@ -2585,6 +2595,36 @@
                     }
                 })
                 .catch(function () {
+                    if (fallbackUrl && reviewUrl !== fallbackUrl) {
+                        fetch(fallbackUrl, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            }
+                        })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('Fallback failed');
+                            }
+                            return response.json();
+                        })
+                        .then(function (payload) {
+                            var fallbackRequestId = Number((payload && payload.join_request_id) || 0);
+                            if (!fallbackRequestId) {
+                                throw new Error('Missing join request id');
+                            }
+
+                            openJoinReviewModal(fallbackRequestId, null);
+                        })
+                        .catch(function () {
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error('تعذر فتح نافذة المراجعة. حاول تحديث الصفحة.');
+                            }
+                        });
+                        return;
+                    }
+
                     if (typeof toastr !== 'undefined') {
                         toastr.error('تعذر فتح نافذة المراجعة. حاول تحديث الصفحة.');
                     }
@@ -2652,11 +2692,12 @@
                     var joinRequestId = Number(link.getAttribute('data-join-request-id') || 0);
                     var decision = link.getAttribute('data-decision') || '';
                     var lockRead = link.getAttribute('data-lock-read') === '1';
+                    var notificationId = link.getAttribute('data-notif-id') || '';
 
-                    if (kind === 'contractor_join_request' && joinRequestId > 0 && decision === 'pending') {
+                    if (kind === 'contractor_join_request' && decision === 'pending') {
                         event.preventDefault();
                         event.stopPropagation();
-                        openJoinReviewModal(joinRequestId);
+                        openJoinReviewModal(joinRequestId > 0 ? joinRequestId : null, notificationId);
                         return;
                     }
 
