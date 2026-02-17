@@ -87,6 +87,12 @@
                                     <div class="candidate-card-name-badge">
                                         <span>{{ $candidate->user?->name ?? '—' }}</span>
                                     </div>
+
+                                    <div class="candidate-card-campaign-badge" title="اسم الحملة">
+                                        <i class="fa fa-check-circle"></i>
+                                        <span>{{ $candidate->election?->name ?? 'حملة غير محددة' }}</span>
+                                    </div>
+
                                     <div class="candidate-card-overlay">
                                         <h5 class="candidate-card-name">{{ $candidate->user?->name ?? '—' }}</h5>
 
@@ -363,6 +369,40 @@
         text-overflow: ellipsis;
     }
 
+    .candidates-index-page .candidate-card-campaign-badge {
+        position: absolute;
+        left: .65rem;
+        top: .7rem;
+        z-index: 3;
+        max-width: calc(100% - 1.3rem);
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        min-height: 32px;
+        padding: .3rem .62rem;
+        border-radius: 999px;
+        background: linear-gradient(120deg, rgba(37, 99, 235, .92), rgba(14, 116, 144, .9));
+        border: 1px solid rgba(255,255,255,.32);
+        box-shadow: 0 8px 18px rgba(2, 6, 23, .3);
+        color: #fff;
+        font-size: .74rem;
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .candidates-index-page .candidate-card-campaign-badge i {
+        font-size: .86rem;
+        color: rgba(255,255,255,.96);
+        flex: 0 0 auto;
+    }
+
+    .candidates-index-page .candidate-card-campaign-badge span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .candidates-index-page .candidate-card-overlay {
         position: absolute;
         right: 0;
@@ -521,6 +561,14 @@
         .candidates-index-page .candidate-card-name-badge span {
             font-size: .88rem;
             min-height: 34px;
+        }
+
+        .candidates-index-page .candidate-card-campaign-badge {
+            max-width: calc(100% - 1rem);
+            left: .5rem;
+            top: .55rem;
+            font-size: .7rem;
+            min-height: 30px;
         }
     }
 </style>
