@@ -153,4 +153,14 @@ public function election(): BelongsTo
         return $this->belongsTo(Election::class);
     }
 
+    public function contractorJoinRequests(): HasMany
+    {
+        return $this->hasMany(ContractorJoinRequest::class, 'requester_user_id');
+    }
+
+    public function reviewedContractorJoinRequests(): HasMany
+    {
+        return $this->hasMany(ContractorJoinRequest::class, 'decided_by_user_id');
+    }
+
 }

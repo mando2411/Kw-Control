@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UiModeController;
+use App\Http\Controllers\ContractorJoinRequestController;
 use App\Http\Controllers\Dashboard\CandidateController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
@@ -26,6 +27,21 @@ Route::view('/about-control', 'landing.control')->name('landing.control');
 
 Route::get('/candidates/{slug}/profile', [CandidateController::class, 'publicProfile'])
     ->name('candidates.public-profile');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/candidates/{slug}/join/register', [ContractorJoinRequestController::class, 'register'])
+        ->name('candidates.join.register');
+    Route::post('/candidates/{slug}/join/register', [ContractorJoinRequestController::class, 'registerStore'])
+        ->name('candidates.join.register.store');
+});
+
+Route::post('/candidates/{slug}/join', [ContractorJoinRequestController::class, 'submit'])
+    ->name('candidates.join.submit');
+
+Route::middleware('auth:web')->group(function () {
+    Route::get('/candidates/{slug}/join/pending', [ContractorJoinRequestController::class, 'pending'])
+        ->name('candidates.join.pending');
+});
 
 Route::get('/download/contractor-app', function () {
     $apkPath = public_path('downloads/contractor-portal-latest.apk');

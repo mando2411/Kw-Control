@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Models\Activity;
 use Twilio\Rest\Client;
 use App\Http\Controllers\Dashboard\ReportController;
+use App\Http\Controllers\ContractorJoinRequestController;
 use App\Exports\VotersExport;
 //controllers
 Route::group(['prefix' => 'dashboard',
@@ -36,6 +37,8 @@ Route::group(['prefix' => 'dashboard',
         Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
         Route::post('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::get('contractor-join-requests/{joinRequest}', [ContractorJoinRequestController::class, 'review'])->name('contractor-join-requests.review');
+        Route::post('contractor-join-requests/{joinRequest}/decision', [ContractorJoinRequestController::class, 'decide'])->name('contractor-join-requests.decision');
         Route::get('toggle-theme', [ProfileController::class, 'toggleTheme'])->name('toggle-theme');
         Route::resource('users', UserController::class)->except('show');
         Route::resource('roles', RoleController::class)->except('show');

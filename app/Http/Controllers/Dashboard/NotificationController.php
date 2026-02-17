@@ -13,9 +13,11 @@ class NotificationController extends Controller
     {
         $user = $request->user();
 
-        $user->unreadNotifications()->update([
-            'read_at' => now(),
-        ]);
+        $user->unreadNotifications->each(function ($notification) {
+            if (!$this->isLockedUntilDecision($notification)) {
+                $notification->markAsRead();
+            }
+        });
 
         $notifications = $user->notifications()
             ->latest()
@@ -24,7 +26,7 @@ class NotificationController extends Controller
 
         return view('dashboard.notifications.index', [
             'notifications' => $notifications,
-            'unreadCount' => 0,
+            'unreadCount' => $user->unreadNotifications()->count(),
         ]);
     }
 
@@ -44,7 +46,12 @@ class NotificationController extends Controller
                     'id' => $notification->id,
                     'title' => (string) ($data['title'] ?? 'إشعار جديد'),
                     'body' => (string) ($data['body'] ?? ''),
-                    'url' => $safePageUrl,
+                    'url' => (string) ($data['url'] ?? $safePageUrl),
+                    'kind' => (string) ($data['kind'] ?? ''),
+                    'join_request_id' => (int) ($data['join_request_id'] ?? 0),
+                    'lock_read_until_decision' => (bool) ($data['lock_read_until_decision'] ?? false),
+                    'decision' => (string) ($data['decision'] ?? ''),
+                    'decision_closed' => (bool) ($data['decision_closed'] ?? false),
                     'read_at' => $notification->read_at,
                     'created_at' => optional($notification->created_at)->diffForHumans(),
                 ];
@@ -64,6 +71,14 @@ class NotificationController extends Controller
             ->whereKey($id)
             ->firstOrFail();
 
+        if ($this->isLockedUntilDecision($notification)) {
+            return response()->json([
+                'success' => true,
+                'unread_count' => $request->user()->unreadNotifications()->count(),
+                'locked' => true,
+            ]);
+        }
+
         if (is_null($notification->read_at)) {
             $notification->markAsRead();
         }
@@ -76,11 +91,24 @@ class NotificationController extends Controller
 
     public function markAllAsRead(Request $request): JsonResponse
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $request->user()->unreadNotifications->each(function ($notification) {
+            if (!$this->isLockedUntilDecision($notification)) {
+                $notification->markAsRead();
+            }
+        });
 
         return response()->json([
             'success' => true,
-            'unread_count' => 0,
+            'unread_count' => $request->user()->unreadNotifications()->count(),
         ]);
+    }
+
+    private function isLockedUntilDecision($notification): bool
+    {
+        $data = is_array($notification->data) ? $notification->data : [];
+        $locked = (bool) ($data['lock_read_until_decision'] ?? false);
+        $decision = (string) ($data['decision'] ?? 'pending');
+
+        return $locked && $decision === 'pending';
     }
 }

@@ -43,7 +43,10 @@
                         <span>{{ $candidate->election?->name ?? 'حملة غير محددة' }}</span>
                     </div>
                     <div class="profile-actions">
-                        <button type="button" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>طلب الانضمام كمتعهد</button>
+                        <form method="POST" action="{{ route('candidates.join.submit', ['slug' => request()->route('slug')]) }}">
+                            @csrf
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>طلب الانضمام كمتعهد</button>
+                        </form>
                         <button type="button" class="btn btn-light"><i class="fa fa-envelope me-1"></i>مراسلة</button>
                     </div>
                 </div>

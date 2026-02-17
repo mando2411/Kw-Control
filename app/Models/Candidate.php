@@ -36,6 +36,11 @@ class Candidate extends Model
         return $this->belongsToMany(Committee::class)->withPivot('votes')->withTimestamps();
     }
 
+    public function contractorJoinRequests()
+    {
+        return $this->hasMany(ContractorJoinRequest::class);
+    }
+
     protected static function boot()
        {
            parent::boot();

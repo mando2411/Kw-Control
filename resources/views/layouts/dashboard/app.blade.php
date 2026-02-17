@@ -2190,10 +2190,44 @@
         })();
     </script>
 
+    <div class="modal fade" id="contractorJoinReviewModal" tabindex="-1" aria-labelledby="contractorJoinReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contractorJoinReviewModalLabel">مراجعة طلب الانضمام كمتعهد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="joinReviewAlert" class="alert d-none"></div>
+                    <input type="hidden" id="joinReviewRequestId" value="">
+                    <div class="mb-2"><strong>الاسم:</strong> <span id="joinReviewRequesterName">—</span></div>
+                    <div class="mb-2"><strong>الهاتف:</strong> <span id="joinReviewRequesterPhone">—</span></div>
+                    <div class="mb-2"><strong>وقت الطلب:</strong> <span id="joinReviewCreatedAt">—</span></div>
+                    <div class="mb-3"><strong>الحالة:</strong> <span id="joinReviewStatus">pending</span></div>
+                    <label for="joinReviewDecisionNote" class="form-label">ملاحظة (اختياري)</label>
+                    <textarea class="form-control" id="joinReviewDecisionNote" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-join-decision="approved">قبول</button>
+                    <button type="button" class="btn btn-danger" data-join-decision="rejected">رفض</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
             var notifiers = [];
             var hasFetchedNotifications = false;
+            var joinReviewModalEl = document.getElementById('contractorJoinReviewModal');
+            var joinReviewModal = (window.bootstrap && joinReviewModalEl) ? new window.bootstrap.Modal(joinReviewModalEl) : null;
+            var joinReviewRequestIdInput = document.getElementById('joinReviewRequestId');
+            var joinReviewAlert = document.getElementById('joinReviewAlert');
+            var joinReviewRequesterName = document.getElementById('joinReviewRequesterName');
+            var joinReviewRequesterPhone = document.getElementById('joinReviewRequesterPhone');
+            var joinReviewCreatedAt = document.getElementById('joinReviewCreatedAt');
+            var joinReviewStatus = document.getElementById('joinReviewStatus');
+            var joinReviewDecisionNote = document.getElementById('joinReviewDecisionNote');
 
             function initNotifier(config) {
                 var notifPanel = document.getElementById(config.panelId);
@@ -2315,11 +2349,14 @@
                 }
 
                 var html = items.map(function (item) {
-                    var itemUrl = safeUrl(item.url);
+                    var isJoinRequestPending = item.kind === 'contractor_join_request' && item.decision === 'pending' && !item.decision_closed;
+                    var itemUrl = isJoinRequestPending ? 'javascript:void(0)' : safeUrl(item.url);
                     var unreadClass = item.read_at ? '' : ' unread';
+                    var joinRequestId = Number(item.join_request_id || 0);
+                    var lockReadAttr = item.lock_read_until_decision ? '1' : '0';
 
                     return '' +
-                        '<a href="' + itemUrl + '" class="dtm-notif-item' + unreadClass + '" data-notif-id="' + item.id + '">' +
+                        '<a href="' + itemUrl + '" class="dtm-notif-item' + unreadClass + '" data-notif-id="' + item.id + '" data-kind="' + esc(item.kind || '') + '" data-join-request-id="' + joinRequestId + '" data-lock-read="' + lockReadAttr + '" data-decision="' + esc(item.decision || '') + '">' +
                             '<div class="dtm-notif-title">' + esc(item.title || 'إشعار جديد') + '</div>' +
                             '<div class="dtm-notif-body">' + esc(item.body || '') + '</div>' +
                             '<div class="dtm-notif-meta">' +
@@ -2348,8 +2385,7 @@
                 entry.notifToggle.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
 
                 if (!isOpen && shouldFetch) {
-                    renderBadge(0);
-                    markAllAsRead({ refresh: false, optimisticUi: true });
+                    markAllAsRead({ refresh: false, optimisticUi: false });
 
                     if (!hasFetchedNotifications) {
                         fetchNotifications();
@@ -2490,11 +2526,107 @@
                     }
                     return response.json();
                 })
-                .then(function () {
-                    renderBadge(0);
+                .then(function (data) {
+                    if (data && typeof data.unread_count !== 'undefined') {
+                        renderBadge(data.unread_count || 0);
+                    }
                     if (shouldRefresh) {
                         fetchNotifications();
                     }
+                })
+                .catch(function () {});
+            }
+
+            function openJoinReviewModal(joinRequestId) {
+                if (!joinRequestId || !joinReviewModalEl) {
+                    return;
+                }
+
+                var reviewUrl = "{{ route('dashboard.contractor-join-requests.review', ['joinRequest' => '__ID__']) }}".replace('__ID__', String(joinRequestId));
+
+                fetch(reviewUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to load request');
+                    }
+
+                    return response.json();
+                })
+                .then(function (data) {
+                    joinReviewRequestIdInput.value = data.id || '';
+                    joinReviewRequesterName.textContent = data.requester_name || '—';
+                    joinReviewRequesterPhone.textContent = data.requester_phone || '—';
+                    joinReviewCreatedAt.textContent = data.created_at || '—';
+                    joinReviewStatus.textContent = data.status || 'pending';
+                    joinReviewDecisionNote.value = '';
+
+                    joinReviewAlert.className = 'alert d-none';
+                    joinReviewAlert.textContent = '';
+
+                    var decisionButtons = joinReviewModalEl.querySelectorAll('[data-join-decision]');
+                    var pending = String(data.status || '') === 'pending';
+                    decisionButtons.forEach(function (button) {
+                        button.disabled = !pending;
+                    });
+
+                    if (!pending) {
+                        joinReviewAlert.className = 'alert alert-secondary';
+                        joinReviewAlert.textContent = data.status === 'approved' ? 'تمت الموافقة على هذا الطلب.' : 'تم رفض هذا الطلب.';
+                    }
+
+                    if (joinReviewModal) {
+                        joinReviewModal.show();
+                    }
+                })
+                .catch(function () {});
+            }
+
+            function submitJoinDecision(decision) {
+                var requestId = joinReviewRequestIdInput ? joinReviewRequestIdInput.value : '';
+                if (!requestId) {
+                    return;
+                }
+
+                var decisionUrl = "{{ route('dashboard.contractor-join-requests.decision', ['joinRequest' => '__ID__']) }}".replace('__ID__', String(requestId));
+
+                fetch(decisionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken(),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        decision: decision,
+                        decision_note: joinReviewDecisionNote ? joinReviewDecisionNote.value : ''
+                    })
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to submit decision');
+                    }
+
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (joinReviewAlert) {
+                        joinReviewAlert.className = 'alert alert-success';
+                        joinReviewAlert.textContent = data && data.message ? data.message : 'تم حفظ القرار.';
+                    }
+
+                    setTimeout(function () {
+                        if (joinReviewModal) {
+                            joinReviewModal.hide();
+                        }
+                        fetchNotifications();
+                    }, 700);
                 })
                 .catch(function () {});
             }
@@ -2512,9 +2644,36 @@
                         return;
                     }
 
+                    var kind = link.getAttribute('data-kind') || '';
+                    var joinRequestId = Number(link.getAttribute('data-join-request-id') || 0);
+                    var decision = link.getAttribute('data-decision') || '';
+                    var lockRead = link.getAttribute('data-lock-read') === '1';
+
+                    if (kind === 'contractor_join_request' && joinRequestId > 0 && decision === 'pending') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openJoinReviewModal(joinRequestId);
+                        return;
+                    }
+
                     var id = link.getAttribute('data-notif-id');
-                    markNotificationAsRead(id);
+                    if (!lockRead) {
+                        markNotificationAsRead(id);
+                    }
                 });
+            });
+
+            document.addEventListener('click', function (event) {
+                var btn = event.target.closest('[data-join-decision]');
+                if (!btn) {
+                    return;
+                }
+
+                event.preventDefault();
+                var decision = btn.getAttribute('data-join-decision');
+                if (decision === 'approved' || decision === 'rejected') {
+                    submitJoinDecision(decision);
+                }
             });
 
             document.addEventListener('click', function (event) {
