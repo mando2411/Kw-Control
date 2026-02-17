@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Candidate;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -19,7 +21,25 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        $loginCandidates = Candidate::withoutGlobalScopes()
+            ->with(['user:id,name,image'])
+            ->latest('id')
+            ->limit(12)
+            ->get()
+            ->filter(fn ($candidate) => !empty(optional($candidate->user)->name))
+            ->map(function ($candidate) {
+                $name = trim((string) $candidate->user->name);
+                $slug = Str::slug($name ?: ('candidate-' . $candidate->id)) . '-' . $candidate->id;
+
+                return [
+                    'name' => $name,
+                    'image' => $candidate->user->image,
+                    'profile_url' => route('candidates.public-profile', ['slug' => $slug]),
+                ];
+            })
+            ->values();
+
+        return view('auth.login', compact('loginCandidates'));
     }
 
     /**

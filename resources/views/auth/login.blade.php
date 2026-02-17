@@ -601,6 +601,113 @@
         .scan-welcome .go:active {
             transform: translateY(1px);
         }
+
+        .login-candidates-section {
+            margin-top: 1.25rem;
+        }
+
+        .login-candidates-title {
+            font-weight: 700;
+            color: var(--modern-ink);
+            margin: 0 0 0.8rem;
+            font-size: 1.05rem;
+        }
+
+        .login-candidates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+            gap: 0.9rem;
+        }
+
+        .login-candidate-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            animation: candidateCardIn 440ms ease forwards;
+        }
+
+        .login-candidate-link:nth-child(2) { animation-delay: 50ms; }
+        .login-candidate-link:nth-child(3) { animation-delay: 90ms; }
+        .login-candidate-link:nth-child(4) { animation-delay: 130ms; }
+        .login-candidate-link:nth-child(5) { animation-delay: 170ms; }
+        .login-candidate-link:nth-child(6) { animation-delay: 210ms; }
+
+        .login-candidate-link:focus-visible {
+            outline: 2px solid rgba(14, 165, 233, 0.5);
+            outline-offset: 2px;
+            border-radius: 0.9rem;
+        }
+
+        .login-candidate-card {
+            padding: 0.45rem 0.35rem;
+            border-radius: 0.9rem;
+            text-align: center;
+            transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+            background: rgba(255, 255, 255, 0.64);
+        }
+
+        .login-candidate-link:hover .login-candidate-card {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .login-candidate-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 999px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
+            margin: 0 auto 0.45rem;
+            display: block;
+            transition: transform 180ms ease;
+        }
+
+        .login-candidate-link:hover .login-candidate-avatar {
+            transform: scale(1.04);
+        }
+
+        .login-candidate-name {
+            font-size: 0.82rem;
+            line-height: 1.45;
+            font-weight: 700;
+            color: #0f172a;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.35em;
+        }
+
+        @keyframes candidateCardIn {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-legacy .login-candidates-title {
+            color: #111827;
+        }
+
+        .login-legacy .login-candidate-card {
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        @media (max-width: 576px) {
+            .login-candidates-grid {
+                grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+                gap: 0.7rem;
+            }
+
+            .login-candidate-avatar {
+                width: 60px;
+                height: 60px;
+            }
+        }
     </style>
 </head>
 
@@ -612,6 +719,7 @@
     $supportPhoneDigits = preg_replace('/\D+/', '', (string) config('app.support_phone', '55150551')) ?: '55150551';
     $supportCallLink = 'tel:+' . $supportCountryCode . $supportPhoneDigits;
     $supportWhatsappLink = 'https://wa.me/' . $supportCountryCode . $supportPhoneDigits . '?text=' . rawurlencode('ممكن استفسر عن https://kw-control.com/');
+    $candidatePlaceholder = asset('assets/admin/images/users/user-placeholder.png');
 @endphp
 
 <body data-login-theme="{{ $loginForcedTheme }}">
@@ -667,6 +775,29 @@
                                 <button type="submit" class="btn btn-warning mt-2">تسجيل دخول</button>
                             </div>
                         </form>
+
+                        @if (!empty($loginCandidates) && count($loginCandidates))
+                            <div class="p-3 pt-0 login-candidates-section">
+                                <h6 class="login-candidates-title">المرشحون</h6>
+                                <div class="login-candidates-grid">
+                                    @foreach ($loginCandidates as $candidate)
+                                        <a href="{{ $candidate['profile_url'] }}" class="login-candidate-link" title="{{ $candidate['name'] }}">
+                                            <div class="login-candidate-card">
+                                                <img
+                                                    src="{{ $candidate['image'] ?: $candidatePlaceholder }}"
+                                                    alt="{{ $candidate['name'] }}"
+                                                    class="login-candidate-avatar"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    onerror="this.onerror=null;this.src='{{ $candidatePlaceholder }}';"
+                                                >
+                                                <span class="login-candidate-name">{{ $candidate['name'] }}</span>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -734,6 +865,29 @@
                                 <button type="submit" class="btn modern-primary" id="modernLoginSubmit">تسجيل دخول</button>
                             </div>
                         </form>
+
+                        @if (!empty($loginCandidates) && count($loginCandidates))
+                            <div class="login-candidates-section">
+                                <h6 class="login-candidates-title">المرشحون</h6>
+                                <div class="login-candidates-grid">
+                                    @foreach ($loginCandidates as $candidate)
+                                        <a href="{{ $candidate['profile_url'] }}" class="login-candidate-link" title="{{ $candidate['name'] }}">
+                                            <div class="login-candidate-card">
+                                                <img
+                                                    src="{{ $candidate['image'] ?: $candidatePlaceholder }}"
+                                                    alt="{{ $candidate['name'] }}"
+                                                    class="login-candidate-avatar"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    onerror="this.onerror=null;this.src='{{ $candidatePlaceholder }}';"
+                                                >
+                                                <span class="login-candidate-name">{{ $candidate['name'] }}</span>
+                                            </div>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
