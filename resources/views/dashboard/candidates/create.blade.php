@@ -85,15 +85,27 @@
 
                             <div class="mb-3">
                                 <label for="election_id" class="form-label fw-bold">الانتخابات <span class="text-danger">*</span></label>
-                                <select class="form-control" id="election_id" name="election_id" required>
-                                    <option value="" disabled selected>اختر الانتخابات</option>
-                                    @foreach($relations['elections'] as $election)
-                                        <option value="{{ $election->id }}" @selected((string)old('election_id') === (string)$election->id)>
-                                            {{ $election->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted d-block mt-1">الغرض: ربط المرشح بالانتخابات المستهدفة.</small>
+                                @if($isListLeaderCreator)
+                                    @php
+                                        $lockedElection = $relations['elections']->first();
+                                        $lockedElectionId = (string) old('election_id', $lockedElection?->id);
+                                    @endphp
+                                    <select class="form-control" id="election_id" disabled>
+                                        <option value="{{ $lockedElection?->id }}" selected>{{ $lockedElection?->name ?? 'انتخابات غير محددة' }}</option>
+                                    </select>
+                                    <input type="hidden" name="election_id" value="{{ $lockedElectionId }}">
+                                    <small class="text-muted d-block mt-1">تم قفل الانتخابات تلقائيًا حسب حملة رئيس القائمة.</small>
+                                @else
+                                    <select class="form-control" id="election_id" name="election_id" required>
+                                        <option value="" disabled selected>اختر الانتخابات</option>
+                                        @foreach($relations['elections'] as $election)
+                                            <option value="{{ $election->id }}" @selected((string)old('election_id') === (string)$election->id)>
+                                                {{ $election->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted d-block mt-1">الغرض: ربط المرشح بالانتخابات المستهدفة.</small>
+                                @endif
                                 @error('election_id')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
                             </div>
 
