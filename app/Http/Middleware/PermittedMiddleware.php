@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Candidate;
+use App\Models\Role;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -23,16 +23,6 @@ class PermittedMiddleware
     ];
     public function handle(Request $request, Closure $next)
     {
-        $routeName = (string) optional($request->route())->getName();
-
-        if ($this->isListLeaderUser($request)) {
-            $isAllowedCandidatesArea = Str::startsWith($routeName, 'dashboard.candidates.');
-            $isAllowedNotificationsArea = Str::startsWith($routeName, 'dashboard.notifications.');
-            $isAllowedSystemRoute = in_array($routeName, ['dashboard.toggle-theme'], true);
-
-            abort_if(!$isAllowedCandidatesArea && !$isAllowedNotificationsArea && !$isAllowedSystemRoute, 403);
-        }
-
         try {
             $permission = Str::of($request->route()->getName())
                 ->remove('dashboard.')
@@ -50,23 +40,29 @@ class PermittedMiddleware
         }
 
         if ($permission && !in_array($request->route()->getName(), $this->excluded)) {
-            //dd(['no permission',$permission,$request->route()->getName(),admin()->getPermissionsViaRoles()]);
-            abort_if(admin()->cannot($permission), 403);
+            $deniedByDefault = admin()->cannot($permission);
+
+            if ($deniedByDefault && $this->listLeaderHasCandidatePermission((string) $permission)) {
+                $deniedByDefault = false;
+            }
+
+            abort_if($deniedByDefault, 403);
         }
 
         return $next($request);
     }
 
-    private function isListLeaderUser(Request $request): bool
+    private function listLeaderHasCandidatePermission(string $permission): bool
     {
-        $user = $request->user('web');
-        if (!$user) {
+        if (!admin() || !admin()->hasRole('مرشح رئيس قائمة')) {
             return false;
         }
 
-        return Candidate::withoutGlobalScopes()
-            ->where('user_id', (int) $user->id)
-            ->where('candidate_type', 'list_leader')
-            ->exists();
+        $candidateRole = Role::where('name', 'مرشح')->first();
+        if (!$candidateRole) {
+            return false;
+        }
+
+        return $candidateRole->hasPermissionTo($permission);
     }
 }

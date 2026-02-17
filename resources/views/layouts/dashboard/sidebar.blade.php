@@ -19,12 +19,6 @@
         @php
             $uiPolicy = setting(\App\Enums\SettingKey::UI_MODE_POLICY->value, true) ?: 'user_choice';
             $uiPolicy = in_array($uiPolicy, ['user_choice', 'modern', 'classic'], true) ? $uiPolicy : 'user_choice';
-            $currentListLeaderCandidate = \App\Models\Candidate::withoutGlobalScopes()
-                ->select('id')
-                ->where('user_id', (int) admin()->id)
-                ->where('candidate_type', 'list_leader')
-                ->first();
-            $isListLeaderSidebar = $currentListLeaderCandidate !== null;
         @endphp
         @if ($uiPolicy === 'user_choice')
             <div class="sidebar-ui-mode" dir="rtl">
@@ -44,26 +38,6 @@
             <x-dashboard.sidebar.single-link title="الصفحه الرئيسيه" link="{{ route('dashboard') }}" icon="home" />
 
             <x-dashboard.sidebar.single-link title="Media" class="open-media" link="javascript:;" icon="camera" />
-
-            @if ($isListLeaderSidebar)
-                <x-dashboard.sidebar.link-with-child title="المرشحين" icon="users" :permissions="['candidates.list', 'candidates.create', 'candidates.edit', 'candidates.delete']" :children="[
-                    [
-                        'title' => 'المرشحين',
-                        'link' => route('dashboard.candidates.index'),
-                        'permissions' => ['candidates.list', 'candidates.edit', 'candidates.delete', 'candidates.updateVotes','candidates.setVotes'],
-                    ],
-                    [
-                        'title' => 'اضافه مرشح',
-                        'link' => route('dashboard.candidates.create'),
-                        'permissions' => ['candidates.create'],
-                    ],
-                ]" />
-
-                <br>
-                <br>
-
-                <x-dashboard.sidebar.single-link title="تسجيل خروج" link="{{ route('logout') }}" icon="log-in" />
-            @else
 
             <x-dashboard.sidebar.link-with-child title="مستخدم" icon="user" :permissions="['users.list', 'users.create', 'users.edit', 'users.delete']" :children="[
                 [
