@@ -110,6 +110,8 @@ Route::group([
     Route::post('contractor-join-requests/{joinRequest}/decision', [ContractorJoinRequestController::class, 'decide'])->name('contractor-join-requests.decision');
 });
 
+Route::get('dashboard/contract/{token}/profile',[ContractorController::class,'profile'])->name('dashboard.con-profile');
+
 Route::post('/keep-alive', [UserController::class, 'keepAlive'])->middleware('auth');
 Route::post('committee/status/{id}',[CommitteeController::class,'status'])->name('committee.status');
 Route::post('ass/{id}',[ContractorController::class,'ass'])->name('ass');

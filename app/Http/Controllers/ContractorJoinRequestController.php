@@ -141,6 +141,7 @@ class ContractorJoinRequestController extends Controller
                 'name' => $joinRequest->requester_name,
                 'phone' => $joinRequest->requester_phone,
                 'email' => $joinRequest->requester?->email,
+                'token' => $contractor->token ?: Str::random(32),
             ]);
         }
 

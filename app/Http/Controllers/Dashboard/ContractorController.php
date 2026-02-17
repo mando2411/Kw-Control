@@ -207,7 +207,12 @@ class ContractorController extends Controller
         ]);
     }
     public function profile($token){
-        $contractor = Contractor::where('token', $token)->firstOrFail();
+        $normalizedToken = trim((string) urldecode((string) $token));
+
+        $contractor = Contractor::withoutGlobalScopes()
+            ->with(['creator', 'election'])
+            ->where('token', $normalizedToken)
+            ->firstOrFail();
         $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
         $families = Family::select('name', 'id')
             ->when($electionId, function ($query) use ($electionId) {
