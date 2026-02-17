@@ -74,6 +74,12 @@
                         @foreach($candidates as $candidate)
                             @php
                                 $image = $candidate->user?->image ?: 'https://ui-avatars.com/api/?name=' . urlencode($candidate->user?->name ?? 'Candidate') . '&background=0ea5e9&color=fff&size=400';
+                                $currentContractors = (int) ($candidate->user?->contractors_count ?? 0);
+                                $currentRepresentatives = (int) ($candidate->user?->representatives_count ?? 0);
+                                $maxContractors = max(0, (int) ($candidate->max_contractor ?? 0));
+                                $maxRepresentatives = max(0, (int) ($candidate->max_represent ?? 0));
+                                $contractorsPercent = $maxContractors > 0 ? min(100, (int) round(($currentContractors / $maxContractors) * 100)) : 0;
+                                $representativesPercent = $maxRepresentatives > 0 ? min(100, (int) round(($currentRepresentatives / $maxRepresentatives) * 100)) : 0;
                             @endphp
 
                             <article class="candidate-card-item">
@@ -81,10 +87,31 @@
                                     <div class="candidate-card-overlay">
                                         <h5 class="candidate-card-name">{{ $candidate->user?->name ?? '—' }}</h5>
 
+                                        <div class="candidate-card-election">
+                                            <i class="fa fa-flag me-1"></i>
+                                            {{ $candidate->election?->name ?? 'انتخابات غير محددة' }}
+                                        </div>
+
                                         <div class="candidate-card-meta">
-                                            <span><i class="fa fa-flag me-1"></i>{{ $candidate->election?->name ?? 'انتخابات غير محددة' }}</span>
-                                            <span><i class="fa fa-users me-1"></i>متعهدين: {{ $candidate->max_contractor }}</span>
-                                            <span><i class="fa fa-user me-1"></i>مناديب: {{ $candidate->max_represent }}</span>
+                                            <div class="candidate-metric">
+                                                <div class="candidate-metric__head">
+                                                    <span class="metric-label">المتعهدين</span>
+                                                    <span class="metric-value">{{ $currentContractors }}/{{ $maxContractors }}</span>
+                                                </div>
+                                                <div class="candidate-metric__bar">
+                                                    <span style="width: {{ $contractorsPercent }}%"></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="candidate-metric">
+                                                <div class="candidate-metric__head">
+                                                    <span class="metric-label">المناديب</span>
+                                                    <span class="metric-value">{{ $currentRepresentatives }}/{{ $maxRepresentatives }}</span>
+                                                </div>
+                                                <div class="candidate-metric__bar">
+                                                    <span style="width: {{ $representativesPercent }}%"></span>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="candidate-card-actions">
@@ -307,7 +334,7 @@
         left: 0;
         bottom: 0;
         height: 60%;
-        padding: .95rem;
+        padding: .9rem;
         color: #fff;
         background: linear-gradient(to top, rgba(2, 6, 23, .96), rgba(2, 6, 23, .82) 58%, rgba(2, 6, 23, .25));
         transform: translateY(66%);
@@ -327,22 +354,73 @@
     .candidates-index-page .candidate-card-name {
         margin: 0;
         font-weight: 800;
-        font-size: 1rem;
+        font-size: 1.02rem;
+    }
+
+    .candidates-index-page .candidate-card-election {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        font-size: .78rem;
+        font-weight: 700;
+        border-radius: 999px;
+        padding: .26rem .58rem;
+        background: rgba(255,255,255,.14);
+        border: 1px solid rgba(255,255,255,.2);
     }
 
     .candidates-index-page .candidate-card-meta {
+        display: grid;
+        gap: .42rem;
+    }
+
+    .candidates-index-page .candidate-metric {
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.14);
+        border-radius: 10px;
+        padding: .34rem .45rem;
+    }
+
+    .candidates-index-page .candidate-metric__head {
         display: flex;
-        flex-direction: column;
-        gap: .25rem;
-        font-size: .82rem;
-        opacity: .98;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .26rem;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    .candidates-index-page .candidate-metric .metric-label {
+        color: rgba(255,255,255,.88);
+    }
+
+    .candidates-index-page .candidate-metric .metric-value {
+        color: #ffffff;
+        font-weight: 900;
+        letter-spacing: .2px;
+    }
+
+    .candidates-index-page .candidate-metric__bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,.2);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .candidates-index-page .candidate-metric__bar span {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #22d3ee, #6366f1);
+        transition: width .28s ease;
     }
 
     .candidates-index-page .candidate-card-actions {
         display: flex;
         gap: .45rem;
         flex-wrap: wrap;
-        margin-top: .2rem;
+        margin-top: .1rem;
     }
 
     .candidates-index-page .candidate-card-actions .btn {

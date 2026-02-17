@@ -28,7 +28,12 @@ class CandidateController extends Controller
     public function index(CandidateDataTable $dataTable)
     {
         $elections = Election::all();
-        $candidates = Candidate::with(['user', 'election'])->latest()->get();
+        $candidates = Candidate::with([
+            'election',
+            'user' => function ($query) {
+                $query->withCount(['contractors', 'representatives']);
+            },
+        ])->latest()->get();
         return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates'));
     }
     public function result()
