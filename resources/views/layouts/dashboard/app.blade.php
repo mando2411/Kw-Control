@@ -2204,6 +2204,9 @@
                     <div class="mb-2"><strong>الهاتف:</strong> <span id="joinReviewRequesterPhone">—</span></div>
                     <div class="mb-2"><strong>وقت الطلب:</strong> <span id="joinReviewCreatedAt">—</span></div>
                     <div class="mb-3"><strong>الحالة:</strong> <span id="joinReviewStatus">pending</span></div>
+                    <div class="alert alert-info py-2 px-3 small">
+                        يمكنك تعديل قرار القبول أو الرفض في أي وقت بالضغط على نفس الإشعار مرة أخرى.
+                    </div>
                     <label for="joinReviewDecisionNote" class="form-label">ملاحظة (اختياري)</label>
                     <textarea class="form-control" id="joinReviewDecisionNote" rows="3"></textarea>
                 </div>
@@ -2228,6 +2231,14 @@
             var joinReviewCreatedAt = document.getElementById('joinReviewCreatedAt');
             var joinReviewStatus = document.getElementById('joinReviewStatus');
             var joinReviewDecisionNote = document.getElementById('joinReviewDecisionNote');
+
+            var joinNotifBadgeCss = document.createElement('style');
+            joinNotifBadgeCss.innerHTML = '' +
+                '.dtm-notif-status-badge{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:999px;font-size:.68rem;font-weight:800;margin-inline-start:.4rem}' +
+                '.dtm-notif-status-pending{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}' +
+                '.dtm-notif-status-approved{background:#dcfce7;color:#166534;border:1px solid #86efac}' +
+                '.dtm-notif-status-rejected{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}';
+            document.head.appendChild(joinNotifBadgeCss);
 
             function initNotifier(config) {
                 var notifPanel = document.getElementById(config.panelId);
@@ -2354,10 +2365,20 @@
                     var unreadClass = item.read_at ? '' : ' unread';
                     var joinRequestId = Number(item.join_request_id || 0);
                     var lockReadAttr = item.lock_read_until_decision ? '1' : '0';
+                    var decision = String(item.decision || 'pending');
+                    var badgeClass = decision === 'approved'
+                        ? 'dtm-notif-status-approved'
+                        : (decision === 'rejected' ? 'dtm-notif-status-rejected' : 'dtm-notif-status-pending');
+                    var badgeLabel = decision === 'approved'
+                        ? 'تم القبول'
+                        : (decision === 'rejected' ? 'تم الرفض' : 'قيد المراجعة');
+                    var statusBadgeHtml = isJoinRequest
+                        ? '<span class="dtm-notif-status-badge ' + badgeClass + '">' + badgeLabel + '</span>'
+                        : '';
 
                     return '' +
                         '<a href="' + itemUrl + '" class="dtm-notif-item' + unreadClass + '" data-notif-id="' + item.id + '" data-kind="' + esc(item.kind || '') + '" data-join-request-id="' + joinRequestId + '" data-lock-read="' + lockReadAttr + '" data-decision="' + esc(item.decision || '') + '">' +
-                            '<div class="dtm-notif-title">' + esc(item.title || 'إشعار جديد') + '</div>' +
+                            '<div class="dtm-notif-title">' + esc(item.title || 'إشعار جديد') + statusBadgeHtml + '</div>' +
                             '<div class="dtm-notif-body">' + esc(item.body || '') + '</div>' +
                             '<div class="dtm-notif-meta">' +
                                 '<div class="dtm-notif-time">' + esc(item.created_at || '') + '</div>' +
@@ -2586,13 +2607,13 @@
 
                     if (String(data.status || '') === 'approved') {
                         joinReviewAlert.className = 'alert alert-success';
-                        joinReviewAlert.textContent = 'الحالة الحالية: تم القبول. يمكنك تعديل القرار في أي وقت.';
+                        joinReviewAlert.textContent = 'الحالة الحالية: تم القبول. يمكنك تعديل قرار القبول أو الرفض في أي وقت.';
                     } else if (String(data.status || '') === 'rejected') {
                         joinReviewAlert.className = 'alert alert-danger';
-                        joinReviewAlert.textContent = 'الحالة الحالية: تم الرفض. يمكنك تعديل القرار في أي وقت.';
+                        joinReviewAlert.textContent = 'الحالة الحالية: تم الرفض. يمكنك تعديل قرار القبول أو الرفض في أي وقت.';
                     } else {
                         joinReviewAlert.className = 'alert alert-warning';
-                        joinReviewAlert.textContent = 'الطلب ما زال قيد المراجعة. اختر قبول أو رفض.';
+                        joinReviewAlert.textContent = 'الطلب ما زال قيد المراجعة. اختر قبول أو رفض، ويمكنك تعديل القرار لاحقًا أيضًا.';
                     }
 
                     if (joinReviewModal) {
