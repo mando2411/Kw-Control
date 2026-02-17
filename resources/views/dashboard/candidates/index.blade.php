@@ -36,13 +36,9 @@
 
             <div class="candidate-toolbar__right">
                 <div class="candidate-view-switch" role="tablist" aria-label="تبديل طريقة العرض">
-                    <button type="button" class="btn btn-primary active" data-view-target="professional" id="showProfessionalView" role="tab" aria-selected="true">
-                        <i class="fa fa-th-large me-1"></i>
-                        العرض الاحترافي
-                    </button>
-                    <button type="button" class="btn btn-outline-primary" data-view-target="table" id="showTableView" role="tab" aria-selected="false">
+                    <button type="button" class="btn btn-primary" id="viewModeToggleBtn" role="button" aria-live="polite">
                         <i class="fa fa-table me-1"></i>
-                        عرض الجدول
+                        التبديل إلى عرض الجدول
                     </button>
                 </div>
 
@@ -579,7 +575,7 @@
     $(document).ready(function() {
         const professionalView = $('#professionalCandidatesView');
         const tableView = $('#tableCandidatesView');
-        const switchButtons = $('.candidate-view-switch button');
+        const viewToggleBtn = $('#viewModeToggleBtn');
         const searchInput = $('#candidate-search-input');
 
         function getDataTableInstance() {
@@ -625,13 +621,19 @@
             professionalView.toggleClass('d-none', !showProfessional);
             tableView.toggleClass('d-none', showProfessional);
 
-            switchButtons.removeClass('active btn-primary').addClass('btn-outline-primary');
-            switchButtons.filter('[data-view-target="' + target + '"]')
-                .addClass('active btn-primary')
-                .removeClass('btn-outline-primary')
-                .attr('aria-selected', 'true');
-
-            switchButtons.not('[data-view-target="' + target + '"]').attr('aria-selected', 'false');
+            if (showProfessional) {
+                viewToggleBtn
+                    .removeClass('btn-outline-primary')
+                    .addClass('btn-primary')
+                    .html('<i class="fa fa-table me-1"></i>التبديل إلى عرض الجدول')
+                    .attr('data-current-view', 'professional');
+            } else {
+                viewToggleBtn
+                    .removeClass('btn-primary')
+                    .addClass('btn-outline-primary')
+                    .html('<i class="fa fa-th-large me-1"></i>التبديل إلى العرض الاحترافي')
+                    .attr('data-current-view', 'table');
+            }
 
             if (!showProfessional) {
                 setTimeout(function () {
@@ -649,8 +651,9 @@
 
         activateView('professional');
 
-        switchButtons.on('click', function() {
-            activateView($(this).data('view-target'));
+        viewToggleBtn.on('click', function() {
+            const currentView = viewToggleBtn.attr('data-current-view') || 'professional';
+            activateView(currentView === 'professional' ? 'table' : 'professional');
         });
 
         searchInput.on('input', function() {
