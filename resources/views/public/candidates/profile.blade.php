@@ -153,20 +153,18 @@
         border-radius: 0 0 10px 10px;
         background: #fff;
         padding: .8rem 1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: flex-end;
-        gap: .8rem;
+        display: block;
     }
 
     .profile-head__main {
         display: flex;
         flex-direction: row-reverse;
         align-items: flex-end;
-        justify-content: flex-start;
+        justify-content: flex-end;
         gap: .8rem;
         text-align: right;
+        width: max-content;
+        margin-left: auto;
     }
 
     .profile-avatar {
@@ -198,6 +196,9 @@
         display: flex;
         justify-content: flex-end;
         gap: .45rem;
+        width: max-content;
+        margin-left: auto;
+        margin-top: .65rem;
     }
     .profile-actions .btn { border-radius: 6px; font-weight: 700; font-size: .86rem; min-height: 36px; }
 
