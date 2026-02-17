@@ -38,7 +38,7 @@
                 <div class="candidate-view-switch" role="tablist" aria-label="تبديل طريقة العرض">
                     <button type="button" class="btn btn-primary" id="viewModeToggleBtn" role="button" aria-live="polite">
                         <i class="fa fa-table me-1"></i>
-                        التبديل إلى عرض الجدول
+                        الجدول
                     </button>
                 </div>
 
@@ -625,13 +625,13 @@
                 viewToggleBtn
                     .removeClass('btn-outline-primary')
                     .addClass('btn-primary')
-                    .html('<i class="fa fa-table me-1"></i>التبديل إلى عرض الجدول')
+                    .html('<i class="fa fa-table me-1"></i>الجدول')
                     .attr('data-current-view', 'professional');
             } else {
                 viewToggleBtn
                     .removeClass('btn-primary')
                     .addClass('btn-outline-primary')
-                    .html('<i class="fa fa-th-large me-1"></i>التبديل إلى العرض الاحترافي')
+                    .html('<i class="fa fa-th-large me-1"></i>العرض الحديث')
                     .attr('data-current-view', 'table');
             }
 
