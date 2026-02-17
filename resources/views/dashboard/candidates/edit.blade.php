@@ -27,20 +27,40 @@
 
             <section class="candidate-profile-hero mb-4">
                 <div class="candidate-cover"
+                     data-default-cover="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80"
                      style="background-image:url('{{ $candidate->banner ?: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=80' }}')">
                     <div class="candidate-cover__overlay"></div>
                     <div class="candidate-cover__actions">
-                        <div class="hover-action-wrap">
+                        <button type="button" class="candidate-media-trigger js-media-trigger" data-menu="coverMenu">
+                            <i class="fa fa-camera me-1"></i>
+                            تعديل الغلاف
+                        </button>
+                        <div class="candidate-media-menu d-none" id="coverMenu">
+                            <button type="button" class="candidate-media-menu__item js-media-change" data-field="banner">تغيير صورة البانر</button>
+                            <button type="button" class="candidate-media-menu__item danger js-media-delete" data-field="banner">حذف صورة البانر</button>
+                        </div>
+
+                        <div class="media-hidden-control d-none">
                             <x-dashboard.form.media title="تغيير صورة الكوفر" :images="$candidate->banner" name="banner" />
                         </div>
                     </div>
 
                     <div class="candidate-avatar-center-wrap">
                         <div class="candidate-avatar"
+                             data-default-avatar="https://ui-avatars.com/api/?name={{ urlencode($candidate->user->name ?? 'Candidate') }}&background=0ea5e9&color=fff&size=512"
                              style="background-image:url('{{ $candidate->user->image ?: 'https://ui-avatars.com/api/?name='.urlencode($candidate->user->name ?? 'Candidate').'&background=0ea5e9&color=fff&size=256' }}')">
                         </div>
                         <div class="candidate-avatar-edit">
-                            <div class="hover-action-wrap">
+                            <button type="button" class="candidate-media-trigger js-media-trigger" data-menu="avatarMenu">
+                                <i class="fa fa-camera me-1"></i>
+                                تعديل الصورة
+                            </button>
+                            <div class="candidate-media-menu d-none" id="avatarMenu">
+                                <button type="button" class="candidate-media-menu__item js-media-change" data-field="image">تغيير الصورة الشخصية</button>
+                                <button type="button" class="candidate-media-menu__item danger js-media-delete" data-field="image">حذف الصورة الشخصية</button>
+                            </div>
+
+                            <div class="media-hidden-control d-none">
                                 <x-dashboard.form.media title="تغيير الصورة الشخصية" :images="$candidate->user->image" name="image" />
                             </div>
                         </div>
@@ -48,18 +68,7 @@
                 </div>
 
                 <div class="candidate-profile-center">
-                    <div class="candidate-name-inline">
-                        <div class="editable-display js-display" data-target="nameInput">{{ old('name', $candidate->user->name) }}</div>
-                        <input
-                            type="text"
-                            class="form-control js-input {{ $errors->has('name') ? '' : 'd-none' }}"
-                            id="nameInput"
-                            name="name"
-                            value="{{ old('name', $candidate->user->name) }}"
-                            required
-                        >
-                    </div>
-                    @error('name')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                    <h2 class="candidate-profile-name-text mb-1">{{ old('name', $candidate->user->name) }}</h2>
 
                     <div class="candidate-profile-meta__chips justify-content-center mt-2">
                         <span class="chip">مرشح</span>
@@ -224,10 +233,7 @@
 
 @push('css')
 <style>
-    .candidate-profile-page .open-media {
-        border-radius: 10px;
-        font-weight: 700;
-    }
+    .candidate-profile-page .open-media { border-radius: 10px; font-weight: 700; }
 
     .candidate-edit-modern {
         animation: candidateProfileFade .45s ease;
@@ -235,7 +241,7 @@
 
     .candidate-profile-hero {
         border-radius: 16px;
-        overflow: hidden;
+        overflow: visible;
         border: 1px solid rgba(148, 163, 184, .22);
         box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
         background: #fff;
@@ -259,22 +265,67 @@
         left: 16px;
         top: 16px;
         z-index: 2;
-        min-width: 180px;
-        opacity: 0;
-        transform: translateY(-6px);
-        transition: all .22s ease;
+        min-width: 190px;
     }
 
-    .candidate-profile-hero:hover .candidate-cover__actions,
-    .candidate-profile-hero:hover .candidate-avatar-edit {
-        opacity: 1;
-        transform: translateY(0);
+    .candidate-media-trigger {
+        border: 0;
+        background: rgba(15, 23, 42, .66);
+        color: #fff;
+        border-radius: 999px;
+        font-size: .85rem;
+        font-weight: 800;
+        min-height: 38px;
+        padding: .45rem .9rem;
+        backdrop-filter: blur(2px);
+        transition: all .2s ease;
+    }
+
+    .candidate-media-trigger:hover {
+        background: rgba(15, 23, 42, .8);
+        transform: translateY(-1px);
+    }
+
+    .candidate-media-menu {
+        margin-top: .5rem;
+        background: #fff;
+        border: 1px solid rgba(148, 163, 184, .28);
+        border-radius: 12px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .14);
+        padding: .35rem;
+        min-width: 200px;
+    }
+
+    .candidate-media-menu__item {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 8px;
+        min-height: 36px;
+        text-align: right;
+        font-size: .86rem;
+        font-weight: 700;
+        color: #0f172a;
+        padding: .45rem .6rem;
+        transition: all .18s ease;
+    }
+
+    .candidate-media-menu__item:hover {
+        background: #eef2ff;
+    }
+
+    .candidate-media-menu__item.danger {
+        color: #b91c1c;
+    }
+
+    .candidate-media-menu__item.danger:hover {
+        background: #fee2e2;
     }
 
     .candidate-avatar-center-wrap {
         position: absolute;
         left: 50%;
-        bottom: -72px;
+        bottom: -104px;
         transform: translateX(-50%);
         z-index: 3;
         text-align: center;
@@ -282,34 +333,30 @@
 
     .candidate-profile-center {
         text-align: center;
-        padding: 92px 1.2rem 1.15rem;
-    }
-
-    .candidate-name-inline {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 260px;
-        max-width: min(92vw, 560px);
+        padding: 128px 1.2rem 1.15rem;
     }
 
     .candidate-avatar {
-        width: 144px;
-        height: 144px;
+        width: 208px;
+        height: 208px;
         border-radius: 50%;
-        border: 4px solid #fff;
+        border: 6px solid #fff;
         background-size: cover;
         background-position: center;
-        box-shadow: 0 8px 20px rgba(15, 23, 42, .16);
+        box-shadow: 0 18px 32px rgba(15, 23, 42, .28), inset 0 0 0 1px rgba(255, 255, 255, .5);
         background-color: #e2e8f0;
     }
 
     .candidate-avatar-edit {
         margin-top: .45rem;
-        min-width: 170px;
-        opacity: 0;
-        transform: translateY(6px);
-        transition: all .22s ease;
+        min-width: 190px;
+    }
+
+    .candidate-profile-name-text {
+        font-size: clamp(1.35rem, 2.6vw, 2rem);
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1.2;
     }
 
     .editable-display {
@@ -331,23 +378,6 @@
     .editable-display:hover {
         border-color: rgba(99, 102, 241, .65);
         background: #eef2ff;
-    }
-
-    .candidate-name-inline .editable-display {
-        min-height: 54px;
-        width: 100%;
-        font-size: 1.35rem;
-        font-weight: 900;
-        border-radius: 14px;
-    }
-
-    .candidate-name-inline .js-input {
-        width: 100%;
-        min-height: 54px;
-        text-align: center;
-        font-size: 1.2rem;
-        font-weight: 800;
-        border-radius: 14px;
     }
 
     .candidate-profile-meta__chips {
@@ -443,17 +473,17 @@
         }
 
         .candidate-avatar-center-wrap {
-            bottom: -56px;
+            bottom: -84px;
         }
 
         .candidate-avatar {
-            width: 112px;
-            height: 112px;
+            width: 168px;
+            height: 168px;
         }
 
         .candidate-cover__actions,
         .candidate-avatar-edit {
-            min-width: 150px;
+            min-width: 164px;
         }
 
         .candidate-cover__actions {
@@ -462,11 +492,7 @@
         }
 
         .candidate-profile-center {
-            padding-top: 74px;
-        }
-
-        .candidate-name-inline {
-            min-width: min(92vw, 460px);
+            padding-top: 106px;
         }
     }
 
@@ -487,7 +513,79 @@
 <script>
     (function () {
         const items = document.querySelectorAll('.profile-inline-item');
-        const profileNameDisplay = document.querySelector('.candidate-name-inline .js-display-text');
+        const profileNameDisplay = document.querySelector('.candidate-profile-name-text');
+
+        const closeAllMediaMenus = () => {
+            document.querySelectorAll('.candidate-media-menu').forEach((menu) => menu.classList.add('d-none'));
+        };
+
+        const removeMediaValue = (field) => {
+            const gallery = document.getElementById(field);
+            if (!gallery) return;
+
+            gallery.querySelectorAll('input[name="' + field + '"]').forEach((node) => node.remove());
+            gallery.querySelectorAll('.image-box').forEach((node) => node.remove());
+        };
+
+        const syncPreviewToDefault = (field) => {
+            if (field === 'banner') {
+                const cover = document.querySelector('.candidate-cover');
+                if (!cover) return;
+                const fallback = cover.dataset.defaultCover;
+                if (fallback) cover.style.backgroundImage = 'url("' + fallback + '")';
+            }
+
+            if (field === 'image') {
+                const avatar = document.querySelector('.candidate-avatar');
+                if (!avatar) return;
+                const fallback = avatar.dataset.defaultAvatar;
+                if (fallback) avatar.style.backgroundImage = 'url("' + fallback + '")';
+            }
+        };
+
+        document.querySelectorAll('.js-media-trigger').forEach((trigger) => {
+            trigger.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const menuId = trigger.dataset.menu;
+                const menu = menuId ? document.getElementById(menuId) : null;
+                if (!menu) return;
+
+                const alreadyOpen = !menu.classList.contains('d-none');
+                closeAllMediaMenus();
+                if (!alreadyOpen) menu.classList.remove('d-none');
+            });
+        });
+
+        document.querySelectorAll('.js-media-change').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const field = button.dataset.field;
+                if (!field) return;
+
+                const uploader = document.querySelector('.media-hidden-control .open-media[data-name="' + field + '"]');
+                if (uploader) uploader.click();
+                closeAllMediaMenus();
+            });
+        });
+
+        document.querySelectorAll('.js-media-delete').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const field = button.dataset.field;
+                if (!field) return;
+
+                removeMediaValue(field);
+                syncPreviewToDefault(field);
+                closeAllMediaMenus();
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('.candidate-media-menu') || event.target.closest('.js-media-trigger')) return;
+            closeAllMediaMenus();
+        });
 
         const getFieldText = (input) => {
             if (input.tagName === 'SELECT') {
