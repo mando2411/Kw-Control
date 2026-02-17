@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $candidate->user?->name ?? 'المرشح' }}</title>
-    <link rel="stylesheet" href="{{ asset('assets/dashboard/css/vendors/bootstrap.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/dashboard/css/vendors/font-awesome.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/site/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/site/css/font-awesome.min.css') }}">
 </head>
 <body>
 <div class="candidate-public-page" dir="rtl">
