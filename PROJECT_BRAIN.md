@@ -203,6 +203,107 @@ Routes excluded from permission check (still require dashboard auth):
 - Settings:
   - `dashboard.settings.update` → `settings.edit`
 
+### Candidate (المرشح) deep-dive — based on actual code
+
+#### 1) من الذي يضيف المرشح؟
+
+- الطريقة الرسمية (CRUD):
+  - عبر `dashboard.candidates.create` ثم `dashboard.candidates.store` داخل مجموعة `dashboard` المحمية بـ `auth:web` + `permitted`.
+  - هذا المسار يحتاج صلاحية `candidates.create` (عبر تحويل route name بواسطة `PermittedMiddleware`).
+
+- الطريقة السريعة (Fake Candidate):
+  - زر `Add Fake Candidate` في شاشة المرشحين يرسل Ajax إلى `POST /dashboard/store/fake/candidates` (route: `dashboard.store-fake-candidates`).
+  - هذه route موجودة ضمن dashboard group لكنها مستثناة صراحةً من فحص الصلاحيات داخل `PermittedMiddleware`.
+  - النتيجة: الفحص هنا يعتمد أساسًا على `auth` (مع بقاء CSRF)، وليس على permission محدد مثل `candidates.create`.
+
+#### 2) الحقول المطلوبة لإضافة المرشح (فعليًا في الكود)
+
+##### أ) الإضافة الرسمية `CandidateController@store`
+
+- التحقق يتم عبر `CandidateRequest` + `UserRequest`:
+  - من `UserRequest`:
+    - `name` مطلوب.
+    - `phone` مطلوب (إلا إذا `fake=1`، وهذا غير مستخدم في هذا المسار).
+    - `email` اختياري (ولو فارغ عند الإنشاء يتم توليد بريد تلقائي).
+    - `roles` اختيارية.
+  - من `CandidateRequest`:
+    - `max_contractor` مطلوب، رقم صحيح >= 0.
+    - `max_represent` مطلوب، رقم صحيح >= 0.
+    - `election_id` غير إلزامي في الـvalidation (nullable).
+    - `banner` اختياري.
+
+- الحقول التي يعتمد عليها نموذج الإنشاء في الواجهة:
+  - بيانات شخصية: الاسم/البريد/كلمة المرور/الصورة/الهاتف/الأدوار.
+  - بيانات المرشح: `election_id` + `max_contractor` + `max_represent` + `banner`.
+
+##### ب) الإضافة السريعة `CandidateController@storeFakeCandidate`
+
+- من الواجهة (Modal) يتم فرض إدخال:
+  - `name`
+  - `election_id`
+  - `image`
+  - `fake=1`
+
+- في الباك إند:
+  - لا يوجد Validator مخصص داخل الدالة نفسها لـ`image`/`election_id`.
+  - الدالة تعتمد مباشرة على وجود `image` (باستدعاء `uploadImage`)؛ غياب الصورة يؤدي إلى Exception ثم رسالة خطأ.
+  - يتم إنشاء Candidate بقيم افتراضية:
+    - `max_contractor = 0`
+    - `max_represent = 0`
+
+#### 3) طرق الإضافة: هل هناك تكرار؟
+
+- نعم، توجد طريقتان واضحتان لإضافة المرشح:
+  1) رسمية كاملة (Form + validation أوسع + redirect إلى edit).
+  2) سريعة/وهمية (Modal + Ajax + defaults + assignRole ثابت).
+
+- ملاحظة تقنية مهمة في الطريقة السريعة:
+  - الدور يُسند باستخدام رقم ثابت `3` على أنه دور `مرشح`.
+  - هذا يعتمد على ثبات IDs في قاعدة البيانات، وهو أضعف من الإسناد بالاسم.
+
+#### 4) ماذا يستطيع المرشح أن يفعل؟ (وفق الصلاحيات المزروعة)
+
+- دور `مرشح` يمتلك صلاحيات واسعة في seeders، منها:
+  - إدارة: الانتخابات، اللجان، المتعهدين، المناديب، الناخبين.
+  - عمليات: الفرز/التصويت (`sorting`, `candidates.changeVotes`, `candidates.setVotes`, `attending`, `rep-home`).
+  - تقارير وإعدادات: `reports.*` + `settings.*`.
+  - عمليات الكشوف: `statement*`, `statistics*`.
+
+- عمليًا داخل واجهة النظام:
+  - يمكنه إدارة المرشحين ضمن resource routes (`dashboard.candidates.*`).
+  - يمكنه التعامل مع نتائج وفرز الأصوات عبر `results` و`sorting` وتحديثات التصويت.
+
+#### 5) علاقة المرشح بوجود حملة انتخابية داخل المشروع
+
+لا يوجد كيان باسم `Campaign` صريح في قاعدة البيانات، لكن منطق الحملة متحقق عبر علاقات المرشح التالية:
+
+- المرشح مرتبط بانتخاب (`candidates.election_id`) ومرتبط بالمستخدم (`user_id`).
+- كل مرشح يرتبط باللجان عبر pivot `candidate_committee` مع أصوات لكل لجنة.
+- إجمالي أصوات المرشح مشتق من مجموع أصواته في اللجان (داخل `VoteService`).
+
+- علاقة المرشح بالمتعهدين (الهيكل الميداني للحملة):
+  - في استيراد الناخبين للمتعهدين، المستخدم يختار `candidate` أولاً.
+  - بعدها النظام يجلب المتعهدين الرئيسيين حيث `creator_id = candidate_user_id`.
+  - هذا يجعل المرشح هو المالك التشغيلي لشجرة المتعهدين، وهي نواة الحملة في التطبيق.
+
+- علاقة المرشح بعرض النتائج العامة:
+  - إعدادات `result_control` تعتمد على اختيار مرشح (by `candidate.user_id`) لتفعيل سياق عرض النتائج العامة.
+  - يوجد تنبيه في واجهة الإعدادات بضرورة إضافة المرشح المطلوب (مثل "مرشح الفرز العام") قبل التفعيل.
+
+#### 6) ملاحظات تكرار/تداخل مرتبطة بالمرشح (مؤكدة من الكود)
+
+- تكرار في مسارات تحديث التصويت:
+  - `dashboard.candidates/{id}/votes/set` → `setVotes`
+  - `POST /candidates/setVotes` (خارج prefix dashboard) → `changeVotes`
+  - كلاهما يؤديان لتحديث أصوات المرشح بواجهتين مختلفتين.
+
+- تداخل في ربط المرشح باللجان عند الإنشاء:
+  - `Candidate` model عند `created` يقوم بربط المرشح بكل اللجان تلقائيًا.
+  - `store` الرسمي بعدها يعمل `sync` مع لجان انتخاب المرشح فقط.
+  - `storeFakeCandidate` لا يعمل هذا `sync`، فيبقى الربط الافتراضي العام من model event.
+
+- `max_contractor` و`max_represent` مطلوبة في الإدخال الرسمي، لكنها لا تظهر كقيود إنفاذ واضحة في المسارات التي تم فحصها (تُستخدم كبيانات أكثر من كونها limit مُطبق).
+
 ### Mermaid map (Role → Permission → Route → Module)
 
 ```mermaid
