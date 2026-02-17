@@ -2790,27 +2790,6 @@
                 if (header) header.classList.toggle('open');
             }
 
-            function triggerLegacyToggleOrFallback() {
-                var sidebar = document.querySelector('.page-sidebar');
-                var before = sidebar ? sidebar.classList.contains('open') : null;
-
-                var classicIcon = document.getElementById('sidebar-toggle');
-                if (classicIcon) {
-                    if (window.jQuery) {
-                        window.jQuery(classicIcon).triggerHandler('click');
-                    } else {
-                        classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-                    }
-
-                    var after = sidebar ? sidebar.classList.contains('open') : null;
-                    if (before !== null && after !== null && before !== after) {
-                        return;
-                    }
-                }
-
-                performManualToggle();
-            }
-
             function bind() {
                 var modernBtn = document.getElementById('sidebar-toggle-modern');
                 if (!modernBtn) return;
@@ -2820,7 +2799,7 @@
                 modernBtn.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    triggerLegacyToggleOrFallback();
+                    performManualToggle();
                 });
             }
 
@@ -2833,7 +2812,7 @@
                 classicBtn.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    triggerLegacyToggleOrFallback();
+                    performManualToggle();
                 });
             }
 
@@ -2846,8 +2825,23 @@
                 mobileBtn.addEventListener('click', function (event) {
                     event.preventDefault();
                     event.stopPropagation();
-                    triggerLegacyToggleOrFallback();
+                    performManualToggle();
                 });
+            }
+
+            function bindClassicIconGuard() {
+                document.addEventListener('click', function (event) {
+                    var icon = event.target && event.target.closest ? event.target.closest('#sidebar-toggle') : null;
+                    if (!icon) return;
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof event.stopImmediatePropagation === 'function') {
+                        event.stopImmediatePropagation();
+                    }
+
+                    performManualToggle();
+                }, true);
             }
 
             if (document.readyState === 'loading') {
@@ -2855,11 +2849,13 @@
                     bind();
                     bindMobile();
                     bindClassicButton();
+                    bindClassicIconGuard();
                 }, { once: true });
             } else {
                 bind();
                 bindMobile();
                 bindClassicButton();
+                bindClassicIconGuard();
             }
         })();
     </script>
