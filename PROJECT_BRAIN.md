@@ -302,7 +302,7 @@ Routes excluded from permission check (still require dashboard auth):
   - `store` الرسمي بعدها يعمل `sync` مع لجان انتخاب المرشح فقط.
   - `storeFakeCandidate` لا يعمل هذا `sync`، فيبقى الربط الافتراضي العام من model event.
 
-- `max_contractor` و`max_represent` مطلوبة في الإدخال الرسمي، لكنها لا تظهر كقيود إنفاذ واضحة في المسارات التي تم فحصها (تُستخدم كبيانات أكثر من كونها limit مُطبق).
+- `max_contractor` و`max_represent` مطلوبة في الإدخال الرسمي، لكنها لا تظهر كقيود إنفاذ واضحة في المسارات التي تم فحصها (تُستخدم كبيانات أكثر من كونها limit مُطبق)..
 
 ### Mermaid map (Role → Permission → Route → Module)
 
