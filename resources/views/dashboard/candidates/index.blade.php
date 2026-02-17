@@ -30,7 +30,7 @@
             <div class="candidate-toolbar__left">
                 <div class="candidate-search-wrap">
                     <i class="fa fa-search"></i>
-                    <input id="datatable-search" aria-label="Search" class="form-control" type="search" placeholder="بحث باسم المرشح...">
+                    <input id="candidate-search-input" aria-label="Search" class="form-control" type="search" placeholder="بحث باسم المرشح...">
                 </div>
             </div>
 
@@ -580,6 +580,45 @@
         const professionalView = $('#professionalCandidatesView');
         const tableView = $('#tableCandidatesView');
         const switchButtons = $('.candidate-view-switch button');
+        const searchInput = $('#candidate-search-input');
+
+        function getDataTableInstance() {
+            if (!$.fn.DataTable || !$.fn.DataTable.isDataTable('#data-table')) {
+                return null;
+            }
+            return $('#data-table').DataTable();
+        }
+
+        function filterProfessionalCards(keyword) {
+            const normalized = (keyword || '').toString().trim().toLowerCase();
+            const cards = $('.candidate-cards-grid .candidate-card-item');
+
+            if (!normalized) {
+                cards.removeClass('d-none');
+                return;
+            }
+
+            cards.each(function() {
+                const card = $(this);
+                const nameText = card.find('.candidate-card-name-badge span').text().toLowerCase();
+                const electionText = card.find('.candidate-card-campaign-badge span').text().toLowerCase();
+                const visible = nameText.includes(normalized) || electionText.includes(normalized);
+                card.toggleClass('d-none', !visible);
+            });
+        }
+
+        function applySearch(keyword) {
+            const showProfessional = !professionalView.hasClass('d-none');
+            if (showProfessional) {
+                filterProfessionalCards(keyword);
+                return;
+            }
+
+            const tableInstance = getDataTableInstance();
+            if (tableInstance) {
+                tableInstance.search(keyword || '').draw();
+            }
+        }
 
         function activateView(target) {
             const showProfessional = target === 'professional';
@@ -596,17 +635,26 @@
 
             if (!showProfessional) {
                 setTimeout(function () {
-                    if ($.fn.DataTable && $('#data-table').length) {
-                        $('#data-table').DataTable().columns.adjust().draw(false);
+                    const tableInstance = getDataTableInstance();
+                    if (tableInstance) {
+                        tableInstance.columns.adjust().draw(false);
                     }
+                    applySearch(searchInput.val());
                 }, 120);
+                return;
             }
+
+            applySearch(searchInput.val());
         }
 
         activateView('professional');
 
         switchButtons.on('click', function() {
             activateView($(this).data('view-target'));
+        });
+
+        searchInput.on('input', function() {
+            applySearch($(this).val());
         });
 
         $('#addFakeCandidate').on('click', function(event) {
