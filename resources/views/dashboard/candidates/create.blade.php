@@ -104,6 +104,51 @@
                                 @error('max_represent')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
                             </div>
 
+                            <div class="mb-3">
+                                <label for="candidate_type" class="form-label fw-bold">نوع المرشح <span class="text-danger">*</span></label>
+                                <select class="form-control" id="candidate_type" name="candidate_type" required>
+                                    <option value="candidate" @selected(old('candidate_type', 'candidate') === 'candidate')>مرشح</option>
+                                    <option value="list_leader" @selected(old('candidate_type') === 'list_leader')>مرشح رئيس قائمة</option>
+                                </select>
+                                <small class="text-muted d-block mt-1">حدد إذا كان المرشح فردي عادي أم رئيس قائمة.</small>
+                                @error('candidate_type')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                            </div>
+
+                            <div class="candidate-list-extra" id="candidate_list_extra_fields" @if(old('candidate_type', 'candidate') !== 'list_leader') style="display: none;" @endif>
+                                <div class="candidate-list-extra__inner">
+                                    <div class="mb-3">
+                                        <label for="list_candidates_count" class="form-label fw-bold">عدد مرشحي القائمة</label>
+                                        <input type="number" min="1" class="form-control" id="list_candidates_count" name="list_candidates_count" value="{{ old('list_candidates_count') }}">
+                                        <small class="text-muted d-block mt-1">عدد أعضاء القائمة الانتخابية المرتبطين بهذه القائمة.</small>
+                                        @error('list_candidates_count')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="list_name" class="form-label fw-bold">اسم القائمة</label>
+                                        <input type="text" class="form-control" id="list_name" name="list_name" value="{{ old('list_name') }}" placeholder="اكتب اسم القائمة">
+                                        <small class="text-muted d-block mt-1">الاسم الرسمي/الإعلامي للقائمة.</small>
+                                        @error('list_name')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">لوجو القائمة</label>
+                                        <x-dashboard.form.media title="إضافة لوجو القائمة" :images="old('list_logo')" name="list_logo" />
+                                        <small class="text-muted d-block mt-2">صورة شعار القائمة الانتخابية.</small>
+                                        @error('list_logo')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="is_actual_list_candidate" class="form-label fw-bold">حالة المرشح داخل القائمة</label>
+                                        <select class="form-control" id="is_actual_list_candidate" name="is_actual_list_candidate">
+                                            <option value="1" @selected((string) old('is_actual_list_candidate', '1') === '1')>مرشح فعلي داخل القائمة</option>
+                                            <option value="0" @selected((string) old('is_actual_list_candidate') === '0')>تنظيم وإدارة فقط</option>
+                                        </select>
+                                        <small class="text-muted d-block mt-1">حدد هل هذا الحساب يمثل مرشحًا فعليًا ضمن أعضاء القائمة أم حساب إدارة وتنظيم فقط.</small>
+                                        @error('is_actual_list_candidate')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mb-2">
                                 <label class="form-label fw-bold">بانر المرشح (اختياري)</label>
                                 <x-dashboard.form.media title="إضافة بانر المرشح" :images="old('banner')" name="banner" />
@@ -209,6 +254,19 @@
         transform: translateY(-1px);
     }
 
+    .candidate-list-extra {
+        margin-bottom: 1rem;
+        border: 1px dashed rgba(99, 102, 241, 0.35);
+        border-radius: 12px;
+        background: linear-gradient(180deg, rgba(99, 102, 241, 0.06), rgba(14, 165, 233, 0.04));
+        overflow: hidden;
+    }
+
+    .candidate-list-extra__inner {
+        padding: .85rem .85rem .25rem;
+        animation: candidateListFieldsIn .28s ease;
+    }
+
     @keyframes candidateFadeIn {
         from {
             opacity: 0;
@@ -219,5 +277,55 @@
             transform: translateY(0);
         }
     }
+
+    @keyframes candidateListFieldsIn {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
+@endpush
+
+@push('js')
+<script>
+    (function () {
+        const typeSelect = document.getElementById('candidate_type');
+        const listFieldsWrap = document.getElementById('candidate_list_extra_fields');
+
+        if (!typeSelect || !listFieldsWrap) {
+            return;
+        }
+
+        const controlledIds = [
+            'list_candidates_count',
+            'list_name',
+            'is_actual_list_candidate'
+        ];
+
+        function setListFieldsState() {
+            const isListLeader = typeSelect.value === 'list_leader';
+
+            listFieldsWrap.style.display = isListLeader ? '' : 'none';
+
+            controlledIds.forEach(function (id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                if (isListLeader) {
+                    el.removeAttribute('disabled');
+                } else {
+                    el.setAttribute('disabled', 'disabled');
+                }
+            });
+        }
+
+        typeSelect.addEventListener('change', setListFieldsState);
+        setListFieldsState();
+    })();
+</script>
 @endpush
