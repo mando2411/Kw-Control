@@ -43,7 +43,7 @@
                         <span>{{ $candidate->election?->name ?? 'حملة غير محددة' }}</span>
                     </div>
                     <div class="profile-actions">
-                        <button type="button" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>متابعة</button>
+                        <button type="button" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>طلب الانضمام كمتعهد</button>
                         <button type="button" class="btn btn-light"><i class="fa fa-envelope me-1"></i>مراسلة</button>
                     </div>
                 </div>
