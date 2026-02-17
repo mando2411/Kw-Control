@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UiModeController;
+use App\Http\Controllers\Dashboard\CandidateController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -22,6 +23,10 @@ require __DIR__.'/admin.php';
 require __DIR__.'/client.php';
 
 Route::view('/about-control', 'landing.control')->name('landing.control');
+
+Route::get('/candidates/{id}/profile', [CandidateController::class, 'publicProfile'])
+    ->whereNumber('id')
+    ->name('candidates.public-profile');
 
 Route::get('/download/contractor-app', function () {
     $apkPath = public_path('downloads/contractor-portal-latest.apk');

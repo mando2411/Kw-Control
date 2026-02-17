@@ -119,7 +119,7 @@
                                         </div>
 
                                         <div class="candidate-card-actions">
-                                            <a href="{{ route('dashboard.candidates.edit', $candidate->id) }}" class="btn btn-sm btn-outline-light">
+                                            <a href="{{ route('candidates.public-profile', $candidate->id) }}" class="btn btn-sm btn-outline-light" target="_blank" rel="noopener noreferrer">
                                                 <i class="fa fa-eye me-1"></i>عرض
                                             </a>
 

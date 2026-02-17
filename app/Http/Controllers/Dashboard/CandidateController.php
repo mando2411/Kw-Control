@@ -76,6 +76,20 @@ class CandidateController extends Controller
         //
     }
 
+    public function publicProfile($id)
+    {
+        $candidate = Candidate::withoutGlobalScopes()
+            ->with([
+                'election',
+                'user' => function ($query) {
+                    $query->withCount(['contractors', 'representatives']);
+                },
+            ])
+            ->findOrFail($id);
+
+        return view('public.candidates.profile', compact('candidate'));
+    }
+
 
     public function edit(Candidate $candidate)
     {
