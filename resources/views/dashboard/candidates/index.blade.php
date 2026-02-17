@@ -92,11 +92,6 @@
                                     <div class="candidate-card-overlay">
                                         <h5 class="candidate-card-name">{{ $candidate->user?->name ?? '—' }}</h5>
 
-                                        <div class="candidate-card-election">
-                                            <i class="fa fa-flag me-1"></i>
-                                            {{ $candidate->election?->name ?? 'انتخابات غير محددة' }}
-                                        </div>
-
                                         <div class="candidate-card-meta">
                                             <div class="candidate-metric">
                                                 <div class="candidate-metric__head">
@@ -443,19 +438,6 @@
         font-weight: 900;
         font-size: 1.05rem;
         text-shadow: 0 2px 6px rgba(0,0,0,.45);
-    }
-
-    .candidates-index-page .candidate-card-election {
-        display: inline-flex;
-        align-items: center;
-        width: fit-content;
-        font-size: .78rem;
-        font-weight: 700;
-        border-radius: 999px;
-        padding: .28rem .62rem;
-        background: rgba(255,255,255,.16);
-        border: 1px solid rgba(255,255,255,.24);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .candidates-index-page .candidate-card-meta {
