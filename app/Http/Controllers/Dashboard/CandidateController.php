@@ -53,12 +53,8 @@ class CandidateController extends Controller
 
     public function store(CandidateRequest $request, UserRequest $userRequest)
     {
-        $request->validate([
-            'election_id' => ['required', 'exists:elections,id'],
-        ]);
-
         $user = User::create($userRequest->getSanitized());
-        $user->assignRole('مرشح');
+        $user->assignRole($request->get('roles'));
         $request['user_id'] = $user->id;
         $candidate = Candidate::create($request->all());
         $committees = $candidate->election->committees->pluck('id')->toArray();
@@ -89,7 +85,7 @@ class CandidateController extends Controller
     {
         $user = $candidate->user;
         $user->update($userRequest->getSanitized());
-        $user->syncRoles(['مرشح']);
+        $user->syncRoles($userRequest->get('roles'));
         $candidate->update($request->getSanitized());
         session()->flash('message', 'Candidate Updated Successfully!');
         session()->flash('type', 'success');
