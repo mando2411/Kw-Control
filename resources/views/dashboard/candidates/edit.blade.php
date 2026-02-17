@@ -266,6 +266,9 @@
         top: 16px;
         z-index: 2;
         min-width: 190px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .candidate-media-trigger {
@@ -287,13 +290,16 @@
     }
 
     .candidate-media-menu {
-        margin-top: .5rem;
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
         background: #fff;
         border: 1px solid rgba(148, 163, 184, .28);
         border-radius: 12px;
         box-shadow: 0 10px 24px rgba(15, 23, 42, .14);
         padding: .35rem;
         min-width: 200px;
+        z-index: 12;
     }
 
     .candidate-media-menu__item {
@@ -348,8 +354,12 @@
     }
 
     .candidate-avatar-edit {
-        margin-top: .45rem;
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%);
         min-width: 190px;
+        z-index: 6;
     }
 
     .candidate-profile-name-text {
