@@ -42,11 +42,11 @@
                         <i class="fa fa-check-circle"></i>
                         <span>{{ $candidate->election?->name ?? 'حملة غير محددة' }}</span>
                     </div>
+                    <div class="profile-actions">
+                        <button type="button" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>متابعة</button>
+                        <button type="button" class="btn btn-light"><i class="fa fa-envelope me-1"></i>مراسلة</button>
+                    </div>
                 </div>
-            </div>
-            <div class="profile-actions">
-                <button type="button" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>متابعة</button>
-                <button type="button" class="btn btn-light"><i class="fa fa-envelope me-1"></i>مراسلة</button>
             </div>
         </div>
 
@@ -192,12 +192,16 @@
         font-weight: 700;
     }
 
+    .profile-identity {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .profile-actions {
         display: flex;
-        justify-content: flex-end;
+        justify-content: flex-start;
         gap: .45rem;
-        width: max-content;
-        margin-left: auto;
         margin-top: .65rem;
     }
     .profile-actions .btn { border-radius: 6px; font-weight: 700; font-size: .86rem; min-height: 36px; }
