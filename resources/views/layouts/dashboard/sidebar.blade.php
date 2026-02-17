@@ -208,7 +208,6 @@
 
 
             <x-dashboard.sidebar.single-link title="تسجيل خروج" link="{{ route('logout') }}" icon="log-in" />
-            @endif
 
         </ul>
     </div>
