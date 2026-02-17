@@ -2158,6 +2158,57 @@
 
     <script>
         (function () {
+            function toggleMenu(wrapperSelector, panelSelector, buttonSelector, event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                var panel = document.querySelector(panelSelector);
+                var button = document.querySelector(buttonSelector);
+                if (!panel || !button) {
+                    return;
+                }
+
+                var isOpen = panel.classList.contains('show');
+                panel.classList.toggle('show', !isOpen);
+                button.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+            }
+
+            window.toggleListLeaderCandidatesMenu = function (event) {
+                toggleMenu('#listleader-candidates-wrapper', '#listleader-candidates-panel', '#listleader-candidates-btn', event);
+            };
+
+            window.toggleListLeaderCandidatesMenuMobile = function (event) {
+                toggleMenu('#listleader-candidates-wrapper-mobile', '#listleader-candidates-panel-mobile', '#listleader-candidates-btn-mobile', event);
+            };
+
+            document.addEventListener('click', function (event) {
+                var desktopWrapper = event.target.closest('#listleader-candidates-wrapper');
+                var desktopPanel = document.querySelector('#listleader-candidates-panel');
+                if (!desktopWrapper && desktopPanel && desktopPanel.classList.contains('show')) {
+                    desktopPanel.classList.remove('show');
+                    var desktopBtn = document.querySelector('#listleader-candidates-btn');
+                    if (desktopBtn) {
+                        desktopBtn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+
+                var mobileWrapper = event.target.closest('#listleader-candidates-wrapper-mobile');
+                var mobilePanel = document.querySelector('#listleader-candidates-panel-mobile');
+                if (!mobileWrapper && mobilePanel && mobilePanel.classList.contains('show')) {
+                    mobilePanel.classList.remove('show');
+                    var mobileBtn = document.querySelector('#listleader-candidates-btn-mobile');
+                    if (mobileBtn) {
+                        mobileBtn.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+        })();
+    </script>
+
+    <script>
+        (function () {
             window.toggleDashboardUserMenuMobile = function (event) {
                 if (event) {
                     event.preventDefault();

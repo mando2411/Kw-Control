@@ -1,11 +1,11 @@
 <?php if(auth()->user()){ ?>
     @php
-        $canToggleSidebar = auth()->user()->hasRole('Administrator')
-            || auth()->user()->hasRole('مرشح رئيس قائمة')
+        $isListLeaderUser = auth()->user()->hasRole('مرشح رئيس قائمة')
             || \App\Models\Candidate::withoutGlobalScopes()
                 ->where('user_id', (int) auth()->id())
                 ->where('candidate_type', 'list_leader')
                 ->exists();
+        $canToggleSidebar = auth()->user()->hasRole('Administrator');
     @endphp
     <!-- Desktop header (kept as-is, modern gets a separate mobile header) -->
     <div class="nav dashboard-topbar dashboard-topbar-desktop d-flex justify-content-between align-items-center px-2 bg-dark fixed-top w-100 flex-wrap">
@@ -30,6 +30,20 @@
                         <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
                 </span>
+            @elseif($isListLeaderUser)
+                <div class="dropdown me-1" id="listleader-candidates-wrapper">
+                    <button type="button" id="listleader-candidates-btn" class="btn btn-outline-secondary" aria-label="المرشحين" title="المرشحين" onclick="toggleListLeaderCandidatesMenu(event)" aria-expanded="false">
+                        <i class="fa fa-users"></i>
+                    </button>
+                    <div id="listleader-candidates-panel" class="dropdown-menu" dir="rtl">
+                        @if(admin()->can('candidates.list'))
+                            <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
+                        @endif
+                        @if(admin()->can('candidates.create'))
+                            <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
+                        @endif
+                    </div>
+                </div>
             @endif
 
             <div class="dropdown me-1" id="notif-menu-wrapper">
@@ -116,6 +130,20 @@
                     <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية" onclick="if(window.__kwToggleSidebar){window.__kwToggleSidebar(event);}">
                         <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
+                @elseif($isListLeaderUser)
+                    <div class="dropdown" id="listleader-candidates-wrapper-mobile">
+                        <button type="button" id="listleader-candidates-btn-mobile" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" aria-label="المرشحين" onclick="toggleListLeaderCandidatesMenuMobile(event)" aria-expanded="false">
+                            <i class="fa fa-users"></i>
+                        </button>
+                        <div id="listleader-candidates-panel-mobile" class="dropdown-menu dtm-notif-panel" dir="rtl">
+                            @if(admin()->can('candidates.list'))
+                                <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
+                            @endif
+                            @if(admin()->can('candidates.create'))
+                                <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
+                            @endif
+                        </div>
+                    </div>
                 @endif
             </div>
 
