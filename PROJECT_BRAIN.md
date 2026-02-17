@@ -1,137 +1,444 @@
-Project Brain - Technical Documentation
+# PROJECT_BRAIN (Updated)
 
-Working Preference (Owner)
-- All requested UI/UX changes should be implemented on the modern style (ui_mode = modern) by default unless explicitly stated otherwise.
+Last updated: 2026-02-17
+Scope of this update: Full project re-scan (web + API + mobile + APK distribution), correction of outdated notes, and dated timeline from Git.
 
-System Overview
-- Laravel MVC application for managing elections, candidates, voters, contractors, committees, representatives, and reporting.
-- Core features live under a secured dashboard route group with role/permission gating and activity logging.
-- Uses Spatie Roles/Permissions, Spatie Activity Log, Yajra DataTables, Maatwebsite Excel, DomPDF, Pusher, and Laravel Echo.
+## Owner Working Preference
+- Default UI/UX mode remains modern (`ui_mode = modern`) unless explicitly requested otherwise.
 
-Project Structure (high level)
-- app/Http/Controllers: Web + dashboard controllers; API controllers exist but routes/api.php is empty.
-- app/Models: Eloquent models for elections, candidates, voters, contractors, committees, reports, etc.
-- database/migrations: DB schema and many incremental column adds for voters/contractors/committees/users.
-- resources/views: Blade views with inline AJAX for dashboard and site UI.
-- resources/js: Bootstrap + Echo/Pusher client setup.
-- routes: web, auth, admin (dashboard), api (empty).
+## Executive Snapshot
+- The system is a Laravel-based election control platform with dashboard flows for voters, contractors, committees, candidates, and reports.
+- Contractor experience now exists in two fronts:
+  1) Web page: `GET /contract/{token}/profile`
+  2) Native Flutter app under `.mobile/ContractorPortalFlutter`
+- APK distribution is now first-class in Laravel through `GET /download/contractor-app` with anti-cache headers and dynamic download filename.
+- Mobile API is active and routed in `routes/api.php` through `ContractorMobileController` (not empty anymore).
 
-Request -> Controller -> Model -> DB -> Response (core flows)
-- Dashboard list screens
-	- /dashboard/* resources -> respective Controller (index) -> Model query -> tables -> Blade view render.
-- Voter import
-	- POST /dashboard/import/voters -> VoterController@import -> VotersImport/VoterCheck -> voters + related tables -> redirect.
-- Attendance update
-	- POST /dashboard/voters/{id}/status/update -> VoterController@updateStatus -> Voter + Attendance -> voters + representatives.attendance -> JSON.
-- Votes update (AJAX)
-	- POST /dashboard/candidates/{id}/votes/set|change -> CandidateController + VoteService -> candidate_committee + candidates.votes -> JSON + Pusher event.
-- Contractor assignment
-	- POST /ass/{id} -> ContractorController@ass -> contractor_voter + contractor_voter_delete -> redirect.
-- Committee status toggle
-	- POST /committee/status/{id} -> CommitteeController@status -> committees.status -> JSON + CommitteeUpdate event.
-- Reports export
-	- POST /dashboard/reports -> ReportController@store -> ReportService -> reports + pdf/xlsx -> download response.
+---
 
-Database Tables (main)
-- users: name, email, password, phone, image, theme, last_login_at, last_active_at, creator_id, election_id, soft deletes.
-- elections: name, start/end date & time, type.
-- candidates: user_id, election_id, max_contractor, max_represent, votes, banner.
-- committees: name, type, school_id, election_id, status.
-- schools: name, type.
-- voters: large profile record (name, identifiers, demographic fields, phone1/phone2, region, status, committee_id, family_id, cod1-3, father, age, user_id, grand, restricted, attend_id, normalized_name, soundex_name, plus initial import fields).
-- contractors: parent_id, election_id, creator_id, user_id, name, email, phone, note, trust, status, token.
-- representatives: user_id, election_id, committee_id, status, attendance.
-- families: name, election_id.
-- selections: cod1/2/3, alfkhd, alktaa, albtn, alfraa, street, home, alharaa.
-- reports: pdf, creator_id.
-- settings: option_key, option_value (json).
-- activity_log: subject/causer morphs, description, properties, event, batch_uuid, user_id.
-- Pivots: candidate_committee (votes), contractor_voter (percentage), contractor_voter_delete, group_voter, election_voter.
+## Repository Inventory (verified)
 
-Model Relations (key)
-- Election hasMany Candidates, Committees, Users; belongsToMany Voters.
-- Candidate belongsTo User & Election; belongsToMany Committees with votes.
-- Committee hasMany Voters & Representatives; belongsTo School & Election; belongsToMany Candidates.
-- Voter belongsTo Committee, Family, User (creator), Attend User; belongsToMany Contractors, Groups, Elections.
-- Contractor belongsTo Election, Creator(User), Parent Contractor; hasMany Children Contractors; belongsToMany Voters; hasMany Groups.
-- Representative belongsTo User, Election, Committee.
-- Family hasMany Voters; belongsTo Election.
+### Core Backend / Web
+- `app/` (controllers, models, services, middleware)
+- `routes/` (`web.php`, `admin.php`, `auth.php`, `api.php`, ...)
+- `resources/views/` (Blade dashboard and contractor pages)
+- `database/` (migrations, seeders, factories)
 
-Routes and Endpoints (map)
-- Web entry
-	- GET / -> dashboard home (requires auth + verified) [routes/web.php].
-- Auth
-	- Login/register/reset/verify/password routes [routes/auth.php].
-- Dashboard resource routes [routes/admin.php]
-	- /dashboard/users, roles, elections, contractors, representatives, candidates, voters, committees, schools, families, reports.
-- Dashboard utilities / AJAX
-	- POST /dashboard/translate (auto-translate)
-	- GET /dashboard/toggle-theme
-	- POST /dashboard/voters/{id}/status/update
-	- POST /dashboard/candidates/{id}/votes/change|set
-	- POST /dashboard/rep/{id}/update
-	- GET /dashboard/committee/home
-	- GET /dashboard/results and /dashboard/all/results
-	- GET /dashboard/sorting, /dashboard/attending
-	- Import: /dashboard/import/voters, /dashboard/import/contractor/voters
-	- Export: /dashboard/voters/export
-	- Reports: /dashboard/reports (CRUD) + /report (Excel download)
-- Standalone endpoints (non-dashboard prefix)
-	- POST /keep-alive
-	- POST /committee/status/{id}
-	- POST /ass/{id}
-	- POST /delete/mad
-	- GET /contract/{token}/profile
-	- GET /con/{id} (contractor JSON)
-	- GET /user/{id} (user JSON)
-	- POST /group-e/{id}, GET /group-d/{id}, GET /group/{id}
-	- GET /voter/{id} and /voter/{id}/{con_id}
-	- GET /percent/{id}/{con_id}/{val}
-	- GET /user/contractors/{user_id}, /subcontractors/{main_id}, /voters/{committee_id}, /get_attending_counts/{committee_id}
-- API routes
-	- routes/api.php is empty; Api\CandidateController and Api\ReportController are present but not routed.
+### Mobile + Distribution
+- `.mobile/ContractorPortalFlutter/` (real Flutter app source)
+- `scripts/build-contractor-apk.ps1` (clean/build/verify/publish pipeline)
+- `public/downloads/contractor-portal-latest.apk` (published artifact)
 
-Auth Flow
-- Standard Laravel auth routes (register/login/reset/verify).
-- Protected dashboard routes use middleware: auth:web + permitted.
-- Email verification is enforced on the main dashboard entry.
-- UpdateLastActivity middleware updates users.last_active_at; keep-alive JS pings /keep-alive every 120s.
+### Operational Notes
+- `.gitignore` currently excludes `/mobile/` and `/.mobile/` source folders from tracking.
+- `.gitignore` allows tracking only the published artifact:
+  - `/public/downloads/*`
+  - `!/public/downloads/contractor-portal-latest.apk`
 
-Admin / Vendor / Role Logic
-- Roles are managed via Spatie Permission. Route access is enforced by PermittedMiddleware based on route names.
-- Administrator can see all contractors, voters, and reports; non-admins are scoped by creator_id or contractor tree.
-- Contractor logic supports parent/child contractors and soft-deleted voter assignments.
-- Representative has committee assignment and attendance counter.
-- Candidates have per-committee vote tallies and total votes; votes are updated via AJAX and broadcast.
+---
 
-Main Features
-- Elections and candidate management with per-committee vote tracking.
-- Voter management with rich search/filtering, batch import, attendance marking, and export (PDF/Excel/WhatsApp link).
-- Contractor management with voter assignment, grouping, and history logs.
-- Committee/school views with attendance counts and live status updates.
-- Reporting and exports with saved PDFs.
-- Activity logging for auditing (Spatie activity_log).
+## Current Routes and Flows (verified)
 
-JS/AJAX and Realtime
-- Axios/Fetch requests in dashboard views for live updates, CRUD, and exports.
-- Pusher client in result views listens to vote and committee status channels.
-- Keep-alive pings update user online status.
+### Web Routes (contractor-related)
+- `GET /contract/{token}/profile` → contractor profile page (`con-profile`)
+- `GET /contract/{token}/support` → contractor support page (`con-support`)
+- `GET /download/contractor-app` → APK download (`contractor-app.download`)
 
-Important Files
-- Routes: [routes/web.php](routes/web.php), [routes/admin.php](routes/admin.php), [routes/auth.php](routes/auth.php), [routes/api.php](routes/api.php)
-- Core controllers: [app/Http/Controllers/Dashboard/VoterController.php](app/Http/Controllers/Dashboard/VoterController.php), [app/Http/Controllers/Dashboard/CandidateController.php](app/Http/Controllers/Dashboard/CandidateController.php), [app/Http/Controllers/Dashboard/ContractorController.php](app/Http/Controllers/Dashboard/ContractorController.php), [app/Http/Controllers/Dashboard/StatementController.php](app/Http/Controllers/Dashboard/StatementController.php), [app/Http/Controllers/Dashboard/CommitteeController.php](app/Http/Controllers/Dashboard/CommitteeController.php)
-- Services: [app/Services/Attendance.php](app/Services/Attendance.php), [app/Services/VoteService.php](app/Services/VoteService.php), [app/Services/VoterService.php](app/Services/VoterService.php)
-- Models: [app/Models/Voter.php](app/Models/Voter.php), [app/Models/Contractor.php](app/Models/Contractor.php), [app/Models/Candidate.php](app/Models/Candidate.php), [app/Models/Committee.php](app/Models/Committee.php)
-- Middleware: [app/Http/Middleware/PermittedMiddleware.php](app/Http/Middleware/PermittedMiddleware.php), [app/Http/Middleware/UpdateLastActivity.php](app/Http/Middleware/UpdateLastActivity.php)
-- JS entry: [resources/js/app.js](resources/js/app.js)
+### Download Endpoint Behavior
+From `routes/web.php`:
+- Reads APK from `public/downloads/contractor-portal-latest.apk`
+- Builds timestamped file name: `control-app-YYYYmmdd-HHMMSS.apk`
+- Forces APK content type
+- Sends no-cache headers (`Cache-Control`, `Pragma`, `Expires`) to reduce stale downloads
 
-Known Risks and Tech Debt
-- routes/api.php is empty while API controllers exist; API may be unreachable or unused.
-- Several state-changing routes use GET (e.g., /percent, /group-d), which is unsafe and may bypass CSRF.
-- Voter import can truncate tables and disable FK checks; high risk if misused.
-- Many queries fetch large datasets without pagination (e.g., Voter::Filter()->get()) which can cause memory/timeouts.
-- Pusher keys are embedded in Blade views; consider environment-driven config.
-- Some responses expose raw model data without explicit resource shaping.
-- Contractor deletion uses force delete; audit/soft delete policy is unclear.
-aaa
-ش
+### Mobile API Routes (active in `routes/api.php`)
+Prefix: `/api/contractor/{token}`
+
+#### Bootstrap / Search / Voters
+- `GET /bootstrap`
+- `GET /voters`
+- `GET /voters/{voterId}`
+- `PUT /voters/{voterId}/phone`
+- `PUT /voters/{voterId}/percentage`
+- `POST /voters/{voterId}/attachment`
+- `POST /voters/attachment-bulk`
+
+#### Groups
+- `GET /groups`
+- `POST /groups`
+- `GET /groups/{groupId}`
+- `PUT /groups/{groupId}`
+- `DELETE /groups/{groupId}`
+- `POST /groups/{groupId}/voters-action`
+
+---
+
+## Access Control: Roles & Permissions (single consolidated section)
+
+All role-related documentation is centralized in this section only.
+
+### Verified sources
+- `database/seeders/RolesAndPermissionsSeeder.php`
+- `database/seeders/Permissions/*.php`
+- `database/seeders/AdminSeeder.php`
+- `app/Http/Middleware/PermittedMiddleware.php`
+- `routes/admin.php`
+- `app/Http/Controllers/Dashboard/UserController.php`
+- `app/Http/Controllers/Dashboard/RepresentativeController.php`
+- `app/Http/Controllers/Dashboard/ContractorController.php`
+- `app/Http/Controllers/ProfileController.php`
+
+Note:
+- This reflects the seeded/default permission model الموجود في الكود.
+- If production database was manually modified after seeding, runtime may differ.
+
+### Runtime permission gate logic
+- Dashboard group uses middleware: `auth:web` + `permitted`.
+- `PermittedMiddleware` maps route names to permission names by:
+  - removing `dashboard.`
+  - `index` → `list`
+  - `store` → `create`
+  - `update` → `edit`
+  - `destroy` → `delete`
+  - `statement.search-modern` → `statement.search`
+  - `import-contractor-voters-form`/`import-contractor-voters` → `import.contractor.voters`
+
+Routes excluded from permission check (still require dashboard auth):
+- `dashboard.model.auto.translate`
+- `dashboard.toggle-theme`
+- `dashboard.settings.result`
+- `dashboard.store-fake-candidates`
+- `dashboard.notifications.index`
+- `dashboard.notifications.page`
+- `dashboard.notifications.read-all`
+- `dashboard.notifications.read`
+- `dashboard.statement.export-async`
+- `dashboard.statement.export-download`
+
+### Seeded roles list
+- `Administrator`
+- `مندوب`
+- `مرشح`
+- `بحث في الكشوف`
+- `حذف المضامين`
+- `متعهد`
+- `مسئول كنترول`
+- `الدواوين`
+- `وكيل المدرسة`
+- `كل صلاحيات اللجان`
+- `التحكم بالموقع`
+
+### Role matrix (organized)
+
+#### Full-suite roles (مع اختلافات دقيقة)
+- Roles: `Administrator`, `مرشح`, `التحكم بالموقع`
+- Shared domains:
+  - Elections: `elections.*`, `cards`, `user-change`
+  - Committees/Candidate access: `committees.*`, `committee.home`, `committees.multi`, `committees.generate`, `candidates.index`, `candidates.list`, `attending-admin`
+  - Contractors: `contractors.*`, `mot-up`, `search-stat-con`, `delete-stat-con`, `con-main`, `results`
+  - Representatives: `representatives.*`
+  - Voters: `voters.*`, `import.contractor.voters`, `madameen`, `history`, `delete`
+  - Statement/statistics: `statement`, `statement.search`, `statistics.search`, `statistics`, `statement.query`, `statement.show`
+  - Settings: `settings.show`, `settings.edit`
+  - Schools/Families: `schools.*`, `families.*`
+  - Mandob ops: `attending`, `rep-home`, `voters.change-status`, `candidates.changeVotes`, `candidates.setVotes`, `sorting`, `school-rep`, `rep.change`
+- Differences:
+  - `Administrator` فقط لديه `users.*` و `roles.*`
+  - `Administrator` و `مرشح` لديهما `reports.*`
+  - `التحكم بالموقع` لا يملك `reports.*` في seeders الحالية
+
+#### Medium-scope role
+- `مسئول كنترول`
+  - Contractors: `contractors.*`, `mot-up`, `search-stat-con`, `delete-stat-con`, `con-main`, `results`
+  - Voters: `voters.*`, `import.contractor.voters`, `madameen`, `history`, `delete`
+
+#### Field operation roles
+- `مندوب`, `وكيل المدرسة`
+  - `attending`, `rep-home`, `voters.change-status`, `candidates.changeVotes`, `candidates.setVotes`, `sorting`, `school-rep`, `rep.change`
+
+#### Contractor role
+- `متعهد`
+  - `contractors.create`, `contractors.list`, `statement`, `statement.show`, `madameen`
+
+#### Micro-roles
+- `بحث في الكشوف` → `search-stat-con` فقط
+- `حذف المضامين` → `delete-stat-con` فقط
+
+#### Roles without seeded permissions
+- `الدواوين`
+- `كل صلاحيات اللجان`
+
+### Role assignment paths (actual code)
+- Seeder bootstrap:
+  - `AdminSeeder` assigns `Administrator` to `admin@perfect.com`.
+- User management:
+  - `Dashboard/UserController@store` assigns submitted roles.
+  - `Dashboard/UserController@update` syncs submitted roles.
+- Representative creation:
+  - `Dashboard/RepresentativeController@store` auto-assigns role `مندوب`.
+- Contractor creation (`dashboard.con-main`):
+  - `Dashboard/ContractorController@contractor` assigns submitted roles + always assigns `متعهد`.
+- Profile edit role update:
+  - `ProfileController@update` allows `syncRoles` only if current user has role `Administrator`.
+
+### Route → permission mapping examples
+- Users:
+  - `dashboard.users.index` → `users.list`
+  - `dashboard.users.store` → `users.create`
+  - `dashboard.users.update` → `users.edit`
+  - `dashboard.users.destroy` → `users.delete`
+- Roles:
+  - `dashboard.roles.*` → `roles.*`
+- Contractors:
+  - `dashboard.contractors.*` → `contractors.*`
+  - `dashboard.con-main` → `con-main`
+  - `dashboard.mot-up` → `mot-up`
+- Voters:
+  - `dashboard.voters.*` → `voters.*`
+  - `dashboard.import-contractor-voters` / `dashboard.import-contractor-voters-form` → `import.contractor.voters`
+  - `dashboard.madameen` → `madameen`
+- Statement:
+  - `dashboard.statement` → `statement`
+  - `dashboard.statement.search-modern` → `statement.search`
+- Settings:
+  - `dashboard.settings.update` → `settings.edit`
+
+### Mermaid map (Role → Permission → Route → Module)
+
+```mermaid
+flowchart TD
+    subgraph R[Roles]
+      R1[Administrator]
+      R2[مرشح]
+      R3[التحكم بالموقع]
+      R4[مسئول كنترول]
+      R5[مندوب / وكيل المدرسة]
+      R6[متعهد]
+      R7[بحث في الكشوف]
+      R8[حذف المضامين]
+    end
+
+    subgraph P[Permission Domains]
+      P1[users.* / roles.*]
+      P2[elections + committees + candidate access]
+      P3[contractors.* core domain]
+      P4[voters.* + import.contractor.voters + madameen]
+      P5[statement.* + statistics]
+      P6[representative and attendance operations]
+      P7[settings / families / schools (and reports لبعض الأدوار)]
+      P8[search-stat-con]
+      P9[delete-stat-con]
+    end
+
+    subgraph RT[Dashboard Routes]
+      T1[dashboard.users.*, dashboard.roles.*]
+      T2[dashboard.elections.*, dashboard.committees.*, dashboard.candidates.*]
+      T3[dashboard.contractors.*, dashboard.con-main, dashboard.results]
+      T4[dashboard.voters.*, dashboard.import-contractor-voters, dashboard.madameen]
+      T5[dashboard.statement*, dashboard.statistics]
+      T6[dashboard.representatives*, dashboard.rep-home, dashboard.attending, dashboard.rep.change]
+      T7[dashboard.settings.*, dashboard.families.*, dashboard.schools.*, dashboard.reports.*]
+    end
+
+    subgraph M[Business Modules]
+      M1[User & Role Management]
+      M2[Election/Candidate/Committee]
+      M3[Contractor Management]
+      M4[Voter Operations]
+      M5[Statement & Analytics]
+      M6[Representative Operations]
+      M7[System Configuration]
+    end
+
+    R1 --> P1
+    R1 --> P2
+    R1 --> P3
+    R1 --> P4
+    R1 --> P5
+    R1 --> P6
+    R1 --> P7
+
+    R2 --> P2
+    R2 --> P3
+    R2 --> P4
+    R2 --> P5
+    R2 --> P6
+    R2 --> P7
+
+    R3 --> P2
+    R3 --> P3
+    R3 --> P4
+    R3 --> P5
+    R3 --> P6
+    R3 --> P7
+
+    R4 --> P3
+    R4 --> P4
+
+    R5 --> P6
+    R6 --> P3
+    R6 --> P5
+    R6 --> P4
+    R7 --> P8
+    R8 --> P9
+
+    P1 --> T1 --> M1
+    P2 --> T2 --> M2
+    P3 --> T3 --> M3
+    P4 --> T4 --> M4
+    P5 --> T5 --> M5
+    P6 --> T6 --> M6
+    P7 --> T7 --> M7
+```
+
+---
+
+## Contractor Mobile Backend (ContractorMobileController)
+
+Key capabilities currently implemented:
+- Token resolution (`resolveContractor`)
+- Bootstrap payload (contractor identity, election dates/times, links, families, groups)
+- Voters search with:
+  - `name`, `family`
+  - sibling search (`sibling`, `sibling_exclude_id`)
+  - scope filtering (`all`, `attached`, `available`)
+  - grouped exclusion option (`exclude_grouped`)
+  - IDs-only mode for bulk selection (`ids_only=1`)
+- Pagination metadata in mobile responses
+- Single attach/detach + bulk attach/detach actions
+- Voter details + phone + percentage update
+- Group CRUD + group voters actions
+
+Important behavior notes:
+- `scope=all` returns election voters regardless of contractor attachment
+- `scope=attached` / `available` are attachment-aware based on `contractor_voter`
+- Detach operation also syncs to soft-delete relation via `contractor_voter_delete`
+
+---
+
+## Flutter App (real native app)
+
+Location: `.mobile/ContractorPortalFlutter`
+
+### Runtime and dependencies
+- Version in `pubspec.yaml`: `1.0.2+3`
+- Main dependencies:
+  - `dio`
+  - `shared_preferences`
+  - `url_launcher`
+
+### Android identity
+- App label in Android manifest: `كنترول`
+
+### App architecture in `lib/main.dart`
+- `SplashGate` startup routing
+- Onboarding flow
+- Setup flow (base URL + token extraction/normalization + bootstrap validation)
+- `HomeShell` with tabs (`SearchTab`, `ListsTab`)
+- SearchTab supports:
+  - search by name/number
+  - family filtering
+  - scope chips (`all/attached/available`)
+  - bulk select + bulk actions
+  - single-row attach/detach actions
+  - pagination / all-mode loading
+- Hero card + countdown with election start/end awareness
+- Footer marketing/support section
+
+### Build traceability
+- Build signature constant used in app/build pipeline:
+  - `CONTROL_BUILD_SIG_20260216_1605`
+
+---
+
+## APK Build/Publish Pipeline
+
+Script: `scripts/build-contractor-apk.ps1`
+
+Pipeline steps:
+1) `flutter pub get`
+2) `flutter clean`
+3) `flutter pub get`
+4) `flutter build apk --release`
+5) Open APK as zip and verify signature exists in `lib/arm64-v8a/libapp.so`
+6) Copy release APK to `public/downloads/contractor-portal-latest.apk`
+
+Guarantee:
+- Publish is blocked if expected signature is missing.
+
+---
+
+## Dated Change Log (from Git history)
+
+### 2026-02-16 (major implementation day)
+
+#### Distribution and anti-cache
+- `fc4ae07` (15:09) updated `routes/web.php`
+- `0be4c0d` (14:53) updated `routes/web.php` + APK artifact
+- Outcome: download endpoint stabilized around APK-only delivery + cache-control behavior.
+
+#### Mobile API evolution
+- `77a30de` (13:35) changed `app/Http/Controllers/Api/ContractorMobileController.php` + `routes/api.php`
+- `d9a25bd` (14:24) changed `ContractorMobileController.php` + `routes/api.php` + APK
+- `2be3cc7` (14:44) changed `ContractorMobileController.php`
+- Outcome: bootstrap/voters/groups and bulk flows matured.
+
+#### Web contractor profile updates
+- `c616246` (07:37), `d3a4dc4` (07:40), `646be7f` (07:52), `fb90c33` (14:40)
+- File changed repeatedly: `resources/views/dashboard/contractors/profile.blade.php`
+- Outcome: UX/layout/interaction updates on web contractor page.
+
+#### Scope and contractor logic alignment
+- `2917438` (14:32)
+- Files changed:
+  - `app/Http/Controllers/Api/ContractorMobileController.php`
+  - `app/Http/Controllers/Dashboard/ContractorController.php`
+- Outcome: alignment of search/attachment behavior between web and mobile flows.
+
+#### Build hardening
+- `ca66b43` (16:05)
+- Files changed:
+  - `scripts/build-contractor-apk.ps1`
+  - `public/downloads/contractor-portal-latest.apk`
+- Outcome: strict signature verification before publishing APK.
+
+#### Artifact publish updates
+- APK-only updates were committed multiple times:
+  - `4590368`, `5f8f635`, `e3386ec`, `5125895`
+- Outcome: repeated rebuild/republish cycles of `public/downloads/contractor-portal-latest.apk`.
+
+#### Source tracking strategy change
+- `4932cf4` (12:50)
+- Updated `.gitignore` and removed tracked Android source tree under `mobile/ContractorPortalAndroid/*`
+- Outcome: repository keeps published APK artifact while mobile source tracking strategy changed.
+
+---
+
+## Corrections vs Older PROJECT_BRAIN Content
+
+The old file contained stale statements. Correct state is:
+- `routes/api.php` is NOT empty.
+- Contractor mobile API is active and used.
+- APK download route is active and controlled in `routes/web.php`.
+- Real Flutter app exists under `.mobile/ContractorPortalFlutter`.
+- APK build script now includes verification, not just build/copy.
+
+---
+
+## Current Risks / Technical Debt (re-validated)
+
+- Mobile source is currently under an ignored path (`/.mobile/`), which can reduce traceability of source-level changes in Git.
+- APK artifact is tracked, but binary-only commits can make code review difficult.
+- Some legacy routes in admin/web context still use GET for operations that ideally should be non-GET.
+- Contractor/profile Blade remains large and includes substantial inline logic; maintainability risk remains.
+
+---
+
+## Immediate Next Documentation Step (recommended)
+
+When the next deploy is done, append a short release entry including:
+- Date/time
+- APK hash (SHA256)
+- Build signature constant
+- Main UI/API deltas
+- Route or controller files touched
