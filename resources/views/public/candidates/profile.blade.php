@@ -67,48 +67,284 @@
         </div>
     </section>
 </div>
-<style>
-    .candidate-public-page { background: #f8fafc; min-height: 100vh; }
-    .candidate-public-hero {
-        position: relative; min-height: 340px; background-size: cover; background-position: center;
-    }
-    .candidate-public-hero .overlay {
-        position: absolute; inset: 0; background: linear-gradient(to top, rgba(2,6,23,.82), rgba(2,6,23,.38));
-    }
+                <header class="social-topbar">
+                    <div class="container d-flex justify-content-between align-items-center">
+                        <div class="brand">الملف العام</div>
+                        <div class="meta">
+                            <span><i class="fa fa-calendar"></i> {{ optional($candidate->created_at)->format('Y/m/d') ?? '—' }}</span>
     .candidate-public-hero__inner {
-        position: relative; z-index: 2; min-height: 340px; display: flex; flex-direction: column;
-        align-items: center; justify-content: center; gap: .7rem; color: #fff; text-align: center;
+                    </div>
+                </header>
+
+                <section class="profile-cover-wrap container">
+                    <div class="profile-cover" style="background-image: url('{{ $banner }}')"></div>
+
+                    <div class="profile-head card">
+                        <div class="profile-head__main">
+                            <div class="profile-avatar" style="background-image: url('{{ $avatar }}')"></div>
+                            <div class="profile-identity">
+                                <h1>{{ $name }}</h1>
+                                <div class="campaign-pill">
+                                    <i class="fa fa-check-circle"></i>
+                                    <span>{{ $candidate->election?->name ?? 'حملة غير محددة' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button type="button" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>متابعة</button>
+                            <button type="button" class="btn btn-light"><i class="fa fa-envelope me-1"></i>مراسلة</button>
+                        </div>
+                    </div>
+
+                    <nav class="profile-tabs card">
+                        <a href="javascript:;" class="active">المنشورات</a>
+                        <a href="javascript:;">المعلومات</a>
+                        <a href="javascript:;">الصور</a>
+                        <a href="javascript:;">الفريق</a>
+                    </nav>
+                </section>
     }
-    .candidate-public-avatar {
-        width: 150px; height: 150px; border-radius: 50%; border: 5px solid #fff;
-        background-size: cover; background-position: center;
-        box-shadow: 0 12px 28px rgba(2,6,23,.35);
-    }
-    .candidate-public-name { font-size: 1.7rem; font-weight: 900; margin: 0; }
-    .candidate-public-campaign {
-        display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .7rem; border-radius: 999px;
-        background: rgba(37,99,235,.9); border: 1px solid rgba(255,255,255,.28); font-weight: 800;
-    }
-    .candidate-public-body { margin-top: -30px; padding-bottom: 30px; }
-    .public-metrics-card {
-        background: #fff; border: 1px solid rgba(148,163,184,.26); border-radius: 16px;
-        box-shadow: 0 14px 30px rgba(15,23,42,.1); padding: 1rem;
-    }
-    .public-metrics-card .title { margin: 0; font-weight: 900; color: #0f172a; }
-    .public-metrics-card .subtitle { margin: .2rem 0 1rem; color: #64748b; font-size: .9rem; }
-    .metric-row { margin-bottom: .8rem; }
-    .metric-head { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: .35rem; }
-    .metric-bar { height: 8px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
-    .metric-bar span { display: block; height: 100%; background: linear-gradient(90deg, #22d3ee, #6366f1); }
-    .meta-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .7rem; margin-top: .8rem; }
-    .meta-item { border: 1px solid rgba(148,163,184,.25); border-radius: 12px; padding: .6rem; background: #f8fafc; }
-    .meta-item span { display: block; color: #64748b; font-size: .78rem; margin-bottom: .2rem; }
-    .meta-item strong { color: #0f172a; font-weight: 900; }
-    @media (max-width: 640px) {
-        .candidate-public-avatar { width: 124px; height: 124px; }
-        .candidate-public-name { font-size: 1.35rem; }
-        .meta-grid { grid-template-columns: 1fr; }
-    }
-</style>
-</body>
-</html>
+                <section class="container social-body">
+                    <aside class="left-col">
+                        <div class="card social-card intro-card">
+                            <h4>نبذة</h4>
+                            <p>هذه صفحة عامة للمرشح تعرض بيانات الحملة والمؤشرات الأساسية بشكل مبسط.</p>
+                            <ul>
+                                <li><i class="fa fa-flag"></i> {{ $candidate->election?->name ?? 'حملة غير محددة' }}</li>
+                                <li><i class="fa fa-id-badge"></i> رقم المرشح: #{{ $candidate->id }}</li>
+                            </ul>
+                        </div>
+
+                        <div class="card social-card metrics-card">
+                            <h4>المؤشرات</h4>
+
+                            <div class="metric-row">
+                                <div class="metric-head">
+                                    <span>المتعهدين</span>
+                                    <strong>{{ $contractorsCount }}/{{ $maxContractors }}</strong>
+                                </div>
+                                <div class="metric-bar"><span style="width: {{ $contractorsPercent }}%"></span></div>
+                            </div>
+
+                            <div class="metric-row mb-0">
+                                <div class="metric-head">
+                                    <span>المناديب</span>
+                                    <strong>{{ $representativesCount }}/{{ $maxRepresentatives }}</strong>
+                                </div>
+                                <div class="metric-bar"><span style="width: {{ $representativesPercent }}%"></span></div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <main class="right-col">
+                        <article class="card social-card post-card">
+                            <div class="post-head">
+                                <div class="mini-avatar" style="background-image: url('{{ $avatar }}')"></div>
+                                <div>
+                                    <strong>{{ $name }}</strong>
+                                    <span>تحديث عام • {{ optional($candidate->created_at)->diffForHumans() }}</span>
+                                </div>
+                            </div>
+                            <p class="post-text">الملف العام متاح الآن للعرض. يمكن متابعة المؤشرات الأساسية للحملة من هذه الصفحة.</p>
+                            <div class="post-media" style="background-image: url('{{ $banner }}')"></div>
+                        </article>
+
+                        <article class="card social-card post-card">
+                            <div class="post-head">
+                                <div class="mini-avatar" style="background-image: url('{{ $avatar }}')"></div>
+                                <div>
+                                    <strong>{{ $name }}</strong>
+                                    <span>حالة الفريق</span>
+                                </div>
+                            </div>
+                            <div class="team-status-grid">
+                                <div><small>المتعهدين الحاليين</small><strong>{{ $contractorsCount }}</strong></div>
+                                <div><small>المناديب الحاليين</small><strong>{{ $representativesCount }}</strong></div>
+                                <div><small>الحد الأقصى للمتعهدين</small><strong>{{ $maxContractors }}</strong></div>
+                                <div><small>الحد الأقصى للمناديب</small><strong>{{ $maxRepresentatives }}</strong></div>
+                            </div>
+                        </article>
+                    </main>
+                </section>
+            </div>
+            <style>
+                body { background: #f0f2f5; }
+                .candidate-public-page { min-height: 100vh; color: #1c1e21; }
+
+                .social-topbar {
+                    background: #fff;
+                    border-bottom: 1px solid #dddfe2;
+                    height: 58px;
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 10px;
+                }
+
+                .social-topbar .brand { font-size: 1.02rem; font-weight: 900; color: #1877f2; }
+                .social-topbar .meta { font-size: .84rem; color: #65676b; }
+
+                .profile-cover-wrap { max-width: 980px; }
+
+                .profile-cover {
+                    height: 340px;
+                    background-size: cover;
+                    background-position: center;
+                    border-radius: 10px;
+                    border: 1px solid #dddfe2;
+                }
+
+                .profile-head {
+                    margin-top: -26px;
+                    border: 1px solid #dddfe2;
+                    border-radius: 0 0 10px 10px;
+                    background: #fff;
+                    padding: .8rem 1rem;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-end;
+                    gap: .8rem;
+                    flex-wrap: wrap;
+                }
+
+                .profile-head__main { display: flex; align-items: flex-end; gap: .8rem; }
+
+                .profile-avatar {
+                    width: 168px;
+                    height: 168px;
+                    border-radius: 50%;
+                    border: 5px solid #fff;
+                    background-size: cover;
+                    background-position: center;
+                    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+                    margin-top: -70px;
+                }
+
+                .profile-identity h1 { margin: 0 0 .35rem; font-size: 1.75rem; font-weight: 800; color: #050505; }
+
+                .campaign-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: .35rem;
+                    background: #e7f3ff;
+                    color: #1b74e4;
+                    border-radius: 999px;
+                    padding: .2rem .6rem;
+                    font-size: .83rem;
+                    font-weight: 700;
+                }
+
+                .profile-actions { display: flex; gap: .45rem; }
+                .profile-actions .btn { border-radius: 6px; font-weight: 700; font-size: .86rem; min-height: 36px; }
+
+                .profile-tabs {
+                    margin-top: .55rem;
+                    border: 1px solid #dddfe2;
+                    border-radius: 10px;
+                    padding: .25rem .45rem;
+                    display: flex;
+                    gap: .25rem;
+                    overflow-x: auto;
+                }
+
+                .profile-tabs a {
+                    text-decoration: none;
+                    color: #65676b;
+                    padding: .55rem .8rem;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                }
+
+                .profile-tabs a.active {
+                    background: #e7f3ff;
+                    color: #1b74e4;
+                }
+
+                .social-body {
+                    max-width: 980px;
+                    margin-top: .85rem;
+                    display: grid;
+                    grid-template-columns: 340px minmax(0,1fr);
+                    gap: .9rem;
+                    align-items: start;
+                    padding-bottom: 20px;
+                }
+
+                .social-card {
+                    border: 1px solid #dddfe2;
+                    border-radius: 10px;
+                    background: #fff;
+                    box-shadow: 0 1px 2px rgba(0,0,0,.06);
+                    padding: .9rem;
+                }
+
+                .social-card h4 { margin: 0 0 .6rem; font-size: 1rem; font-weight: 800; }
+                .intro-card p { margin: 0 0 .7rem; color: #65676b; font-size: .9rem; }
+                .intro-card ul { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+                .intro-card li { color: #1c1e21; font-size: .9rem; display: flex; align-items: center; gap: .45rem; }
+
+                .metric-row { margin-bottom: .85rem; }
+                .metric-head { display: flex; justify-content: space-between; margin-bottom: .32rem; font-weight: 700; }
+                .metric-head span { color: #65676b; }
+                .metric-bar { height: 8px; border-radius: 99px; background: #e4e6eb; overflow: hidden; }
+                .metric-bar span { display: block; height: 100%; background: #1877f2; }
+
+                .post-card + .post-card { margin-top: .9rem; }
+                .post-head { display: flex; align-items: center; gap: .55rem; margin-bottom: .6rem; }
+                .mini-avatar {
+                    width: 42px;
+                    height: 42px;
+                    border-radius: 50%;
+                    background-size: cover;
+                    background-position: center;
+                    border: 1px solid #dddfe2;
+                }
+
+                .post-head strong { display: block; font-size: .95rem; }
+                .post-head span { color: #65676b; font-size: .78rem; }
+                .post-text { margin: 0 0 .6rem; color: #1c1e21; }
+
+                .post-media {
+                    height: 270px;
+                    border-radius: 8px;
+                    background-size: cover;
+                    background-position: center;
+                    border: 1px solid #dddfe2;
+                }
+
+                .team-status-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: .55rem;
+                }
+
+                .team-status-grid div {
+                    border: 1px solid #dddfe2;
+                    border-radius: 8px;
+                    padding: .55rem;
+                    background: #f7f8fa;
+                }
+
+                .team-status-grid small {
+                    display: block;
+                    color: #65676b;
+                    font-size: .74rem;
+                    margin-bottom: .2rem;
+                }
+
+                .team-status-grid strong { font-size: 1rem; color: #050505; }
+
+                @media (max-width: 991px) {
+                    .social-body { grid-template-columns: 1fr; }
+                    .profile-avatar { width: 138px; height: 138px; margin-top: -56px; }
+                    .profile-identity h1 { font-size: 1.45rem; }
+                }
+
+                @media (max-width: 640px) {
+                    .profile-cover { height: 230px; }
+                    .profile-head__main { width: 100%; }
+                    .profile-actions { width: 100%; }
+                    .profile-actions .btn { flex: 1; }
+                    .post-media { height: 200px; }
+                }
+            </style>
