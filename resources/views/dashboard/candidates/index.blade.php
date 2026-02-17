@@ -277,18 +277,54 @@
     .candidates-index-page .candidate-view-switch .btn {
         border-radius: 999px;
         border-width: 1px;
-        min-height: 36px;
+        min-height: 37px;
         font-weight: 800;
         font-size: .82rem;
         min-width: 130px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .28rem;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, .08);
+        transition: transform .22s ease, box-shadow .22s ease, background-color .22s ease, color .22s ease;
     }
 
     .candidates-index-page .candidate-toolbar__actions .btn {
         min-height: 38px;
-        border-radius: 10px;
+        border-radius: 11px;
         font-size: .82rem;
         font-weight: 800;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .28rem;
+        border-width: 1px;
+        box-shadow: 0 8px 16px rgba(15, 23, 42, .1);
+        transition: transform .22s ease, box-shadow .22s ease, filter .22s ease;
+    }
+
+    .candidates-index-page .candidate-view-switch .btn:hover,
+    .candidates-index-page .candidate-toolbar__actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 20px rgba(15, 23, 42, .16);
+    }
+
+    .candidates-index-page .candidate-view-switch .btn:focus-visible,
+    .candidates-index-page .candidate-toolbar__actions .btn:focus-visible,
+    .candidates-index-page .candidate-card-actions .btn:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(99,102,241,.2), 0 10px 18px rgba(15,23,42,.18);
+    }
+
+    .candidates-index-page .candidate-toolbar__actions .btn-primary {
+        background: linear-gradient(120deg, #2563eb, #4f46e5);
+        border-color: rgba(79,70,229,.78);
+    }
+
+    .candidates-index-page .candidate-toolbar__actions .btn-danger {
+        background: linear-gradient(120deg, #dc2626, #b91c1c);
+        border-color: rgba(239,68,68,.88);
     }
 
     .candidates-index-page .candidate-content-shell {
@@ -510,11 +546,15 @@
     .candidates-index-page .candidate-card-actions .btn {
         font-size: .78rem;
         font-weight: 800;
-        min-width: 92px;
+        min-width: 96px;
         border-radius: 11px;
-        padding: .34rem .62rem;
+        padding: .36rem .66rem;
         border-width: 1px;
         transition: transform .24s ease, box-shadow .24s ease, background-color .24s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .24rem;
     }
 
     .candidates-index-page .candidate-card-actions .btn:hover {
@@ -523,7 +563,7 @@
     }
 
     .candidates-index-page .candidate-card-actions .btn-light {
-        background: rgba(255,255,255,.94);
+        background: linear-gradient(120deg, rgba(255,255,255,.97), rgba(241,245,249,.96));
         border-color: rgba(255,255,255,.98);
         color: #0f172a;
     }
@@ -535,6 +575,7 @@
     .candidates-index-page .candidate-card-actions .btn-danger {
         background: linear-gradient(120deg, #dc2626, #b91c1c);
         border-color: rgba(239,68,68,.9);
+        color: #fff;
     }
 
     .candidates-index-page #tableCandidatesView {
