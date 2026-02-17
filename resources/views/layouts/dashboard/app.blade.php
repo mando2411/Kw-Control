@@ -1939,6 +1939,7 @@
             }
         }
     </style>
+    @stack('css')
 </head>
 
 <body class="ui-{{ $uiModeServer }}" data-ui-mode="{{ $uiModeServer }}">
