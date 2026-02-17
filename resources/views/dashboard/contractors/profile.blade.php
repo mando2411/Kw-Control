@@ -2761,7 +2761,7 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             const voterId = $(this).data('voterId') || $(this).attr('data-voter-id');
             if (!voterId) return;
 
-            const detailsUrl = '/voter/' + voterId + '/' + contractorId;
+            const detailsUrl = '/voter/' + voterId + '/' + contractorId + '?contractor_token=' + encodeURIComponent(contractorToken);
 
             axios.get(detailsUrl)
               .then(function (response) {
@@ -2870,6 +2870,7 @@ const attachRoute = "{{ route('ass', $contractor->id) }}";
 const modifyRoute = "{{ route('modify') }}";
 const csrfToken = $('meta[name="csrf-token"]').attr('content');
 const contractorId = "{{ $contractor->id }}";
+const contractorToken = "{{ $contractor->token }}";
 const searchEndpoint = '/search';
 const lazyLoadChunkSize = 20;
 let selectedRowsPerView = '10';
@@ -2989,6 +2990,7 @@ function collectAllFilteredVoterIds() {
   return axios.get(searchEndpoint, {
     params: {
       id: contractorId,
+      contractor_token: contractorToken,
       scope: activeFilters.membershipScope || 'all',
       exclude_grouped: '1',
       ids_only: '1',
@@ -3017,7 +3019,11 @@ function saveTrustRateIfNeeded(value) {
   const voterId = $('#mota3ahedDetailsVoterId').val();
   if (!voterId) return;
 
-  axios.get(`/percent/${voterId}/${contractorId}/${value}`)
+  axios.get(`/percent/${voterId}/${contractorId}/${value}`, {
+    params: {
+      contractor_token: contractorToken,
+    },
+  })
     .then(function (response) {
       const msg = response?.data?.message === 'success' ? 'تم تحديث نسبة الالتزام' : (response?.data?.message || 'تم تحديث نسبة الالتزام');
       showCreateGroupFeedback('success', msg);
@@ -3036,6 +3042,7 @@ function submitAttachVoters(voterIds) {
 
   return axios.post(attachRoute, {
     _token: csrfToken,
+    contractor_token: contractorToken,
     voter: voterIds
   }, {
     headers: {
@@ -3052,6 +3059,7 @@ function submitDeleteVoters(voterIds) {
 
   return axios.post(modifyRoute, {
     _token: csrfToken,
+    contractor_token: contractorToken,
     id: contractorId,
     select: 'delete',
     voters: voterIds
@@ -3070,6 +3078,7 @@ function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
   const targetUrl = isCurrentlyAdded ? modifyRoute : attachRoute;
   const payload = {
     _token: csrfToken,
+    contractor_token: contractorToken,
     voter: [voterId]
   };
 
@@ -3363,6 +3372,7 @@ function fetchVotersPage(appendMode) {
   const requestId = ++currentRequestId;
   const params = new URLSearchParams();
   params.append('id', contractorId);
+  params.append('contractor_token', contractorToken);
   params.append('scope', activeFilters.membershipScope || 'all');
   params.append('exclude_grouped', '1');
   params.append('page', String(currentPage));

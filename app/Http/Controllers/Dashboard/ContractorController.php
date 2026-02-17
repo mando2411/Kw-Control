@@ -214,7 +214,8 @@ class ContractorController extends Controller
             ->where('token', $normalizedToken)
             ->firstOrFail();
         $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
-        $families = Family::select('name', 'id')
+        $families = Family::withoutGlobalScopes()
+            ->select('name', 'id')
             ->when($electionId, function ($query) use ($electionId) {
                 $query->where('election_id', $electionId);
             })
@@ -222,7 +223,12 @@ class ContractorController extends Controller
 		return view('dashboard.contractors.profile', compact('contractor','families'));
     }
     public function search(Request $request){
-        $votersQuery = Voter::query();
+        $contractorToken = trim((string) $request->input('contractor_token', ''));
+        $isPortalContext = $contractorToken !== '';
+
+        $votersQuery = $isPortalContext
+            ? Voter::withoutGlobalScopes()
+            : Voter::query();
         $log=[];
         if ($request->filled('name')) {
             $name = $request->input('name');
@@ -233,7 +239,10 @@ class ContractorController extends Controller
         if ($request->filled('family')) {
             $family = $request->input('family');
             $votersQuery->where('family_id',$family);
-            $family_name=Family::where('id',$family)->first()->name;
+            $familyModel = $isPortalContext
+                ? Family::withoutGlobalScopes()->find($family)
+                : Family::find($family);
+            $family_name = $familyModel?->name;
             $log[]="بحث العائله :".$family_name;
         }
         if ($request->filled('sibling')) {
@@ -265,9 +274,17 @@ class ContractorController extends Controller
             }
         }
         
-        $contractor = Contractor::find($request->id);
+        $contractorQuery = $isPortalContext
+            ? Contractor::withoutGlobalScopes()
+            : Contractor::query();
+
+        $contractor = $contractorQuery->find($request->id);
         if (!$contractor) {
             return response()->json(['voters' => []]);
+        }
+
+        if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+            return response()->json(['voters' => []], 403);
         }
 
         $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;

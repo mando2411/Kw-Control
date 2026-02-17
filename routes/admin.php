@@ -177,7 +177,23 @@ Route::get('group/{id}', function ($id) {
     ]);
 });
 Route::get("voter/{id}/{con_id}", function($id,$con_id){
-    $voter =Voter::findOrFail($id);
+    $contractorToken = trim((string) request()->input('contractor_token', ''));
+    $isPortalContext = $contractorToken !== '';
+
+    $contractor = $isPortalContext
+        ? \App\Models\Contractor::withoutGlobalScopes()->find($con_id)
+        : \App\Models\Contractor::find($con_id);
+
+    if (!$contractor) {
+        abort(404);
+    }
+
+    if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+        abort(403);
+    }
+
+    $voterQuery = $isPortalContext ? Voter::withoutGlobalScopes() : Voter::query();
+    $voter = $voterQuery->findOrFail($id);
     $contractorPivot = $voter->contractors()->where('contractor_id', $con_id)->first()?->pivot;
     $percent = $contractorPivot?->percentage ?? 0;
     // dd($percent);
@@ -201,7 +217,23 @@ Route::get("voter/{id}", function($id){
     ]);
 });
 Route::get("percent/{id}/{con_id}/{val}", function($id,$con_id,$val){
-    $voter =Voter::findOrFail($id);
+    $contractorToken = trim((string) request()->input('contractor_token', ''));
+    $isPortalContext = $contractorToken !== '';
+
+    $contractor = $isPortalContext
+        ? \App\Models\Contractor::withoutGlobalScopes()->find($con_id)
+        : \App\Models\Contractor::find($con_id);
+
+    if (!$contractor) {
+        abort(404);
+    }
+
+    if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+        abort(403);
+    }
+
+    $voterQuery = $isPortalContext ? Voter::withoutGlobalScopes() : Voter::query();
+    $voter = $voterQuery->findOrFail($id);
     $voter_pivot = $voter->contractors()->where('contractor_id', $con_id)->first()?->pivot;
 
     if (!$voter_pivot) {
