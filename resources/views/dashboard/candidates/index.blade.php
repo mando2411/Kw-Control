@@ -32,7 +32,9 @@
                     <i class="fa fa-search"></i>
                     <input id="datatable-search" aria-label="Search" class="form-control" type="search" placeholder="بحث باسم المرشح...">
                 </div>
+            </div>
 
+            <div class="candidate-toolbar__right">
                 <div class="candidate-view-switch" role="tablist" aria-label="تبديل طريقة العرض">
                     <button type="button" class="btn btn-primary active" data-view-target="professional" id="showProfessionalView" role="tab" aria-selected="true">
                         <i class="fa fa-th-large me-1"></i>
@@ -43,20 +45,20 @@
                         عرض الجدول
                     </button>
                 </div>
-            </div>
 
-            <div class="candidate-toolbar__actions">
-                @if(\Illuminate\Support\Facades\Route::has('dashboard.candidates.create') && admin()->can('candidates.create'))
-                    <a href="{{ route('dashboard.candidates.create') }}" class="btn btn-primary add-row">
-                        <i class="fa fa-plus me-1"></i>
-                        إضافة مرشح
+                <div class="candidate-toolbar__actions">
+                    @if(\Illuminate\Support\Facades\Route::has('dashboard.candidates.create') && admin()->can('candidates.create'))
+                        <a href="{{ route('dashboard.candidates.create') }}" class="btn btn-primary add-row">
+                            <i class="fa fa-plus me-1"></i>
+                            إضافة مرشح
+                        </a>
+                    @endif
+
+                    <a id="addFakeCandidate" type="button" class="btn btn-danger add-row">
+                        <i class="fa fa-user-secret me-1"></i>
+                        إضافة مرشح وهمي
                     </a>
-                @endif
-
-                <a id="addFakeCandidate" type="button" class="btn btn-danger add-row">
-                    <i class="fa fa-user-secret me-1"></i>
-                    إضافة مرشح وهمي
-                </a>
+                </div>
             </div>
         </section>
 
@@ -182,17 +184,21 @@
         border-radius: 14px;
         box-shadow: 0 10px 22px rgba(15, 23, 42, .07);
         padding: .85rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) auto;
+        align-items: start;
         gap: .8rem;
-        flex-wrap: wrap;
     }
 
     .candidates-index-page .candidate-toolbar__left {
+        min-width: 0;
+    }
+
+    .candidates-index-page .candidate-toolbar__right {
         display: flex;
         align-items: center;
-        gap: .65rem;
+        justify-content: flex-end;
+        gap: .5rem;
         flex-wrap: wrap;
     }
 
@@ -201,6 +207,7 @@
         align-items: center;
         gap: .5rem;
         flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .candidates-index-page .candidate-search-wrap {
@@ -242,6 +249,15 @@
         min-height: 36px;
         font-weight: 800;
         font-size: .82rem;
+        min-width: 130px;
+    }
+
+    .candidates-index-page .candidate-toolbar__actions .btn {
+        min-height: 38px;
+        border-radius: 10px;
+        font-size: .82rem;
+        font-weight: 800;
+        white-space: nowrap;
     }
 
     .candidates-index-page .candidate-content-shell {
@@ -332,6 +348,8 @@
     .candidates-index-page .candidate-card-actions .btn {
         font-size: .78rem;
         font-weight: 700;
+        min-width: 92px;
+        border-radius: 9px;
     }
 
     .candidates-index-page #tableCandidatesView {
@@ -349,9 +367,15 @@
     }
 
     @media (max-width: 768px) {
-        .candidates-index-page .candidate-toolbar__left,
-        .candidates-index-page .candidate-toolbar__actions {
+        .candidates-index-page .candidate-toolbar {
+            grid-template-columns: 1fr;
+            align-items: stretch;
+            gap: .65rem;
+        }
+
+        .candidates-index-page .candidate-toolbar__right {
             width: 100%;
+            justify-content: stretch;
         }
 
         .candidates-index-page .candidate-view-switch {
@@ -364,6 +388,16 @@
 
         .candidates-index-page .candidate-search-wrap {
             min-width: 100%;
+        }
+
+        .candidates-index-page .candidate-toolbar__actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .candidates-index-page .candidate-toolbar__actions .btn {
+            flex: 1 1 calc(50% - .3rem);
+            justify-content: center;
         }
 
         .candidates-index-page .candidate-card-image {
