@@ -2,6 +2,134 @@
 
 @section('content')
 
+@if(isset($pendingJoinRequest) && $pendingJoinRequest)
+@php
+    $candidate = $pendingJoinRequest->candidate;
+    $candidateName = $candidate?->user?->name ?? 'المرشح';
+    $candidateElection = $candidate?->election?->name ?? 'حملة غير محددة';
+    $candidateImage = $candidate?->user?->image ?: ('https://ui-avatars.com/api/?name=' . urlencode($candidateName) . '&background=2563eb&color=fff&size=300');
+    $candidateSlug = trim(($candidate?->user?->name ?? 'candidate'));
+    $candidateSlug = preg_replace('/\s+/u', '-', $candidateSlug);
+    $candidateSlug = trim((string) $candidateSlug, '-');
+    $candidateSlug = ($candidateSlug !== '' ? $candidateSlug : 'candidate') . '-' . ($candidate?->id ?? 0);
+@endphp
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="pending-join-shell">
+            <div class="pending-join-card">
+                <div class="pending-join-header">
+                    <h3 class="mb-1">طلب الانضمام كمتعهد</h3>
+                    <p class="mb-0">حالياً لا يمكن عرض أي أقسام أخرى حتى يراجع المرشح طلبك.</p>
+                </div>
+
+                <div class="pending-candidate-box">
+                    <div class="pending-candidate-avatar" style="background-image:url('{{ $candidateImage }}')"></div>
+                    <div class="pending-candidate-content">
+                        <h4>{{ $candidateName }}</h4>
+                        <div class="pending-candidate-campaign">
+                            <i class="fa fa-flag me-1"></i>
+                            {{ $candidateElection }}
+                        </div>
+                        <a href="{{ route('candidates.public-profile', ['slug' => $candidateSlug]) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm mt-2">
+                            عرض ملف المرشح
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pending-status-alert">
+                    <i class="fa fa-clock-o me-2"></i>
+                    جاري مراجعة طلب انضمامك من قبل المرشح
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pending-join-shell {
+        min-height: calc(100vh - 200px);
+        display: grid;
+        place-items: center;
+        padding: 1rem 0;
+    }
+
+    .pending-join-card {
+        width: min(100%, 760px);
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 18px 34px rgba(15, 23, 42, .08);
+        padding: 1.1rem;
+    }
+
+    .pending-join-header h3 {
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: #0f172a;
+    }
+
+    .pending-join-header p {
+        color: #64748b;
+        font-weight: 600;
+        font-size: .93rem;
+    }
+
+    .pending-candidate-box {
+        margin-top: .95rem;
+        border: 1px solid #dbe3ef;
+        border-radius: 14px;
+        background: linear-gradient(120deg, #f8fbff, #ffffff);
+        padding: .85rem;
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+    .pending-candidate-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background-size: cover;
+        background-position: center;
+        border: 2px solid #dbeafe;
+        box-shadow: 0 8px 18px rgba(59, 130, 246, .18);
+        flex: 0 0 auto;
+    }
+
+    .pending-candidate-content h4 {
+        margin: 0 0 .2rem;
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #1e293b;
+    }
+
+    .pending-candidate-campaign {
+        color: #475569;
+        font-weight: 700;
+        font-size: .86rem;
+    }
+
+    .pending-status-alert {
+        margin-top: .95rem;
+        border: 1px solid #facc15;
+        background: #fef9c3;
+        color: #854d0e;
+        border-radius: 12px;
+        padding: .75rem .85rem;
+        font-weight: 800;
+        font-size: .92rem;
+    }
+
+    @media (max-width: 576px) {
+        .pending-candidate-box {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+@else
+
 {{-- voter --}}
 {{-- <style>
     .button-arrived {
@@ -955,6 +1083,8 @@
         @include('dashboard.partials.voters-import')
     </div>
 @endcan
+
+@endif
 
 @endsection
 @push('js')
