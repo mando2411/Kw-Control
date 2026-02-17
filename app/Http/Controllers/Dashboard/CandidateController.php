@@ -63,9 +63,7 @@ class CandidateController extends Controller
         $listRemainingSlots = null;
 
         if ($currentListLeaderCandidate) {
-            $listMembersCount = Candidate::withoutGlobalScopes()
-                ->where('list_leader_candidate_id', (int) $currentListLeaderCandidate->id)
-                ->count();
+            $listMembersCount = $this->effectiveListCandidatesCount($currentListLeaderCandidate);
 
             $allowedMembers = max(0, (int) ($currentListLeaderCandidate->list_candidates_count ?? 0));
             $listRemainingSlots = max(0, $allowedMembers - $listMembersCount);
@@ -87,9 +85,7 @@ class CandidateController extends Controller
 
         if ($currentListLeaderCandidate) {
             $allowedMembers = max(0, (int) ($currentListLeaderCandidate->list_candidates_count ?? 0));
-            $currentMembersCount = Candidate::withoutGlobalScopes()
-                ->where('list_leader_candidate_id', $currentListLeaderCandidate->id)
-                ->count();
+            $currentMembersCount = $this->effectiveListCandidatesCount($currentListLeaderCandidate);
 
             if ($currentMembersCount >= $allowedMembers) {
                 return back()
@@ -227,17 +223,25 @@ class CandidateController extends Controller
 
         $candidateData = $request->getSanitized();
 
-        $existingMembersCount = Candidate::withoutGlobalScopes()
-            ->where('list_leader_candidate_id', (int) $candidate->id)
-            ->count();
+        $nextCandidateType = (string) ($candidateData['candidate_type'] ?? $candidate->candidate_type);
+        if ($nextCandidateType === 'list_leader') {
+            $listMembersActualCount = Candidate::withoutGlobalScopes()
+                ->where('list_leader_candidate_id', (int) $candidate->id)
+                ->where('is_actual_list_candidate', true)
+                ->count();
 
-        if ((string) ($candidateData['candidate_type'] ?? $candidate->candidate_type) === 'list_leader') {
+            $leaderWillBeActual = array_key_exists('is_actual_list_candidate', $candidateData)
+                ? (bool) $candidateData['is_actual_list_candidate']
+                : (bool) $candidate->is_actual_list_candidate;
+
+            $requiredActualCount = $listMembersActualCount + ($leaderWillBeActual ? 1 : 0);
             $requestedListCount = (int) ($candidateData['list_candidates_count'] ?? $candidate->list_candidates_count ?? 0);
-            if ($requestedListCount > 0 && $requestedListCount < $existingMembersCount) {
+
+            if ($requestedListCount > 0 && $requestedListCount < $requiredActualCount) {
                 return back()
                     ->withInput()
                     ->withErrors([
-                        'list_candidates_count' => 'لا يمكن تقليل عدد مرشحي القائمة عن العدد الحالي للأعضاء.',
+                        'list_candidates_count' => 'لا يمكن تقليل عدد مرشحي القائمة عن العدد الحالي للمرشحين الفعليين.',
                     ]);
             }
         }
@@ -547,6 +551,18 @@ class CandidateController extends Controller
             || (int) ($candidate->list_leader_candidate_id ?? 0) === (int) $listLeaderCandidate->id;
 
         abort_if(!$canAccess, 403);
+    }
+
+    private function effectiveListCandidatesCount(Candidate $listLeaderCandidate): int
+    {
+        $membersActualCount = Candidate::withoutGlobalScopes()
+            ->where('list_leader_candidate_id', (int) $listLeaderCandidate->id)
+            ->where('is_actual_list_candidate', true)
+            ->count();
+
+        $leaderActualCount = (bool) $listLeaderCandidate->is_actual_list_candidate ? 1 : 0;
+
+        return $membersActualCount + $leaderActualCount;
     }
 
 }
