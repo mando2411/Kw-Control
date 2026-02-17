@@ -59,6 +59,17 @@ class CandidateController extends Controller
     public function create()
     {
         $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+        $listMembersCount = 0;
+        $listRemainingSlots = null;
+
+        if ($currentListLeaderCandidate) {
+            $listMembersCount = Candidate::withoutGlobalScopes()
+                ->where('list_leader_candidate_id', (int) $currentListLeaderCandidate->id)
+                ->count();
+
+            $allowedMembers = max(0, (int) ($currentListLeaderCandidate->list_candidates_count ?? 0));
+            $listRemainingSlots = max(0, $allowedMembers - $listMembersCount);
+        }
 
         $relations = [
             'elections' => $currentListLeaderCandidate
@@ -66,7 +77,7 @@ class CandidateController extends Controller
                 : Election::all(),
             'roles' => Role::all(),
         ];
-        return view('dashboard.candidates.create', compact('relations', 'currentListLeaderCandidate'));
+        return view('dashboard.candidates.create', compact('relations', 'currentListLeaderCandidate', 'listMembersCount', 'listRemainingSlots'));
     }
 
 

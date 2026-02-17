@@ -14,6 +14,9 @@
             <div class="row g-3">
                 @php
                     $isListLeaderCreator = isset($currentListLeaderCandidate) && $currentListLeaderCandidate;
+                    $remainingSlots = (int) ($listRemainingSlots ?? 0);
+                    $listMembersCurrent = (int) ($listMembersCount ?? 0);
+                    $listMembersMax = (int) ($currentListLeaderCandidate->list_candidates_count ?? 0);
                 @endphp
 
                 <x-dashboard.partials.message-alert />
@@ -113,6 +116,17 @@
                                     <strong>وضع رئيس القائمة:</strong>
                                     أي مرشح جديد سيتم إضافته تلقائيًا كعضو داخل قائمتك.
                                 </div>
+
+                                <div class="alert {{ $remainingSlots > 0 ? 'alert-success' : 'alert-warning' }} py-2 px-3 mb-3">
+                                    <strong>سعة القائمة:</strong>
+                                    {{ $listMembersCurrent }} / {{ $listMembersMax }}
+                                    @if($remainingSlots > 0)
+                                        — المتبقي {{ $remainingSlots }} مرشح.
+                                    @else
+                                        — تم الوصول للحد الأقصى، لا يمكن إضافة مرشحين جدد.
+                                    @endif
+                                </div>
+
                                 <input type="hidden" id="candidate_type" name="candidate_type" value="candidate">
                             @else
                                 <div class="mb-3">
@@ -173,9 +187,13 @@
 
                 <div class="col-12">
                     <div class="candidate-submit-wrap">
-                        <button type="submit" class="btn btn-primary candidate-submit-btn">
+                        <button type="submit" class="btn btn-primary candidate-submit-btn" @if($isListLeaderCreator && $remainingSlots <= 0) disabled @endif>
                             <i class="fa fa-check-circle me-1"></i>
-                            حفظ المرشح
+                            @if($isListLeaderCreator && $remainingSlots <= 0)
+                                تم الوصول للحد الأقصى
+                            @else
+                                حفظ المرشح
+                            @endif
                         </button>
                     </div>
                 </div>
