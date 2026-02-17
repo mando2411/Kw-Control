@@ -89,7 +89,7 @@ class CandidateController extends Controller
     {
         $user = $candidate->user;
         $user->update($userRequest->getSanitized());
-        $user->syncRoles($userRequest->get('roles'));
+        $user->syncRoles(['مرشح']);
         $candidate->update($request->getSanitized());
         session()->flash('message', 'Candidate Updated Successfully!');
         session()->flash('type', 'success');
