@@ -8,7 +8,7 @@
                 </button>
             </a>
 
-            @if (auth()->user()->hasRole("Administrator"))
+            @if (auth()->user()->hasRole("Administrator") || auth()->user()->hasRole("مرشح رئيس قائمة"))
                 <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
                     <label class="switch">
                         <a href="javascript:void(0)" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
@@ -104,7 +104,7 @@
                     </div>
                 </div>
 
-                @if (auth()->user()->hasRole("Administrator"))
+                @if (auth()->user()->hasRole("Administrator") || auth()->user()->hasRole("مرشح رئيس قائمة"))
                     <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
                         <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
