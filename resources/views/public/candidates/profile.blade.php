@@ -158,7 +158,7 @@
 
     .profile-head__main {
         display: flex;
-        flex-direction: row-reverse;
+        flex-direction: row;
         align-items: flex-end;
         justify-content: flex-end;
         gap: .8rem;
