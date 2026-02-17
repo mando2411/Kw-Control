@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Dashboard;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CandidateRequest extends FormRequest
 {
@@ -46,6 +47,12 @@ class CandidateRequest extends FormRequest
             'max_contractor' => ['required','integer','min:0'],
             'max_represent' => ['required','integer','min:0'],
             'banner' => ['nullable'],
+            'candidate_type' => ['nullable', Rule::in(['candidate', 'list_leader'])],
+            'list_candidates_count' => ['nullable', 'integer', 'min:1', 'required_if:candidate_type,list_leader'],
+            'list_name' => ['nullable', 'string', 'max:255', 'required_if:candidate_type,list_leader'],
+            'list_logo' => ['nullable'],
+            'is_actual_list_candidate' => ['nullable', 'boolean'],
+            'list_leader_candidate_id' => ['nullable', 'integer', 'exists:candidates,id'],
 
 
         ];

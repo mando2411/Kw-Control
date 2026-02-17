@@ -16,7 +16,17 @@ class Candidate extends Model
         'max_contractor',
         'max_represent',
         'votes',
-        'banner'
+        'banner',
+        'candidate_type',
+        'list_candidates_count',
+        'list_name',
+        'list_logo',
+        'is_actual_list_candidate',
+        'list_leader_candidate_id',
+    ];
+
+    protected $casts = [
+        'is_actual_list_candidate' => 'boolean',
     ];
     public function user(): BelongsTo
     {
@@ -39,6 +49,21 @@ class Candidate extends Model
     public function contractorJoinRequests()
     {
         return $this->hasMany(ContractorJoinRequest::class);
+    }
+
+    public function listLeader(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'list_leader_candidate_id');
+    }
+
+    public function listMembers()
+    {
+        return $this->hasMany(self::class, 'list_leader_candidate_id');
+    }
+
+    public function isListLeader(): bool
+    {
+        return (string) $this->candidate_type === 'list_leader';
     }
 
     protected static function boot()

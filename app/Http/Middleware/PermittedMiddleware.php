@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Candidate;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -22,6 +23,15 @@ class PermittedMiddleware
     ];
     public function handle(Request $request, Closure $next)
     {
+        $routeName = (string) optional($request->route())->getName();
+
+        if ($this->isListLeaderUser($request)) {
+            $isAllowedCandidatesArea = Str::startsWith($routeName, 'dashboard.candidates.');
+            $isAllowedSystemRoute = in_array($routeName, ['dashboard.toggle-theme'], true);
+
+            abort_if(!$isAllowedCandidatesArea && !$isAllowedSystemRoute, 403);
+        }
+
         try {
             $permission = Str::of($request->route()->getName())
                 ->remove('dashboard.')
@@ -44,5 +54,18 @@ class PermittedMiddleware
         }
 
         return $next($request);
+    }
+
+    private function isListLeaderUser(Request $request): bool
+    {
+        $user = $request->user('web');
+        if (!$user) {
+            return false;
+        }
+
+        return Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) $user->id)
+            ->where('candidate_type', 'list_leader')
+            ->exists();
     }
 }

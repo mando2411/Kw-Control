@@ -50,10 +50,12 @@
                         </a>
                     @endif
 
-                    <a id="addFakeCandidate" type="button" class="btn btn-danger add-row">
-                        <i class="fa fa-user-secret me-1"></i>
-                        إضافة مرشح وهمي
-                    </a>
+                    @if(empty($isListLeaderCandidate))
+                        <a id="addFakeCandidate" type="button" class="btn btn-danger add-row">
+                            <i class="fa fa-user-secret me-1"></i>
+                            إضافة مرشح وهمي
+                        </a>
+                    @endif
                 </div>
             </div>
         </section>

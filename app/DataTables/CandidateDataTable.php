@@ -4,6 +4,7 @@ namespace App\DataTables;
 
 use App\Models\Candidate;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
@@ -25,7 +26,25 @@ class CandidateDataTable extends DataTable
 
     public function query(Candidate $model): QueryBuilder
     {
-        return $model->newQuery()->with(['user', 'election']);
+        $query = $model->newQuery()->with(['user', 'election']);
+
+        if (Auth::check()) {
+            $listLeaderCandidate = Candidate::withoutGlobalScopes()
+                ->select('id')
+                ->where('user_id', (int) Auth::id())
+                ->where('candidate_type', 'list_leader')
+                ->first();
+
+            if ($listLeaderCandidate) {
+                $query->where(function ($nestedQuery) use ($listLeaderCandidate) {
+                    $nestedQuery
+                        ->where('candidates.id', (int) $listLeaderCandidate->id)
+                        ->orWhere('candidates.list_leader_candidate_id', (int) $listLeaderCandidate->id);
+                });
+            }
+        }
+
+        return $query;
     }
 
     public function html(): HtmlBuilder

@@ -10,6 +10,7 @@ use App\Models\Election;
 use App\Models\Candidate;
 use App\Models\Committee;
 use App\Traits\ImageTrait;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Services\VoteService;
 use Illuminate\Support\Str;
@@ -28,14 +29,22 @@ class CandidateController extends Controller
     //================================================================================
     public function index(CandidateDataTable $dataTable)
     {
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+
         $elections = Election::all();
-        $candidates = Candidate::with([
+        $candidatesQuery = Candidate::with([
             'election',
             'user' => function ($query) {
                 $query->withCount(['contractors', 'representatives']);
             },
-        ])->latest()->get();
-        return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates'));
+        ])->latest();
+
+        $this->applyListLeaderVisibilityScope($candidatesQuery, $currentListLeaderCandidate);
+
+        $candidates = $candidatesQuery->get();
+        $isListLeaderCandidate = $currentListLeaderCandidate !== null;
+
+        return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates', 'isListLeaderCandidate'));
     }
     public function result()
     {
@@ -49,23 +58,81 @@ class CandidateController extends Controller
 
     public function create()
     {
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
 
         $relations = [
-            'elections' => Election::all(),
+            'elections' => $currentListLeaderCandidate
+                ? Election::where('id', $currentListLeaderCandidate->election_id)->get()
+                : Election::all(),
             'roles' => Role::all(),
         ];
-        return view('dashboard.candidates.create', compact('relations'));
+        return view('dashboard.candidates.create', compact('relations', 'currentListLeaderCandidate'));
     }
 
 
     public function store(CandidateRequest $request, UserRequest $userRequest)
     {
-        $user = User::create($userRequest->getSanitized());
-        $user->assignRole($request->get('roles'));
-        $request['user_id'] = $user->id;
-        $candidate = Candidate::create($request->all());
-        $committees = $candidate->election->committees->pluck('id')->toArray();
-        $candidate->committees()->sync($committees);
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+
+        if ($currentListLeaderCandidate) {
+            $allowedMembers = max(0, (int) ($currentListLeaderCandidate->list_candidates_count ?? 0));
+            $currentMembersCount = Candidate::withoutGlobalScopes()
+                ->where('list_leader_candidate_id', $currentListLeaderCandidate->id)
+                ->count();
+
+            if ($currentMembersCount >= $allowedMembers) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'list_candidates_count' => 'لا يمكن إضافة مرشحين جدد. تم الوصول للحد الأقصى المسموح به لهذه القائمة.',
+                    ]);
+            }
+        }
+
+        $userData = $userRequest->getSanitized();
+        if ($currentListLeaderCandidate) {
+            $userData['election_id'] = $currentListLeaderCandidate->election_id;
+        }
+
+        $user = User::create($userData);
+
+        $candidateData = $request->getSanitized();
+        $candidateData['user_id'] = $user->id;
+        $candidateData['candidate_type'] = (string) ($candidateData['candidate_type'] ?? 'candidate');
+        $candidateData['is_actual_list_candidate'] = (bool) ($candidateData['is_actual_list_candidate'] ?? true);
+
+        if ($currentListLeaderCandidate) {
+            $candidateData['candidate_type'] = 'candidate';
+            $candidateData['list_leader_candidate_id'] = $currentListLeaderCandidate->id;
+            $candidateData['list_name'] = (string) ($currentListLeaderCandidate->list_name ?? '');
+            $candidateData['list_logo'] = (string) ($currentListLeaderCandidate->list_logo ?? '');
+            $candidateData['election_id'] = $currentListLeaderCandidate->election_id;
+            $candidateData['list_candidates_count'] = null;
+        } elseif ((string) $candidateData['candidate_type'] !== 'list_leader') {
+            $candidateData['list_candidates_count'] = null;
+            $candidateData['list_name'] = null;
+            $candidateData['list_logo'] = null;
+            $candidateData['list_leader_candidate_id'] = null;
+        }
+
+        $candidate = Candidate::create($candidateData);
+
+        $assignedRoles = ['مرشح'];
+        if ($candidate->isListLeader()) {
+            $assignedRoles[] = 'مرشح رئيس قائمة';
+        }
+
+        foreach ($assignedRoles as $roleName) {
+            Role::findOrCreate($roleName, 'web');
+        }
+
+        $user->syncRoles($assignedRoles);
+
+        if ($candidate->election) {
+            $committees = $candidate->election->committees->pluck('id')->toArray();
+            $candidate->committees()->sync($committees);
+        }
+
         session()->flash('message', 'Candidate Created Successfully!');
         session()->flash('type', 'success');
         return redirect()->route('dashboard.candidates.edit', $candidate);
@@ -119,20 +186,72 @@ class CandidateController extends Controller
 
     public function edit(Candidate $candidate)
     {
+        $this->ensureListLeaderCanManageCandidate($candidate);
+
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
         $relations = [
-            'elections' => Election::all(),
+            'elections' => $currentListLeaderCandidate
+                ? Election::where('id', $currentListLeaderCandidate->election_id)->get()
+                : Election::all(),
             'roles' => Role::all(),
         ];
-        return view('dashboard.candidates.edit', compact('candidate', 'relations'));
+        return view('dashboard.candidates.edit', compact('candidate', 'relations', 'currentListLeaderCandidate'));
     }
 
 
     public function update(CandidateRequest $request, Candidate $candidate, UserRequest $userRequest)
-    {
+    {   
+        $this->ensureListLeaderCanManageCandidate($candidate);
+
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+
         $user = $candidate->user;
-        $user->update($userRequest->getSanitized());
-        $user->syncRoles($userRequest->get('roles'));
-        $candidate->update($request->getSanitized());
+        $userData = $userRequest->getSanitized();
+
+        if ($currentListLeaderCandidate) {
+            $userData['election_id'] = $currentListLeaderCandidate->election_id;
+        }
+
+        $user->update($userData);
+
+        $candidateData = $request->getSanitized();
+
+        if ($currentListLeaderCandidate) {
+            $isLeaderSelf = (int) $candidate->id === (int) $currentListLeaderCandidate->id;
+
+            if ($isLeaderSelf) {
+                $candidateData['candidate_type'] = 'list_leader';
+                $candidateData['list_leader_candidate_id'] = null;
+            } else {
+                $candidateData['candidate_type'] = 'candidate';
+                $candidateData['list_leader_candidate_id'] = $currentListLeaderCandidate->id;
+                $candidateData['list_name'] = (string) ($currentListLeaderCandidate->list_name ?? '');
+                $candidateData['list_logo'] = (string) ($currentListLeaderCandidate->list_logo ?? '');
+                $candidateData['list_candidates_count'] = null;
+            }
+
+            $candidateData['election_id'] = $currentListLeaderCandidate->election_id;
+            $user->syncRoles(['مرشح']);
+        } else {
+            $candidateType = (string) ($candidateData['candidate_type'] ?? 'candidate');
+            if ($candidateType !== 'list_leader') {
+                $candidateData['list_candidates_count'] = null;
+                $candidateData['list_name'] = null;
+                $candidateData['list_logo'] = null;
+                $candidateData['list_leader_candidate_id'] = null;
+            }
+
+            $assignedRoles = ['مرشح'];
+            if ($candidateType === 'list_leader') {
+                Role::findOrCreate('مرشح رئيس قائمة', 'web');
+                $assignedRoles[] = 'مرشح رئيس قائمة';
+            }
+
+            $user->syncRoles($assignedRoles);
+        }
+
+        $candidate->update($candidateData);
+
         session()->flash('message', 'Candidate Updated Successfully!');
         session()->flash('type', 'success');
         return back();
@@ -141,6 +260,13 @@ class CandidateController extends Controller
 
     public function destroy(Candidate $candidate)
     {
+        $this->ensureListLeaderCanManageCandidate($candidate);
+
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+        if ($currentListLeaderCandidate && (int) $candidate->id === (int) $currentListLeaderCandidate->id) {
+            abort(403);
+        }
+
         $candidate->user()->delete();
         $candidate->delete();
         return response()->json([
@@ -308,6 +434,10 @@ class CandidateController extends Controller
     //==============================================================
     public function storeFakeCandidate(Request $request, UserRequest $userRequest)
     {
+        if ($this->currentListLeaderCandidate()) {
+            abort(403);
+        }
+
         try {
             DB::beginTransaction();
             $image = $request->file('image');
@@ -343,5 +473,44 @@ class CandidateController extends Controller
         }
     }
     //==============================================================
+
+    private function currentListLeaderCandidate(): ?Candidate
+    {
+        if (!auth()->check()) {
+            return null;
+        }
+
+        return Candidate::withoutGlobalScopes()
+            ->where('user_id', auth()->id())
+            ->where('candidate_type', 'list_leader')
+            ->first();
+    }
+
+    private function applyListLeaderVisibilityScope(Builder $query, ?Candidate $listLeaderCandidate): Builder
+    {
+        if (!$listLeaderCandidate) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $nestedQuery) use ($listLeaderCandidate) {
+            $nestedQuery
+                ->where('candidates.id', $listLeaderCandidate->id)
+                ->orWhere('candidates.list_leader_candidate_id', $listLeaderCandidate->id);
+        });
+    }
+
+    private function ensureListLeaderCanManageCandidate(Candidate $candidate): void
+    {
+        $listLeaderCandidate = $this->currentListLeaderCandidate();
+
+        if (!$listLeaderCandidate) {
+            return;
+        }
+
+        $canAccess = (int) $candidate->id === (int) $listLeaderCandidate->id
+            || (int) ($candidate->list_leader_candidate_id ?? 0) === (int) $listLeaderCandidate->id;
+
+        abort_if(!$canAccess, 403);
+    }
 
 }

@@ -12,6 +12,10 @@
 
         <div class="container-fluid candidate-create-modern">
             <div class="row g-3">
+                @php
+                    $isListLeaderCreator = isset($currentListLeaderCandidate) && $currentListLeaderCandidate;
+                @endphp
+
                 <x-dashboard.partials.message-alert />
 
                 <div class="col-12">
@@ -104,15 +108,23 @@
                                 @error('max_represent')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label for="candidate_type" class="form-label fw-bold">نوع المرشح <span class="text-danger">*</span></label>
-                                <select class="form-control" id="candidate_type" name="candidate_type" required>
-                                    <option value="candidate" @selected(old('candidate_type', 'candidate') === 'candidate')>مرشح</option>
-                                    <option value="list_leader" @selected(old('candidate_type') === 'list_leader')>مرشح رئيس قائمة</option>
-                                </select>
-                                <small class="text-muted d-block mt-1">حدد إذا كان المرشح فردي عادي أم رئيس قائمة.</small>
-                                @error('candidate_type')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
-                            </div>
+                            @if($isListLeaderCreator)
+                                <div class="alert alert-info py-2 px-3 mb-3">
+                                    <strong>وضع رئيس القائمة:</strong>
+                                    أي مرشح جديد سيتم إضافته تلقائيًا كعضو داخل قائمتك.
+                                </div>
+                                <input type="hidden" id="candidate_type" name="candidate_type" value="candidate">
+                            @else
+                                <div class="mb-3">
+                                    <label for="candidate_type" class="form-label fw-bold">نوع المرشح <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="candidate_type" name="candidate_type" required>
+                                        <option value="candidate" @selected(old('candidate_type', 'candidate') === 'candidate')>مرشح</option>
+                                        <option value="list_leader" @selected(old('candidate_type') === 'list_leader')>مرشح رئيس قائمة</option>
+                                    </select>
+                                    <small class="text-muted d-block mt-1">حدد إذا كان المرشح فردي عادي أم رئيس قائمة.</small>
+                                    @error('candidate_type')<span class="d-block text-danger mt-1">{{ $message }}</span>@enderror
+                                </div>
+                            @endif
 
                             <div class="candidate-list-extra" id="candidate_list_extra_fields" @if(old('candidate_type', 'candidate') !== 'list_leader') style="display: none;" @endif>
                                 <div class="candidate-list-extra__inner">
