@@ -2793,20 +2793,22 @@
                     event.preventDefault();
                     event.stopPropagation();
 
-                    // Primary: mimic admin.js behavior directly (most reliable)
+                    // Primary: trigger legacy handler (admin.js)
+                    var classicIcon = document.getElementById('sidebar-toggle');
+                    if (classicIcon) {
+                        if (window.jQuery) {
+                            window.jQuery(classicIcon).triggerHandler('click');
+                        } else {
+                            classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                        }
+                        return;
+                    }
+
+                    // Fallback: direct toggle only when legacy toggle element does not exist
                     var sidebar = document.querySelector('.page-sidebar');
                     var header = document.querySelector('.page-main-header');
                     if (sidebar) sidebar.classList.toggle('open');
                     if (header) header.classList.toggle('open');
-
-                    // Fallback: try triggering the legacy handler as well (if bound)
-                    var classicIcon = document.getElementById('sidebar-toggle');
-                    if (!classicIcon) return;
-                    if (window.jQuery) {
-                        window.jQuery(classicIcon).triggerHandler('click');
-                        return;
-                    }
-                    classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                 });
             }
 
@@ -2820,18 +2822,20 @@
                     event.preventDefault();
                     event.stopPropagation();
 
+                    var classicIcon = document.getElementById('sidebar-toggle');
+                    if (classicIcon) {
+                        if (window.jQuery) {
+                            window.jQuery(classicIcon).triggerHandler('click');
+                        } else {
+                            classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+                        }
+                        return;
+                    }
+
                     var sidebar = document.querySelector('.page-sidebar');
                     var header = document.querySelector('.page-main-header');
                     if (sidebar) sidebar.classList.toggle('open');
                     if (header) header.classList.toggle('open');
-
-                    var classicIcon = document.getElementById('sidebar-toggle');
-                    if (!classicIcon) return;
-                    if (window.jQuery) {
-                        window.jQuery(classicIcon).triggerHandler('click');
-                        return;
-                    }
-                    classicIcon.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
                 });
             }
 
