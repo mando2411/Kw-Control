@@ -128,8 +128,16 @@ class ContractorController extends Controller
     public function ass(Request $request, $id)
 {
     $voterData = $request->input('voter');
+    $contractorToken = trim((string) $request->input('contractor_token', ''));
+    $isPortalContext = $contractorToken !== '';
 
-    $contractor = Contractor::findOrFail($id);
+    $contractor = ($isPortalContext ? Contractor::withoutGlobalScopes() : Contractor::query())
+        ->findOrFail($id);
+
+    if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+        abort(403);
+    }
+
     if($request->has('id')){
         $oldContractor=Contractor::where('id',$request->id)->first();
         
@@ -396,7 +404,16 @@ class ContractorController extends Controller
             return redirect()->back();
     }
     public function modify(Request $request){
-        $contractor = Contractor::findOrFail($request->id);
+        $contractorToken = trim((string) $request->input('contractor_token', ''));
+        $isPortalContext = $contractorToken !== '';
+
+        $contractor = ($isPortalContext ? Contractor::withoutGlobalScopes() : Contractor::query())
+            ->findOrFail($request->id);
+
+        if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+            abort(403);
+        }
+
         if($request->voters){
             if($request->select == 'delete'){
                 $contractor->voters()->detach($request->voters);
@@ -434,7 +451,16 @@ class ContractorController extends Controller
         return redirect()->back();
     }
     public function modify_g(Request $request){
-        $contractor = Contractor::findOrFail($request->id);
+        $contractorToken = trim((string) $request->input('contractor_token', ''));
+        $isPortalContext = $contractorToken !== '';
+
+        $contractor = ($isPortalContext ? Contractor::withoutGlobalScopes() : Contractor::query())
+            ->findOrFail($request->id);
+
+        if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+            abort(403);
+        }
+
         $group = Group::findOrFail($request->group_id);
         if($request->voters){
             $group->voters()->detach($request->voters);
@@ -453,7 +479,16 @@ class ContractorController extends Controller
         return redirect()->back();
     }
     public function delete_mad(Request $request){
-        $contractor = Contractor::findOrFail($request->id);
+        $contractorToken = trim((string) $request->input('contractor_token', ''));
+        $isPortalContext = $contractorToken !== '';
+
+        $contractor = ($isPortalContext ? Contractor::withoutGlobalScopes() : Contractor::query())
+            ->findOrFail($request->id);
+
+        if ($isPortalContext && !hash_equals((string) $contractor->token, $contractorToken)) {
+            abort(403);
+        }
+
             $contractor->voters()->detach($request->voter);
             $contractor->softDelete()->attach($request->voter);
             session()->flash('message', 'تمت الحذف بنجاح');
