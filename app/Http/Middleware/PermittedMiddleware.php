@@ -27,9 +27,10 @@ class PermittedMiddleware
 
         if ($this->isListLeaderUser($request)) {
             $isAllowedCandidatesArea = Str::startsWith($routeName, 'dashboard.candidates.');
+            $isAllowedNotificationsArea = Str::startsWith($routeName, 'dashboard.notifications.');
             $isAllowedSystemRoute = in_array($routeName, ['dashboard.toggle-theme'], true);
 
-            abort_if(!$isAllowedCandidatesArea && !$isAllowedSystemRoute, 403);
+            abort_if(!$isAllowedCandidatesArea && !$isAllowedNotificationsArea && !$isAllowedSystemRoute, 403);
         }
 
         try {
