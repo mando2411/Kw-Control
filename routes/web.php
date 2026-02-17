@@ -109,9 +109,10 @@ Route::get('/storage/media/{path}', function (string $path) {
 
 Route::get('/', function () {
     $show_all_result=false;
+    $approvedContractorPortalUrl = null;
     $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
         ->where('requester_user_id', (int) auth()->id())
-        ->whereIn('status', ['pending', 'rejected'])
+        ->whereIn('status', ['pending', 'rejected', 'approved'])
         ->latest()
         ->first();
 
@@ -122,6 +123,18 @@ Route::get('/', function () {
 
         if ($candidate) {
             $pendingJoinRequest->setRelation('candidate', $candidate);
+
+            if ((string) $pendingJoinRequest->status === 'approved') {
+                $contractor = \App\Models\Contractor::withoutGlobalScopes()
+                    ->where('user_id', (int) auth()->id())
+                    ->where('creator_id', (int) $candidate->user_id)
+                    ->latest('id')
+                    ->first();
+
+                if ($contractor && !empty($contractor->token)) {
+                    $approvedContractorPortalUrl = route('con-profile', ['token' => $contractor->token]);
+                }
+            }
         }
     }
 
@@ -131,7 +144,7 @@ Route::get('/', function () {
             $show_all_result=true;
         }
     }
-    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest'));
+    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

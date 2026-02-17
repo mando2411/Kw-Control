@@ -6,6 +6,9 @@
 @php
     $candidate = $pendingJoinRequest->candidate;
     $joinStatus = (string) ($pendingJoinRequest->status ?? 'pending');
+    $contractorName = (string) (auth()->user()->name ?? 'المتعهد');
+    $contractorPortalUrl = $approvedContractorPortalUrl ?? null;
+    $contractorAppUrl = route('contractor-app.download');
     $candidateName = $candidate?->user?->name ?? 'المرشح';
     $candidateElection = $candidate?->election?->name ?? 'حملة غير محددة';
     $candidateImage = $candidate?->user?->image ?: ('https://ui-avatars.com/api/?name=' . urlencode($candidateName) . '&background=2563eb&color=fff&size=300');
@@ -25,11 +28,21 @@
             'icon' => 'fa-times-circle',
             'text' => 'لقد تم رفض طلبك من قبل المرشح',
         ],
+        'approved' => [
+            'class' => 'pending-status-alert--approved',
+            'icon' => 'fa-check-circle',
+            'text' => 'تم قبول طلبك من قبل المرشح',
+        ],
     ][$joinStatus] ?? [
         'class' => 'pending-status-alert--pending',
         'icon' => 'fa-clock-o',
         'text' => 'جاري مراجعة طلب انضمامك من قبل المرشح',
     ];
+
+    $headerTitle = $joinStatus === 'approved' ? 'أهلاً بك يا ' . $contractorName : 'طلب الانضمام كمتعهد';
+    $headerSubtitle = $joinStatus === 'approved'
+        ? 'تم قبولك كمتعهد. يمكنك متابعة عملك من خلال الروابط التالية.'
+        : 'حالياً لا يمكن عرض أي أقسام أخرى حتى يراجع المرشح طلبك.';
 @endphp
 
 <div class="page-body pending-join-page" dir="rtl">
@@ -37,8 +50,8 @@
         <div class="pending-join-shell">
             <div class="pending-join-card">
                 <div class="pending-join-header">
-                    <h3 class="mb-1">طلب الانضمام كمتعهد</h3>
-                    <p class="mb-0">حالياً لا يمكن عرض أي أقسام أخرى حتى يراجع المرشح طلبك.</p>
+                    <h3 class="mb-1">{{ $headerTitle }}</h3>
+                    <p class="mb-0">{{ $headerSubtitle }}</p>
                 </div>
 
                 <div class="pending-candidate-box">
@@ -62,6 +75,29 @@
                     <i class="fa {{ $statusConfig['icon'] }} me-2"></i>
                     {{ $statusConfig['text'] }}
                 </div>
+
+                @if($joinStatus === 'approved')
+                    <div class="pending-accepted-links">
+                        <div class="pending-accepted-links__item">
+                            <h5>يمكنك متابعة عمل المتعهد عن طريق هذا الرابط</h5>
+                            @if($contractorPortalUrl)
+                                <a href="{{ $contractorPortalUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                                    فتح رابط المتعهد
+                                </a>
+                                <a href="{{ $contractorPortalUrl }}" target="_blank" rel="noopener noreferrer" class="pending-link-text">{{ $contractorPortalUrl }}</a>
+                            @else
+                                <div class="pending-candidate-note">سيظهر رابط المتعهد هنا بمجرد تفعيل التوكن.</div>
+                            @endif
+                        </div>
+
+                        <div class="pending-accepted-links__item">
+                            <h5>أو عن طريق تحميل تطبيق المتعهد من هنا</h5>
+                            <a href="{{ $contractorAppUrl }}" class="btn btn-success btn-sm">
+                                تحميل تطبيق المتعهد
+                            </a>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -163,6 +199,40 @@
         border: 1px solid #fca5a5;
         background: #fef2f2;
         color: #991b1b;
+    }
+
+    .pending-status-alert.pending-status-alert--approved {
+        border: 1px solid #86efac;
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .pending-accepted-links {
+        margin-top: .9rem;
+        display: grid;
+        gap: .7rem;
+    }
+
+    .pending-accepted-links__item {
+        border: 1px solid #dbe3ef;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: .75rem;
+    }
+
+    .pending-accepted-links__item h5 {
+        margin: 0 0 .45rem;
+        font-size: .9rem;
+        font-weight: 800;
+        color: #1e293b;
+    }
+
+    .pending-link-text {
+        margin-top: .45rem;
+        display: block;
+        font-size: .78rem;
+        color: #2563eb;
+        word-break: break-all;
     }
 
     @media (max-width: 576px) {
