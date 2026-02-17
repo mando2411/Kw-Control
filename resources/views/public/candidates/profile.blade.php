@@ -160,7 +160,7 @@
         flex-wrap: wrap;
     }
 
-    .profile-head__main { display: flex; align-items: flex-end; gap: .8rem; }
+    .profile-head__main { display: flex; align-items: flex-end; gap: .8rem; flex-direction: row-reverse; }
 
     .profile-avatar {
         width: 168px;
