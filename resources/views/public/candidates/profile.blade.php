@@ -154,17 +154,17 @@
         background: #fff;
         padding: .8rem 1rem;
         display: flex;
-        justify-content: flex-end;
+        flex-direction: column;
+        justify-content: flex-start;
         align-items: flex-end;
         gap: .8rem;
-        flex-wrap: wrap;
     }
 
     .profile-head__main {
-        width: 100%;
         display: flex;
+        flex-direction: row-reverse;
         align-items: flex-end;
-        justify-content: flex-end;
+        justify-content: flex-start;
         gap: .8rem;
         text-align: right;
     }
@@ -195,7 +195,6 @@
     }
 
     .profile-actions {
-        width: 100%;
         display: flex;
         justify-content: flex-end;
         gap: .45rem;
