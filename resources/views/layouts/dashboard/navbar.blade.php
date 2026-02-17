@@ -19,14 +19,14 @@
             @if ($canToggleSidebar)
                 <span class="media-body text-end switch-sm mx-2 sidebar-toggle-classic">
                     <label class="switch">
-                        <a href="javascript:void(0)" id="sidebar-toggle-classic-btn" class="btn btn-outline-secondary" aria-label="القائمة الجانبية">
+                        <a href="javascript:void(0)" id="sidebar-toggle-classic-btn" class="btn btn-outline-secondary" aria-label="القائمة الجانبية" onclick="if(window.__kwToggleSidebar){window.__kwToggleSidebar(event);}">
                             <i id="sidebar-toggle" data-feather="align-left"></i>
                         </a>
                     </label>
                 </span>
 
                 <span class="media-body text-end mx-2 sidebar-toggle-modern">
-                    <button type="button" class="hm-sidebar-toggle" id="sidebar-toggle-modern" aria-label="القائمة الجانبية" title="القائمة الجانبية">
+                    <button type="button" class="hm-sidebar-toggle" id="sidebar-toggle-modern" aria-label="القائمة الجانبية" title="القائمة الجانبية" onclick="if(window.__kwToggleSidebar){window.__kwToggleSidebar(event);}">
                         <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
                 </span>
@@ -113,7 +113,7 @@
                 </div>
 
                 @if ($canToggleSidebar)
-                    <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية">
+                    <button type="button" class="hm-sidebar-toggle hm-sidebar-toggle--mobile" id="sidebar-toggle-modern-mobile" aria-label="القائمة الجانبية" onclick="if(window.__kwToggleSidebar){window.__kwToggleSidebar(event);}">
                         <i class="bi bi-layout-sidebar-inset"></i>
                     </button>
                 @endif

@@ -2790,6 +2790,18 @@
                 if (header) header.classList.toggle('open');
             }
 
+            window.__kwToggleSidebar = function (event) {
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (typeof event.stopImmediatePropagation === 'function') {
+                        event.stopImmediatePropagation();
+                    }
+                }
+
+                performManualToggle();
+            };
+
             function bind() {
                 var modernBtn = document.getElementById('sidebar-toggle-modern');
                 if (!modernBtn) return;
@@ -2797,9 +2809,7 @@
                 modernBtn.dataset.bound = '1';
 
                 modernBtn.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    performManualToggle();
+                    window.__kwToggleSidebar(event);
                 });
             }
 
@@ -2810,9 +2820,7 @@
                 classicBtn.dataset.bound = '1';
 
                 classicBtn.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    performManualToggle();
+                    window.__kwToggleSidebar(event);
                 });
             }
 
@@ -2823,9 +2831,7 @@
                 mobileBtn.dataset.bound = '1';
 
                 mobileBtn.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    performManualToggle();
+                    window.__kwToggleSidebar(event);
                 });
             }
 
@@ -2833,14 +2839,7 @@
                 document.addEventListener('click', function (event) {
                     var icon = event.target && event.target.closest ? event.target.closest('#sidebar-toggle') : null;
                     if (!icon) return;
-
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if (typeof event.stopImmediatePropagation === 'function') {
-                        event.stopImmediatePropagation();
-                    }
-
-                    performManualToggle();
+                    window.__kwToggleSidebar(event);
                 }, true);
             }
 
