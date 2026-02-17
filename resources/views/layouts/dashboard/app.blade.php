@@ -2349,8 +2349,8 @@
                 }
 
                 var html = items.map(function (item) {
-                    var isJoinRequestPending = item.kind === 'contractor_join_request' && item.decision === 'pending' && !item.decision_closed;
-                    var itemUrl = isJoinRequestPending ? 'javascript:void(0)' : safeUrl(item.url);
+                    var isJoinRequest = item.kind === 'contractor_join_request' && Number(item.join_request_id || 0) > 0;
+                    var itemUrl = isJoinRequest ? 'javascript:void(0)' : safeUrl(item.url);
                     var unreadClass = item.read_at ? '' : ' unread';
                     var joinRequestId = Number(item.join_request_id || 0);
                     var lockReadAttr = item.lock_read_until_decision ? '1' : '0';
@@ -2580,14 +2580,19 @@
                     joinReviewAlert.textContent = '';
 
                     var decisionButtons = joinReviewModalEl.querySelectorAll('[data-join-decision]');
-                    var pending = String(data.status || '') === 'pending';
                     decisionButtons.forEach(function (button) {
-                        button.disabled = !pending;
+                        button.disabled = false;
                     });
 
-                    if (!pending) {
-                        joinReviewAlert.className = 'alert alert-secondary';
-                        joinReviewAlert.textContent = data.status === 'approved' ? 'تمت الموافقة على هذا الطلب.' : 'تم رفض هذا الطلب.';
+                    if (String(data.status || '') === 'approved') {
+                        joinReviewAlert.className = 'alert alert-success';
+                        joinReviewAlert.textContent = 'الحالة الحالية: تم القبول. يمكنك تعديل القرار في أي وقت.';
+                    } else if (String(data.status || '') === 'rejected') {
+                        joinReviewAlert.className = 'alert alert-danger';
+                        joinReviewAlert.textContent = 'الحالة الحالية: تم الرفض. يمكنك تعديل القرار في أي وقت.';
+                    } else {
+                        joinReviewAlert.className = 'alert alert-warning';
+                        joinReviewAlert.textContent = 'الطلب ما زال قيد المراجعة. اختر قبول أو رفض.';
                     }
 
                     if (joinReviewModal) {
@@ -2694,7 +2699,7 @@
                     var lockRead = link.getAttribute('data-lock-read') === '1';
                     var notificationId = link.getAttribute('data-notif-id') || '';
 
-                    if (kind === 'contractor_join_request' && decision === 'pending') {
+                    if (kind === 'contractor_join_request') {
                         event.preventDefault();
                         event.stopPropagation();
                         openJoinReviewModal(joinRequestId > 0 ? joinRequestId : null, notificationId);
