@@ -1,7 +1,7 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
-<div class="page-body">
+<div class="page-body candidates-index-page">
     <!-- Container-fluid starts-->
     <x-dashboard.partials.breadcrumb title="Candidates">
         <li class="breadcrumb-item active">Candidates</li>
@@ -101,7 +101,7 @@
 
 @push('css')
 <style>
-    .candidate-page-shell {
+    .candidates-index-page .candidate-page-shell {
         border: 1px solid rgba(148, 163, 184, .24);
         box-shadow: 0 14px 32px rgba(15, 23, 42, .08);
         border-radius: 16px;
@@ -109,7 +109,7 @@
         background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.98));
     }
 
-    .candidate-page-head {
+    .candidates-index-page .candidate-page-head {
         border: 1px solid rgba(148, 163, 184, .25);
         background: linear-gradient(120deg, rgba(99,102,241,.10), rgba(14,165,233,.10), rgba(255,255,255,.96));
         border-radius: 14px;
@@ -121,25 +121,25 @@
         flex-wrap: wrap;
     }
 
-    .candidate-page-head__title {
+    .candidates-index-page .candidate-page-head__title {
         font-size: 1.05rem;
         font-weight: 900;
         color: #0f172a;
     }
 
-    .candidate-page-head__subtitle {
+    .candidates-index-page .candidate-page-head__subtitle {
         font-size: .86rem;
         color: #475569;
         font-weight: 600;
     }
 
-    .candidate-page-head__stats {
+    .candidates-index-page .candidate-page-head__stats {
         display: flex;
         gap: .55rem;
         flex-wrap: wrap;
     }
 
-    .candidate-stat-pill {
+    .candidates-index-page .candidate-stat-pill {
         background: #fff;
         border: 1px solid rgba(148, 163, 184, .32);
         border-radius: 999px;
@@ -150,19 +150,19 @@
         box-shadow: 0 6px 14px rgba(15, 23, 42, .06);
     }
 
-    .candidate-stat-pill .label {
+    .candidates-index-page .candidate-stat-pill .label {
         font-size: .76rem;
         color: #475569;
         font-weight: 700;
     }
 
-    .candidate-stat-pill strong {
+    .candidates-index-page .candidate-stat-pill strong {
         font-size: .9rem;
         color: #0f172a;
         font-weight: 900;
     }
 
-    .candidate-view-switch {
+    .candidates-index-page .candidate-view-switch {
         display: flex;
         gap: .55rem;
         flex-wrap: wrap;
@@ -173,7 +173,7 @@
         width: fit-content;
     }
 
-    .candidate-view-switch .btn {
+    .candidates-index-page .candidate-view-switch .btn {
         border-radius: 999px;
         border-width: 1px;
         min-height: 38px;
@@ -181,19 +181,19 @@
         font-size: .84rem;
     }
 
-    .candidate-section-caption {
+    .candidates-index-page .candidate-section-caption {
         color: #475569;
         font-size: .84rem;
         font-weight: 700;
     }
 
-    .candidate-cards-grid {
+    .candidates-index-page .candidate-cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 1rem;
     }
 
-    .candidate-card-item {
+    .candidates-index-page .candidate-card-item {
         border-radius: 14px;
         overflow: hidden;
         border: 1px solid rgba(148, 163, 184, .3);
@@ -202,12 +202,12 @@
         transition: transform .24s ease, box-shadow .24s ease;
     }
 
-    .candidate-card-item:hover {
+    .candidates-index-page .candidate-card-item:hover {
         transform: translateY(-4px);
         box-shadow: 0 16px 28px rgba(15, 23, 42, .14);
     }
 
-    .candidate-card-image {
+    .candidates-index-page .candidate-card-image {
         position: relative;
         min-height: 320px;
         background-size: cover;
@@ -215,7 +215,7 @@
         isolation: isolate;
     }
 
-    .candidate-card-overlay {
+    .candidates-index-page .candidate-card-overlay {
         position: absolute;
         right: 0;
         left: 0;
@@ -234,17 +234,17 @@
         backdrop-filter: blur(2px);
     }
 
-    .candidate-card-item:hover .candidate-card-overlay {
+    .candidates-index-page .candidate-card-item:hover .candidate-card-overlay {
         transform: translateY(0);
     }
 
-    .candidate-card-name {
+    .candidates-index-page .candidate-card-name {
         margin: 0;
         font-weight: 800;
         font-size: 1rem;
     }
 
-    .candidate-card-meta {
+    .candidates-index-page .candidate-card-meta {
         display: flex;
         flex-direction: column;
         gap: .25rem;
@@ -252,54 +252,58 @@
         opacity: .98;
     }
 
-    #tableCandidatesView {
+    .candidates-index-page #tableCandidatesView {
         border: 1px solid rgba(148, 163, 184, .24);
         border-radius: 12px;
         padding: .75rem;
         background: #fff;
     }
 
-    #tableCandidatesView .dataTables_wrapper .dt-buttons .btn {
+    .candidates-index-page #tableCandidatesView .dataTables_wrapper .dt-buttons .btn {
         border-radius: 8px;
         font-size: .78rem;
         font-weight: 700;
         padding: .32rem .58rem;
     }
 
-    .candidate-card-actions {
+    .candidates-index-page .candidate-card-actions {
         display: flex;
         gap: .45rem;
         flex-wrap: wrap;
         margin-top: .2rem;
     }
 
-    .candidate-card-actions .btn {
+    .candidates-index-page .candidate-card-actions .btn {
         font-size: .78rem;
         font-weight: 700;
     }
 
     @media (max-width: 576px) {
-        .candidate-page-head {
+        .candidates-index-page .candidate-page-head {
             border-radius: 12px;
             padding: .85rem;
         }
 
-        .candidate-page-head__title {
+        .candidates-index-page .candidate-page-head__title {
             font-size: .98rem;
         }
 
-        .candidate-view-switch {
+        .candidates-index-page .candidate-view-switch {
             width: 100%;
             justify-content: center;
         }
 
-        .candidate-view-switch .btn {
+        .candidates-index-page .candidate-view-switch .btn {
             flex: 1 1 calc(50% - .35rem);
         }
 
-        .candidate-card-image {
+        .candidates-index-page .candidate-card-image {
             min-height: 280px;
         }
+    }
+
+    .candidates-index-page #professionalCandidatesView:not(.d-none) {
+        display: block !important;
     }
 </style>
 @endpush
@@ -332,11 +336,9 @@
                 }, 120);
             }
 
-            localStorage.setItem('candidates_view_mode', target);
         }
 
-        const savedView = localStorage.getItem('candidates_view_mode');
-        activateView(savedView === 'table' ? 'table' : 'professional');
+        activateView('professional');
 
         switchButtons.on('click', function() {
             activateView($(this).data('view-target'));
