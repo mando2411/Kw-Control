@@ -32,7 +32,7 @@
     ];
 @endphp
 
-<div class="page-body">
+<div class="page-body pending-join-page" dir="rtl">
     <div class="container-fluid">
         <div class="pending-join-shell">
             <div class="pending-join-card">
@@ -68,6 +68,11 @@
 </div>
 
 <style>
+    .pending-join-page {
+        direction: rtl;
+        text-align: right;
+    }
+
     .pending-join-shell {
         min-height: calc(100vh - 200px);
         display: grid;
@@ -104,6 +109,7 @@
         padding: .85rem;
         display: flex;
         align-items: center;
+        justify-content: flex-start;
         gap: .8rem;
     }
 
@@ -123,6 +129,7 @@
         font-size: 1.05rem;
         font-weight: 900;
         color: #1e293b;
+        text-align: right;
     }
 
     .pending-candidate-campaign {
