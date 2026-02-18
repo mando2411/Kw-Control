@@ -4153,7 +4153,17 @@ $('#createGroupForm').on('submit', function (event) {
       showCreateGroupFeedback('success', msg);
       showToastMessage('success', msg);
       form.reset();
-      return refreshContractorListsContent();
+
+      const createGroupModalElement = document.getElementById('createGroupModal');
+      if (createGroupModalElement && window.bootstrap && window.bootstrap.Modal) {
+        const createGroupModalInstance = window.bootstrap.Modal.getInstance(createGroupModalElement)
+          || window.bootstrap.Modal.getOrCreateInstance(createGroupModalElement);
+        createGroupModalInstance.hide();
+      }
+
+      return refreshContractorListsContent().catch(function () {
+        return null;
+      });
     })
     .catch(function (error) {
       const msg = error?.response?.data?.message || error?.response?.data?.errors?.name?.[0] || 'حدث خطأ أثناء إنشاء القائمة';
