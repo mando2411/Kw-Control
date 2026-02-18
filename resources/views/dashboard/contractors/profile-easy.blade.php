@@ -109,6 +109,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/site/css/toastr.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/modern-theme-system.css') }}?v={{ filemtime(public_path('assets/css/modern-theme-system.css')) }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/dashboard-modern-fallback.css') }}?v={{ filemtime(public_path('assets/css/dashboard-modern-fallback.css')) }}">
 
@@ -2758,6 +2759,7 @@
     <script src="{{ asset('assets/admin/js/jquery.easing.1.3.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{{ asset('assets/admin/js/main.js') }}"></script>
+    <script src="{{ asset('assets/site/js/toastr.min.js') }}"></script>
     <script>
         $("#allSelected").on('change',function(){
 
@@ -4066,11 +4068,13 @@ function showToastMessage(type, message) {
   const text = String(message || '');
 
   if (window.toastr && typeof window.toastr[normalizedType] === 'function') {
+    if (typeof window.toastr.clear === 'function') {
+      window.toastr.clear();
+    }
     window.toastr[normalizedType](text);
-    return;
+  } else {
+    console.warn('toastr is not available:', text);
   }
-
-  alert(text);
 }
 
 $('#createGroupForm').on('submit', function (event) {
