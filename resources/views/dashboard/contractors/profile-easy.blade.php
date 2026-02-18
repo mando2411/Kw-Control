@@ -4285,14 +4285,11 @@ function cleanupDanglingModalUiState() {
   document.body.style.removeProperty('padding-right');
 }
 
-const groupEditModalElement = document.getElementById('ta7reerData');
-if (groupEditModalElement) {
-  groupEditModalElement.addEventListener('hidden.bs.modal', function () {
-    cleanupDanglingModalUiState();
-  });
-}
+$(document).off('hidden.bs.modal.groupEdit', '#ta7reerData').on('hidden.bs.modal.groupEdit', '#ta7reerData', function () {
+  cleanupDanglingModalUiState();
+});
 
-$('#edit-form').on('submit', function (event) {
+$(document).off('submit.groupEdit', '#edit-form').on('submit.groupEdit', '#edit-form', function (event) {
   event.preventDefault();
 
   const form = this;
@@ -4329,7 +4326,7 @@ $('#edit-form').on('submit', function (event) {
     });
 });
 
-$('#delete-g').on('click', function (event) {
+$(document).off('click.groupEdit', '#delete-g').on('click.groupEdit', '#delete-g', function (event) {
   event.preventDefault();
 
   const deleteBtn = $(this);
