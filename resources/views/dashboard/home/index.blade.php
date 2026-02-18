@@ -976,7 +976,7 @@
                                 <button class="btn w-100 btn-success">
                                     <i class="fa fs-5 fa-list-ul d-block my-1"></i>
                                     <h6 class="mb-0">إدارة القائمة</h6>
-                                    <small class="d-block mt-1 text-white">{{ $listLeaderCandidate->list_name ?? 'قائمتي' }}</small>
+                                    <small class="d-block mt-1 text-white">{{ $listLeaderCandidate?->list_name ?? 'قائمتي' }}</small>
                                 </button>
                             </a>
                         </div>
