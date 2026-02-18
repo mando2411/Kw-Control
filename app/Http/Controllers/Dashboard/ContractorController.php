@@ -416,9 +416,11 @@ class ContractorController extends Controller
             })
             ->get();
 
-        $profileMode = (string) (Setting::query()
+        $profileModeSetting = Setting::query()
             ->where('option_key', SettingKey::CONTRACTOR_PROFILE_MODE->value)
-            ->value('option_value->0') ?? 'professional');
+            ->first();
+
+        $profileMode = (string) ($profileModeSetting?->option_value[0] ?? 'professional');
         $profileMode = in_array($profileMode, ['easy', 'professional'], true) ? $profileMode : 'professional';
 
         $profileView = $profileMode === 'easy'
