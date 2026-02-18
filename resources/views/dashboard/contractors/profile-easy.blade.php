@@ -2054,7 +2054,7 @@
           >
             <span class="contractor-tab-btn__icon" id="contractorTabToggleIcon"><i class="bi bi-card-checklist"></i></span>
             <span class="contractor-tab-btn__meta">
-              <span class="contractor-tab-btn__title" id="contractorTabToggleTitle">القوائم</span>
+              <span class="contractor-tab-btn__title" id="contractorTabToggleTitle">القوائم المخصصة</span>
               <span class="contractor-tab-btn__sub" id="contractorTabToggleSub">عرض القوائم المحفوظة</span>
             </span>
           </button>
