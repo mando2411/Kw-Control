@@ -161,12 +161,12 @@
                         <div class="d-flex justify-content-between mb-3">
                             <div class=" d-flex align-items-center">
                                 <input type="checkbox" name="roles[]" id="canSearch"
-                                    value="{{ App\Models\Role::findByName('بحث في الكشوف')?->name ?? '' }} " checked>
+                                    value="{{ App\Models\Role::findByName('بحث في الكشوف')?->name ?? '' }}" checked>
                                 <label class="labelStyle" class="w-100 me-3" for="canSearch">تفعيل امكانية البحث</label>
                             </div>
                             <div class=" d-flex align-items-center">
                                 <input type="checkbox" name="roles[]" id="canDelet"
-                                    value="{{ App\Models\Role::findByName('حذف المضامين')?->name ?? '' }} " checked>
+                                    value="{{ App\Models\Role::findByName('حذف المضامين')?->name ?? '' }}" checked>
                                 <label class="labelStyle" class="w-100 me-3" for="canDelet">يستطيع حذف مضامينة</label>
                             </div>
                         </div>
@@ -1007,6 +1007,9 @@
                 $('#moltazem-l').toggleClass('btn-success', user.status == 1).toggleClass('btn-outline-success', user.status != 1);
                 $('#follow-l').toggleClass('btn-warning', user.status != 1).toggleClass('btn-outline-warning', user.status == 1);
 
+                $('#settingCanSearch').prop('checked', !!user.can_search);
+                $('#settingCanDelet').prop('checked', !!user.can_delete);
+
                 $('#con-url').text(currentContractorUrl || '');
                 $('#RedirectLink').attr('href', currentContractorUrl || '#');
 
@@ -1116,6 +1119,14 @@
                 var fieldValue = $(this).val();
                 saveField(fieldName, fieldValue);
             });
+
+            $('#settingCanSearch, #settingCanDelet')
+                .off('change.contractorPermissions')
+                .on('change.contractorPermissions', function () {
+                    var fieldName = this.id;
+                    var fieldValue = $(this).is(':checked') ? 1 : 0;
+                    saveField(fieldName, fieldValue);
+                });
 
             $('#trustingRate').off('input.contractorTrust').on('input.contractorTrust', function () {
                 $('#trustText').text($(this).val());

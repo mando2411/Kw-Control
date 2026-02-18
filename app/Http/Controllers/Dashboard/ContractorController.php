@@ -64,7 +64,19 @@ class ContractorController extends Controller
     public function store(ContractorRequest $request)
     {
         $contractor = Contractor::create($request->getSanitized());
-        $contractor->assignRole($request->get('roles'));
+        $normalizedRoles = collect((array) $request->input('roles', []))
+            ->map(fn ($role) => trim((string) $role))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($normalizedRoles)) {
+            $contractor->syncRoles($normalizedRoles);
+        }
+
+        $this->syncContractorCapabilityPermissionsFromRoles($contractor, $normalizedRoles);
+
         session()->flash('message', 'Contractor Created Successfully!');
         session()->flash('type', 'success');
         return redirect()->back();
@@ -72,11 +84,24 @@ class ContractorController extends Controller
     public function contractor(ContractorRequest $request ,UserRequest $userRequest)
     {
         $user = User::create($userRequest->getSanitized());
-        $user->assignRole($request->get('roles'));
+        $normalizedRoles = collect((array) $request->input('roles', []))
+            ->map(fn ($role) => trim((string) $role))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($normalizedRoles)) {
+            $user->syncRoles($normalizedRoles);
+        }
+
         $user->assignRole(Role::whereName('متعهد')->first()->id);
         $request['user_id']=$user->id;
         $request['creator_id']=auth()->user()->id;
         $contractor = Contractor::create($request->all());
+
+        $this->syncContractorCapabilityPermissionsFromRoles($contractor, $normalizedRoles);
+
         session()->flash('message', 'Contractor Created Successfully!');
         session()->flash('type', 'success');
         return redirect()->back();
@@ -148,7 +173,9 @@ class ContractorController extends Controller
             "voters" => $con->voters,
             "softDelete" => $con->softDelete,
             "logs" => $logs,
-            "creator" => $con->creator->name ?? ""
+            "creator" => $con->creator->name ?? "",
+            "can_search" => $con->hasPermissionTo('search-stat-con'),
+            "can_delete" => $con->hasPermissionTo('delete-stat-con')
         ];
 
         return response()->json([
@@ -221,6 +248,21 @@ class ContractorController extends Controller
     public function change($id, Request $request){
         $contractor = Contractor::withoutGlobalScopes()->findOrFail((int) $id);
         abort_unless($this->canAccessContractor($contractor), 403);
+
+        if ($request->name === 'settingCanSearch' || $request->name === 'settingCanDelet') {
+            $enabled = filter_var($request->value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            $enabled = $enabled ?? ((string) $request->value === '1');
+
+            if ($request->name === 'settingCanSearch') {
+                $this->toggleContractorPermission($contractor, 'search-stat-con', $enabled);
+            } else {
+                $this->toggleContractorPermission($contractor, 'delete-stat-con', $enabled);
+            }
+
+            return response()->json([
+                "message"=> "تم التعديل بنجاح"
+            ]);
+        }
 
         if ($request->name == 'name' || $request->name == 'phone') {
             if($request->name == 'phone'){
@@ -371,6 +413,10 @@ class ContractorController extends Controller
             return response()->json(['voters' => []], 403);
         }
 
+        if ($isPortalContext && !$contractor->hasPermissionTo('search-stat-con')) {
+            return response()->json(['message' => 'غير مصرح بالبحث لهذا المتعهد'], 403);
+        }
+
         $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
         if ($electionId) {
             $votersQuery->whereHas('election', function ($q) use ($electionId) {
@@ -491,6 +537,17 @@ class ContractorController extends Controller
         }
 
         if($request->voters){
+            if ($isPortalContext && (string) $request->select === 'delete' && !$contractor->hasPermissionTo('delete-stat-con')) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'غير مصرح بحذف المضامين لهذا المتعهد',
+                        'status' => 'error',
+                    ], 403);
+                }
+
+                abort(403);
+            }
+
             if($request->select == 'delete'){
                 $contractor->voters()->detach($request->voters);
                 $contractor->softDelete()->attach($request->voters);
@@ -539,6 +596,21 @@ class ContractorController extends Controller
 
         $group = Group::findOrFail($request->group_id);
         if($request->voters){
+            if (
+                $isPortalContext
+                && in_array((string) $request->select, ['delete', 'delete-g'], true)
+                && !$contractor->hasPermissionTo('delete-stat-con')
+            ) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'غير مصرح بحذف المضامين لهذا المتعهد',
+                        'status' => 'error',
+                    ], 403);
+                }
+
+                abort(403);
+            }
+
             $group->voters()->detach($request->voters);
             if($request->select == 'delete'){
                 $contractor->voters()->detach($request->voters);
@@ -565,10 +637,44 @@ class ContractorController extends Controller
             abort(403);
         }
 
+        if ($isPortalContext && !$contractor->hasPermissionTo('delete-stat-con')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'غير مصرح بحذف المضامين لهذا المتعهد',
+                    'status' => 'error',
+                ], 403);
+            }
+
+            abort(403);
+        }
+
             $contractor->voters()->detach($request->voter);
             $contractor->softDelete()->attach($request->voter);
             session()->flash('message', 'تمت الحذف بنجاح');
             session()->flash('type', 'success');
             return redirect()->back();
+    }
+
+    private function syncContractorCapabilityPermissionsFromRoles(Contractor $contractor, array $normalizedRoles): void
+    {
+        $canSearch = in_array('بحث في الكشوف', $normalizedRoles, true);
+        $canDelete = in_array('حذف المضامين', $normalizedRoles, true);
+
+        $this->toggleContractorPermission($contractor, 'search-stat-con', $canSearch);
+        $this->toggleContractorPermission($contractor, 'delete-stat-con', $canDelete);
+    }
+
+    private function toggleContractorPermission(Contractor $contractor, string $permission, bool $enabled): void
+    {
+        if ($enabled) {
+            if (!$contractor->hasPermissionTo($permission)) {
+                $contractor->givePermissionTo($permission);
+            }
+            return;
+        }
+
+        if ($contractor->hasDirectPermission($permission)) {
+            $contractor->revokePermissionTo($permission);
+        }
     }
 }
