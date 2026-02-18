@@ -191,16 +191,21 @@ Route::get("voter/{id}/{con_id}", function($id,$con_id){
 
     $voterQuery = $isPortalContext ? Voter::withoutGlobalScopes() : Voter::query();
     $voter = $voterQuery->findOrFail($id);
-    $percent = (int) (DB::table('contractor_voter')
+    $pivotRow = DB::table('contractor_voter')
         ->where('contractor_id', (int) $con_id)
         ->where('voter_id', (int) $id)
-        ->value('percentage') ?? 0);
+        ->select('percentage')
+        ->first();
+
+    $percent = (int) ($pivotRow?->percentage ?? 0);
+    $isAttached = $pivotRow !== null;
     // dd($percent);
     return response()->json([
         "voter"=>$voter,
         "committee_name"=>$voter->committee ? $voter->committee->name : null  ,
         "school"=> $voter->committee ? ($voter->committee->school ? $voter->committee->school->name : null) : null ,
         "percent" => $percent,
+        "is_attached" => $isAttached,
         'attend'=>$voter->attend
     ]);
 });

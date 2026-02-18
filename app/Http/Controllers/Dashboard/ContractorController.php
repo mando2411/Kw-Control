@@ -792,6 +792,7 @@ class ContractorController extends Controller
                         ->delete();
                 }
 
+                $contractor->voters()->syncWithoutDetaching($voterIds->all());
                 $group->voters()->syncWithoutDetaching($voterIds->all());
 
                 if ($request->ajax() || $request->wantsJson()) {

@@ -2867,6 +2867,7 @@ var message = selectedOption.data('message'); // Get the data-message attribute
                 $('#mota3ahedDetailsTrustingRate').val(response?.data?.percent || 0);
                 $('#mota3ahedDetailsTrustingRate').attr('data-last-saved', String(response?.data?.percent || 0));
                 $('#mota3ahedDetailsTrustingRate').attr('data-last-voter-id', String(response?.data?.voter?.id || ''));
+                $('#mota3ahedDetailsTrustingRate').attr('data-is-attached', response?.data?.is_attached ? '1' : '0');
                 $('#percent').text(response?.data?.percent || 0);
                 $('#father').val(response?.data?.voter?.father || '');
                 syncVoterContactLinks(response?.data?.voter?.phone1 || '');
@@ -3284,10 +3285,15 @@ function saveTrustRateIfNeeded(voterId, value, options) {
 
   const normalizedValue = Math.max(0, Math.min(100, Number(value) || 0));
   const slider = $('#mota3ahedDetailsTrustingRate');
+  const isAttached = String(slider.attr('data-is-attached') || '0') === '1';
   const forceSave = Boolean(options?.force);
   const silent = Boolean(options?.silent);
   const lastSavedValue = Number(slider.attr('data-last-saved') || 0);
   const lastSavedVoterId = String(slider.attr('data-last-voter-id') || '').trim();
+
+  if (!isAttached) {
+    return;
+  }
 
   if (!forceSave && lastSavedVoterId === normalizedVoterId && lastSavedValue === normalizedValue) {
     return;
