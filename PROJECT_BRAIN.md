@@ -5,6 +5,8 @@ Scope of this update: Full project re-scan (web + API + mobile + APK distributio
 
 ## Owner Working Preference
 - Default UI/UX mode remains modern (`ui_mode = modern`) unless explicitly requested otherwise.
+- من تاريخ 2026-02-18: أي تطوير/تعديل واجهات جديد يتم على الشكل الحديث فقط (`ui-modern`).
+- الشكل القديم (`classic`) يعتبر Legacy وغير مستخدم تشغيليًا، ولا يتم توسيعه بميزات جديدة إلا بطلب صريح.
 
 ## Executive Snapshot
 - The system is a Laravel-based election control platform with dashboard flows for voters, contractors, committees, candidates, and reports.
