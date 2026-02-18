@@ -227,12 +227,15 @@ class CandidateController extends Controller
         if ($nextCandidateType === 'list_leader') {
             $listMembersActualCount = Candidate::withoutGlobalScopes()
                 ->where('list_leader_candidate_id', (int) $candidate->id)
-                ->where('is_actual_list_candidate', true)
+                ->where(function (Builder $query) {
+                    $query->where('is_actual_list_candidate', true)
+                        ->orWhereNull('is_actual_list_candidate');
+                })
                 ->count();
 
             $leaderWillBeActual = array_key_exists('is_actual_list_candidate', $candidateData)
                 ? (bool) $candidateData['is_actual_list_candidate']
-                : (bool) $candidate->is_actual_list_candidate;
+                : $this->isConsideredActual($candidate->is_actual_list_candidate);
 
             $requiredActualCount = $listMembersActualCount + ($leaderWillBeActual ? 1 : 0);
             $requestedListCount = (int) ($candidateData['list_candidates_count'] ?? $candidate->list_candidates_count ?? 0);
@@ -557,12 +560,24 @@ class CandidateController extends Controller
     {
         $membersActualCount = Candidate::withoutGlobalScopes()
             ->where('list_leader_candidate_id', (int) $listLeaderCandidate->id)
-            ->where('is_actual_list_candidate', true)
+            ->where(function (Builder $query) {
+                $query->where('is_actual_list_candidate', true)
+                    ->orWhereNull('is_actual_list_candidate');
+            })
             ->count();
 
-        $leaderActualCount = (bool) $listLeaderCandidate->is_actual_list_candidate ? 1 : 0;
+        $leaderActualCount = $this->isConsideredActual($listLeaderCandidate->is_actual_list_candidate) ? 1 : 0;
 
         return $membersActualCount + $leaderActualCount;
+    }
+
+    private function isConsideredActual($isActualFlag): bool
+    {
+        if ($isActualFlag === null) {
+            return true;
+        }
+
+        return (bool) $isActualFlag;
     }
 
 }

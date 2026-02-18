@@ -169,7 +169,7 @@
                     </a>
                 @endcan
                 @if(isset($show_all_result) && $show_all_result === true)
-                    <a class="hm-action" href="{{ route('all.results') }}">
+                    <a class="hm-action" href="{{ route('dashboard.all.results') }}">
                         <span class="hm-action-icon"><i class="bi bi-bar-chart"></i></span>
                         <span class="hm-action-title">النتائج العامة</span>
                         <span class="hm-action-sub">عرض شامل</span>

@@ -656,6 +656,52 @@ The old file contained stale statements. Correct state is:
   - `php artisan db:seed --class 'Database\Seeders\DemoFullElectionSeeder' --force`
 - ملاحظة تشغيلية:
   - الـSeeder ينظف الداتا التجريبية القديمة (بنمط `demo.*@kw.local` والأسماء التجريبية) قبل إعادة الإنشاء حتى يكون قابلًا لإعادة التشغيل بأمان.
+
+### Demo accounts map (ready for login/testing)
+
+- كلمة المرور الافتراضية لكل الحسابات التجريبية:
+  - `12345678`
+
+- حسابات مؤكدة وثابتة (يمكن تسجيل الدخول بها مباشرة):
+  - **مندوب تجريبي:** `demo.attender@kw.local`
+  - **رؤساء القوائم:**
+    - `demo.listleader1@kw.local`
+    - `demo.listleader2@kw.local`
+    - `demo.listleader3@kw.local`
+  - **أعضاء القوائم (أمثلة):**
+    - `demo.listmember1.1@kw.local`
+    - `demo.listmember2.1@kw.local`
+    - `demo.listmember3.1@kw.local`
+  - **مرشحون مستقلون (أمثلة):**
+    - `demo.independent1@kw.local`
+    - `demo.independent2@kw.local`
+
+- حسابات المتعهدين (تُنشأ تلقائيًا بنمط dynamic):
+  - أساسي: `demo.maincontractor...@kw.local`
+  - فرعي: `demo.subcontractor...@kw.local`
+  - لاستخراج القائمة الفعلية سريعًا:
+    - `php artisan tinker --execute="echo \App\Models\User::where('email','like','demo.maincontractor%@kw.local')->pluck('email')->join(PHP_EOL);"`
+    - `php artisan tinker --execute="echo \App\Models\User::where('email','like','demo.subcontractor%@kw.local')->pluck('email')->join(PHP_EOL);"`
+
+### Quick QA scenarios (minimal)
+
+- **رئيس قائمة** (`demo.listleader1@kw.local`):
+  - تحقق من ظهور كارت `إدارة القائمة` في الكلاسيك والمودرن.
+  - افتح إنشاء مرشح: تحقق من قفل `election_id` على نفس الحملة.
+  - جرّب إضافة أعضاء حتى حد القائمة ثم تحقق من المنع عند بلوغ السعة.
+
+- **عضو قائمة** (`demo.listmember1.1@kw.local`):
+  - تحقق من الظهور ضمن قائمة رئيسه فقط وعدم امتلاك صلاحيات رئيس القائمة.
+
+- **مرشح مستقل** (`demo.independent1@kw.local`):
+  - تحقق من عدم ظهور خصائص/كارت `إدارة القائمة` الخاصة برئيس القائمة.
+
+- **متعهد أساسي/فرعي** (من قائمة الايميلات المستخرجة):
+  - تحقق من الوصول لواجهات المتعهد وتبعيات الناخبين المرتبطين.
+
+- **الناخبون**:
+  - الداتا تشمل حالات حضور/عدم حضور؛ للتحقق السريع:
+    - `php artisan tinker --execute="echo 'attended=' . \App\Models\Voter::where('name','like','ناخب تجريبي %')->where('status',1)->count() . PHP_EOL . 'not_attended=' . \App\Models\Voter::where('name','like','ناخب تجريبي %')->where('status',0)->count();"`
 - Real Flutter app exists under `.mobile/ContractorPortalFlutter`.
 - APK build script now includes verification, not just build/copy.
 
