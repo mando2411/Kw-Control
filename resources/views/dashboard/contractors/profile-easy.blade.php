@@ -2238,13 +2238,7 @@
             </thead>
             <tbody id="resultSearchData">
               @foreach ( $voters as $voter )
-              <tr
-                class="
-                 @if ($voter->status == 1)
-                    table-success
-                 @endif
-                "
-              >
+              <tr>
                 <td id="voter_td">
                   <input type="checkbox" id="voter_id" class="check" name="voters[]" value="{{$voter->id}}" data-is-added="1" />
                 </td>
@@ -2265,11 +2259,11 @@
                     @endif
 
                     @if ($voter->status == 1)
-                <p class=" my-1">
-                    <span><i class="fa fa-check-square text-success ms-1"></i>تم التصويت </span>
-                    <span>{{ $voter->updated_at->format('Y/m/d') }}</span>
-                </p>
-            @endif
+                      <div class="my-1 d-flex align-items-center gap-1 flex-wrap">
+                        <span class="badge bg-success"><i class="fa fa-check-square ms-1"></i>تم التصويت</span>
+                        <span class="badge bg-secondary">{{ $voter->updated_at->format('Y/m/d') }}</span>
+                      </div>
+                    @endif
                 </td>
                 <td>%  {{$voter->pivot->percentage}} </td>
 
@@ -2542,13 +2536,7 @@
               <tbody>
                 @foreach ($g->voters as  $voter)
 
-                <tr
-                class="
-                 @if ($voter->status == 1)
-                    table-success
-                 @endif
-                "
-                >
+                 <tr>
                     <td id="voter_td">
                         <input type="checkbox" id="voter_id" class="check" name="voters[]" value="{{$voter->id}}" />
                       </td>
@@ -2563,11 +2551,11 @@
                     >{{$voter->name}}</button>
 
                     @if ($voter->status == 1)
-                <p class=" my-1">
-                    <span><i class="fa fa-check-square text-success ms-1"></i>تم التصويت </span>
-                    <span>{{ $voter->updated_at->format('Y/m/d') }}</span>
-                </p>
-            @endif
+                      <div class="my-1 d-flex align-items-center gap-1 flex-wrap">
+                        <span class="badge bg-success"><i class="fa fa-check-square ms-1"></i>تم التصويت</span>
+                        <span class="badge bg-secondary">{{ $voter->updated_at->format('Y/m/d') }}</span>
+                      </div>
+                    @endif
                     </td>
                     <td>{{$voter->contractors()->where('contractor_id' , $contractor->id)->first()?->pivot->percentage}} % </td>
                     <td>-</td>
@@ -3435,7 +3423,12 @@ function buildVoterRow(voter) {
   const voterName = escapeHtml(voter?.name ?? '');
   const voterFullName = escapeHtml(voter?.name ?? '');
   const isActive = (voter?.restricted ?? '') === 'فعال';
-  const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
+  const isVoted = Number(voter?.status) === 1;
+  const votedAtRaw = String(voter?.updated_at ?? '').trim();
+  const votedAtText = votedAtRaw ? escapeHtml(votedAtRaw.slice(0, 10).replace(/-/g, '/')) : '';
+  const votedBadge = isVoted
+    ? `<div class="my-1 d-flex align-items-center gap-1 flex-wrap"><span class="badge bg-success"><i class="fa fa-check-square ms-1"></i>تم التصويت</span>${votedAtText ? `<span class="badge bg-secondary">${votedAtText}</span>` : ''}</div>`
+    : '';
   const trustRate = voter?.pivot?.percentage ?? '-';
   const isAdded = Boolean(voter?.is_added);
   const isGrouped = Boolean(voter?.is_grouped);
@@ -3447,13 +3440,14 @@ function buildVoterRow(voter) {
     : (typeof voter?.group_names === 'string' ? voter.group_names : '');
   const groupedBadge = isGrouped ? `<span class="badge bg-primary ms-1">${escapeHtml(groupedNames || 'قائمة مخصصة')}</span>` : '';
 
-  return `<tr class="${statusRowClass}">
+  return `<tr>
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" data-is-added="${isAdded ? '1' : '0'}" /></td>
     <td>
       <button type="button" class="voter-name-details ${isActive ? '' : 'line'}" data-voter-id="${voterId}" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">${voterName}</button>
       <span class="voter-inactive-flag">${isActive ? '' : 'غير فعال'}</span>
       <button class="search-relatives-btn" data-voter-name="${voterFullName}" data-voter-id="${voterId}" type="button">البحث عن أقارب</button>
       ${groupedBadge}
+      ${votedBadge}
     </td>
     <td>% ${trustRate}</td>
     <td>
