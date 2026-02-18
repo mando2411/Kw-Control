@@ -2199,7 +2199,7 @@
               <tr>
                 <th>#</th>
                 <th class="w150">الأسم</th>
-                <th>نسبة الصدق</th>
+                <th>نسبة الالتزام</th>
                 <th>أدوات</th>
               </tr>
             </thead>
@@ -2343,7 +2343,7 @@
           </textarea>
       </div>
       <div class="d-flex align-items-center mt-3 border">
-        <label for="mota3ahedDetailsTrustingRate">نسبة الألتزام</label>
+        <label for="mota3ahedDetailsTrustingRate">نسبة الالتزام</label>
         <input type="range" name="mota3ahedDetailsTrustingRate" id="mota3ahedDetailsTrustingRate" value="0" min="0" class="w-100">
         <span class="bg-body-secondary p-2 px-3 d-flex">% <span class="fw-semibold" id="percent">0</span></span>
       </div>
@@ -2498,7 +2498,7 @@
                 <tr>
                   <th>#</th>
                   <th class="w150">الأسم</th>
-                  <th>نسبة الصدق</th>
+                  <th>نسبة الالتزام</th>
                   <th>أدوات</th>
                 </tr>
               </thead>

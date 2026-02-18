@@ -296,7 +296,7 @@
                             </div>
                             <div>
                                 <input type="checkbox" class="" name="printMota3ahedData" id="percentageTrusted">
-                                <label class="labelStyle" for="percentageTrusted">نسبة الصدق</label>
+                                <label class="labelStyle" for="percentageTrusted">نسبة الالتزام</label>
                             </div>
                             <div>
                                 <input type="checkbox" class="" name="printMota3ahedData" id="trustedNumber">
@@ -353,7 +353,7 @@
                             <th>الهاتف</th>
                             <th>الحضور</th>
                             <th>مضامين</th>
-                            <th>نسبة الصدق</th>
+                            <th>نسبة الالتزام</th>
                             <th>صدق المضامين</th>
                         </tr>
                     </thead>
