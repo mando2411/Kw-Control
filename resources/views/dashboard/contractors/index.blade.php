@@ -813,6 +813,26 @@
                 }
             }
 
+            function cleanupStaleModalUiState() {
+                var hasVisibleModal = document.querySelector('.modal.show') !== null;
+                if (hasVisibleModal) return;
+
+                document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+                    backdrop.remove();
+                });
+
+                if (document.body) {
+                    document.body.classList.remove('modal-open');
+                    document.body.classList.remove('contractor-export-modal-layered');
+                    document.body.style.removeProperty('padding-right');
+                    document.body.style.removeProperty('overflow');
+                }
+
+                if (pageRoot) {
+                    pageRoot.classList.remove('export-modal-layered');
+                }
+            }
+
             function setExportModalLayeredState(enabled) {
                 if (!document.body) return;
 
@@ -1196,6 +1216,8 @@
                         } else if (window.jQuery && typeof window.jQuery(modalEl).modal === 'function') {
                             window.jQuery(modalEl).modal('hide');
                         }
+
+                        setTimeout(cleanupStaleModalUiState, 250);
                         showStatus('تم الحذف بنجاح', 'success');
                         if (window.toastr) toastr.success('تم حذف المتعهد بنجاح');
                     })
@@ -1264,6 +1286,7 @@
                 document.getElementById('log_data').innerHTML = '';
                 selectedVoterIdsCache = [];
                 if (modalStatus) modalStatus.classList.remove('is-visible');
+                setTimeout(cleanupStaleModalUiState, 0);
             });
 
             modalEl.addEventListener('hide.bs.modal', function (event) {
