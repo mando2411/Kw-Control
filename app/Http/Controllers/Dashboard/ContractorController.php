@@ -63,7 +63,57 @@ class ContractorController extends Controller
 
     public function store(ContractorRequest $request)
     {
-        $contractor = Contractor::create($request->getSanitized());
+        $data = $request->getSanitized();
+
+        $currentListLeaderCandidate = Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) auth()->id())
+            ->where('candidate_type', 'list_leader')
+            ->first();
+
+        if ($currentListLeaderCandidate) {
+            $allowedCandidateUserIds = Candidate::withoutGlobalScopes()
+                ->where(function ($query) use ($currentListLeaderCandidate) {
+                    $query->where('id', (int) $currentListLeaderCandidate->id)
+                        ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+                })
+                ->pluck('user_id')
+                ->filter()
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+
+            $selectedCandidateUserId = (int) $request->input('candidate_user_id', 0);
+
+            if (!$selectedCandidateUserId || !in_array($selectedCandidateUserId, $allowedCandidateUserIds, true)) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'candidate_user_id' => 'يجب اختيار مرشح واحد فقط',
+                    ]);
+            }
+
+            $targetCandidate = Candidate::withoutGlobalScopes()
+                ->where('user_id', $selectedCandidateUserId)
+                ->where(function ($query) use ($currentListLeaderCandidate) {
+                    $query->where('id', (int) $currentListLeaderCandidate->id)
+                        ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+                })
+                ->first();
+
+            if (!$targetCandidate) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'candidate_user_id' => 'المرشح المحدد غير متاح',
+                    ]);
+            }
+
+            $data['creator_id'] = (int) $selectedCandidateUserId;
+            $data['election_id'] = (int) ($targetCandidate->election_id ?? $currentListLeaderCandidate->election_id);
+        }
+
+        $contractor = Contractor::create($data);
         $normalizedRoles = collect((array) $request->input('roles', []))
             ->map(fn ($role) => trim((string) $role))
             ->filter()

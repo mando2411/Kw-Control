@@ -17,6 +17,14 @@
             </div>
             <x-dashboard.partials.message-alert />
 
+            @php
+                $listManagementSelectedCandidateUserIds = collect($selectedCandidateUserIds ?? [])->map(fn($v) => (int) $v)->filter()->values()->all();
+                $isSingleListManagementSelection = empty($isListManagementContext) || count($listManagementSelectedCandidateUserIds) === 1;
+                $singleListManagementCandidateUserId = (!empty($isListManagementContext) && $isSingleListManagementSelection)
+                    ? (int) ($listManagementSelectedCandidateUserIds[0] ?? 0)
+                    : null;
+            @endphp
+
             <style>
                 .list-candidate-pill {
                     display: inline-flex;
@@ -70,8 +78,7 @@
 
             @if(!empty($isListManagementContext) && isset($listManagementCandidates) && $listManagementCandidates->count())
                 @php
-                    $selectedCandidateUserIds = collect($selectedCandidateUserIds ?? [])->map(fn($v) => (int) $v)->all();
-                    $allSelected = count($selectedCandidateUserIds) === $listManagementCandidates->pluck('user_id')->filter()->unique()->count();
+                    $allSelected = count($listManagementSelectedCandidateUserIds) === $listManagementCandidates->pluck('user_id')->filter()->unique()->count();
                 @endphp
                 <form action="{{ route('dashboard.list-management') }}" method="GET" id="list-management-candidates-filter" class="card border-0 shadow-sm mb-3" style="border-radius:14px; overflow:hidden;">
                     <div class="card-body">
@@ -96,7 +103,7 @@
                                 @php
                                     $candidateUser = $candidateFilterItem->user;
                                     $candidateUserId = (int) ($candidateFilterItem->user_id ?? 0);
-                                    $isSelected = in_array($candidateUserId, $selectedCandidateUserIds, true);
+                                    $isSelected = in_array($candidateUserId, $listManagementSelectedCandidateUserIds, true);
                                     $avatar = $candidateUser?->image ?: ('https://ui-avatars.com/api/?name=' . urlencode($candidateUser?->name ?? 'Candidate') . '&background=2563eb&color=fff&size=180');
                                 @endphp
                                 <label class="list-candidate-pill {{ $isSelected ? 'is-selected' : '' }}" style="cursor:pointer;">
@@ -113,8 +120,17 @@
                 </form>
             @endif
 
-            <form class="mota3ahdeenControl cm-anim cm-anim-delay-2" action="{{ route('dashboard.contractors.store') }}" method="POST">
+            @if(!empty($isListManagementContext))
+                <div id="list-management-single-candidate-warning" class="alert alert-warning mb-3 {{ $isSingleListManagementSelection ? 'd-none' : '' }}">
+                    يجب اختيار مرشح واحد فقط
+                </div>
+            @endif
+
+            <form id="mota3ahdeenControlForm" class="mota3ahdeenControl cm-anim cm-anim-delay-2" action="{{ route('dashboard.contractors.store') }}" method="POST">
                 @csrf
+                @if(!empty($isListManagementContext))
+                    <input type="hidden" name="candidate_user_id" id="list-management-target-candidate-user" value="{{ $singleListManagementCandidateUserId ?? '' }}">
+                @endif
                 <div class="d-flex align-items-center mb-1">
                     <label class="labelStyle" for="parent_id">المتعهد الرئيسى</label>
                     <select name="parent_id" id="parent_id" class="form-control py-1">
@@ -744,6 +760,26 @@
             var isOpeningExportModal = false;
             var shouldCloseParentAfterExport = false;
 
+            function getListManagementSelectedCandidateIds() {
+                return Array.from(document.querySelectorAll('#list-management-candidates-filter .candidate-filter-checkbox:checked'))
+                    .map(function (el) { return String(el.value || '').trim(); })
+                    .filter(function (value) { return value !== ''; });
+            }
+
+            function ensureSingleListManagementSelection() {
+                var filterForm = document.getElementById('list-management-candidates-filter');
+                if (!filterForm) return true;
+
+                var selectedIds = getListManagementSelectedCandidateIds();
+                if (selectedIds.length === 1) {
+                    return true;
+                }
+
+                showStatus('يجب اختيار مرشح واحد فقط', 'error');
+                if (window.toastr) toastr.error('يجب اختيار مرشح واحد فقط');
+                return false;
+            }
+
             function isModalVisible(element) {
                 if (!element) return false;
                 return element.classList.contains('show') || element.style.display === 'block';
@@ -1081,6 +1117,7 @@
 
             function saveField(fieldName, fieldValue) {
                 if (!currentContractorId) return Promise.resolve();
+                if (!ensureSingleListManagementSelection()) return Promise.resolve();
                 showStatus('جاري الحفظ...', 'info');
 
                 return axios.post('/dashboard/mot-up/' + currentContractorId, {
@@ -1143,6 +1180,7 @@
             $('#delete-con').off('click.contractorDelete').on('click.contractorDelete', function (event) {
                 event.preventDefault();
                 if (!currentContractorId) return;
+                if (!ensureSingleListManagementSelection()) return;
                 showStatus('جاري حذف المتعهد...', 'info');
 
                 axios.delete('/dashboard/contractors/' + currentContractorId)
@@ -1170,6 +1208,7 @@
             $('#all_voters_modern').off('click.contractorTransfer').on('click.contractorTransfer', function (event) {
                 event.preventDefault();
                 if (!currentContractorId) return;
+                if (!ensureSingleListManagementSelection()) return;
 
                 var selected = $('#addMota3ahed').val();
                 var voters = getSelectedVoterIdsForExport();
@@ -1587,6 +1626,9 @@
 
         var selectAll = document.getElementById('candidate-select-all');
         var stateEl = document.getElementById('list-management-filter-state');
+        var addForm = document.getElementById('mota3ahdeenControlForm');
+        var targetCandidateInput = document.getElementById('list-management-target-candidate-user');
+        var warningBox = document.getElementById('list-management-single-candidate-warning');
         var candidateCheckboxes = Array.prototype.slice.call(
             filterForm.querySelectorAll('.candidate-filter-checkbox')
         );
@@ -1611,6 +1653,25 @@
             return candidateCheckboxes
                 .filter(function (el) { return el.checked; })
                 .map(function (el) { return String(el.value); });
+        }
+
+        function syncSingleCandidateActionsState() {
+            var selectedIds = getSelectedCandidateUserIds();
+            var isSingle = selectedIds.length === 1;
+
+            if (targetCandidateInput) {
+                targetCandidateInput.value = isSingle ? selectedIds[0] : '';
+            }
+
+            if (warningBox) {
+                warningBox.classList.toggle('d-none', isSingle);
+            }
+
+            if (addForm) {
+                addForm.classList.toggle('opacity-50', !isSingle);
+            }
+
+            return isSingle;
         }
 
         function buildFilterUrl() {
@@ -1704,6 +1765,7 @@
                     refreshPillState(el);
                 });
                 refreshPillState(selectAll);
+                syncSingleCandidateActionsState();
                 applySelectionAjax();
             });
         }
@@ -1712,10 +1774,21 @@
             el.addEventListener('change', function () {
                 refreshPillState(el);
                 syncAllStateFromCandidates();
+                syncSingleCandidateActionsState();
                 applySelectionAjax();
             });
             refreshPillState(el);
         });
+
+        if (addForm) {
+            addForm.addEventListener('submit', function (event) {
+                if (!syncSingleCandidateActionsState()) {
+                    event.preventDefault();
+                    setFilterState('يجب اختيار مرشح واحد فقط', true);
+                    if (window.toastr) toastr.error('يجب اختيار مرشح واحد فقط');
+                }
+            });
+        }
 
         filterForm.addEventListener('submit', function (event) {
             event.preventDefault();
@@ -1723,6 +1796,7 @@
         });
 
         syncAllStateFromCandidates();
+        syncSingleCandidateActionsState();
     })();
 
 	 
