@@ -239,16 +239,21 @@ Route::get("percent/{id}/{con_id}/{val}", function($id,$con_id,$val){
     $voterQuery = $isPortalContext ? Voter::withoutGlobalScopes() : Voter::query();
     $voterQuery->findOrFail($id);
 
-    $updated = DB::table('contractor_voter')
+    $pivotExists = DB::table('contractor_voter')
         ->where('contractor_id', (int) $con_id)
         ->where('voter_id', (int) $id)
-        ->update(['percentage' => (int) $val]);
+        ->exists();
 
-    if ($updated < 1) {
+    if (!$pivotExists) {
         return response()->json([
             "message" => "الناخب غير مضاف لهذا المتعهد"
         ], 422);
     }
+
+    DB::table('contractor_voter')
+        ->where('contractor_id', (int) $con_id)
+        ->where('voter_id', (int) $id)
+        ->update(['percentage' => (int) $val]);
 
     return response()->json(["message"=>"success"]);
 });
