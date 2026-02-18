@@ -2088,7 +2088,7 @@
           >
             <span class="contractor-tab-btn__icon"><i class="bi bi-card-checklist"></i></span>
             <span class="contractor-tab-btn__meta">
-              <span class="contractor-tab-btn__title">القوائم المخصصة</span>
+              <span class="contractor-tab-btn__title">القوائم</span>
               <span class="contractor-tab-btn__sub">عرض القوائم المحفوظة</span>
             </span>
           </button>
@@ -3582,7 +3582,7 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
   const targetSelector = String($(this).attr('data-bs-target') || '');
   if (targetSelector === '#contractorTabSearch') {
     toggleBtn.attr('data-next-target', '#contractorTabLists');
-    toggleTitle.text('القوائم');
+    toggleTitle.text('القوائم المخصصة');
     toggleSub.text('عرض القوائم المحفوظة');
     toggleIcon.html('<i class="bi bi-card-checklist"></i>');
   } else {
