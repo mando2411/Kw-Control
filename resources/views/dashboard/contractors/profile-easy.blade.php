@@ -2155,10 +2155,14 @@
 
     @php
     $id=$contractor->id;
+    $groupedVoterIds = \Illuminate\Support\Facades\DB::table('group_voter')
+    ->join('groups', 'groups.id', '=', 'group_voter.group_id')
+    ->where('groups.contractor_id', $id)
+    ->pluck('group_voter.voter_id')
+    ->map(fn($voterId) => (int) $voterId)
+    ->all();
+
     $voters = $contractor->voters()
-    ->whereDoesntHave('groups', function ($query) use ($id) {
-        $query->where('contractor_id', $id);
-    })
     ->orderByRaw('status = true ASC')  // This puts the voters with `status = true` at the end
     ->orderBy('name', 'asc')     // This orders the rest by `created_at` ascending
     ->get();
@@ -2238,6 +2242,10 @@
                   >{{$voter->name}}</button>
 
                     <button class="search-relatives-btn" data-voter-name="{{$voter->name}}" data-voter-id="{{$voter->id}}" type="button">البحث عن أقارب</button>
+
+                    @if (in_array((int) $voter->id, $groupedVoterIds, true))
+                      <span class="badge bg-primary ms-1">قائمة مجمعة</span>
+                    @endif
 
                     @if ($voter->status == 1)
                 <p class=" my-1">
@@ -3095,7 +3103,7 @@ function collectAllFilteredVoterIds() {
       id: contractorId,
       contractor_token: contractorToken,
       scope: effectiveScope,
-      exclude_grouped: '1',
+      exclude_grouped: '0',
       ids_only: '1',
       name: activeFilters.name || '',
       family: activeFilters.family || '',
@@ -3312,9 +3320,11 @@ function buildVoterRow(voter) {
   const statusRowClass = Number(voter?.status) === 1 ? 'table-success' : '';
   const trustRate = voter?.pivot?.percentage ?? '-';
   const isAdded = Boolean(voter?.is_added);
+  const isGrouped = Boolean(voter?.is_grouped);
   const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle voter-action-toggle--icon' : 'btn btn-success voter-action-toggle voter-action-toggle--icon';
   const actionBtnIcon = isAdded ? '<i class="fa fa-trash"></i>' : '<i class="fa fa-plus"></i>';
   const actionBtnLabel = isAdded ? 'حذف' : 'اضافة';
+  const groupedBadge = isGrouped ? '<span class="badge bg-primary ms-1">قائمة مجمعة</span>' : '';
 
   return `<tr class="${statusRowClass}">
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" data-is-added="${isAdded ? '1' : '0'}" /></td>
@@ -3322,6 +3332,7 @@ function buildVoterRow(voter) {
       <button type="button" class="voter-name-details ${isActive ? '' : 'line'}" data-voter-id="${voterId}" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">${voterName}</button>
       <span class="voter-inactive-flag">${isActive ? '' : 'غير فعال'}</span>
       <button class="search-relatives-btn" data-voter-name="${voterFullName}" data-voter-id="${voterId}" type="button">البحث عن أقارب</button>
+      ${groupedBadge}
     </td>
     <td>% ${trustRate}</td>
     <td>
@@ -3562,7 +3573,7 @@ function fetchVotersPage(appendMode) {
   params.append('id', contractorId);
   params.append('contractor_token', contractorToken);
   params.append('scope', effectiveScope);
-  params.append('exclude_grouped', '1');
+  params.append('exclude_grouped', '0');
   params.append('page', String(currentPage));
   params.append('per_page', String(getSearchPerPage()));
 

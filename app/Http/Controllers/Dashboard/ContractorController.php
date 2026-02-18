@@ -566,9 +566,24 @@ class ContractorController extends Controller
                     ->all();
             }
 
+            $groupedIds = [];
+            if ($itemIds->isNotEmpty()) {
+                $groupedIds = DB::table('group_voter')
+                    ->join('groups', 'groups.id', '=', 'group_voter.group_id')
+                    ->where('groups.contractor_id', $contractorId)
+                    ->whereIn('group_voter.voter_id', $itemIds->all())
+                    ->pluck('group_voter.voter_id')
+                    ->map(fn ($value) => (int) $value)
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+
             $attachedLookup = array_flip($attachedIds);
-            $mappedItems = $items->map(function ($voter) use ($attachedLookup) {
+            $groupedLookup = array_flip($groupedIds);
+            $mappedItems = $items->map(function ($voter) use ($attachedLookup, $groupedLookup) {
                 $voter->is_added = isset($attachedLookup[(int) $voter->id]);
+                $voter->is_grouped = isset($groupedLookup[(int) $voter->id]);
                 return $voter;
             })->values();
 
@@ -585,6 +600,43 @@ class ContractorController extends Controller
         }
 
         $voters = $votersQuery->get();
+
+        $contractorId = (int) $request->input('id', 0);
+        $voterIds = $voters->pluck('id')->filter()->map(fn ($value) => (int) $value)->values();
+
+        $attachedIds = [];
+        $groupedIds = [];
+
+        if ($contractorId > 0 && $voterIds->isNotEmpty()) {
+            $attachedIds = DB::table('contractor_voter')
+                ->where('contractor_id', $contractorId)
+                ->whereIn('voter_id', $voterIds->all())
+                ->pluck('voter_id')
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+
+            $groupedIds = DB::table('group_voter')
+                ->join('groups', 'groups.id', '=', 'group_voter.group_id')
+                ->where('groups.contractor_id', $contractorId)
+                ->whereIn('group_voter.voter_id', $voterIds->all())
+                ->pluck('group_voter.voter_id')
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        $attachedLookup = array_flip($attachedIds);
+        $groupedLookup = array_flip($groupedIds);
+
+        $voters = $voters->map(function ($voter) use ($attachedLookup, $groupedLookup) {
+            $voter->is_added = isset($attachedLookup[(int) $voter->id]);
+            $voter->is_grouped = isset($groupedLookup[(int) $voter->id]);
+            return $voter;
+        })->values();
+
         return response()->json([
             "voters"=>$voters,
         ]);
