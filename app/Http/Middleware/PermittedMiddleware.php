@@ -16,6 +16,7 @@ class PermittedMiddleware
         'dashboard.settings.result',
         'dashboard.settings.demo-data.enable',
         'dashboard.settings.demo-data.disable',
+        'dashboard.list-management',
         'dashboard.store-fake-candidates',
         'dashboard.notifications.index',
         'dashboard.notifications.page',

@@ -46,6 +46,32 @@ class CandidateController extends Controller
 
         return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates', 'isListLeaderCandidate'));
     }
+
+    public function listManagement()
+    {
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+
+        $canAccess = admin()->can('candidates.list') || $currentListLeaderCandidate;
+        abort_if(!$canAccess, 403);
+
+        $listMembersCount = $currentListLeaderCandidate
+            ? $this->effectiveListCandidatesCount($currentListLeaderCandidate)
+            : 0;
+
+        $listLimit = $currentListLeaderCandidate
+            ? max(0, (int) ($currentListLeaderCandidate->list_candidates_count ?? 0))
+            : 0;
+
+        $remainingSlots = max(0, $listLimit - $listMembersCount);
+
+        return view('dashboard.list-management.index', compact(
+            'currentListLeaderCandidate',
+            'listMembersCount',
+            'listLimit',
+            'remainingSlots'
+        ));
+    }
+
     public function result()
     {
         $candidate_name = 'مرشح الفرز العام';

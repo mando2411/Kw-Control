@@ -125,7 +125,7 @@
                     </a>
                 @endcan
                 @if(!empty($isListLeaderUser))
-                    <a class="hm-action" href="{{ route('dashboard.candidates.index') }}">
+                    <a class="hm-action" href="{{ route('dashboard.list-management') }}">
                         <span class="hm-action-icon"><i class="bi bi-person-check"></i></span>
                         <span class="hm-action-title">إدارة القائمة</span>
                         <span class="hm-action-sub">قائمة المتعهدين</span>
