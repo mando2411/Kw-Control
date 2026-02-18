@@ -1,6 +1,6 @@
 # PROJECT_BRAIN (Updated)
 
-Last updated: 2026-02-17
+Last updated: 2026-02-18
 Scope of this update: Full project re-scan (web + API + mobile + APK distribution), correction of outdated notes, and dated timeline from Git.
 
 ## Owner Working Preference
@@ -304,6 +304,103 @@ Routes excluded from permission check (still require dashboard auth):
 
 - `max_contractor` و`max_represent` مطلوبة في الإدخال الرسمي، لكنها لا تظهر كقيود إنفاذ واضحة في المسارات التي تم فحصها (تُستخدم كبيانات أكثر من كونها limit مُطبق)..
 
+### List Leader Candidate (مرشح رئيس قائمة) — latest implemented behavior (2026-02-18)
+
+هذا القسم يوثق كل التعديلات الأخيرة الخاصة بـ "مرشح رئيس قائمة" حتى تكون مرجعًا واحدًا واضحًا.
+
+#### 1) Data model and migration changes
+
+- تم توسيع نموذج المرشح لدعم حالة رئيس القائمة عبر حقول جديدة في جدول `candidates`:
+  - `candidate_type` (`candidate` أو `list_leader`)
+  - `list_candidates_count` (سقف عدد مرشحي القائمة)
+  - `list_name` (اسم القائمة)
+  - `list_logo` (شعار القائمة)
+  - `is_actual_list_candidate` (تمييز المرشح الفعلي من المرشح التنظيمي)
+  - `list_leader_candidate_id` (ربط مرشحي القائمة برئيس القائمة)
+- تم تحديث `Candidate` model لدعم العلاقات:
+  - `listLeader` (belongsTo)
+  - `listMembers` (hasMany)
+  - helper: `isListLeader()`.
+
+#### 2) Create/Edit UI and request validation
+
+- في إنشاء/تعديل المرشح تمت إضافة حقول نوع المرشح والقائمة.
+- عند اختيار `candidate_type = list_leader` تظهر الحقول الإضافية المطلوبة (`list_candidates_count`, `list_name`, `list_logo`).
+- `CandidateRequest` يفرض هذه الحقول عند حالة رئيس القائمة (`required_if`).
+- عند دخول رئيس القائمة لإضافة مرشح جديد:
+  - يتم قفل `election_id` على نفس حملة رئيس القائمة.
+  - يتم الإرسال عبر hidden field لنفس `election_id`.
+
+#### 3) Business rules for list leader and list members
+
+- رئيس القائمة يستطيع إضافة مرشحين مثل صلاحيات المرشح/الإدمن ولكن داخل قائمة واحدة فقط (قائمته).
+- أي مرشح يُنشئه رئيس القائمة يرتبط تلقائيًا بـ `list_leader_candidate_id` الخاص به.
+- منع تجاوز السقف:
+  - يتم حساب العدد الحالي ومقارنته مع `list_candidates_count`.
+  - عند الوصول للسقف يتم منع الإضافة.
+
+#### 4) Counting policy (final refined rule)
+
+- القاعدة النهائية المطبقة:
+  - المرشح "الفعلي" فقط (`is_actual_list_candidate = true`) يُحتسب ضمن سعة القائمة.
+  - المرشح "التنظيمي" لا يُحتسب.
+  - رئيس القائمة نفسه يُحتسب فقط إذا كان فعليًا.
+- تمت مواءمة عرض السعة المتبقية في واجهة الإنشاء مع نفس قاعدة العد في السيرفر.
+
+#### 5) Visibility and access scope for list leader
+
+- في `CandidateController` و `CandidateDataTable` تم ضبط الرؤية بحيث رئيس القائمة يرى نطاق قائمته المرتبط به فقط.
+- تم دعم fallback في `PermittedMiddleware` للسماح لرئيس القائمة بالوصول لمسارات `candidates.*` المطلوبة للتشغيل.
+- زر/إجراء "Fake Candidate" أُخفي في سياق رئيس القائمة لتفادي تدفقات غير متوافقة مع قواعد السعة والقائمة.
+
+#### 6) Navbar/Sidebar behavior for list leader
+
+- تم استبدال سلوك زر السايدبار التقليدي لرئيس القائمة بزر مخصص (Quick Menu) في النافبار.
+- القائمة السريعة تتضمن:
+  - `المرشحين`
+  - `إضافة مرشح`
+- الإدمن يحتفظ بسلوك السايدبار المعتاد دون تغيير.
+
+#### 7) Home dashboard card: "إدارة القائمة"
+
+- تم إضافة كارت جديد في الرئيسية داخل قسم `المتعهدين والمضامين`:
+  - العنوان: `إدارة القائمة`
+  - يظهر اسم القائمة أسفل العنوان.
+  - يفتح صفحة المرشحين (`dashboard.candidates.index`).
+- شرط الظهور:
+  - يظهر فقط لمستخدم رئيس قائمة (role أو وجود Candidate من نوع `list_leader`).
+
+#### 8) Root cause discovered for “card not showing” and final fix
+
+- السبب الجذري: صفحة الرئيسية كانت تدخل مسار `pendingJoinRequest` (واجهة طلب انضمام المتعهد) في أعلى `home/index.blade.php`، وهذا يمنع رندر بقية كروت الرئيسية بالكامل.
+- الإصلاح النهائي:
+  - في route الرئيسية (`routes/web.php`) تم تجاوز جلب `pendingJoinRequest` لمستخدم رئيس القائمة.
+  - في Blade تم منع عرض واجهة pending إذا المستخدم رئيس قائمة.
+  - تم مسح كاش Laravel (`php artisan optimize:clear`) لتفعيل التغييرات مباشرة.
+
+#### 9) Files touched in this list-leader stream
+
+- `database/migrations/2026_02_17_220000_add_list_leader_fields_to_candidates_table.php`
+- `app/Models/Candidate.php`
+- `app/Http/Requests/Dashboard/CandidateRequest.php`
+- `app/Http/Controllers/Dashboard/CandidateController.php`
+- `app/DataTables/CandidateDataTable.php`
+- `app/Http/Middleware/PermittedMiddleware.php`
+- `resources/views/dashboard/candidates/create.blade.php`
+- `resources/views/dashboard/candidates/edit.blade.php`
+- `resources/views/dashboard/candidates/index.blade.php`
+- `resources/views/layouts/dashboard/navbar.blade.php`
+- `resources/views/layouts/dashboard/sidebar.blade.php`
+- `resources/views/layouts/dashboard/app.blade.php`
+- `resources/views/dashboard/home/index.blade.php`
+- `routes/web.php`
+
+#### 10) Operational note (important)
+
+- عند أي تعديل في شروط العرض الخاصة بالهيدر/الهوم/الصلاحيات، يجب تنفيذ:
+  - `php artisan optimize:clear`
+- السبب: route/view/config cache قد يجعل التعديل يبدو "غير فوري" رغم أنه صحيح في الكود.
+
 ### Mermaid map (Role → Permission → Route → Module)
 
 ```mermaid
@@ -521,6 +618,31 @@ The old file contained stale statements. Correct state is:
 - `routes/api.php` is NOT empty.
 - Contractor mobile API is active and used.
 - APK download route is active and controlled in `routes/web.php`.
+
+---
+
+## Harmony Audit (2026-02-18)
+
+نتيجة التدقيق العام: المميزات الأساسية متوافقة، وتم إغلاق نقاط التعارض المؤثرة التالية:
+
+1) **Role bootstrap gap**
+- المشكلة: دور `مرشح رئيس قائمة` لم يكن موجودًا في seeders، ما قد يسبب اختلافًا بين بيئات جديدة وقديمة.
+- المعالجة: إضافة الدور إلى `RolesAndPermissionsSeeder`.
+
+2) **Permission fallback mismatch**
+- المشكلة: `PermittedMiddleware` كان يعتبر المستخدم رئيس قائمة فقط إذا امتلك role صريحًا، رغم أن أجزاء أخرى من النظام تعتمد (role أو `candidate_type=list_leader`).
+- الأثر: احتمال ظهور الكارت/الزر مع بقاء 403 في بعض المسارات.
+- المعالجة: توحيد المنطق داخل middleware ليعتمد (role أو candidate_type).
+
+3) **Brittle role assignment in fake candidate flow**
+- المشكلة: `storeFakeCandidate` كان يستخدم `assignRole(3)` (اعتماد على ID ثابت).
+- المعالجة: الاستبدال إلى `assignRole('مرشح')`.
+
+### Current support recommendations (still valid)
+
+- بعد أي تعديل في الصلاحيات/العرض: تنفيذ `php artisan optimize:clear`.
+- عند بيئة جديدة بعد نشر seeders: تشغيل seeding/permission cache reset للتأكد من وجود الدور الجديد.
+- لتفادي اختلافات البيانات القديمة: يفضل عمل job/command one-time لمزامنة أي Candidate بنوع `list_leader` مع role `مرشح رئيس قائمة` إذا كان مفقودًا.
 - Real Flutter app exists under `.mobile/ContractorPortalFlutter`.
 - APK build script now includes verification, not just build/copy.
 

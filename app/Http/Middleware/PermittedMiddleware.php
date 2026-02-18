@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Candidate;
 use App\Models\Role;
 use Closure;
 use Illuminate\Http\Request;
@@ -54,7 +55,17 @@ class PermittedMiddleware
 
     private function listLeaderHasCandidatePermission(string $permission): bool
     {
-        if (!admin() || !admin()->hasRole('مرشح رئيس قائمة')) {
+        if (!admin()) {
+            return false;
+        }
+
+        $isListLeaderUser = admin()->hasRole('مرشح رئيس قائمة')
+            || Candidate::withoutGlobalScopes()
+                ->where('user_id', (int) admin()->id)
+                ->where('candidate_type', 'list_leader')
+                ->exists();
+
+        if (!$isListLeaderUser) {
             return false;
         }
 

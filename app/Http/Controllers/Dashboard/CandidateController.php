@@ -490,7 +490,7 @@ class CandidateController extends Controller
                 'election_id'   => $request->election_id,
                 'password'      => \Hash::make("1"),
             ]);
-            $user->assignRole(3); //3 is the id of role "مرشح"
+            $user->assignRole('مرشح');
             $request['user_id'] = $user->id;
 
             Candidate::create($request->all() + ['max_contractor' => 0, 'max_represent' => 0]);

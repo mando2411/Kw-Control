@@ -14,6 +14,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'Administrator' => ['users', 'roles'],
         'مندوب' => [],
             'مرشح' => [],
+            'مرشح رئيس قائمة' => [],
             'بحث في الكشوف' => [],
             'حذف المضامين' => [],
             'متعهد' => [],
