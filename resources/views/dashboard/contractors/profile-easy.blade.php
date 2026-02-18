@@ -4266,6 +4266,30 @@ function hideGroupEditModal() {
   const instance = window.bootstrap.Modal.getInstance(modalElement)
     || window.bootstrap.Modal.getOrCreateInstance(modalElement);
   instance.hide();
+
+  window.setTimeout(cleanupDanglingModalUiState, 180);
+}
+
+function cleanupDanglingModalUiState() {
+  const visibleModals = document.querySelectorAll('.modal.show');
+  if (visibleModals.length > 0) {
+    return;
+  }
+
+  document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+    backdrop.remove();
+  });
+
+  document.body.classList.remove('modal-open');
+  document.body.style.removeProperty('overflow');
+  document.body.style.removeProperty('padding-right');
+}
+
+const groupEditModalElement = document.getElementById('ta7reerData');
+if (groupEditModalElement) {
+  groupEditModalElement.addEventListener('hidden.bs.modal', function () {
+    cleanupDanglingModalUiState();
+  });
 }
 
 $('#edit-form').on('submit', function (event) {
