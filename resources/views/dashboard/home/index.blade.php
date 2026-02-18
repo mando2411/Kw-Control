@@ -1049,7 +1049,7 @@
                     <?php if(isset($show_all_result) && $show_all_result==true){?>
                         <div class="col-lg-4 col-md-3 col-sm-6">
                             <div class="w-100">
-                                <a href="{{route('dashboard.all.results')}}">
+                                <a href="{{ \Illuminate\Support\Facades\Route::has('dashboard.all.results') ? route('dashboard.all.results') : (\Illuminate\Support\Facades\Route::has('all.results') ? route('all.results') : url('dashboard/all/results')) }}">
                                     <button class="btn w-100 btn-secondary">
                                         <i class="fa fs-5 fa-chart-simple d-block my-1"></i>
                                         <h6>النتائج العامة</h6>
