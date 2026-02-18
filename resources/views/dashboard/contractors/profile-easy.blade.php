@@ -2948,6 +2948,7 @@ let bulkActionConfirmModalInstance = null;
 let bulkActionConfirmResolver = null;
 let bulkCustomListModalInstance = null;
 let bulkCustomListResolver = null;
+let listsRefreshRequest = null;
 let contractorGroups = @json($contractor->groups->map(fn($group) => ['id' => (int) $group->id, 'name' => (string) $group->name, 'type' => (string) ($group->type ?? '')])->values());
 let activeFilters = {
   name: '',
@@ -2974,7 +2975,13 @@ function syncContractorGroupsFromListsDom(rootElement) {
   });
 }
 
-function refreshContractorListsContent() {
+function refreshContractorListsContent(options) {
+  const forceRefresh = Boolean(options?.force);
+
+  if (listsRefreshRequest && !forceRefresh) {
+    return listsRefreshRequest;
+  }
+
   const currentContainer = document.getElementById('contractorListsContent');
   const listsPane = document.getElementById('contractorTabLists');
   if (!currentContainer || !listsPane) {
@@ -2986,7 +2993,7 @@ function refreshContractorListsContent() {
     skeleton.classList.add('is-visible');
   }
 
-  return axios.get(window.location.href, {
+  listsRefreshRequest = axios.get(window.location.href, {
     params: { _ts: Date.now() },
     headers: {
       'X-Requested-With': 'XMLHttpRequest'
@@ -3007,10 +3014,13 @@ function refreshContractorListsContent() {
     currentContainer.innerHTML = nextContainer.innerHTML;
     syncContractorGroupsFromListsDom(document);
   }).finally(function () {
+    listsRefreshRequest = null;
     if (skeleton) {
       skeleton.classList.remove('is-visible');
     }
   });
+
+  return listsRefreshRequest;
 }
 
 function ensureBulkActionConfirmModal() {
@@ -3839,6 +3849,10 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
     toggleTitle.text('البحث والاضافة');
     toggleSub.text('عرض نتائج البحث');
     toggleIcon.html('<i class="bi bi-search"></i>');
+
+    refreshContractorListsContent({ force: true }).catch(function () {
+      showToastMessage('error', 'تعذر تحديث القوائم المخصصة');
+    });
   }
 });
 
