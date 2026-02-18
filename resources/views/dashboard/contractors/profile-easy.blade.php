@@ -2770,23 +2770,76 @@ var message = selectedOption.data('message'); // Get the data-message attribute
         }
         })
       $(document).off('change.listGroupSelect', '#contractorListsContent .select-group').on('change.listGroupSelect', '#contractorListsContent .select-group', function() {
-        var selectedOption = $(this).find('option:selected');
-        var message = selectedOption.data('message');
+        const selectedOption = $(this).find('option:selected');
+        const message = String(selectedOption.data('message') || 'هل تريد تنفيذ العملية على المحددين؟');
+        const btn = $(this).closest('div').find('#sub-btn-g');
 
-        let btn = $(this).closest('div').find('#sub-btn-g');
-        if (selectedOption.val()) {
-          btn.prop('disabled', false);
-        } else {
-          btn.prop('disabled', true);
+        btn.prop('disabled', !selectedOption.val());
+        btn.attr('data-confirm-message', message);
+      });
+
+      $(document).off('submit.groupBulkAction', '#contractorListsContent form#modify-g').on('submit.groupBulkAction', '#contractorListsContent form#modify-g', function(event) {
+        event.preventDefault();
+      });
+
+      $(document).off('click.groupBulkAction', '#contractorListsContent #sub-btn-g').on('click.groupBulkAction', '#contractorListsContent #sub-btn-g', function(event) {
+        event.preventDefault();
+
+        const actionBtn = $(this);
+        const form = actionBtn.closest('form').get(0);
+        if (!form) return;
+
+        const selectedAction = String($(form).find('.select-group').val() || '').trim();
+        const selectedVotersCount = $(form).find('input[name="voters[]"]:checked').length;
+        const confirmMessage = String(actionBtn.attr('data-confirm-message') || 'هل تريد تنفيذ العملية على المحددين؟');
+
+        if (!selectedAction) {
+          showToastMessage('error', 'اختر الإجراء أولًا');
+          return;
         }
 
-        btn.off('click').on('click', function(event) {
-          event.preventDefault();
-          if (confirm(message)) {
-            $(this).closest('form').submit();
-          } else {
-            return false;
+        if (selectedVotersCount < 1) {
+          showToastMessage('error', 'اختر ناخبًا واحدًا على الأقل');
+          return;
+        }
+
+        const isDeleteAction = selectedAction === 'delete' || selectedAction === 'delete-g';
+
+        openBulkActionConfirm({
+          title: isDeleteAction ? 'تأكيد التنفيذ' : 'تأكيد النقل',
+          message: confirmMessage,
+          approveText: 'تنفيذ',
+          isDanger: isDeleteAction
+        }).then(function(confirmed) {
+          if (!confirmed) return;
+
+          const formData = new FormData(form);
+          if (!formData.get('contractor_token') && typeof contractorToken !== 'undefined' && contractorToken) {
+            formData.append('contractor_token', contractorToken);
           }
+
+          actionBtn.prop('disabled', true).text('جاري التنفيذ...');
+
+          axios.post(form.action, formData, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+            .then(function(response) {
+              const msg = response?.data?.message || 'تم تنفيذ العملية بنجاح';
+              showToastMessage('success', msg);
+              return refreshContractorListsContent({ force: true });
+            })
+            .then(function() {
+              runLiveSearch({ ...activeFilters });
+            })
+            .catch(function(error) {
+              const msg = error?.response?.data?.message || 'حدث خطأ أثناء تنفيذ العملية';
+              showToastMessage('error', msg);
+            })
+            .finally(function() {
+              actionBtn.prop('disabled', false).text('تنفيذ');
+            });
         });
       });
     </script>

@@ -848,10 +848,31 @@ class ContractorController extends Controller
                 $contractor->voters()->detach($request->voters);
                 $contractor->softDelete()->attach($request->voters);
             }elseif($request->select != 'delete-g'){
-                $group=Group::findOrFail($request->select);
-                $group->voters()->attach($request->voters);
+                $group=Group::where('contractor_id', $contractor->id)->findOrFail($request->select);
+                $group->voters()->syncWithoutDetaching($request->voters);
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                $message = 'تم النقل بنجاح';
+                if ((string) $request->select === 'delete-g') {
+                    $message = 'تم الحذف من المجموعة بنجاح';
+                } elseif ((string) $request->select === 'delete') {
+                    $message = 'تم الحذف من المضامين بنجاح';
+                }
+
+                return response()->json([
+                    'message' => $message,
+                    'status' => 'success',
+                ]);
             }
         }else{
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'message' => 'لم يتم اختيار اي ناخب',
+                    'status' => 'error',
+                ], 422);
+            }
+
             session()->flash('message', 'لم يتم اختيار اي ناخب');
             session()->flash('type', 'danger');
 
