@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Models\Contractor;
+use App\Models\Candidate;
 use App\Models\User;
 use App\Models\Election;
 use App\Models\Role;
@@ -116,12 +117,42 @@ class ContractorController extends Controller
 
     public function destroy(Contractor $contractor)
     {
+        $contractor = Contractor::withoutGlobalScopes()->findOrFail((int) $contractor->id);
+        abort_unless($this->canAccessContractor($contractor), 403);
+
         $user=$contractor;
         if($user){
             $user->forceDelete();
         }
         return response()->json([
             'message' => 'Contractor Deleted Successfully!'
+        ]);
+    }
+
+    public function modalData($id)
+    {
+        $con = Contractor::withoutGlobalScopes()->findOrFail((int) $id);
+        abort_unless($this->canAccessContractor($con), 403);
+
+        $logs = Activity::where('causer_id', $con->id)->get();
+        $user = [
+            "id" => $con->id,
+            "status" => $con->status,
+            "name" => $con->name,
+            "phone" => $con->phone,
+            "parent" => $con->parent_id,
+            "note" => $con->note,
+            "status" => $con->status,
+            "trust" => $con->trust,
+            "token" => $con->token,
+            "voters" => $con->voters,
+            "softDelete" => $con->softDelete,
+            "logs" => $logs,
+            "creator" => $con->creator->name ?? ""
+        ];
+
+        return response()->json([
+            "user" => $user
         ]);
     }
 
@@ -188,7 +219,9 @@ class ContractorController extends Controller
     return redirect()->back();
 }
     public function change($id, Request $request){
-        $contractor=Contractor::findOrFail($id);
+        $contractor = Contractor::withoutGlobalScopes()->findOrFail((int) $id);
+        abort_unless($this->canAccessContractor($contractor), 403);
+
         if ($request->name == 'name' || $request->name == 'phone') {
             if($request->name == 'phone'){
                 $request['phone']=$request->value;
@@ -213,6 +246,49 @@ class ContractorController extends Controller
         return response()->json([
             "message"=> "تم التعديل بنجاح"
         ]);
+    }
+
+    private function canAccessContractor(Contractor $contractor): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole('Administrator')) {
+            return true;
+        }
+
+        if ((int) $contractor->creator_id === (int) $user->id) {
+            return true;
+        }
+
+        $currentListLeaderCandidate = Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) $user->id)
+            ->where('candidate_type', 'list_leader')
+            ->first();
+
+        if (!$currentListLeaderCandidate) {
+            return false;
+        }
+
+        if ((int) $contractor->election_id !== (int) $currentListLeaderCandidate->election_id) {
+            return false;
+        }
+
+        $allowedCreatorIds = Candidate::withoutGlobalScopes()
+            ->where(function ($query) use ($currentListLeaderCandidate) {
+                $query->where('id', (int) $currentListLeaderCandidate->id)
+                    ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+            })
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values()
+            ->all();
+
+        return in_array((int) $contractor->creator_id, $allowedCreatorIds, true);
     }
     public function profile($token){
         $normalizedToken = trim((string) urldecode((string) $token));

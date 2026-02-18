@@ -22,7 +22,6 @@ use App\Models\Voter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Activitylog\Models\Activity;
 use Twilio\Rest\Client;
 use App\Http\Controllers\Dashboard\ReportController;
 use App\Http\Controllers\ContractorJoinRequestController;
@@ -126,28 +125,7 @@ Route::get('contract/{token}/support', function ($token) {
 })->name('con-support');
 Route::post('rep/{user}', [UserController::class, 'passUpdate'])->name('rep-user');
 Route::get('change-password', [UserController::class,'changePassword'])->name('change-password');
-Route::get('con/{id}', function ($id) {
-    $con=App\Models\Contractor::where('id',$id)->first();
-    $logs = Activity::where('causer_id', $con->id)->get();
-    $user=[
-        "id"=>$con->id,
-        "status"=>$con->status,
-        "name"=>$con->name,
-        "phone"=>$con->phone,
-        "parent"=>$con->parent_id,
-        "note"=>$con->note,
-        "status"=>$con->status,
-        "trust"=>$con->trust,
-        "token"=>$con->token,
-        "voters"=>$con->voters,
-        "softDelete"=>$con->softDelete,
-        "logs"=>$logs,
-        "creator"=>$con->creator->name ?? ""
-    ];
-    return response()->json([
-        "user"=>$user
-    ]);
-});
+Route::get('con/{id}', [ContractorController::class, 'modalData'])->name('contractors.modal-data');
 Route::get('user/{id}', function ($id) {
     $i=App\Models\User::where('id',$id)->first();
     $user=[
