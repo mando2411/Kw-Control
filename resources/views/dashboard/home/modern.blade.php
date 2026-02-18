@@ -124,6 +124,13 @@
                         <span class="hm-action-sub">بحث سريع</span>
                     </a>
                 @endcan
+                @if(!empty($isListLeaderUser))
+                    <a class="hm-action" href="{{ route('dashboard.candidates.index') }}">
+                        <span class="hm-action-icon"><i class="bi bi-list-ul"></i></span>
+                        <span class="hm-action-title">إدارة القائمة</span>
+                        <span class="hm-action-sub">{{ $listLeaderCandidate->list_name ?? 'قائمتي' }}</span>
+                    </a>
+                @endif
             </div>
         </div>
 
