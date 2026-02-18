@@ -22,6 +22,7 @@ use App\Models\Voter;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Twilio\Rest\Client;
 use App\Http\Controllers\Dashboard\ReportController;
 use App\Http\Controllers\ContractorJoinRequestController;
@@ -190,8 +191,10 @@ Route::get("voter/{id}/{con_id}", function($id,$con_id){
 
     $voterQuery = $isPortalContext ? Voter::withoutGlobalScopes() : Voter::query();
     $voter = $voterQuery->findOrFail($id);
-    $contractorPivot = $voter->contractors()->where('contractor_id', $con_id)->first()?->pivot;
-    $percent = $contractorPivot?->percentage ?? 0;
+    $percent = (int) (DB::table('contractor_voter')
+        ->where('contractor_id', (int) $con_id)
+        ->where('voter_id', (int) $id)
+        ->value('percentage') ?? 0);
     // dd($percent);
     return response()->json([
         "voter"=>$voter,
@@ -229,17 +232,19 @@ Route::get("percent/{id}/{con_id}/{val}", function($id,$con_id,$val){
     }
 
     $voterQuery = $isPortalContext ? Voter::withoutGlobalScopes() : Voter::query();
-    $voter = $voterQuery->findOrFail($id);
-    $voter_pivot = $voter->contractors()->where('contractor_id', $con_id)->first()?->pivot;
+    $voterQuery->findOrFail($id);
 
-    if (!$voter_pivot) {
+    $updated = DB::table('contractor_voter')
+        ->where('contractor_id', (int) $con_id)
+        ->where('voter_id', (int) $id)
+        ->update(['percentage' => (int) $val]);
+
+    if ($updated < 1) {
         return response()->json([
             "message" => "الناخب غير مضاف لهذا المتعهد"
         ], 422);
     }
 
-    $voter_pivot->percentage=$val;
-    $voter_pivot->save();
     return response()->json(["message"=>"success"]);
 });
 Route::get('send-wa', function() {
