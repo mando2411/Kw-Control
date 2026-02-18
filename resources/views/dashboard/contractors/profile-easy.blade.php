@@ -2865,6 +2865,8 @@ var message = selectedOption.data('message'); // Get the data-message attribute
                 $('#mota3ahedDetailsRegiterNumber').val(response?.data?.voter?.alsndok || '');
                 $('#mota3ahedDetailsSchool').val(response?.data?.school || '');
                 $('#mota3ahedDetailsTrustingRate').val(response?.data?.percent || 0);
+                $('#mota3ahedDetailsTrustingRate').attr('data-last-saved', String(response?.data?.percent || 0));
+                $('#mota3ahedDetailsTrustingRate').attr('data-last-voter-id', String(response?.data?.voter?.id || ''));
                 $('#percent').text(response?.data?.percent || 0);
                 $('#father').val(response?.data?.voter?.father || '');
                 syncVoterContactLinks(response?.data?.voter?.phone1 || '');
@@ -2891,20 +2893,45 @@ var message = selectedOption.data('message'); // Get the data-message attribute
           });
 
           $('#mota3ahedDetailsTrustingRate').on('input', function () {
-            $('#percent').text($(this).val());
-          });
-
-          $('#mota3ahedDetailsTrustingRate').on('change', function () {
             const value = Number($(this).val() || 0);
+            const voterId = String($('#mota3ahedDetailsVoterId').val() || '').trim();
             $('#percent').text(value);
+
+            if (!voterId) return;
 
             if (trustRateSaveTimer) {
               clearTimeout(trustRateSaveTimer);
             }
 
             trustRateSaveTimer = setTimeout(function () {
-              saveTrustRateIfNeeded(value);
-            }, 180);
+              saveTrustRateIfNeeded(voterId, value, { silent: true });
+            }, 350);
+          });
+
+          $('#mota3ahedDetailsTrustingRate').on('change', function () {
+            const value = Number($(this).val() || 0);
+            const voterId = String($('#mota3ahedDetailsVoterId').val() || '').trim();
+            $('#percent').text(value);
+
+            if (trustRateSaveTimer) {
+              clearTimeout(trustRateSaveTimer);
+            }
+
+            if (!voterId) return;
+            saveTrustRateIfNeeded(voterId, value, { force: true, silent: true });
+          });
+
+          $(document).off('hide.bs.modal.trustRate', '#nameChechedDetails').on('hide.bs.modal.trustRate', '#nameChechedDetails', function () {
+            if (trustRateSaveTimer) {
+              clearTimeout(trustRateSaveTimer);
+              trustRateSaveTimer = null;
+            }
+
+            const voterId = String($('#mota3ahedDetailsVoterId').val() || '').trim();
+            const value = Number($('#mota3ahedDetailsTrustingRate').val() || 0);
+            if (!voterId) return;
+
+            saveTrustRateIfNeeded(voterId, value, { force: true, silent: true });
           });
 
           $('#Form-Siblings').on('submit', function (event) {
@@ -3251,22 +3278,40 @@ function syncVoterContactLinks(rawPhone) {
   $('#mota3ahedDetailsWhatsAppLink').attr('href', whatsappHref).toggleClass('disabled', !whatsappNumber);
 }
 
-function saveTrustRateIfNeeded(value) {
-  const voterId = $('#mota3ahedDetailsVoterId').val();
-  if (!voterId) return;
+function saveTrustRateIfNeeded(voterId, value, options) {
+  const normalizedVoterId = String(voterId || '').trim();
+  if (!normalizedVoterId) return;
 
-  axios.get(`/percent/${voterId}/${contractorId}/${value}`, {
+  const normalizedValue = Math.max(0, Math.min(100, Number(value) || 0));
+  const slider = $('#mota3ahedDetailsTrustingRate');
+  const forceSave = Boolean(options?.force);
+  const silent = Boolean(options?.silent);
+  const lastSavedValue = Number(slider.attr('data-last-saved') || 0);
+  const lastSavedVoterId = String(slider.attr('data-last-voter-id') || '').trim();
+
+  if (!forceSave && lastSavedVoterId === normalizedVoterId && lastSavedValue === normalizedValue) {
+    return;
+  }
+
+  axios.get(`/percent/${normalizedVoterId}/${contractorId}/${normalizedValue}`, {
     params: {
       contractor_token: contractorToken,
+      _ts: Date.now(),
     },
   })
     .then(function (response) {
+      slider.attr('data-last-saved', String(normalizedValue));
+      slider.attr('data-last-voter-id', normalizedVoterId);
+
       const msg = response?.data?.message === 'success' ? 'تم تحديث نسبة الالتزام' : (response?.data?.message || 'تم تحديث نسبة الالتزام');
-      showCreateGroupFeedback('success', msg);
+      if (!silent) {
+        showCreateGroupFeedback('success', msg);
+      }
     })
     .catch(function (error) {
       const msg = error?.response?.data?.message || 'تعذر تحديث نسبة الالتزام';
       showCreateGroupFeedback('error', msg);
+      showToastMessage('error', msg);
     });
 }
 
