@@ -16,6 +16,103 @@
                 <div class="cm-sub">نسخة حديثة بواجهة أنعم وتجربة أسرع مع الحفاظ على نفس الوظائف الحالية.</div>
             </div>
             <x-dashboard.partials.message-alert />
+
+            <style>
+                .list-candidate-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: .55rem;
+                    border: 1px solid rgba(148, 163, 184, .36);
+                    border-radius: 999px;
+                    padding: .35rem .6rem;
+                    background: #fff;
+                    min-height: 56px;
+                    transition: all .2s ease;
+                }
+
+                .list-candidate-pill:hover {
+                    border-color: #3b82f6;
+                    box-shadow: 0 8px 20px rgba(37, 99, 235, .14);
+                }
+
+                .list-candidate-pill.is-selected {
+                    border-color: #2563eb;
+                    background: rgba(37, 99, 235, .08);
+                }
+
+                .list-candidate-pill__avatar {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background-size: cover;
+                    background-position: center;
+                    background-color: #e2e8f0;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #334155;
+                    font-size: 14px;
+                }
+
+                .list-candidate-pill__meta .name {
+                    font-size: .85rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                    line-height: 1.1;
+                }
+
+                .list-candidate-pill__meta small {
+                    font-size: .73rem;
+                    color: #64748b;
+                    font-weight: 700;
+                }
+            </style>
+
+            @if(!empty($isListManagementContext) && isset($listManagementCandidates) && $listManagementCandidates->count())
+                @php
+                    $selectedCandidateUserIds = collect($selectedCandidateUserIds ?? [])->map(fn($v) => (int) $v)->all();
+                    $allSelected = count($selectedCandidateUserIds) === $listManagementCandidates->pluck('user_id')->filter()->unique()->count();
+                @endphp
+                <form action="{{ route('dashboard.list-management') }}" method="GET" id="list-management-candidates-filter" class="card border-0 shadow-sm mb-3" style="border-radius:14px; overflow:hidden;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                            <h6 class="mb-0" style="font-weight:900;">مرشحو القائمة (فلتر متعدد)</h6>
+                            <button type="submit" class="btn btn-sm btn-primary">تطبيق التحديد</button>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 align-items-stretch">
+                            <label class="list-candidate-pill {{ $allSelected ? 'is-selected' : '' }}" style="cursor:pointer;">
+                                <input type="checkbox" value="all" id="candidate-select-all" {{ $allSelected ? 'checked' : '' }} hidden>
+                                <div class="list-candidate-pill__avatar">
+                                    <i class="fa fa-users"></i>
+                                </div>
+                                <div class="list-candidate-pill__meta">
+                                    <div class="name">الكل</div>
+                                    <small>عرض كل مرشحي القائمة</small>
+                                </div>
+                            </label>
+
+                            @foreach($listManagementCandidates as $candidateFilterItem)
+                                @php
+                                    $candidateUser = $candidateFilterItem->user;
+                                    $candidateUserId = (int) ($candidateFilterItem->user_id ?? 0);
+                                    $isSelected = in_array($candidateUserId, $selectedCandidateUserIds, true);
+                                    $avatar = $candidateUser?->image ?: ('https://ui-avatars.com/api/?name=' . urlencode($candidateUser?->name ?? 'Candidate') . '&background=2563eb&color=fff&size=180');
+                                @endphp
+                                <label class="list-candidate-pill {{ $isSelected ? 'is-selected' : '' }}" style="cursor:pointer;">
+                                    <input type="checkbox" name="candidate_users[]" value="{{ $candidateUserId }}" class="candidate-filter-checkbox" {{ $isSelected ? 'checked' : '' }} hidden>
+                                    <div class="list-candidate-pill__avatar" style="background-image:url('{{ $avatar }}');"></div>
+                                    <div class="list-candidate-pill__meta">
+                                        <div class="name">{{ $candidateUser?->name ?? 'مرشح' }}</div>
+                                        <small>{{ $candidateFilterItem->id == ($currentListLeaderCandidate->id ?? 0) ? 'رئيس القائمة' : 'عضو قائمة' }}</small>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                </form>
+            @endif
+
             <form class="mota3ahdeenControl cm-anim cm-anim-delay-2" action="{{ route('dashboard.contractors.store') }}" method="POST">
                 @csrf
                 <div class="d-flex align-items-center mb-1">
@@ -1468,6 +1565,51 @@
             exportTableToExcel("myTable", "contractors.xls");
         });
     }
+
+    (function bindListManagementCandidateFilter() {
+        var filterForm = document.getElementById('list-management-candidates-filter');
+        if (!filterForm) return;
+
+        var selectAll = document.getElementById('candidate-select-all');
+        var candidateCheckboxes = Array.prototype.slice.call(
+            filterForm.querySelectorAll('.candidate-filter-checkbox')
+        );
+
+        function refreshPillState(input) {
+            if (!input) return;
+            var label = input.closest('label.list-candidate-pill');
+            if (!label) return;
+            label.classList.toggle('is-selected', !!input.checked);
+        }
+
+        function syncAllStateFromCandidates() {
+            if (!selectAll) return;
+            var checkedCount = candidateCheckboxes.filter(function (el) { return el.checked; }).length;
+            selectAll.checked = candidateCheckboxes.length > 0 && checkedCount === candidateCheckboxes.length;
+            refreshPillState(selectAll);
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                var checked = !!selectAll.checked;
+                candidateCheckboxes.forEach(function (el) {
+                    el.checked = checked;
+                    refreshPillState(el);
+                });
+                refreshPillState(selectAll);
+            });
+        }
+
+        candidateCheckboxes.forEach(function (el) {
+            el.addEventListener('change', function () {
+                refreshPillState(el);
+                syncAllStateFromCandidates();
+            });
+            refreshPillState(el);
+        });
+
+        syncAllStateFromCandidates();
+    })();
 
 	 
 	

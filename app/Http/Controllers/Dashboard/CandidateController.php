@@ -48,28 +48,93 @@ class CandidateController extends Controller
         return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates', 'isListLeaderCandidate'));
     }
 
-    public function listManagement()
+    public function listManagement(Request $request)
     {
         $currentListLeaderCandidate = $this->currentListLeaderCandidate();
 
         $canAccess = admin()->can('candidates.list') || $currentListLeaderCandidate;
         abort_if(!$canAccess, 403);
 
-        $parents = Contractor::parents()->where('creator_id', auth()->id())->get()->map(fn ($contractor) => [
-            'id' => $contractor->id,
-            'name' => $contractor->name,
-        ]);
+        $isListManagementContext = true;
+        $listManagementCandidates = collect();
+        $selectedCandidateUserIds = [];
 
-        if (auth()->user()->hasRole('Administrator')) {
-            $children = Contractor::Children()->get();
-        } elseif (auth()->user()->contractor) {
-            $parents = auth()->user()->contractor()->get();
-            $children = auth()->user()->contractor->childs;
+        if ($currentListLeaderCandidate) {
+            $listManagementCandidates = Candidate::withoutGlobalScopes()
+                ->with('user')
+                ->where(function (Builder $query) use ($currentListLeaderCandidate) {
+                    $query
+                        ->where('id', (int) $currentListLeaderCandidate->id)
+                        ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+                })
+                ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [(int) $currentListLeaderCandidate->id])
+                ->latest('id')
+                ->get();
+
+            $allowedCandidateUserIds = $listManagementCandidates
+                ->pluck('user_id')
+                ->filter()
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+
+            $requestedCandidateUserIds = collect((array) $request->input('candidate_users', []))
+                ->filter(fn ($value) => $value !== null && $value !== '' && (string) $value !== 'all')
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values();
+
+            $selectedCandidateUserIds = $requestedCandidateUserIds
+                ->filter(fn (int $value) => in_array($value, $allowedCandidateUserIds, true))
+                ->values()
+                ->all();
+
+            if (empty($selectedCandidateUserIds)) {
+                $selectedCandidateUserIds = $allowedCandidateUserIds;
+            }
+
+            $contractorsBaseQuery = Contractor::withoutGlobalScopes()
+                ->where('election_id', (int) $currentListLeaderCandidate->election_id)
+                ->whereIn('creator_id', $selectedCandidateUserIds);
+
+            $parents = (clone $contractorsBaseQuery)
+                ->whereNull('parent_id')
+                ->latest('id')
+                ->get()
+                ->map(fn ($contractor) => [
+                    'id' => $contractor->id,
+                    'name' => $contractor->name,
+                ]);
+
+            $children = (clone $contractorsBaseQuery)
+                ->whereNotNull('parent_id')
+                ->latest('id')
+                ->get();
         } else {
-            $children = auth()->user()->contractors()->Children()->get();
+            $parents = Contractor::parents()->where('creator_id', auth()->id())->get()->map(fn ($contractor) => [
+                'id' => $contractor->id,
+                'name' => $contractor->name,
+            ]);
+
+            if (auth()->user()->hasRole('Administrator')) {
+                $children = Contractor::Children()->get();
+            } elseif (auth()->user()->contractor) {
+                $parents = auth()->user()->contractor()->get();
+                $children = auth()->user()->contractor->childs;
+            } else {
+                $children = auth()->user()->contractors()->Children()->get();
+            }
         }
 
-        return view('dashboard.contractors.index', compact('parents', 'children'));
+        return view('dashboard.contractors.index', compact(
+            'parents',
+            'children',
+            'isListManagementContext',
+            'listManagementCandidates',
+            'selectedCandidateUserIds',
+            'currentListLeaderCandidate'
+        ));
     }
 
     public function result()
