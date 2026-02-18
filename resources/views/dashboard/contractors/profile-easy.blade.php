@@ -2178,7 +2178,7 @@
       <div class="container-fluid contractor-layout-block">
         <div class="contractor-list-head">
           <h5>
-            قائمة الأسماء
+            <span id="searchSectionTitle">قائمتى</span>
             <span
               id="search_count"
               class="bg-dark text-white rounded-2 p-1 px-3 me-2"
@@ -3322,6 +3322,18 @@ function syncMyListButtonState() {
   myListBtn.removeClass('btn-outline-secondary').addClass('btn-secondary active');
 }
 
+function syncSearchSectionTitle() {
+  const titleEl = $('#searchSectionTitle');
+  if (!titleEl.length) return;
+
+  if (hasActiveSearchFilters()) {
+    titleEl.text('نتائج البحث');
+    return;
+  }
+
+  titleEl.text('قائمتى');
+}
+
 function isAllRowsMode() {
   return selectedRowsPerView === 'all';
 }
@@ -3487,6 +3499,7 @@ function runLiveSearch(filters) {
   };
 
   syncMyListButtonState();
+  syncSearchSectionTitle();
 
   currentPage = 1;
   hasMoreRows = true;
