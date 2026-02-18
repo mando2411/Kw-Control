@@ -3559,7 +3559,8 @@ function buildVoterRow(voter) {
   const votedBadge = isVoted
     ? `<div class="my-1 d-flex align-items-center gap-1 flex-wrap"><span class="badge bg-success"><i class="fa fa-check-square ms-1"></i>تم التصويت</span>${votedAtText ? `<span class="badge bg-secondary">${votedAtText}</span>` : ''}</div>`
     : '';
-  const trustRate = voter?.pivot?.percentage ?? '-';
+  const trustRateRaw = voter?.commitment_percentage ?? voter?.pivot?.percentage;
+  const trustRate = (trustRateRaw === null || trustRateRaw === undefined || trustRateRaw === '') ? 0 : trustRateRaw;
   const isAdded = Boolean(voter?.is_added);
   const isGrouped = Boolean(voter?.is_grouped);
   const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle voter-action-toggle--icon' : 'btn btn-success voter-action-toggle voter-action-toggle--icon';

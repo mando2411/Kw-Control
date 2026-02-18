@@ -556,14 +556,23 @@ class ContractorController extends Controller
             $items = collect($paginated->items());
             $itemIds = $items->pluck('id')->filter()->values();
             $attachedIds = [];
+            $percentagesByVoter = [];
 
             if ($itemIds->isNotEmpty()) {
-                $attachedIds = DB::table('contractor_voter')
+                $pivotRows = DB::table('contractor_voter')
                     ->where('contractor_id', $contractorId)
                     ->whereIn('voter_id', $itemIds->all())
+                    ->select('voter_id', 'percentage')
+                    ->get();
+
+                $attachedIds = $pivotRows
                     ->pluck('voter_id')
                     ->map(fn ($value) => (int) $value)
                     ->all();
+
+                $percentagesByVoter = $pivotRows
+                    ->pluck('percentage', 'voter_id')
+                    ->toArray();
             }
 
             $groupedIds = [];
@@ -598,10 +607,11 @@ class ContractorController extends Controller
 
             $attachedLookup = array_flip($attachedIds);
             $groupedLookup = array_flip($groupedIds);
-            $mappedItems = $items->map(function ($voter) use ($attachedLookup, $groupedLookup, $groupedNamesByVoter) {
+            $mappedItems = $items->map(function ($voter) use ($attachedLookup, $groupedLookup, $groupedNamesByVoter, $percentagesByVoter) {
                 $voter->is_added = isset($attachedLookup[(int) $voter->id]);
                 $voter->is_grouped = isset($groupedLookup[(int) $voter->id]);
                 $voter->group_names = $groupedNamesByVoter[(int) $voter->id] ?? [];
+                $voter->commitment_percentage = (int) ($percentagesByVoter[(int) $voter->id] ?? 0);
                 return $voter;
             })->values();
 
@@ -625,16 +635,25 @@ class ContractorController extends Controller
         $attachedIds = [];
         $groupedIds = [];
         $groupedNamesByVoter = [];
+        $percentagesByVoter = [];
 
         if ($contractorId > 0 && $voterIds->isNotEmpty()) {
-            $attachedIds = DB::table('contractor_voter')
+            $pivotRows = DB::table('contractor_voter')
                 ->where('contractor_id', $contractorId)
                 ->whereIn('voter_id', $voterIds->all())
+                ->select('voter_id', 'percentage')
+                ->get();
+
+            $attachedIds = $pivotRows
                 ->pluck('voter_id')
                 ->map(fn ($value) => (int) $value)
                 ->unique()
                 ->values()
                 ->all();
+
+            $percentagesByVoter = $pivotRows
+                ->pluck('percentage', 'voter_id')
+                ->toArray();
 
             $groupedRows = DB::table('group_voter')
                 ->join('groups', 'groups.id', '=', 'group_voter.group_id')
@@ -666,10 +685,11 @@ class ContractorController extends Controller
         $attachedLookup = array_flip($attachedIds);
         $groupedLookup = array_flip($groupedIds);
 
-        $voters = $voters->map(function ($voter) use ($attachedLookup, $groupedLookup, $groupedNamesByVoter) {
+        $voters = $voters->map(function ($voter) use ($attachedLookup, $groupedLookup, $groupedNamesByVoter, $percentagesByVoter) {
             $voter->is_added = isset($attachedLookup[(int) $voter->id]);
             $voter->is_grouped = isset($groupedLookup[(int) $voter->id]);
             $voter->group_names = $groupedNamesByVoter[(int) $voter->id] ?? [];
+            $voter->commitment_percentage = (int) ($percentagesByVoter[(int) $voter->id] ?? 0);
             return $voter;
         })->values();
 
