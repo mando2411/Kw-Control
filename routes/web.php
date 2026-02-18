@@ -110,6 +110,11 @@ Route::get('/storage/media/{path}', function (string $path) {
 Route::get('/', function () {
     $show_all_result=false;
     $approvedContractorPortalUrl = null;
+    $listLeaderCandidate = \App\Models\Candidate::withoutGlobalScopes()
+        ->where('user_id', (int) auth()->id())
+        ->where('candidate_type', 'list_leader')
+        ->first();
+
     $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
         ->where('requester_user_id', (int) auth()->id())
         ->whereIn('status', ['pending', 'rejected', 'approved'])
@@ -144,7 +149,7 @@ Route::get('/', function () {
             $show_all_result=true;
         }
     }
-    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl'));
+    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl', 'listLeaderCandidate'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

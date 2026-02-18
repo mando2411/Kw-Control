@@ -902,7 +902,8 @@
         auth()->user()->can('madameen') ||
         auth()->user()->can('contractors.list') ||
         auth()->user()->can('statement') ||
-        auth()->user()->can('statement.search'))
+        auth()->user()->can('statement.search') ||
+        !empty($listLeaderCandidate))
         <div>
             <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتعهدين والمضامين</h1>
             <div class="container">
@@ -968,6 +969,19 @@
                         </div>
                     </div>
                     @endcan
+                    @if(!empty($listLeaderCandidate))
+                    <div class="col-lg-3 col-md-3 col-sm-6 flex-grow-1">
+                        <div class="w-100">
+                            <a href="{{ route('dashboard.candidates.index') }}">
+                                <button class="btn w-100 btn-success">
+                                    <i class="fa fs-5 fa-list-ul d-block my-1"></i>
+                                    <h6 class="mb-0">إدارة القائمة</h6>
+                                    <small class="d-block mt-1 text-white">{{ $listLeaderCandidate->list_name ?? 'قائمتي' }}</small>
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
