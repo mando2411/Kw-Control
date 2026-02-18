@@ -2088,7 +2088,7 @@
           >
             <span class="contractor-tab-btn__icon"><i class="bi bi-card-checklist"></i></span>
             <span class="contractor-tab-btn__meta">
-              <span class="contractor-tab-btn__title">القوائم</span>
+              <span class="contractor-tab-btn__title">القوائم المخصصة</span>
               <span class="contractor-tab-btn__sub">عرض القوائم المحفوظة</span>
             </span>
           </button>
