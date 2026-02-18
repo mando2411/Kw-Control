@@ -2725,15 +2725,6 @@
       </div>
     </div>
 
-    <div class="toast-container position-fixed top-0 start-0 p-3" style="z-index: 1080;">
-      <div id="globalFeedbackToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="2800">
-        <div class="d-flex">
-          <div id="globalFeedbackToastBody" class="toast-body"></div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-      </div>
-    </div>
-
     <footer class="contractor-marketing-footer" aria-label="الفوتر التسويقي">
       <div class="contractor-marketing-footer__inner">
         <div>
@@ -4071,18 +4062,15 @@ function showCreateGroupFeedback(type, message) {
 }
 
 function showToastMessage(type, message) {
-  const toastElement = document.getElementById('globalFeedbackToast');
-  const toastBody = document.getElementById('globalFeedbackToastBody');
+  const normalizedType = type === 'success' ? 'success' : 'error';
+  const text = String(message || '');
 
-  if (!toastElement || !toastBody || typeof bootstrap === 'undefined' || !bootstrap.Toast) {
+  if (window.toastr && typeof window.toastr[normalizedType] === 'function') {
+    window.toastr[normalizedType](text);
     return;
   }
 
-  toastElement.classList.remove('bg-success', 'bg-danger', 'text-white');
-  toastElement.classList.add(type === 'success' ? 'bg-success' : 'bg-danger', 'text-white');
-  toastBody.textContent = String(message || '');
-
-  bootstrap.Toast.getOrCreateInstance(toastElement).show();
+  alert(text);
 }
 
 $('#createGroupForm').on('submit', function (event) {
