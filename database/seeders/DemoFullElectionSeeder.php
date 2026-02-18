@@ -109,7 +109,7 @@ class DemoFullElectionSeeder extends Seeder
                         'list_candidates_count' => null,
                         'list_name' => $listLeaderCandidate->list_name,
                         'list_logo' => null,
-                        'is_actual_list_candidate' => $memberIndex % 4 !== 0,
+                        'is_actual_list_candidate' => true,
                         'list_leader_candidate_id' => $listLeaderCandidate->id,
                     ]);
                 }
