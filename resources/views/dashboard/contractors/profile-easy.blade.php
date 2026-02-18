@@ -2952,6 +2952,10 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             $('#mota3ahedDetailsVoterId').val('');
           });
 
+          $(document).off('hidden.bs.modal.refreshVotersTable', '#nameChechedDetails').on('hidden.bs.modal.refreshVotersTable', '#nameChechedDetails', function () {
+            runLiveSearch({ ...activeFilters });
+          });
+
           $('#Form-Siblings').on('submit', function (event) {
             event.preventDefault();
 
