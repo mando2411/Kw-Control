@@ -46,6 +46,8 @@ Route::group(['prefix' => 'dashboard',
             Route::get('show', [SettingController::class, 'show'])->name('show');
             Route::put('update', [SettingController::class, 'update'])->name('update');
             Route::get('result', [SettingController::class, 'resultControl'])->name('result');
+            Route::post('demo-data/enable', [SettingController::class, 'enableDemoData'])->name('demo-data.enable');
+            Route::post('demo-data/disable', [SettingController::class, 'disableDemoData'])->name('demo-data.disable');
         });
     Route::resource('elections', ElectionController::class)->except('show');
     Route::resource('contractors', ContractorController::class)->except('show');

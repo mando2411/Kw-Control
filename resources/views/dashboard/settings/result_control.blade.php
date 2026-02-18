@@ -3,6 +3,9 @@
 @section('content')
     <!-- Container-fluid starts-->
     <div class="container-fluid" id="settings-app">
+        @php
+            $demoDataEnabled = (string) ($settings->firstWhere('option_key', 'demo_data_enabled')?->option_value[0] ?? '0') === '1';
+        @endphp
         <style>
             /* Settings Result Control: Dual UI (classic/modern) */
             #settings-app .settings-modern {
@@ -254,6 +257,29 @@
                             </x-dashboard.form.multi-tab-card>
                             <div style="float: left;">
                                 <button type="submit" class="btn btn-primary">تصفير الحضور</button>
+                            </div>
+                        </div>
+                    </form>
+                    <br>
+                    <hr>
+                    <form action="{{ $demoDataEnabled ? route('dashboard.settings.demo-data.disable') : route('dashboard.settings.demo-data.enable') }}" method="POST">
+                        @csrf
+                        <div class="card-body needs-validation" style="direction: rtl;">
+                            <x-dashboard.form.multi-tab-card :tabs="['الداتا التجريبية للتطوير']" tab-id="demo_data_toggle">
+                                <div class="tab-pane fade active show">
+                                    <div class="alert {{ $demoDataEnabled ? 'alert-success' : 'alert-secondary' }} fw-bold">
+                                        الحالة الحالية: {{ $demoDataEnabled ? 'مفعلة' : 'غير مفعلة' }}
+                                    </div>
+                                    <p class="mb-0 text-muted" style="font-weight: 600;">
+                                        تفعيل الداتا التجريبية سيقوم بإنشاء حسابات وبيانات اختبار كاملة (مرشحين/متعهدين/ناخبين).
+                                        إلغاء التفعيل سيحذف بيانات الديمو فقط.
+                                    </p>
+                                </div>
+                            </x-dashboard.form.multi-tab-card>
+                            <div style="float: left;">
+                                <button type="submit" class="btn {{ $demoDataEnabled ? 'btn-danger' : 'btn-success' }}">
+                                    {{ $demoDataEnabled ? 'إلغاء تفعيل الداتا التجريبية' : 'تفعيل الداتا التجريبية' }}
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -716,6 +742,26 @@
                     </div>
 
                     <div class="tab-pane fade sm-tab-pane" id="tab-maintenance" role="tabpanel" aria-labelledby="tab-maintenance-btn">
+                        <div class="sm-card mb-3">
+                            <div class="sm-card-h">
+                                <h5>الداتا التجريبية للتطوير</h5>
+                                <p>تفعيل/إلغاء بيانات الديمو لتسريع الاختبارات في بيئة التطوير.</p>
+                            </div>
+                            <div class="sm-card-b">
+                                <div class="sm-help" style="margin-bottom: 10px;">
+                                    الحالة الحالية: <strong>{{ $demoDataEnabled ? 'مفعلة' : 'غير مفعلة' }}</strong>
+                                </div>
+                                <form action="{{ $demoDataEnabled ? route('dashboard.settings.demo-data.disable') : route('dashboard.settings.demo-data.enable') }}" method="POST">
+                                    @csrf
+                                    <div class="sm-actions">
+                                        <button type="submit" class="btn {{ $demoDataEnabled ? 'btn-danger' : 'btn-success' }}">
+                                            {{ $demoDataEnabled ? 'إلغاء تفعيل الداتا التجريبية' : 'تفعيل الداتا التجريبية' }}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
                         <div class="sm-card">
                             <div class="sm-card-h">
                                 <h5>تصفير الحضور لانتخابات معينة</h5>

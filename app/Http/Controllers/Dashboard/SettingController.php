@@ -4,15 +4,24 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Models\Setting;
 use App\Models\Election;
+use App\Models\Contractor;
+use App\Models\Committee;
+use App\Models\Family;
+use App\Models\User;
+use App\Models\Voter;
 use App\Enums\SettingKey;
 use App\Models\Candidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\SettingsRequest;
 
 class SettingController extends Controller
 {
+    private const DEMO_DATA_ENABLED_KEY = 'demo_data_enabled';
+    private const DEMO_ELECTION_NAME = 'انتخابات تجريبية شاملة 2026';
+
     public function show()
     {
         $settings = Setting::all();
@@ -236,4 +245,74 @@ class SettingController extends Controller
         }
     }
     //================================================================================================
+
+    public function enableDemoData()
+    {
+        abort_unless(auth()->check() && auth()->user()->hasRole('Administrator'), 403);
+
+        try {
+            Artisan::call('db:seed', [
+                '--class' => 'Database\\Seeders\\DemoFullElectionSeeder',
+                '--force' => true,
+            ]);
+
+            Setting::updateOrCreate(
+                ['option_key' => self::DEMO_DATA_ENABLED_KEY],
+                ['option_key' => self::DEMO_DATA_ENABLED_KEY, 'option_value' => ['1']]
+            );
+
+            session()->flash('message', 'تم تفعيل الداتا التجريبية بنجاح.');
+            session()->flash('type', 'success');
+            return back();
+        } catch (\Throwable $exception) {
+            report($exception);
+            session()->flash('message', 'حدث خطأ أثناء تفعيل الداتا التجريبية.');
+            session()->flash('type', 'error');
+            return back();
+        }
+    }
+
+    public function disableDemoData()
+    {
+        abort_unless(auth()->check() && auth()->user()->hasRole('Administrator'), 403);
+
+        try {
+            DB::transaction(function () {
+                $this->purgeDemoData();
+
+                Setting::updateOrCreate(
+                    ['option_key' => self::DEMO_DATA_ENABLED_KEY],
+                    ['option_key' => self::DEMO_DATA_ENABLED_KEY, 'option_value' => ['0']]
+                );
+            });
+
+            session()->flash('message', 'تم إلغاء تفعيل وحذف الداتا التجريبية بنجاح.');
+            session()->flash('type', 'success');
+            return back();
+        } catch (\Throwable $exception) {
+            report($exception);
+            session()->flash('message', 'حدث خطأ أثناء إلغاء الداتا التجريبية.');
+            session()->flash('type', 'error');
+            return back();
+        }
+    }
+
+    private function purgeDemoData(): void
+    {
+        $demoUserIds = User::withTrashed()
+            ->where('email', 'like', 'demo.%@kw.local')
+            ->pluck('id');
+
+        if ($demoUserIds->isNotEmpty()) {
+            Candidate::withoutGlobalScopes()->whereIn('user_id', $demoUserIds)->delete();
+            Contractor::withoutGlobalScopes()->whereIn('user_id', $demoUserIds)->delete();
+            User::withTrashed()->whereIn('id', $demoUserIds)->forceDelete();
+        }
+
+        Voter::withoutGlobalScopes()->where('name', 'like', 'ناخب تجريبي %')->delete();
+        Family::withoutGlobalScopes()->where('name', 'like', 'عائلة تجريبية %')->delete();
+        Committee::withoutGlobalScopes()->where('name', 'like', 'لجنة تجريبية %')->delete();
+        Election::where('name', self::DEMO_ELECTION_NAME)->delete();
+    }
+
 }

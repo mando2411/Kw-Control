@@ -14,6 +14,8 @@ class PermittedMiddleware
         'dashboard.model.auto.translate',
         'dashboard.toggle-theme',
         'dashboard.settings.result',
+        'dashboard.settings.demo-data.enable',
+        'dashboard.settings.demo-data.disable',
         'dashboard.store-fake-candidates',
         'dashboard.notifications.index',
         'dashboard.notifications.page',
