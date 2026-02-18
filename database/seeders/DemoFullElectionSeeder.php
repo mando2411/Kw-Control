@@ -238,8 +238,8 @@ class DemoFullElectionSeeder extends Seeder
                     'father' => 'اسم الأب ' . rand(1, 300),
                     'age' => (string) rand(18, 80),
                     'user_id' => null,
-                    'grand' => null,
-                    'restricted' => null,
+                    'grand' => 'جد ' . rand(1, 300),
+                    'restricted' => 'غير مقيد',
                     'attend_id' => $isAttended ? $attenderUser->id : null,
                     'normalized_name' => Str::lower('ناخب تجريبي ' . $voterIndex),
                 ]);
