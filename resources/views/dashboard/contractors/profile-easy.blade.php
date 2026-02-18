@@ -2658,11 +2658,9 @@
                   </div>
                   <button type="submit" id="button-g" class="btn btn-primary w-100 mt-3 doBtn">تنفيذ</button>
                 </form>
-                  <a href="" id="delete-g">
-                    <button class="btn btn-danger w-100 mt-3 deleteBtn">
-                        حذف المجموعة
-                      </button>
-                  </a>
+                  <button type="button" id="delete-g" class="btn btn-danger w-100 mt-3 deleteBtn" data-url="">
+                    حذف المجموعة
+                  </button>
                 </div>
               </div>
             </div>
@@ -4240,33 +4238,115 @@ $(window).on('scroll', function () {
 runLiveSearch(currentFiltersFromUI());
 syncContractorGroupsFromListsDom(document);
 $(document).on('click', 'button[data-bs-target="#ta7reerData"]', function () {
+  const groupId = String($(this).siblings('#group_id').val() || '').trim();
+  if (!groupId) return;
 
-    let group_id=$(this).siblings('#group_id').val();
-    url = "/group/"+ group_id;
-    console.log(url);
+  const detailsUrl = "/group/" + groupId;
 
-    axios.get(url)
+  axios.get(detailsUrl, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
     .then(function (response) {
-        console.log(response);
-        $("#listNamemodal").val(response.data.group.name)
-        $("#listTypemodal").val(response.data.group.type)
-        let editUrl="/group-e/"+group_id;
-        let deleteUrl="/group-d/"+group_id;
-        $("#edit-form").attr("action",editUrl)
-        $("#delete-g").attr("href", deleteUrl)
-        console.log($("#delete-g").attr("href"));
+      $("#listNamemodal").val(response?.data?.group?.name || '');
+      $("#listTypemodal").val(response?.data?.group?.type || '');
+      $("#edit-form").attr("action", "/group-e/" + groupId);
+      $("#delete-g").attr("data-url", "/group-d/" + groupId);
+    })
+    .catch(function () {
+      showToastMessage('error', 'تعذر تحميل بيانات القائمة');
+    });
+});
+
+function hideGroupEditModal() {
+  const modalElement = document.getElementById('ta7reerData');
+  if (!modalElement || !window.bootstrap || !window.bootstrap.Modal) return;
+
+  const instance = window.bootstrap.Modal.getInstance(modalElement)
+    || window.bootstrap.Modal.getOrCreateInstance(modalElement);
+  instance.hide();
+}
+
+$('#edit-form').on('submit', function (event) {
+  event.preventDefault();
+
+  const form = this;
+  const actionUrl = String($(form).attr('action') || '').trim();
+  if (!actionUrl) {
+    showToastMessage('error', 'تعذر تحديد رابط التعديل');
+    return;
+  }
+
+  const submitBtn = $('#button-g');
+  const formData = new FormData(form);
+
+  submitBtn.prop('disabled', true).text('جاري التنفيذ...');
+
+  axios.post(actionUrl, formData, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+    .then(function (response) {
+      const msg = response?.data?.message || 'تم التعديل بنجاح';
+      showToastMessage('success', msg);
+      return refreshContractorListsContent();
+    })
+    .then(function () {
+      hideGroupEditModal();
     })
     .catch(function (error) {
-        console.error('Error:', error);
-    });
-    $("#button-g").off('click').on('click',function(){
-    $("#edit-form").submit();
-
+      const msg = error?.response?.data?.message || 'حدث خطأ أثناء التعديل';
+      showToastMessage('error', msg);
     })
+    .finally(function () {
+      submitBtn.prop('disabled', false).text('تنفيذ');
+    });
+});
 
+$('#delete-g').on('click', function (event) {
+  event.preventDefault();
 
+  const deleteBtn = $(this);
+  const deleteUrl = String(deleteBtn.attr('data-url') || '').trim();
+  if (!deleteUrl) {
+    showToastMessage('error', 'تعذر تحديد رابط الحذف');
+    return;
+  }
 
-})
+  openBulkActionConfirm({
+    title: 'تأكيد حذف المجموعة',
+    message: 'سيتم حذف المجموعة نهائيًا، هل تريد المتابعة؟',
+    approveText: 'تأكيد الحذف',
+    isDanger: true
+  }).then(function (confirmed) {
+    if (!confirmed) return;
+
+    deleteBtn.prop('disabled', true).text('جاري الحذف...');
+
+    axios.get(deleteUrl, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(function (response) {
+        const msg = response?.data?.message || 'تم الحذف بنجاح';
+        showToastMessage('success', msg);
+        return refreshContractorListsContent();
+      })
+      .then(function () {
+        hideGroupEditModal();
+      })
+      .catch(function (error) {
+        const msg = error?.response?.data?.message || 'حدث خطأ أثناء حذف المجموعة';
+        showToastMessage('error', msg);
+      })
+      .finally(function () {
+        deleteBtn.prop('disabled', false).text('حذف المجموعة');
+      });
+  });
+});
 
 
 

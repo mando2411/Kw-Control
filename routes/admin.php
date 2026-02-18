@@ -138,15 +138,30 @@ Route::get('user/{id}', function ($id) {
     ]);
 });
 Route::post('group-e/{id}', function (Request $request,$id) {
-    $group=Group::find($id);
-    $group->update($request->all());
+    $group=Group::findOrFail($id);
+    $group->update($request->only(['name', 'type']));
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'message' => 'تم التعديل بنجاح',
+            'group' => $group,
+        ]);
+    }
+
     session()->flash('message', 'تم التعديل بنجاح');
     session()->flash('type', 'success');
     return redirect()->back();
 });
-Route::get('group-d/{id}', function ($id) {
-    $group=Group::find($id);
+Route::get('group-d/{id}', function (Request $request, $id) {
+    $group=Group::findOrFail($id);
     $group->delete();
+
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json([
+            'message' => 'تم الحذف بنجاح',
+        ]);
+    }
+
     session()->flash('message', 'تم الحذف بنجاح');
     session()->flash('type', 'success');
     return redirect()->back();
