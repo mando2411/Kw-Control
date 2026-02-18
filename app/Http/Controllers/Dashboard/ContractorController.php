@@ -190,9 +190,9 @@ class ContractorController extends Controller
     }
 
 
-    public function destroy(Contractor $contractor)
+    public function destroy($id)
     {
-        $contractor = Contractor::withoutGlobalScopes()->findOrFail((int) $contractor->id);
+        $contractor = Contractor::withoutGlobalScopes()->findOrFail((int) $id);
         abort_unless($this->canAccessContractor($contractor), 403);
 
         $user=$contractor;
@@ -733,15 +733,35 @@ class ContractorController extends Controller
 
     private function toggleContractorPermission(Contractor $contractor, string $permission, bool $enabled): void
     {
+        $roleName = $this->capabilityRoleNameForPermission($permission);
+        $role = $roleName ? Role::where('name', $roleName)->first() : null;
+
         if ($enabled) {
-            if (!$contractor->hasPermissionTo($permission)) {
+            if ($role && !$contractor->hasRole($roleName)) {
+                $contractor->assignRole($roleName);
+            }
+
+            if (!$role && !$contractor->hasPermissionTo($permission)) {
                 $contractor->givePermissionTo($permission);
             }
             return;
         }
 
+        if ($role && $contractor->hasRole($roleName)) {
+            $contractor->removeRole($roleName);
+        }
+
         if ($contractor->hasDirectPermission($permission)) {
             $contractor->revokePermissionTo($permission);
         }
+    }
+
+    private function capabilityRoleNameForPermission(string $permission): ?string
+    {
+        return match ($permission) {
+            'search-stat-con' => 'بحث في الكشوف',
+            'delete-stat-con' => 'حذف المضامين',
+            default => null,
+        };
     }
 }
