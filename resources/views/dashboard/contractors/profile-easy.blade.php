@@ -2419,7 +2419,7 @@
     </div>
 
     <div
-      class="modal rtl"
+      class="modal fade rtl"
       id="createGroupModal"
       tabindex="-1"
       aria-hidden="true"
@@ -4356,6 +4356,20 @@ function cleanupDanglingModalUiState() {
   document.body.classList.remove('modal-open');
   document.body.style.removeProperty('overflow');
   document.body.style.removeProperty('padding-right');
+}
+
+let createGroupModalLastScrollTop = 0;
+const createGroupModalElement = document.getElementById('createGroupModal');
+if (createGroupModalElement) {
+  createGroupModalElement.addEventListener('show.bs.modal', function () {
+    createGroupModalLastScrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+  });
+
+  createGroupModalElement.addEventListener('hidden.bs.modal', function () {
+    window.requestAnimationFrame(function () {
+      window.scrollTo(0, createGroupModalLastScrollTop);
+    });
+  });
 }
 
 $(document).off('hidden.bs.modal.groupEdit', '#ta7reerData').on('hidden.bs.modal.groupEdit', '#ta7reerData', function () {
