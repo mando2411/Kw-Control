@@ -2225,7 +2225,7 @@
                 "
               >
                 <td id="voter_td">
-                  <input type="checkbox" id="voter_id" class="check" name="voters[]" value="{{$voter->id}}" />
+                  <input type="checkbox" id="voter_id" class="check" name="voters[]" value="{{$voter->id}}" data-is-added="1" />
                 </td>
 
                 <td>
@@ -2681,6 +2681,26 @@
       </div>
     </div>
 
+    <div class="modal fade" id="bulkCustomListModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title">الإضافة لقوائم مخصصة</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label for="bulkCustomGroupSelect" class="form-label fw-bold">اختر القائمة</label>
+            <select id="bulkCustomGroupSelect" class="form-control"></select>
+            <div class="text-muted small mt-2">سيتم إضافة المحددين إلى القائمة المختارة مع بقائهم داخل قائمتي.</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+            <button type="button" class="btn btn-primary" id="bulkCustomGroupApplyBtn">إضافة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <footer class="contractor-marketing-footer" aria-label="الفوتر التسويقي">
       <div class="contractor-marketing-footer__inner">
         <div>
@@ -2902,6 +2922,9 @@ let bulkSelectAllActive = false;
 let bulkSelectedVoterIds = [];
 let bulkActionConfirmModalInstance = null;
 let bulkActionConfirmResolver = null;
+let bulkCustomListModalInstance = null;
+let bulkCustomListResolver = null;
+const contractorGroups = @json($contractor->groups->map(fn($group) => ['id' => (int) $group->id, 'name' => (string) $group->name, 'type' => (string) ($group->type ?? '')])->values());
 let activeFilters = {
   name: '',
   family: '',
@@ -2962,6 +2985,66 @@ function openBulkActionConfirm(options) {
         bulkActionConfirmResolver(true);
         bulkActionConfirmResolver = null;
       }
+      modal.hide();
+    });
+
+    modal.show();
+  });
+}
+
+function ensureBulkCustomListModal() {
+  const modalEl = document.getElementById('bulkCustomListModal');
+  if (!modalEl || typeof bootstrap === 'undefined') return null;
+
+  if (!bulkCustomListModalInstance) {
+    bulkCustomListModalInstance = new bootstrap.Modal(modalEl, {
+      backdrop: true,
+      keyboard: true
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      if (bulkCustomListResolver) {
+        bulkCustomListResolver(null);
+        bulkCustomListResolver = null;
+      }
+    });
+  }
+
+  return bulkCustomListModalInstance;
+}
+
+function openBulkCustomListPicker() {
+  if (!Array.isArray(contractorGroups) || contractorGroups.length === 0) {
+    return Promise.resolve(null);
+  }
+
+  const modal = ensureBulkCustomListModal();
+  if (!modal) {
+    return Promise.resolve(String(contractorGroups[0]?.id || ''));
+  }
+
+  const selectEl = $('#bulkCustomGroupSelect');
+  selectEl.empty();
+  contractorGroups.forEach(function (group) {
+    const label = `${group.name}${group.type ? ' (' + group.type + ')' : ''}`;
+    selectEl.append(`<option value="${group.id}">${label}</option>`);
+  });
+
+  return new Promise(function (resolve) {
+    bulkCustomListResolver = resolve;
+
+    $('#bulkCustomGroupApplyBtn').off('click').on('click', function () {
+      const selectedGroupId = String(selectEl.val() || '').trim();
+      if (!selectedGroupId) {
+        alert('اختر قائمة أولًا');
+        return;
+      }
+
+      if (bulkCustomListResolver) {
+        bulkCustomListResolver(selectedGroupId);
+        bulkCustomListResolver = null;
+      }
+
       modal.hide();
     });
 
@@ -3082,6 +3165,28 @@ function submitDeleteVoters(voterIds) {
     contractor_token: contractorToken,
     id: contractorId,
     select: 'delete',
+    voters: voterIds
+  }, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  });
+}
+
+function submitAssignVotersToGroup(voterIds, groupId) {
+  if (!Array.isArray(voterIds) || voterIds.length === 0) {
+    return Promise.reject(new Error('no-voters-selected'));
+  }
+
+  if (!groupId) {
+    return Promise.reject(new Error('no-group-selected'));
+  }
+
+  return axios.post(modifyRoute, {
+    _token: csrfToken,
+    contractor_token: contractorToken,
+    id: contractorId,
+    select: groupId,
     voters: voterIds
   }, {
     headers: {
@@ -3212,7 +3317,7 @@ function buildVoterRow(voter) {
   const actionBtnLabel = isAdded ? 'حذف' : 'اضافة';
 
   return `<tr class="${statusRowClass}">
-    <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" /></td>
+    <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" data-is-added="${isAdded ? '1' : '0'}" /></td>
     <td>
       <button type="button" class="voter-name-details ${isActive ? '' : 'line'}" data-voter-id="${voterId}" data-bs-toggle="modal" data-bs-target="#nameChechedDetails">${voterName}</button>
       <span class="voter-inactive-flag">${isActive ? '' : 'غير فعال'}</span>
@@ -3256,6 +3361,30 @@ function renderVoters(votersList, appendMode) {
   }
 
   bindRelativeButtons();
+  updateAddSelectedButtonState();
+}
+
+function selectionRepresentsMyListVoters() {
+  const selectedCheckboxes = Array.from(document.querySelectorAll('#resultSearchData .check:checked'));
+  if (!selectedCheckboxes.length) {
+    return !hasActiveSearchFilters();
+  }
+
+  return selectedCheckboxes.every(function (checkbox) {
+    return String(checkbox.getAttribute('data-is-added') || '0') === '1';
+  });
+}
+
+function updateAddSelectedButtonState() {
+  const addBtn = $('#all_voters');
+  if (!addBtn.length) return;
+
+  if (selectionRepresentsMyListVoters()) {
+    addBtn.text('الاضافة لقوائم مخصصة').attr('data-mode', 'custom-group');
+    return;
+  }
+
+  addBtn.text('اضافة المحدد').attr('data-mode', 'my-list');
 }
 
 function getSkeletonRowsCount() {
@@ -3624,9 +3753,52 @@ $('#all_voters').on('click', function (event) {
   event.preventDefault();
   const selectedVoters = getBulkActionVoterIds();
   const actionBtn = $(this);
+  const mode = actionBtn.attr('data-mode') || 'my-list';
 
   if (!selectedVoters.length) {
     alert('يرجى تحديد ناخب واحد على الأقل');
+    return;
+  }
+
+  if (mode === 'custom-group') {
+    if (!Array.isArray(contractorGroups) || contractorGroups.length === 0) {
+      alert('لا توجد قوائم مخصصة. أنشئ قائمة أولًا من تبويب القوائم.');
+      return;
+    }
+
+    openBulkCustomListPicker().then(function (groupId) {
+      if (!groupId) return;
+
+      openBulkActionConfirm({
+        title: 'تأكيد الإضافة لقائمة مخصصة',
+        message: `سيتم إضافة ${selectedVoters.length} اسم إلى القائمة المختارة.`,
+        approveText: 'تأكيد الإضافة',
+        isDanger: false
+      }).then(function (confirmed) {
+        if (!confirmed) return;
+
+        actionBtn.prop('disabled', true).text('جاري الإضافة...');
+
+        submitAssignVotersToGroup(selectedVoters, groupId)
+          .then(function (response) {
+            const msg = response?.data?.message || 'تم النقل بنجاح';
+            showCreateGroupFeedback('success', msg);
+            resetBulkSelectAllState(true);
+            runLiveSearch({ ...activeFilters });
+          })
+          .catch(function (error) {
+            if (error?.message === 'no-voters-selected' || error?.message === 'no-group-selected') return;
+            const msg = error?.response?.data?.message || 'حدث خطأ أثناء الإضافة للقائمة المخصصة';
+            showCreateGroupFeedback('error', msg);
+            alert(msg);
+          })
+          .finally(function () {
+            actionBtn.prop('disabled', false);
+            updateAddSelectedButtonState();
+          });
+      });
+    });
+
     return;
   }
 
@@ -3654,9 +3826,14 @@ $('#all_voters').on('click', function (event) {
         alert(msg);
       })
       .finally(function () {
-        actionBtn.prop('disabled', false).text('اضافة المحدد');
+        actionBtn.prop('disabled', false);
+        updateAddSelectedButtonState();
       });
   });
+});
+
+$(document).on('change', '#resultSearchData .check', function () {
+  updateAddSelectedButtonState();
 });
 
 $('#toggle_select_all_search').on('click', function (event) {

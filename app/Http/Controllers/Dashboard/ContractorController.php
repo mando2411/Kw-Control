@@ -641,7 +641,7 @@ class ContractorController extends Controller
                 }
             }else{
                 $group=Group::findOrFail($request->select);
-                $group->voters()->attach($request->voters);
+                $group->voters()->syncWithoutDetaching($request->voters);
 
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([
