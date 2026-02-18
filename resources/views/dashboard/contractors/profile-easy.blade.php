@@ -2781,30 +2781,26 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             }
         }
         })
-            $(document).ready(function() {
-    $('.select-group').on('change', function() {
+      $(document).off('change.listGroupSelect', '#contractorListsContent .select-group').on('change.listGroupSelect', '#contractorListsContent .select-group', function() {
         var selectedOption = $(this).find('option:selected');
         var message = selectedOption.data('message');
-        console.log($(this));
 
-
-        let btn=$(this).closest('div').find('#sub-btn-g');
+        let btn = $(this).closest('div').find('#sub-btn-g');
         if (selectedOption.val()) {
-            btn.prop('disabled', false);
+          btn.prop('disabled', false);
         } else {
-            btn.prop('disabled', true);
+          btn.prop('disabled', true);
         }
 
         btn.off('click').on('click', function(event) {
-            event.preventDefault();
-            if (confirm(message)) {
-                $(this).closest('form').submit();
-            } else {
-                return false;
-            }
+          event.preventDefault();
+          if (confirm(message)) {
+            $(this).closest('form').submit();
+          } else {
+            return false;
+          }
         });
-    });
-});
+      });
     </script>
     <script>
       $(document).ready(function () {
@@ -2975,6 +2971,11 @@ function syncContractorGroupsFromListsDom(rootElement) {
   });
 }
 
+function clearLegacyListClickBindings(rootElement) {
+  const root = rootElement || document;
+  $(root).find('#contractorListsContent .ta7reerContent .ta7reerList').off('click');
+}
+
 function refreshContractorListsContent(options) {
   const forceRefresh = Boolean(options?.force);
 
@@ -3012,6 +3013,7 @@ function refreshContractorListsContent(options) {
     }
 
     currentContainer.innerHTML = nextContainer.innerHTML;
+    clearLegacyListClickBindings(currentContainer);
     syncContractorGroupsFromListsDom(document);
   }).finally(function () {
     listsRefreshRequest = null;
@@ -4250,8 +4252,18 @@ $(window).on('scroll', function () {
 });
 
 runLiveSearch(currentFiltersFromUI());
+clearLegacyListClickBindings(document);
 syncContractorGroupsFromListsDom(document);
-$(document).on('click', 'button[data-bs-target="#ta7reerData"]', function () {
+$(document).off('click.customListsToggle', '#contractorListsContent .ta7reerList').on('click.customListsToggle', '#contractorListsContent .ta7reerList', function (event) {
+  if ($(event.target).closest('button, a, input, select, textarea, label').length) {
+    return;
+  }
+
+  $(this).siblings('.table-responsive, .fs-5.bg-white').toggleClass('d-none');
+});
+
+$(document).on('click', 'button[data-bs-target="#ta7reerData"]', function (event) {
+  event.stopPropagation();
   const groupId = String($(this).siblings('#group_id').val() || '').trim();
   if (!groupId) return;
 
