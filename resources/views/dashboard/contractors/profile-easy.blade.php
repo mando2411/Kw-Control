@@ -3005,7 +3005,7 @@ function collectAllFilteredVoterIds() {
     (activeFilters.sibling && String(activeFilters.sibling).trim() !== '')
   );
 
-  const effectiveScope = hasSearchFilters ? 'all' : (activeFilters.membershipScope || 'attached');
+  const effectiveScope = hasSearchFilters ? 'available' : (activeFilters.membershipScope || 'attached');
 
   return axios.get(searchEndpoint, {
     params: {
@@ -3396,7 +3396,7 @@ function fetchVotersPage(appendMode) {
     (activeFilters.family && String(activeFilters.family).trim() !== '') ||
     (activeFilters.sibling && String(activeFilters.sibling).trim() !== '')
   );
-  const effectiveScope = hasSearchFilters ? 'all' : (activeFilters.membershipScope || 'attached');
+  const effectiveScope = hasSearchFilters ? 'available' : (activeFilters.membershipScope || 'attached');
 
   params.append('id', contractorId);
   params.append('contractor_token', contractorToken);
