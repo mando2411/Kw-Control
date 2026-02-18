@@ -2048,11 +2048,15 @@
         <div class="mb-2 text-center">
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn btn-secondary contractor-tab-btn"
             id="contractorTabToggleBtn"
             data-next-target="#contractorTabLists"
           >
-            القوائم
+            <span class="contractor-tab-btn__icon" id="contractorTabToggleIcon"><i class="bi bi-card-checklist"></i></span>
+            <span class="contractor-tab-btn__meta">
+              <span class="contractor-tab-btn__title" id="contractorTabToggleTitle">القوائم</span>
+              <span class="contractor-tab-btn__sub" id="contractorTabToggleSub">عرض القوائم المحفوظة</span>
+            </span>
           </button>
         </div>
         <div class="contractor-tab-nav nav d-none" id="contractorTabNav" role="tablist" aria-hidden="true">
@@ -3525,13 +3529,22 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
     .attr('aria-selected', 'true');
 
   const toggleBtn = $('#contractorTabToggleBtn');
+  const toggleTitle = $('#contractorTabToggleTitle');
+  const toggleSub = $('#contractorTabToggleSub');
+  const toggleIcon = $('#contractorTabToggleIcon');
   if (!toggleBtn.length) return;
 
   const targetSelector = String($(this).attr('data-bs-target') || '');
   if (targetSelector === '#contractorTabSearch') {
-    toggleBtn.text('القوائم').attr('data-next-target', '#contractorTabLists');
+    toggleBtn.attr('data-next-target', '#contractorTabLists');
+    toggleTitle.text('القوائم');
+    toggleSub.text('عرض القوائم المحفوظة');
+    toggleIcon.html('<i class="bi bi-card-checklist"></i>');
   } else {
-    toggleBtn.text('البحث').attr('data-next-target', '#contractorTabSearch');
+    toggleBtn.attr('data-next-target', '#contractorTabSearch');
+    toggleTitle.text('البحث');
+    toggleSub.text('عرض نتائج البحث');
+    toggleIcon.html('<i class="bi bi-search"></i>');
   }
 });
 
