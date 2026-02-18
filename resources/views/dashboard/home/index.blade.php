@@ -2,7 +2,7 @@
 
 @section('content')
 
-@if(isset($pendingJoinRequest) && $pendingJoinRequest)
+@if(isset($pendingJoinRequest) && $pendingJoinRequest && empty($isListLeaderUser))
 @php
     $candidate = $pendingJoinRequest->candidate;
     $joinStatus = (string) ($pendingJoinRequest->status ?? 'pending');

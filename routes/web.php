@@ -116,11 +116,14 @@ Route::get('/', function () {
         ->first();
     $isListLeaderUser = auth()->user()->hasRole('مرشح رئيس قائمة') || !empty($listLeaderCandidate);
 
-    $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
-        ->where('requester_user_id', (int) auth()->id())
-        ->whereIn('status', ['pending', 'rejected', 'approved'])
-        ->latest()
-        ->first();
+    $pendingJoinRequest = null;
+    if (!$isListLeaderUser) {
+        $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
+            ->where('requester_user_id', (int) auth()->id())
+            ->whereIn('status', ['pending', 'rejected', 'approved'])
+            ->latest()
+            ->first();
+    }
 
     if ($pendingJoinRequest) {
         $candidate = \App\Models\Candidate::withoutGlobalScopes()
