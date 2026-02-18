@@ -728,8 +728,71 @@ class ContractorController extends Controller
                     ]);
                 }
             }else{
-                $group=Group::findOrFail($request->select);
-                $group->voters()->syncWithoutDetaching($request->voters);
+                $group = Group::where('contractor_id', $contractor->id)->findOrFail((int) $request->select);
+                $voterIds = collect((array) $request->voters)
+                    ->map(fn ($value) => (int) $value)
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+                $groupedRows = DB::table('group_voter')
+                    ->join('groups', 'groups.id', '=', 'group_voter.group_id')
+                    ->where('groups.contractor_id', $contractor->id)
+                    ->whereIn('group_voter.voter_id', $voterIds->all())
+                    ->select('group_voter.voter_id', 'groups.id as group_id', 'groups.name as group_name')
+                    ->get();
+
+                $conflictingRows = $groupedRows
+                    ->filter(fn ($row) => (int) $row->group_id !== (int) $group->id)
+                    ->values();
+
+                $checkOnly = filter_var($request->input('check_only', false), FILTER_VALIDATE_BOOLEAN);
+                if ($checkOnly) {
+                    $voterNames = Voter::withoutGlobalScopes()
+                        ->whereIn('id', $voterIds->all())
+                        ->pluck('name', 'id');
+
+                    $conflicts = $conflictingRows
+                        ->groupBy('voter_id')
+                        ->map(function ($rows, $voterId) use ($voterNames) {
+                            $groupName = $rows
+                                ->pluck('group_name')
+                                ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+                                ->unique()
+                                ->values()
+                                ->implode('، ');
+
+                            return [
+                                'voter_id' => (int) $voterId,
+                                'voter_name' => (string) ($voterNames[(int) $voterId] ?? ('#' . (int) $voterId)),
+                                'from_group_name' => $groupName,
+                            ];
+                        })
+                        ->values();
+
+                    return response()->json([
+                        'requires_confirmation' => $conflicts->isNotEmpty(),
+                        'target_group_id' => (int) $group->id,
+                        'target_group_name' => (string) ($group->name ?? ''),
+                        'conflicts' => $conflicts,
+                        'status' => 'success',
+                    ]);
+                }
+
+                $sourceGroupIds = $conflictingRows
+                    ->pluck('group_id')
+                    ->map(fn ($value) => (int) $value)
+                    ->unique()
+                    ->values();
+
+                if ($sourceGroupIds->isNotEmpty()) {
+                    DB::table('group_voter')
+                        ->whereIn('group_id', $sourceGroupIds->all())
+                        ->whereIn('voter_id', $voterIds->all())
+                        ->delete();
+                }
+
+                $group->voters()->syncWithoutDetaching($voterIds->all());
 
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json([

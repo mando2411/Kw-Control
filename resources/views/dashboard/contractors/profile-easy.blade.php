@@ -3219,6 +3219,40 @@ function submitAssignVotersToGroup(voterIds, groupId) {
   });
 }
 
+function getGroupNameById(groupId) {
+  const normalizedId = String(groupId || '').trim();
+  if (!normalizedId) return '';
+
+  const group = Array.isArray(contractorGroups)
+    ? contractorGroups.find(function (item) { return String(item?.id ?? '') === normalizedId; })
+    : null;
+
+  return String(group?.name || '').trim();
+}
+
+function previewGroupMoveConflicts(voterIds, groupId) {
+  if (!Array.isArray(voterIds) || voterIds.length === 0) {
+    return Promise.resolve({ data: { requires_confirmation: false, conflicts: [] } });
+  }
+
+  if (!groupId) {
+    return Promise.reject(new Error('no-group-selected'));
+  }
+
+  return axios.post(modifyRoute, {
+    _token: csrfToken,
+    contractor_token: contractorToken,
+    id: contractorId,
+    select: groupId,
+    voters: voterIds,
+    check_only: true
+  }, {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  });
+}
+
 function addSingleVoter(voterId) {
   submitAttachVoters([voterId]);
 }
@@ -3799,33 +3833,67 @@ $('#all_voters').on('click', function (event) {
     openBulkCustomListPicker().then(function (groupId) {
       if (!groupId) return;
 
-      openBulkActionConfirm({
-        title: 'تأكيد الإضافة لقائمة مخصصة',
-        message: `سيتم إضافة ${selectedVoters.length} اسم إلى القائمة المختارة.`,
-        approveText: 'تأكيد الإضافة',
-        isDanger: false
-      }).then(function (confirmed) {
-        if (!confirmed) return;
+      previewGroupMoveConflicts(selectedVoters, groupId)
+        .then(function (previewResponse) {
+          const previewData = previewResponse?.data || {};
+          const conflicts = Array.isArray(previewData?.conflicts) ? previewData.conflicts : [];
+          const targetGroupName = String(previewData?.target_group_name || getGroupNameById(groupId) || 'القائمة المختارة');
 
-        actionBtn.prop('disabled', true).text('جاري الإضافة...');
+          let title = 'تأكيد الإضافة لقائمة مخصصة';
+          let approveText = 'تأكيد الإضافة';
+          let message = `سيتم إضافة ${selectedVoters.length} اسم إلى القائمة ${targetGroupName}.`;
 
-        submitAssignVotersToGroup(selectedVoters, groupId)
-          .then(function (response) {
-            const msg = response?.data?.message || 'تم النقل بنجاح';
-            showCreateGroupFeedback('success', msg);
-            resetBulkSelectAllState(true);
-            runLiveSearch({ ...activeFilters });
-          })
-          .catch(function (error) {
-            if (error?.message === 'no-voters-selected' || error?.message === 'no-group-selected') return;
-            const msg = error?.response?.data?.message || 'حدث خطأ أثناء الإضافة للقائمة المخصصة';
-            showCreateGroupFeedback('error', msg);
-            alert(msg);
-          })
-          .finally(function () {
-            actionBtn.prop('disabled', false);
-            updateAddSelectedButtonState();
+          if (conflicts.length > 0) {
+            const conflictNames = conflicts
+              .map(function (item) {
+                const voterName = String(item?.voter_name || '').trim();
+                const fromGroupName = String(item?.from_group_name || '').trim();
+                if (!voterName) return '';
+                return fromGroupName ? `${voterName} (من ${fromGroupName})` : voterName;
+              })
+              .filter(Boolean);
+
+            title = 'تأكيد النقل بين القوائم';
+            approveText = 'تأكيد النقل';
+            message = `الأسماء التالية مضافة بالفعل في قوائم مخصصة وسيتم نقلها إلى ${targetGroupName}: ${conflictNames.join('، ')}. هل تريد المتابعة؟`;
+          }
+
+          return openBulkActionConfirm({
+            title: title,
+            message: message,
+            approveText: approveText,
+            isDanger: false
           });
+        })
+        .then(function (confirmed) {
+          if (!confirmed) return;
+
+          actionBtn.prop('disabled', true).text('جاري الإضافة...');
+
+          submitAssignVotersToGroup(selectedVoters, groupId)
+            .then(function (response) {
+              const msg = response?.data?.message || 'تم النقل بنجاح';
+              showCreateGroupFeedback('success', msg);
+              resetBulkSelectAllState(true);
+              runLiveSearch({ ...activeFilters });
+            })
+            .catch(function (error) {
+              if (error?.message === 'no-voters-selected' || error?.message === 'no-group-selected') return;
+              const msg = error?.response?.data?.message || 'حدث خطأ أثناء الإضافة للقائمة المخصصة';
+              showCreateGroupFeedback('error', msg);
+              alert(msg);
+            })
+            .finally(function () {
+              actionBtn.prop('disabled', false);
+              updateAddSelectedButtonState();
+            });
+        })
+        .catch(function (error) {
+          const msg = error?.response?.data?.message || 'تعذر التحقق من حالة النقل';
+          showCreateGroupFeedback('error', msg);
+          alert(msg);
+          actionBtn.prop('disabled', false);
+          updateAddSelectedButtonState();
       });
     });
 
