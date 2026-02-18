@@ -8,6 +8,7 @@ use App\Models\School;
 use App\Models\Setting;
 use App\Models\Election;
 use App\Models\Candidate;
+use App\Models\Contractor;
 use App\Models\Committee;
 use App\Traits\ImageTrait;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,22 +55,21 @@ class CandidateController extends Controller
         $canAccess = admin()->can('candidates.list') || $currentListLeaderCandidate;
         abort_if(!$canAccess, 403);
 
-        $listMembersCount = $currentListLeaderCandidate
-            ? $this->effectiveListCandidatesCount($currentListLeaderCandidate)
-            : 0;
+        $parents = Contractor::parents()->where('creator_id', auth()->id())->get()->map(fn ($contractor) => [
+            'id' => $contractor->id,
+            'name' => $contractor->name,
+        ]);
 
-        $listLimit = $currentListLeaderCandidate
-            ? max(0, (int) ($currentListLeaderCandidate->list_candidates_count ?? 0))
-            : 0;
+        if (auth()->user()->hasRole('Administrator')) {
+            $children = Contractor::Children()->get();
+        } elseif (auth()->user()->contractor) {
+            $parents = auth()->user()->contractor()->get();
+            $children = auth()->user()->contractor->childs;
+        } else {
+            $children = auth()->user()->contractors()->Children()->get();
+        }
 
-        $remainingSlots = max(0, $listLimit - $listMembersCount);
-
-        return view('dashboard.list-management.index', compact(
-            'currentListLeaderCandidate',
-            'listMembersCount',
-            'listLimit',
-            'remainingSlots'
-        ));
+        return view('dashboard.contractors.index', compact('parents', 'children'));
     }
 
     public function result()
