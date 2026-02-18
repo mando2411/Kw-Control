@@ -567,23 +567,41 @@ class ContractorController extends Controller
             }
 
             $groupedIds = [];
+            $groupedNamesByVoter = [];
             if ($itemIds->isNotEmpty()) {
-                $groupedIds = DB::table('group_voter')
+                $groupedRows = DB::table('group_voter')
                     ->join('groups', 'groups.id', '=', 'group_voter.group_id')
                     ->where('groups.contractor_id', $contractorId)
                     ->whereIn('group_voter.voter_id', $itemIds->all())
-                    ->pluck('group_voter.voter_id')
+                    ->select('group_voter.voter_id', 'groups.name')
+                    ->get();
+
+                $groupedIds = $groupedRows
+                    ->pluck('voter_id')
                     ->map(fn ($value) => (int) $value)
                     ->unique()
                     ->values()
                     ->all();
+
+                $groupedNamesByVoter = $groupedRows
+                    ->groupBy('voter_id')
+                    ->map(function ($rows) {
+                        return $rows
+                            ->pluck('name')
+                            ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+                            ->unique()
+                            ->values()
+                            ->all();
+                    })
+                    ->toArray();
             }
 
             $attachedLookup = array_flip($attachedIds);
             $groupedLookup = array_flip($groupedIds);
-            $mappedItems = $items->map(function ($voter) use ($attachedLookup, $groupedLookup) {
+            $mappedItems = $items->map(function ($voter) use ($attachedLookup, $groupedLookup, $groupedNamesByVoter) {
                 $voter->is_added = isset($attachedLookup[(int) $voter->id]);
                 $voter->is_grouped = isset($groupedLookup[(int) $voter->id]);
+                $voter->group_names = $groupedNamesByVoter[(int) $voter->id] ?? [];
                 return $voter;
             })->values();
 
@@ -606,6 +624,7 @@ class ContractorController extends Controller
 
         $attachedIds = [];
         $groupedIds = [];
+        $groupedNamesByVoter = [];
 
         if ($contractorId > 0 && $voterIds->isNotEmpty()) {
             $attachedIds = DB::table('contractor_voter')
@@ -617,23 +636,40 @@ class ContractorController extends Controller
                 ->values()
                 ->all();
 
-            $groupedIds = DB::table('group_voter')
+            $groupedRows = DB::table('group_voter')
                 ->join('groups', 'groups.id', '=', 'group_voter.group_id')
                 ->where('groups.contractor_id', $contractorId)
                 ->whereIn('group_voter.voter_id', $voterIds->all())
-                ->pluck('group_voter.voter_id')
+                ->select('group_voter.voter_id', 'groups.name')
+                ->get();
+
+            $groupedIds = $groupedRows
+                ->pluck('voter_id')
                 ->map(fn ($value) => (int) $value)
                 ->unique()
                 ->values()
                 ->all();
+
+            $groupedNamesByVoter = $groupedRows
+                ->groupBy('voter_id')
+                ->map(function ($rows) {
+                    return $rows
+                        ->pluck('name')
+                        ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+                        ->unique()
+                        ->values()
+                        ->all();
+                })
+                ->toArray();
         }
 
         $attachedLookup = array_flip($attachedIds);
         $groupedLookup = array_flip($groupedIds);
 
-        $voters = $voters->map(function ($voter) use ($attachedLookup, $groupedLookup) {
+        $voters = $voters->map(function ($voter) use ($attachedLookup, $groupedLookup, $groupedNamesByVoter) {
             $voter->is_added = isset($attachedLookup[(int) $voter->id]);
             $voter->is_grouped = isset($groupedLookup[(int) $voter->id]);
+            $voter->group_names = $groupedNamesByVoter[(int) $voter->id] ?? [];
             return $voter;
         })->values();
 

@@ -2162,6 +2162,22 @@
     ->map(fn($voterId) => (int) $voterId)
     ->all();
 
+    $groupedVoterNames = \Illuminate\Support\Facades\DB::table('group_voter')
+    ->join('groups', 'groups.id', '=', 'group_voter.group_id')
+    ->where('groups.contractor_id', $id)
+    ->select('group_voter.voter_id', 'groups.name')
+    ->get()
+    ->groupBy('voter_id')
+    ->map(function ($items) {
+      return $items
+        ->pluck('name')
+        ->filter(fn ($name) => is_string($name) && trim($name) !== '')
+        ->unique()
+        ->values()
+        ->implode('، ');
+    })
+    ->toArray();
+
     $voters = $contractor->voters()
     ->orderByRaw('status = true ASC')  // This puts the voters with `status = true` at the end
     ->orderBy('name', 'asc')     // This orders the rest by `created_at` ascending
@@ -2244,7 +2260,7 @@
                     <button class="search-relatives-btn" data-voter-name="{{$voter->name}}" data-voter-id="{{$voter->id}}" type="button">البحث عن أقارب</button>
 
                     @if (in_array((int) $voter->id, $groupedVoterIds, true))
-                      <span class="badge bg-primary ms-1">قائمة مجمعة</span>
+                      <span class="badge bg-primary ms-1">{{ $groupedVoterNames[$voter->id] ?? 'قائمة مخصصة' }}</span>
                     @endif
 
                     @if ($voter->status == 1)
@@ -3324,7 +3340,10 @@ function buildVoterRow(voter) {
   const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle voter-action-toggle--icon' : 'btn btn-success voter-action-toggle voter-action-toggle--icon';
   const actionBtnIcon = isAdded ? '<i class="fa fa-trash"></i>' : '<i class="fa fa-plus"></i>';
   const actionBtnLabel = isAdded ? 'حذف' : 'اضافة';
-  const groupedBadge = isGrouped ? '<span class="badge bg-primary ms-1">قائمة مجمعة</span>' : '';
+  const groupedNames = Array.isArray(voter?.group_names)
+    ? voter.group_names.filter(name => typeof name === 'string' && name.trim() !== '').join('، ')
+    : (typeof voter?.group_names === 'string' ? voter.group_names : '');
+  const groupedBadge = isGrouped ? `<span class="badge bg-primary ms-1">${escapeHtml(groupedNames || 'قائمة مخصصة')}</span>` : '';
 
   return `<tr class="${statusRowClass}">
     <td><input type="checkbox" class="check" name="voters[]" value="${voterId}" data-is-added="${isAdded ? '1' : '0'}" /></td>
