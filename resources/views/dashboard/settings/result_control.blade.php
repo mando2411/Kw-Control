@@ -184,6 +184,12 @@
                                             $policyCurrent = old(\App\Enums\SettingKey::UI_MODE_POLICY->value.'.0',
                                                 $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODE_POLICY->value)?->option_value[0] ?? 'user_choice');
                                             $policyCurrent = in_array($policyCurrent, ['user_choice', 'modern', 'classic'], true) ? $policyCurrent : 'user_choice';
+
+                                            $contractorProfileMode = old(\App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value.'.0',
+                                                $settings->firstWhere('option_key', \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value)?->option_value[0] ?? 'professional');
+                                            $contractorProfileMode = in_array($contractorProfileMode, ['easy', 'professional'], true)
+                                                ? $contractorProfileMode
+                                                : 'professional';
                                         @endphp
 
                                         <div class="col-12 mb-3">
@@ -205,6 +211,21 @@
                                         <div class="col-12 mb-3">
                                             <div class="card border-danger text-center fw-bold">
                                                 <!-- legacy note placeholder -->
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 mb-3">
+                                            <div class="card border-warning" style="padding: 12px; border-radius: 12px;">
+                                                <div class="fw-bold" style="margin-bottom: 6px;">وضع صفحة المتعهد</div>
+                                                <div style="color: #6c757d; font-weight: 600;">
+                                                    هذا الإعداد يطبق على مستوى الموقع كله لتحديد أي نسخة تظهر في صفحة المتعهد.
+                                                </div>
+                                                <div style="margin-top: 10px;">
+                                                    <select class="form-control" name="{{ \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value }}[]" id="contractor_profile_mode_rc">
+                                                        <option value="easy" @selected($contractorProfileMode === 'easy')>الوضع السهل</option>
+                                                        <option value="professional" @selected($contractorProfileMode === 'professional')>الوضع الاحترافي</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -298,6 +319,12 @@
                     $policyCurrent = old(\App\Enums\SettingKey::UI_MODE_POLICY->value.'.0',
                         $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODE_POLICY->value)?->option_value[0] ?? 'user_choice');
                     $policyCurrent = in_array($policyCurrent, ['user_choice', 'modern', 'classic'], true) ? $policyCurrent : 'user_choice';
+
+                    $contractorProfileMode = old(\App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value.'.0',
+                        $settings->firstWhere('option_key', \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value)?->option_value[0] ?? 'professional');
+                    $contractorProfileMode = in_array($contractorProfileMode, ['easy', 'professional'], true)
+                        ? $contractorProfileMode
+                        : 'professional';
 
                     $themePresetCurrent = old(\App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value.'.0',
                         $settings->firstWhere('option_key', \App\Enums\SettingKey::UI_MODERN_THEME_PRESET->value)?->option_value[0] ?? 'default');
@@ -517,6 +544,12 @@
                                         <option value="user_choice" @selected($policyCurrent === 'user_choice')>اجعل المستخدم يحدد (السويتش ظاهر)</option>
                                         <option value="modern" @selected($policyCurrent === 'modern')>التصميم الحديث (إجباري)</option>
                                         <option value="classic" @selected($policyCurrent === 'classic')>التصميم القديم (إجباري)</option>
+                                    </select>
+
+                                    <label class="form-label fw-bold mt-3">اختيار وضع صفحة المتعهد</label>
+                                    <select class="form-control" name="{{ \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value }}[]" id="contractor_profile_mode_rc_modern">
+                                        <option value="easy" @selected($contractorProfileMode === 'easy')>الوضع السهل</option>
+                                        <option value="professional" @selected($contractorProfileMode === 'professional')>الوضع الاحترافي</option>
                                     </select>
 
                                     <div class="sm-actions">
