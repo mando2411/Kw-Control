@@ -364,10 +364,6 @@ class ContractorController extends Controller
             return false;
         }
 
-        if ((int) $contractor->election_id !== (int) $currentListLeaderCandidate->election_id) {
-            return false;
-        }
-
         $allowedCreatorIds = Candidate::withoutGlobalScopes()
             ->where(function ($query) use ($currentListLeaderCandidate) {
                 $query->where('id', (int) $currentListLeaderCandidate->id)
@@ -380,7 +376,28 @@ class ContractorController extends Controller
             ->values()
             ->all();
 
-        return in_array((int) $contractor->creator_id, $allowedCreatorIds, true);
+        $isCreatorInLeaderList = in_array((int) $contractor->creator_id, $allowedCreatorIds, true);
+        if (!$isCreatorInLeaderList) {
+            return false;
+        }
+
+        $leaderElectionId = (int) ($currentListLeaderCandidate->election_id ?? 0);
+        $contractorElectionId = (int) ($contractor->election_id ?? 0);
+        if ($leaderElectionId > 0 && $contractorElectionId > 0 && $contractorElectionId !== $leaderElectionId) {
+            $creatorCandidate = Candidate::withoutGlobalScopes()
+                ->where('user_id', (int) $contractor->creator_id)
+                ->where(function ($query) use ($currentListLeaderCandidate) {
+                    $query->where('id', (int) $currentListLeaderCandidate->id)
+                        ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+                })
+                ->first();
+
+            if ((int) ($creatorCandidate?->election_id ?? 0) !== $leaderElectionId) {
+                return false;
+            }
+        }
+
+        return true;
     }
     public function profile($token){
         $normalizedToken = trim((string) urldecode((string) $token));
