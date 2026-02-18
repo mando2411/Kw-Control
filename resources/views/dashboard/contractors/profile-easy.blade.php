@@ -2491,7 +2491,7 @@
           </button>
         </div>
       </div>
-      <div class="container contractor-layout-block">
+      <div class="container contractor-layout-block" id="contractorListsContent">
             @forelse ($contractor->groups as $g )
             <div
          class="ta7reerContent @if ($g->type == 'مضمون')
@@ -2950,7 +2950,7 @@ let bulkActionConfirmModalInstance = null;
 let bulkActionConfirmResolver = null;
 let bulkCustomListModalInstance = null;
 let bulkCustomListResolver = null;
-const contractorGroups = @json($contractor->groups->map(fn($group) => ['id' => (int) $group->id, 'name' => (string) $group->name, 'type' => (string) ($group->type ?? '')])->values());
+let contractorGroups = @json($contractor->groups->map(fn($group) => ['id' => (int) $group->id, 'name' => (string) $group->name, 'type' => (string) ($group->type ?? '')])->values());
 let activeFilters = {
   name: '',
   family: '',
@@ -2958,6 +2958,62 @@ let activeFilters = {
   siblingExcludeId: '',
   membershipScope: 'attached'
 };
+
+function syncContractorGroupsFromListsDom(rootElement) {
+  const root = rootElement || document;
+  const rows = Array.from(root.querySelectorAll('#contractorListsContent .ta7reerContent'));
+  contractorGroups = rows.map(function (row) {
+    const groupId = String(row.querySelector('input#group_id')?.value || '').trim();
+    const groupName = String(row.querySelector('.listName')?.textContent || '').trim();
+    const groupType = String(row.querySelector('.listType')?.textContent || '').trim();
+    return {
+      id: Number(groupId || 0),
+      name: groupName,
+      type: groupType
+    };
+  }).filter(function (group) {
+    return Number(group.id) > 0;
+  });
+}
+
+function refreshContractorListsContent() {
+  const currentContainer = document.getElementById('contractorListsContent');
+  const listsPane = document.getElementById('contractorTabLists');
+  if (!currentContainer || !listsPane) {
+    return Promise.resolve();
+  }
+
+  const skeleton = listsPane.querySelector('.contractor-tab-skeleton');
+  if (skeleton) {
+    skeleton.classList.add('is-visible');
+  }
+
+  return axios.get(window.location.href, {
+    params: { _ts: Date.now() },
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  }).then(function (response) {
+    const html = String(response?.data || '');
+    if (!html.trim()) {
+      return;
+    }
+
+    const parser = new DOMParser();
+    const nextDocument = parser.parseFromString(html, 'text/html');
+    const nextContainer = nextDocument.getElementById('contractorListsContent');
+    if (!nextContainer) {
+      throw new Error('lists-content-not-found');
+    }
+
+    currentContainer.innerHTML = nextContainer.innerHTML;
+    syncContractorGroupsFromListsDom(document);
+  }).finally(function () {
+    if (skeleton) {
+      skeleton.classList.remove('is-visible');
+    }
+  });
+}
 
 function ensureBulkActionConfirmModal() {
   const modalEl = document.getElementById('bulkActionConfirmModal');
@@ -4097,6 +4153,7 @@ $('#createGroupForm').on('submit', function (event) {
       showCreateGroupFeedback('success', msg);
       showToastMessage('success', msg);
       form.reset();
+      return refreshContractorListsContent();
     })
     .catch(function (error) {
       const msg = error?.response?.data?.message || error?.response?.data?.errors?.name?.[0] || 'حدث خطأ أثناء إنشاء القائمة';
@@ -4171,7 +4228,8 @@ $(window).on('scroll', function () {
 });
 
 runLiveSearch(currentFiltersFromUI());
-$('button[data-bs-target="#ta7reerData"]').on("click", function () {
+syncContractorGroupsFromListsDom(document);
+$(document).on('click', 'button[data-bs-target="#ta7reerData"]', function () {
 
     let group_id=$(this).siblings('#group_id').val();
     url = "/group/"+ group_id;
@@ -4191,7 +4249,7 @@ $('button[data-bs-target="#ta7reerData"]').on("click", function () {
     .catch(function (error) {
         console.error('Error:', error);
     });
-    $("#button-g").on('click',function(){
+    $("#button-g").off('click').on('click',function(){
     $("#edit-form").submit();
 
     })
