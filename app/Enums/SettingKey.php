@@ -23,6 +23,9 @@ enum SettingKey: string
     // Global UI policy: user_choice | modern | classic
     case UI_MODE_POLICY             = 'ui_mode_policy';
 
+    // Contractor profile mode: easy | professional
+    case CONTRACTOR_PROFILE_MODE    = 'contractor_profile_mode';
+
     // Modern UI Theme Preset: default | emerald | violet | custom
     case UI_MODERN_THEME_PRESET     = 'ui_modern_theme_preset';
     case UI_MODERN_THEME_LIBRARY    = 'ui_modern_theme_library';

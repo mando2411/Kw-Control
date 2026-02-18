@@ -69,6 +69,15 @@ class SettingController extends Controller
             return [$policy];
         }
 
+        if ($key === SettingKey::CONTRACTOR_PROFILE_MODE->value) {
+            $mode = trim((string) ($value[0] ?? ''));
+            if (!in_array($mode, ['easy', 'professional'], true)) {
+                $mode = 'professional';
+            }
+
+            return [$mode];
+        }
+
         $selectableSizeSettings = [
             SettingKey::UI_MODERN_FS_XS->value => ['0.75rem', '0.625rem', '0.875rem', '1rem'],
             SettingKey::UI_MODERN_FS_SM->value => ['0.875rem', '0.75rem', '1rem', '1.125rem'],
