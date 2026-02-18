@@ -77,7 +77,7 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
                             <h6 class="mb-0" style="font-weight:900;">مرشحو القائمة (فلتر متعدد)</h6>
-                            <button type="submit" class="btn btn-sm btn-primary">تطبيق التحديد</button>
+                            <span id="list-management-filter-state" class="small text-muted" aria-live="polite"></span>
                         </div>
 
                         <div class="d-flex flex-wrap gap-2 align-items-stretch">
@@ -326,7 +326,7 @@
 			</div>
 			
 			</div>
-            <div class="table-responsive mt-4 cm-anim cm-anim-delay-3">
+            <div id="list-management-contractors-table-wrap" class="table-responsive mt-4 cm-anim cm-anim-delay-3">
                 <table id="myTable" class="table rtl overflow-hidden rounded-3 text-center">
                     <thead class="table-primary border-0 border-secondary border-bottom border-2">
                         <tr style="font-size: 15px !important">
@@ -1423,7 +1423,7 @@
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
  <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        function bindMyTableHeaderSort() {
         const table = document.getElementById("myTable");
         if (!table) return;
 
@@ -1436,6 +1436,10 @@
             });
             table.dataset.headerSortBound = "1";
         }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        bindMyTableHeaderSort();
     });
 
     function sortTable(table, columnIndex) {
@@ -1571,15 +1575,107 @@
         if (!filterForm) return;
 
         var selectAll = document.getElementById('candidate-select-all');
+        var stateEl = document.getElementById('list-management-filter-state');
         var candidateCheckboxes = Array.prototype.slice.call(
             filterForm.querySelectorAll('.candidate-filter-checkbox')
         );
+        var activeRequestController = null;
+        var requestCounter = 0;
+
+        function setFilterState(message, isError) {
+            if (!stateEl) return;
+            stateEl.textContent = message || '';
+            stateEl.classList.toggle('text-danger', !!isError);
+            stateEl.classList.toggle('text-muted', !isError);
+        }
 
         function refreshPillState(input) {
             if (!input) return;
             var label = input.closest('label.list-candidate-pill');
             if (!label) return;
             label.classList.toggle('is-selected', !!input.checked);
+        }
+
+        function getSelectedCandidateUserIds() {
+            return candidateCheckboxes
+                .filter(function (el) { return el.checked; })
+                .map(function (el) { return String(el.value); });
+        }
+
+        function buildFilterUrl() {
+            var selectedIds = getSelectedCandidateUserIds();
+            var url = new URL(filterForm.action, window.location.origin);
+            selectedIds.forEach(function (id) {
+                url.searchParams.append('candidate_users[]', id);
+            });
+            return url.toString();
+        }
+
+        function syncSelectFromFetchedDoc(doc, selectId) {
+            var currentSelect = document.getElementById(selectId);
+            var fetchedSelect = doc.getElementById(selectId);
+            if (!currentSelect || !fetchedSelect) return;
+            currentSelect.innerHTML = fetchedSelect.innerHTML;
+        }
+
+        function syncTableFromFetchedDoc(doc) {
+            var currentWrap = document.getElementById('list-management-contractors-table-wrap');
+            var fetchedWrap = doc.getElementById('list-management-contractors-table-wrap');
+            if (!currentWrap || !fetchedWrap) return;
+            currentWrap.innerHTML = fetchedWrap.innerHTML;
+            if (typeof bindMyTableHeaderSort === 'function') {
+                bindMyTableHeaderSort();
+            }
+        }
+
+        function applySelectionAjax() {
+            var requestId = ++requestCounter;
+            var url = buildFilterUrl();
+
+            if (activeRequestController) {
+                activeRequestController.abort();
+            }
+
+            activeRequestController = new AbortController();
+            setFilterState('جاري التحديث...');
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html'
+                },
+                signal: activeRequestController.signal
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                    return response.text();
+                })
+                .then(function (html) {
+                    if (requestId !== requestCounter) return;
+
+                    var doc = new DOMParser().parseFromString(html, 'text/html');
+                    syncTableFromFetchedDoc(doc);
+                    syncSelectFromFetchedDoc(doc, 'parent_id');
+                    syncSelectFromFetchedDoc(doc, 'changparent_id');
+                    syncSelectFromFetchedDoc(doc, 'addMota3ahed');
+
+                    if (window.history && typeof window.history.replaceState === 'function') {
+                        window.history.replaceState(null, '', url);
+                    }
+
+                    setFilterState('تم التحديث');
+                    setTimeout(function () {
+                        if (requestId === requestCounter) setFilterState('');
+                    }, 1200);
+                })
+                .catch(function (error) {
+                    if (error && error.name === 'AbortError') return;
+                    console.error(error);
+                    setFilterState('تعذر تحديث البيانات', true);
+                });
         }
 
         function syncAllStateFromCandidates() {
@@ -1597,6 +1693,7 @@
                     refreshPillState(el);
                 });
                 refreshPillState(selectAll);
+                applySelectionAjax();
             });
         }
 
@@ -1604,8 +1701,14 @@
             el.addEventListener('change', function () {
                 refreshPillState(el);
                 syncAllStateFromCandidates();
+                applySelectionAjax();
             });
             refreshPillState(el);
+        });
+
+        filterForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            applySelectionAjax();
         });
 
         syncAllStateFromCandidates();
