@@ -36,7 +36,7 @@
                         <i class="fa fa-users"></i>
                     </button>
                     <div id="listleader-candidates-panel" class="dropdown-menu" dir="rtl">
-                        <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
+                        <a class="dropdown-item" href="{{ route('dashboard.list-management') }}">إدارة القائمة</a>
                         <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
                     </div>
                 </div>
@@ -132,7 +132,7 @@
                             <i class="fa fa-users"></i>
                         </button>
                         <div id="listleader-candidates-panel-mobile" class="dropdown-menu dtm-notif-panel" dir="rtl">
-                            <a class="dropdown-item" href="{{ route('dashboard.candidates.index') }}">المرشحين</a>
+                            <a class="dropdown-item" href="{{ route('dashboard.list-management') }}">إدارة القائمة</a>
                             <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
                         </div>
                     </div>
