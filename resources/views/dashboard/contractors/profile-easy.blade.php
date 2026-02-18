@@ -2999,11 +2999,19 @@ function resetBulkSelectAllState(uncheckLoadedRows) {
 }
 
 function collectAllFilteredVoterIds() {
+  const hasSearchFilters = Boolean(
+    (activeFilters.name && String(activeFilters.name).trim() !== '') ||
+    (activeFilters.family && String(activeFilters.family).trim() !== '') ||
+    (activeFilters.sibling && String(activeFilters.sibling).trim() !== '')
+  );
+
+  const effectiveScope = hasSearchFilters ? 'all' : (activeFilters.membershipScope || 'attached');
+
   return axios.get(searchEndpoint, {
     params: {
       id: contractorId,
       contractor_token: contractorToken,
-      scope: activeFilters.membershipScope || 'attached',
+      scope: effectiveScope,
       exclude_grouped: '1',
       ids_only: '1',
       name: activeFilters.name || '',
@@ -3383,9 +3391,16 @@ function fetchVotersPage(appendMode) {
   isLoadingRows = true;
   const requestId = ++currentRequestId;
   const params = new URLSearchParams();
+  const hasSearchFilters = Boolean(
+    (activeFilters.name && String(activeFilters.name).trim() !== '') ||
+    (activeFilters.family && String(activeFilters.family).trim() !== '') ||
+    (activeFilters.sibling && String(activeFilters.sibling).trim() !== '')
+  );
+  const effectiveScope = hasSearchFilters ? 'all' : (activeFilters.membershipScope || 'attached');
+
   params.append('id', contractorId);
   params.append('contractor_token', contractorToken);
-  params.append('scope', activeFilters.membershipScope || 'attached');
+  params.append('scope', effectiveScope);
   params.append('exclude_grouped', '1');
   params.append('page', String(currentPage));
   params.append('per_page', String(getSearchPerPage()));
