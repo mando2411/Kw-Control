@@ -3302,6 +3302,26 @@ function currentFiltersFromUI() {
   };
 }
 
+function hasActiveSearchFilters() {
+  return Boolean(
+    (activeFilters.name && String(activeFilters.name).trim() !== '') ||
+    (activeFilters.family && String(activeFilters.family).trim() !== '') ||
+    (activeFilters.sibling && String(activeFilters.sibling).trim() !== '')
+  );
+}
+
+function syncMyListButtonState() {
+  const myListBtn = $('#membershipFilterButtons .membership-filter-btn[data-membership-scope="attached"]');
+  if (!myListBtn.length) return;
+
+  if (hasActiveSearchFilters()) {
+    myListBtn.removeClass('btn-secondary active').addClass('btn-outline-secondary');
+    return;
+  }
+
+  myListBtn.removeClass('btn-outline-secondary').addClass('btn-secondary active');
+}
+
 function isAllRowsMode() {
   return selectedRowsPerView === 'all';
 }
@@ -3466,6 +3486,8 @@ function runLiveSearch(filters) {
     membershipScope: filters?.membershipScope ?? activeFilters.membershipScope ?? 'attached'
   };
 
+  syncMyListButtonState();
+
   currentPage = 1;
   hasMoreRows = true;
   totalSearchRows = 0;
@@ -3513,17 +3535,14 @@ function searchRelatives(voterName, voterId) {
 $('#membershipFilterButtons .membership-filter-btn').on('click', function () {
   const scope = $(this).data('membershipScope') || 'attached';
 
-  $('#membershipFilterButtons .membership-filter-btn')
-    .removeClass('btn-secondary active')
-    .addClass('btn-outline-secondary');
-
-  $(this)
-    .removeClass('btn-outline-secondary')
-    .addClass('btn-secondary active');
+  silentFilterUpdate = true;
+  $('#searchByNameOrNum').val('');
+  $('#searchByFamily').val('').trigger('change.select2');
+  silentFilterUpdate = false;
 
   runLiveSearch({
-    name: ($('#searchByNameOrNum').val() || '').trim(),
-    family: ($('#searchByFamily').val() || '').trim(),
+    name: '',
+    family: '',
     sibling: '',
     siblingExcludeId: '',
     membershipScope: scope
