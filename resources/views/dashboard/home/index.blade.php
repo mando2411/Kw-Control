@@ -970,13 +970,12 @@
                     </div>
                     @endcan
                     @if(!empty($isListLeaderUser))
-                    <div class="col-lg-3 col-md-3 col-sm-6 flex-grow-1">
+                    <div class="col-lg-2 col-md-3 col-sm-6">
                         <div class="w-100">
                             <a href="{{ route('dashboard.candidates.index') }}">
-                                <button class="btn w-100 btn-success">
-                                    <i class="fa fs-5 fa-list-ul d-block my-1"></i>
-                                    <h6 class="mb-0">إدارة القائمة</h6>
-                                    <small class="d-block mt-1 text-white">{{ $listLeaderCandidate?->list_name ?? 'قائمتي' }}</small>
+                                <button class="btn w-100 btn-primary">
+                                    <i class="fa fs-5 fa-user-check d-block my-1"></i>
+                                    <h6>إدارة القائمة</h6>
                                 </button>
                             </a>
                         </div>
