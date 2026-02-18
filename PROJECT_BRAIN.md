@@ -643,6 +643,19 @@ The old file contained stale statements. Correct state is:
 - بعد أي تعديل في الصلاحيات/العرض: تنفيذ `php artisan optimize:clear`.
 - عند بيئة جديدة بعد نشر seeders: تشغيل seeding/permission cache reset للتأكد من وجود الدور الجديد.
 - لتفادي اختلافات البيانات القديمة: يفضل عمل job/command one-time لمزامنة أي Candidate بنوع `list_leader` مع role `مرشح رئيس قائمة` إذا كان مفقودًا.
+
+### Demo full data seeder (new)
+
+- تمت إضافة Seeder شامل لاختبار كل السيناريوهات في الملف:
+  - `database/seeders/DemoFullElectionSeeder.php`
+- ما الذي يُنشئه:
+  - رؤساء قوائم + أعضاء قوائم + مرشحين مستقلين.
+  - متعهدين أساسيين وفرعيين مرتبطين بكل رئيس قائمة.
+  - 1000 ناخب تجريبي بحالات حضور/عدم حضور مع ربطهم باللجان والعائلات والانتخابات والمتعهدين.
+- أمر التشغيل:
+  - `php artisan db:seed --class 'Database\Seeders\DemoFullElectionSeeder' --force`
+- ملاحظة تشغيلية:
+  - الـSeeder ينظف الداتا التجريبية القديمة (بنمط `demo.*@kw.local` والأسماء التجريبية) قبل إعادة الإنشاء حتى يكون قابلًا لإعادة التشغيل بأمان.
 - Real Flutter app exists under `.mobile/ContractorPortalFlutter`.
 - APK build script now includes verification, not just build/copy.
 
