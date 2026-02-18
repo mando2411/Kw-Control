@@ -2854,10 +2854,19 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             const voterId = $(this).data('voterId') || $(this).attr('data-voter-id');
             if (!voterId) return;
 
+            const detailsRequestId = ++voterDetailsRequestId;
+            $('#mota3ahedDetailsVoterId').val(String(voterId));
+            $('#mota3ahedDetailsTrustingRate').attr('data-details-ready', '0');
+            $('#mota3ahedDetailsTrustingRate').attr('data-is-attached', '0');
+
             const detailsUrl = '/voter/' + voterId + '/' + contractorId + '?contractor_token=' + encodeURIComponent(contractorToken);
 
             axios.get(detailsUrl)
               .then(function (response) {
+                if (detailsRequestId !== voterDetailsRequestId) {
+                  return;
+                }
+
                 $('#mota3ahedDetailsVoterId').val(response?.data?.voter?.id || '');
                 $('#mota3ahedDetailsName').val(response?.data?.voter?.name || '');
                 $('#mota3ahedDetailsPhone').val(response?.data?.voter?.phone1 || '');
@@ -2868,6 +2877,7 @@ var message = selectedOption.data('message'); // Get the data-message attribute
                 $('#mota3ahedDetailsTrustingRate').attr('data-last-saved', String(response?.data?.percent || 0));
                 $('#mota3ahedDetailsTrustingRate').attr('data-last-voter-id', String(response?.data?.voter?.id || ''));
                 $('#mota3ahedDetailsTrustingRate').attr('data-is-attached', response?.data?.is_attached ? '1' : '0');
+                $('#mota3ahedDetailsTrustingRate').attr('data-details-ready', '1');
                 $('#percent').text(response?.data?.percent || 0);
                 $('#father').val(response?.data?.voter?.father || '');
                 syncVoterContactLinks(response?.data?.voter?.phone1 || '');
@@ -2933,6 +2943,13 @@ var message = selectedOption.data('message'); // Get the data-message attribute
             if (!voterId) return;
 
             saveTrustRateIfNeeded(voterId, value, { force: true, silent: true });
+          });
+
+          $(document).off('hidden.bs.modal.trustRateReset', '#nameChechedDetails').on('hidden.bs.modal.trustRateReset', '#nameChechedDetails', function () {
+            const slider = $('#mota3ahedDetailsTrustingRate');
+            slider.attr('data-details-ready', '0');
+            slider.attr('data-is-attached', '0');
+            $('#mota3ahedDetailsVoterId').val('');
           });
 
           $('#Form-Siblings').on('submit', function (event) {
@@ -3006,6 +3023,7 @@ let currentRequestId = 0;
 let silentFilterUpdate = false;
 let windowLoadMoreThrottle = null;
 let trustRateSaveTimer = null;
+let voterDetailsRequestId = 0;
 let isSelectAllLoading = false;
 let bulkSelectAllActive = false;
 let bulkSelectedVoterIds = [];
@@ -3285,11 +3303,16 @@ function saveTrustRateIfNeeded(voterId, value, options) {
 
   const normalizedValue = Math.max(0, Math.min(100, Number(value) || 0));
   const slider = $('#mota3ahedDetailsTrustingRate');
+  const detailsReady = String(slider.attr('data-details-ready') || '0') === '1';
   const isAttached = String(slider.attr('data-is-attached') || '0') === '1';
   const forceSave = Boolean(options?.force);
   const silent = Boolean(options?.silent);
   const lastSavedValue = Number(slider.attr('data-last-saved') || 0);
   const lastSavedVoterId = String(slider.attr('data-last-voter-id') || '').trim();
+
+  if (!detailsReady) {
+    return;
+  }
 
   if (!isAttached) {
     return;
@@ -3316,6 +3339,9 @@ function saveTrustRateIfNeeded(voterId, value, options) {
     })
     .catch(function (error) {
       const msg = error?.response?.data?.message || 'تعذر تحديث نسبة الالتزام';
+      if (silent) {
+        return;
+      }
       showCreateGroupFeedback('error', msg);
       showToastMessage('error', msg);
     });
