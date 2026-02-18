@@ -114,6 +114,7 @@ Route::get('/', function () {
         ->where('user_id', (int) auth()->id())
         ->where('candidate_type', 'list_leader')
         ->first();
+    $isListLeaderUser = auth()->user()->hasRole('مرشح رئيس قائمة') || !empty($listLeaderCandidate);
 
     $pendingJoinRequest = \App\Models\ContractorJoinRequest::query()
         ->where('requester_user_id', (int) auth()->id())
@@ -149,7 +150,7 @@ Route::get('/', function () {
             $show_all_result=true;
         }
     }
-    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl', 'listLeaderCandidate'));
+    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl', 'listLeaderCandidate', 'isListLeaderUser'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

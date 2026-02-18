@@ -903,7 +903,7 @@
         auth()->user()->can('contractors.list') ||
         auth()->user()->can('statement') ||
         auth()->user()->can('statement.search') ||
-        !empty($listLeaderCandidate))
+        !empty($isListLeaderUser))
         <div>
             <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتعهدين والمضامين</h1>
             <div class="container">
@@ -969,7 +969,7 @@
                         </div>
                     </div>
                     @endcan
-                    @if(!empty($listLeaderCandidate))
+                    @if(!empty($isListLeaderUser))
                     <div class="col-lg-3 col-md-3 col-sm-6 flex-grow-1">
                         <div class="w-100">
                             <a href="{{ route('dashboard.candidates.index') }}">
