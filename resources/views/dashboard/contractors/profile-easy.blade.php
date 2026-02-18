@@ -3587,7 +3587,7 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
     toggleIcon.html('<i class="bi bi-card-checklist"></i>');
   } else {
     toggleBtn.attr('data-next-target', '#contractorTabSearch');
-    toggleTitle.text('البحث');
+    toggleTitle.text('البحث والاضافة');
     toggleSub.text('عرض نتائج البحث');
     toggleIcon.html('<i class="bi bi-search"></i>');
   }
