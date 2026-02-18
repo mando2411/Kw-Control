@@ -6,6 +6,7 @@ use App\Models\Contractor;
 use App\Models\Candidate;
 use App\Models\User;
 use App\Models\Election;
+use App\Models\Setting;
 use App\Models\Role;
 use App\Models\Family;
 use App\Models\Voter;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use App\Helpers\ArabicHelper;
+use App\Enums\SettingKey;
 
 
 class ContractorController extends Controller
@@ -413,7 +415,17 @@ class ContractorController extends Controller
                 $query->where('election_id', $electionId);
             })
             ->get();
-		return view('dashboard.contractors.profile', compact('contractor','families'));
+
+        $profileMode = (string) (Setting::query()
+            ->where('option_key', SettingKey::CONTRACTOR_PROFILE_MODE->value)
+            ->value('option_value->0') ?? 'professional');
+        $profileMode = in_array($profileMode, ['easy', 'professional'], true) ? $profileMode : 'professional';
+
+        $profileView = $profileMode === 'easy'
+            ? 'dashboard.contractors.profile-easy'
+            : 'dashboard.contractors.profile-professional';
+
+		return view($profileView, compact('contractor','families'));
     }
     public function search(Request $request){
         $contractorToken = trim((string) $request->input('contractor_token', ''));

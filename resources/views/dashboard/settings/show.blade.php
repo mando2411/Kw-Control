@@ -68,6 +68,29 @@
                                 </select>
                             </div>
 
+                            @php
+                                $contractorProfileMode = old(\App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value.'.0',
+                                    $settings->firstWhere('option_key', \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value)?->option_value[0] ?? 'professional');
+                                $contractorProfileMode = in_array($contractorProfileMode, ['easy', 'professional'], true)
+                                    ? $contractorProfileMode
+                                    : 'professional';
+                            @endphp
+
+                            <div class="alert alert-warning" style="border-radius: 14px;">
+                                <strong>وضع صفحة المتعهد</strong>
+                                <div style="margin-top: 6px;">
+                                    هذا الإعداد عام على مستوى الموقع كله. الوضع الحالي الكامل يعتبر <strong>الوضع الاحترافي</strong>.
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">اختيار وضع صفحة المتعهد</label>
+                                <select class="form-control" name="{{ \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value }}[]" id="{{ \App\Enums\SettingKey::CONTRACTOR_PROFILE_MODE->value }}">
+                                    <option value="easy" @selected($contractorProfileMode === 'easy')>الوضع السهل</option>
+                                    <option value="professional" @selected($contractorProfileMode === 'professional')>الوضع الاحترافي</option>
+                                </select>
+                            </div>
+
                         </div>
 
                         </x-dashboard.form.multi-tab-card>
