@@ -2198,9 +2198,7 @@
         </div>
 
         <div class="d-flex justify-content-center align-items-center gap-2 mb-3" id="membershipFilterButtons">
-          <button type="button" class="btn btn-secondary membership-filter-btn active" data-membership-scope="all">الكل</button>
-          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="attached">تمت اضافتهم</button>
-          <button type="button" class="btn btn-outline-secondary membership-filter-btn" data-membership-scope="available">لم تتم اضافتهم</button>
+          <button type="button" class="btn btn-secondary membership-filter-btn active" data-membership-scope="attached">قائمتى</button>
         </div>
 
         <div class="madameenTable table-responsive mt-4">
@@ -2909,7 +2907,7 @@ let activeFilters = {
   family: '',
   sibling: '',
   siblingExcludeId: '',
-  membershipScope: 'all'
+  membershipScope: 'attached'
 };
 
 function ensureBulkActionConfirmModal() {
@@ -3005,7 +3003,7 @@ function collectAllFilteredVoterIds() {
     params: {
       id: contractorId,
       contractor_token: contractorToken,
-      scope: activeFilters.membershipScope || 'all',
+      scope: activeFilters.membershipScope || 'attached',
       exclude_grouped: '1',
       ids_only: '1',
       name: activeFilters.name || '',
@@ -3113,7 +3111,7 @@ function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
 
       const nextIsAdded = !isCurrentlyAdded;
       const rowEl = buttonEl ? buttonEl.closest('tr') : null;
-      const activeScope = activeFilters?.membershipScope || 'all';
+      const activeScope = activeFilters?.membershipScope || 'attached';
 
       if (rowEl) {
         const checkbox = rowEl.querySelector('.check');
@@ -3292,7 +3290,7 @@ function currentFiltersFromUI() {
     family: ($('#searchByFamily').val() || '').trim(),
     sibling: '',
     siblingExcludeId: '',
-    membershipScope: activeFilters.membershipScope || 'all'
+    membershipScope: activeFilters.membershipScope || 'attached'
   };
 }
 
@@ -3387,7 +3385,7 @@ function fetchVotersPage(appendMode) {
   const params = new URLSearchParams();
   params.append('id', contractorId);
   params.append('contractor_token', contractorToken);
-  params.append('scope', activeFilters.membershipScope || 'all');
+  params.append('scope', activeFilters.membershipScope || 'attached');
   params.append('exclude_grouped', '1');
   params.append('page', String(currentPage));
   params.append('per_page', String(getSearchPerPage()));
@@ -3450,7 +3448,7 @@ function runLiveSearch(filters) {
     family: filters?.family ?? '',
     sibling: filters?.sibling ?? '',
     siblingExcludeId: filters?.siblingExcludeId ?? '',
-    membershipScope: filters?.membershipScope ?? activeFilters.membershipScope ?? 'all'
+    membershipScope: filters?.membershipScope ?? activeFilters.membershipScope ?? 'attached'
   };
 
   currentPage = 1;
@@ -3493,12 +3491,12 @@ function searchRelatives(voterName, voterId) {
     family: '',
     sibling: voterName || '',
     siblingExcludeId: voterId || '',
-    membershipScope: activeFilters.membershipScope || 'all'
+    membershipScope: activeFilters.membershipScope || 'attached'
   });
 }
 
 $('#membershipFilterButtons .membership-filter-btn').on('click', function () {
-  const scope = $(this).data('membershipScope') || 'all';
+  const scope = $(this).data('membershipScope') || 'attached';
 
   $('#membershipFilterButtons .membership-filter-btn')
     .removeClass('btn-secondary active')
