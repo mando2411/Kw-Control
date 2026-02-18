@@ -2044,8 +2044,18 @@
       </div>
 
       <div class="container contractor-page-container">
-        <p class="contractor-tab-switcher-hint"><i class="bi bi-layout-three-columns-gap"></i> اختر قسم العرض</p>
-        <div class="contractor-tab-nav nav" id="contractorTabNav" role="tablist">
+        <p class="contractor-tab-switcher-hint"><i class="bi bi-arrow-repeat"></i> تبديل القسم</p>
+        <div class="mb-2 text-center">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            id="contractorTabToggleBtn"
+            data-next-target="#contractorTabLists"
+          >
+            القوائم
+          </button>
+        </div>
+        <div class="contractor-tab-nav nav d-none" id="contractorTabNav" role="tablist" aria-hidden="true">
           <button
             type="button"
             class="btn btn-secondary contractor-tab-btn active"
@@ -3513,11 +3523,41 @@ $('#contractorTabNav').on('shown.bs.tab', '.contractor-tab-btn', function () {
     .removeClass('btn-outline-secondary')
     .addClass('btn-secondary active')
     .attr('aria-selected', 'true');
+
+  const toggleBtn = $('#contractorTabToggleBtn');
+  if (!toggleBtn.length) return;
+
+  const targetSelector = String($(this).attr('data-bs-target') || '');
+  if (targetSelector === '#contractorTabSearch') {
+    toggleBtn.text('القوائم').attr('data-next-target', '#contractorTabLists');
+  } else {
+    toggleBtn.text('البحث').attr('data-next-target', '#contractorTabSearch');
+  }
 });
 
 $('#contractorTabNav').on('show.bs.tab', '.contractor-tab-btn', function () {
   const targetSelector = $(this).attr('data-bs-target') || '';
   showTabSwitchSkeleton(targetSelector);
+});
+
+$('#contractorTabToggleBtn').on('click', function () {
+  const nextTarget = String($(this).attr('data-next-target') || '');
+  if (!nextTarget) return;
+
+  const nextTabButton = $('#contractorTabNav .contractor-tab-btn[data-bs-target="' + nextTarget + '"]');
+  if (!nextTabButton.length) return;
+
+  if (window.bootstrap && window.bootstrap.Tab) {
+    window.bootstrap.Tab.getOrCreateInstance(nextTabButton.get(0)).show();
+    return;
+  }
+
+  if (typeof nextTabButton.tab === 'function') {
+    nextTabButton.tab('show');
+    return;
+  }
+
+  nextTabButton.trigger('click');
 });
 
 $('#all_voters').off('click');
