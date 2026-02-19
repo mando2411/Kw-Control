@@ -31,6 +31,7 @@ class PermittedMiddleware
             $permission = Str::of($request->route()->getName())
                 ->remove('dashboard.')
                 ->replace('statement.search-modern', 'statement.search')
+                ->replace('import-voters-data', 'import-voters')
                 ->replace('store', 'create')
                 ->replace('index', 'list')
                 ->replace('update', 'edit')
