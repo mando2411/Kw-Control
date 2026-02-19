@@ -17,7 +17,7 @@ class ElectionDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
-            ->editColumn('created_at', fn(Election $election) => $election->created_at->format('M Y, d'))
+            ->editColumn('created_at', fn(Election $election) => $election->created_at->format('Y/m/d'))
             ->addColumn('action', 'dashboard.elections.action')
             
             ->setRowId('id')
@@ -40,25 +40,25 @@ class ElectionDataTable extends DataTable
             ->orderBy(0)
             ->selectStyleSingle()
             ->buttons(array_reverse([
-                Button::make('excel')->className('btn btn-sm float-right ms-1 p-1 text-light btn-success'),
-                Button::make('csv')->className('btn btn-sm float-right ms-1 p-1 text-light btn-primary'),
-                Button::make('print')->className('btn btn-sm float-right ms-1 p-1 text-light btn-secondary'),
-                Button::make('reload')->className('btn btn-sm float-right ms-1 p-1 text-light btn-info')
+                Button::make('excel')->text('تصدير Excel')->className('btn btn-sm float-right ms-1 p-1 text-light btn-success'),
+                Button::make('csv')->text('تصدير CSV')->className('btn btn-sm float-right ms-1 p-1 text-light btn-primary'),
+                Button::make('print')->text('طباعة')->className('btn btn-sm float-right ms-1 p-1 text-light btn-secondary'),
+                Button::make('reload')->text('تحديث')->className('btn btn-sm float-right ms-1 p-1 text-light btn-info')
             ]));
     }
 
     public function getColumns(): array
     {
         return [
-            Column::make('id'),
-            Column::make('name'),
-            Column::make('start_date'),
-            Column::make('end_date'),
-            Column::make('start_time'),
-            Column::make('end_time'),
-            Column::make('type'),
-            Column::make('created_at'),
-            Column::computed('action')
+            Column::make('id')->title('الرقم'),
+            Column::make('name')->title('اسم الانتخابات'),
+            Column::make('start_date')->title('تاريخ البداية'),
+            Column::make('end_date')->title('تاريخ النهاية'),
+            Column::make('start_time')->title('وقت البداية'),
+            Column::make('end_time')->title('وقت النهاية'),
+            Column::make('type')->title('النوع'),
+            Column::make('created_at')->title('تاريخ الإنشاء'),
+            Column::computed('action')->title('الإجراءات')
                   ->exportable(false)
                   ->printable(false)
                   ->width(60)

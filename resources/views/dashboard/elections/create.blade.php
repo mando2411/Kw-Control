@@ -5,9 +5,9 @@
         @csrf
 
         <!-- Container-fluid starts-->
-        <x-dashboard.partials.breadcrumb title="Create Election" :hideFirst="true">
+        <x-dashboard.partials.breadcrumb title="إنشاء انتخابات" :hideFirst="true">
             <li class="breadcrumb-item">
-                <a href="{{ route('dashboard.elections.index') }}">Elections</a>
+                <a href="{{ route('dashboard.elections.index') }}">الانتخابات</a>
             </li>
         </x-dashboard.partials.breadcrumb>
         <!-- Container-fluid Ends-->
@@ -20,17 +20,17 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <x-dashboard.form.input-text error-key="name" name="name"  id="name" label-title="Name"/>
+                        <x-dashboard.form.input-text error-key="name" name="name"  id="name" label-title="اسم الانتخابات"/>
 
-<x-dashboard.form.input-text error-key="start_date" name="start_date"  id="start_date" label-title="StartDate" date/>
+<x-dashboard.form.input-text error-key="start_date" name="start_date"  id="start_date" label-title="تاريخ البداية" date/>
 
-<x-dashboard.form.input-text error-key="end_date" name="end_date"  id="end_date" label-title="EndDate" date/>
+<x-dashboard.form.input-text error-key="end_date" name="end_date"  id="end_date" label-title="تاريخ النهاية" date/>
 
-<x-dashboard.form.input-text error-key="start_time" name="start_time"  id="start_time" label-title="StartTime" time/>
+<x-dashboard.form.input-text error-key="start_time" name="start_time"  id="start_time" label-title="وقت البداية" time/>
 
-<x-dashboard.form.input-text error-key="end_time" name="end_time"  id="end_time" label-title="EndTime" time/>
+<x-dashboard.form.input-text error-key="end_time" name="end_time"  id="end_time" label-title="وقت النهاية" time/>
 
-<x-dashboard.form.input-text error-key="type" name="type"  id="type" label-title="Type"/>
+<x-dashboard.form.input-text error-key="type" name="type"  id="type" label-title="نوع الانتخابات"/>
 
 
                         <x-dashboard.form.submit-button/>

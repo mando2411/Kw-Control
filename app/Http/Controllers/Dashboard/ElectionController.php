@@ -25,7 +25,7 @@ class ElectionController extends Controller
     public function store(ElectionRequest $request)
     {
         $election = Election::create($request->getSanitized());
-        session()->flash('message', 'Election Created Successfully!');
+        session()->flash('message', 'تم إنشاء الانتخابات بنجاح');
         session()->flash('type', 'success');
         return redirect()->route('dashboard.elections.edit', $election);
     }
@@ -46,7 +46,7 @@ class ElectionController extends Controller
     public function update(ElectionRequest $request, Election $election)
     {
         $election->update($request->getSanitized());
-        session()->flash('message', 'Election Updated Successfully!');
+        session()->flash('message', 'تم تحديث الانتخابات بنجاح');
         session()->flash('type', 'success');
         return back();
     }
@@ -56,7 +56,7 @@ class ElectionController extends Controller
     {
         $election->delete();
         return response()->json([
-            'message' => 'Election Deleted Successfully!'
+            'message' => 'تم حذف الانتخابات بنجاح'
         ]);
     }
 }
