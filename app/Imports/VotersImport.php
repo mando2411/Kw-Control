@@ -10,6 +10,7 @@ use App\Models\Selection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Carbon\Carbon;
@@ -28,6 +29,7 @@ class VotersImport implements ToCollection, WithHeadingRow
     private int $existingCount = 0;
     private int $updatedCount = 0;
     private int $duplicateSkippedCount = 0;
+    private array $tableColumns = [];
 
     public function __construct($election)
     {
@@ -126,10 +128,12 @@ class VotersImport implements ToCollection, WithHeadingRow
 
         $familyId = null;
         if (!empty($row['alaaaylh'])) {
-            $family = Family::firstOrCreate([
-                'name' => $row['alaaaylh'],
-                'election_id'=>$this->election->id
-        ]);
+            $familyData = ['name' => $row['alaaaylh']];
+            if ($this->hasTableColumn('families', 'election_id')) {
+                $familyData['election_id'] = $this->election->id;
+            }
+
+            $family = Family::firstOrCreate($familyData);
             $familyId = $family->id;
         }
 
@@ -178,6 +182,8 @@ class VotersImport implements ToCollection, WithHeadingRow
             'restricted'                   => $row['hal_alkyd'] ?? 'غير مقيد',
             'family_id'                    => $familyId,
         ];
+
+        $voterData = $this->filterDataByExistingColumns('voters', $voterData);
 
         if (!empty($normalizedCivilId)) {
             $voter = Voter::where('alrkm_almd_yn', $normalizedCivilId)->first();
@@ -323,7 +329,7 @@ class VotersImport implements ToCollection, WithHeadingRow
 
     private function processSelection(array $row)
     {
-        Selection::firstOrCreate([
+        $selectionData = $this->filterDataByExistingColumns('selections', [
             'cod1'    => $row['cod1'] ?? null,
             'cod2'    => $row['cod2'] ?? null,
             'cod3'    => $row['cod3'] ?? null,
@@ -335,6 +341,10 @@ class VotersImport implements ToCollection, WithHeadingRow
             'alktaa'  => $row['alktaah'] ?? null,
             'alfkhd'  => $row['alfkhd'] ?? null,
         ]);
+
+        if (!empty($selectionData)) {
+            Selection::firstOrCreate($selectionData);
+        }
     }
 
     private function getBirthDateFromId($id)
@@ -373,5 +383,38 @@ class VotersImport implements ToCollection, WithHeadingRow
 
         $normalized = preg_replace('/\D+/', '', $raw);
         return $normalized !== '' ? $normalized : null;
+    }
+
+    private function filterDataByExistingColumns(string $table, array $data): array
+    {
+        $columns = $this->getTableColumns($table);
+        if (empty($columns)) {
+            return $data;
+        }
+
+        return array_filter(
+            $data,
+            fn ($value, $key) => in_array($key, $columns, true),
+            ARRAY_FILTER_USE_BOTH
+        );
+    }
+
+    private function hasTableColumn(string $table, string $column): bool
+    {
+        $columns = $this->getTableColumns($table);
+        return in_array($column, $columns, true);
+    }
+
+    private function getTableColumns(string $table): array
+    {
+        if (!array_key_exists($table, $this->tableColumns)) {
+            try {
+                $this->tableColumns[$table] = Schema::getColumnListing($table);
+            } catch (\Throwable $exception) {
+                $this->tableColumns[$table] = [];
+            }
+        }
+
+        return $this->tableColumns[$table];
     }
 }
