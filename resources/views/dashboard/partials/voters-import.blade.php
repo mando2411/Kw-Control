@@ -1,5 +1,28 @@
 @php
-    $elections = \App\Models\Election::select('id', 'name')->get();
+    $authUser = auth()->user();
+    $isAdmin = $authUser?->hasRole('Administrator');
+    $allowedElectionIds = collect();
+
+    if (!$isAdmin) {
+        if (!empty($authUser?->election_id)) {
+            $allowedElectionIds->push((int) $authUser->election_id);
+        }
+
+        if (!empty(optional($authUser?->contractor)->election_id)) {
+            $allowedElectionIds->push((int) optional($authUser->contractor)->election_id);
+        }
+
+        if (!empty(optional($authUser?->candidate)->election_id)) {
+            $allowedElectionIds->push((int) optional($authUser->candidate)->election_id);
+        }
+    }
+
+    $electionsQuery = \App\Models\Election::select('id', 'name');
+    if (!$isAdmin) {
+        $electionsQuery->whereIn('id', $allowedElectionIds->filter()->unique()->values()->all());
+    }
+
+    $elections = $electionsQuery->orderBy('id', 'desc')->get();
 @endphp
 
 <div class="container import-section" data-voters-import-root dir="rtl">
@@ -35,6 +58,9 @@
                     </select>
 
                     <div class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
+                    @if (!$isAdmin)
+                        <div class="import-help mt-1">يتم عرض الانتخابات المصرح لك بها فقط.</div>
+                    @endif
                     <div class="d-flex flex-wrap gap-2 mt-2">
                         <a href="#"
                            class="btn btn-outline-secondary btn-sm import-view-data disabled"
@@ -136,6 +162,9 @@
                             @endforeach
                         </select>
                         <div class="import-help">اختر الانتخابات المرتبطة بالملف الذي سترفعه.</div>
+                        @if (!$isAdmin)
+                            <div class="import-help mt-1">يتم عرض الانتخابات المصرح لك بها فقط.</div>
+                        @endif
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             <a href="#"
                                class="btn btn-outline-secondary btn-sm import-view-data disabled"

@@ -144,13 +144,41 @@ class VoterController extends Controller
             'election' => 'required|exists:elections,id',
         ]);
 
+        $user = auth()->user();
         $electionId = (int) $request->input('election');
-        if (!auth()->user()->hasRole('Administrator') && auth()->user()->election_id !== $electionId) {
-            abort(403);
+        $isAdmin = $user->hasRole('Administrator');
+
+        $allowedElectionIds = collect();
+        if (!$isAdmin) {
+            if (!empty($user->election_id)) {
+                $allowedElectionIds->push((int) $user->election_id);
+            }
+
+            if (!empty(optional($user->contractor)->election_id)) {
+                $allowedElectionIds->push((int) optional($user->contractor)->election_id);
+            }
+
+            if (!empty(optional($user->candidate)->election_id)) {
+                $allowedElectionIds->push((int) optional($user->candidate)->election_id);
+            }
+
+            $allowedElectionIds = $allowedElectionIds->filter()->unique()->values();
+
+            if (!$allowedElectionIds->contains($electionId)) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'message' => 'غير مصرح لك بعرض بيانات هذه الانتخابات',
+                    ], 403);
+                }
+
+                return redirect()->back()
+                    ->with('message', 'غير مصرح لك بعرض بيانات هذه الانتخابات')
+                    ->with('type', 'danger');
+            }
         }
 
         $query = Voter::query();
-        if (auth()->user()->hasRole('Administrator')) {
+        if ($isAdmin) {
             $query->withoutGlobalScope(ElectionScope::class);
         }
 
