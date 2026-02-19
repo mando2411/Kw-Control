@@ -24,7 +24,7 @@ class CandidateDataTable extends DataTable
                     return $name;
                 }
 
-                return $name . ' <span class="badge bg-danger ms-1">محظور</span>';
+                return $name . ' <span class="badge bg-danger candidate-ban-badge ms-1">محظور</span>';
             }) // Fetch user name
             ->editColumn('election', fn(Candidate $candidate) => $candidate->election->name ?? '-') // Fetch election name
             ->editColumn('created_at', fn(Candidate $candidate) => $candidate->created_at->format('M Y, d'))

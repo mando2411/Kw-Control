@@ -497,6 +497,13 @@
         border-color: rgba(220, 53, 69, .35);
     }
 
+    .candidates-index-page .candidate-ban-badge {
+        background-color: #dc3545 !important;
+        color: #fff !important;
+        border: 1px solid rgba(185, 28, 28, .5);
+        font-weight: 700;
+    }
+
     .candidates-index-page .candidate-card-overlay {
         position: absolute;
         right: 0;
@@ -899,13 +906,12 @@
             blockedBadge.remove();
         }
 
-        $(document).on('click', '.js-candidate-toggle-status', function(event) {
-            event.preventDefault();
+        function extractCandidateIdFromUrl(url) {
+            const match = String(url || '').match(/\/candidates\/(\d+)\/toggle-status/i);
+            return match ? Number(match[1]) : 0;
+        }
 
-            const button = $(this);
-            const url = String(button.data('url') || '');
-            const candidateId = Number(button.data('candidate-id') || 0);
-
+        function toggleCandidateStatusAjax(button, url, candidateId) {
             if (!url || button.data('loading') === 1) {
                 return;
             }
@@ -925,8 +931,13 @@
                     const isStopped = Boolean(response && response.is_stopped);
 
                     updateToggleButtonState(button, isStopped);
-                    if (candidateId > 0) {
-                        updateCardBlockedBadge(candidateId, isStopped);
+
+                    const effectiveCandidateId = candidateId > 0
+                        ? candidateId
+                        : Number(response?.candidate_id || 0);
+
+                    if (effectiveCandidateId > 0) {
+                        updateCardBlockedBadge(effectiveCandidateId, isStopped);
                     }
 
                     const tableInstance = getDataTableInstance();
@@ -946,6 +957,31 @@
                     button.data('loading', 0).prop('disabled', false);
                 }
             });
+        }
+
+        $(document).on('click', '.js-candidate-toggle-status', function(event) {
+            event.preventDefault();
+
+            const button = $(this);
+            const url = String(button.data('url') || '');
+            const candidateId = Number(button.data('candidate-id') || 0);
+
+            toggleCandidateStatusAjax(button, url, candidateId);
+        });
+
+        $(document).on('submit', 'form[action*="/toggle-status"]', function(event) {
+            event.preventDefault();
+
+            const form = $(this);
+            const url = String(form.attr('action') || '');
+            const button = form.find('button[type="submit"]').first();
+            const candidateId = extractCandidateIdFromUrl(url);
+
+            if (!button.length) {
+                return;
+            }
+
+            toggleCandidateStatusAjax(button, url, candidateId);
         });
     });
 </script>
