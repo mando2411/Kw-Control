@@ -4,6 +4,8 @@
     <style>
         .election-create-shell {
             animation: electionPageFadeIn 320ms ease-out;
+            direction: rtl;
+            text-align: right;
         }
 
         .election-create-intro-card,
@@ -68,6 +70,7 @@
     </style>
 
     <form action="{{ route('dashboard.elections.store' ) }}" method="POST" class="page-body">
+    <form action="{{ route('dashboard.elections.store' ) }}" method="POST" class="page-body" dir="rtl">
         @csrf
 
         <!-- Container-fluid starts-->
