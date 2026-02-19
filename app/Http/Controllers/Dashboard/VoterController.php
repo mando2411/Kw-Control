@@ -158,9 +158,10 @@ class VoterController extends Controller
                 $allowedElectionIds->push((int) optional($user->contractor)->election_id);
             }
 
-            if (!empty(optional($user->candidate)->election_id)) {
-                $allowedElectionIds->push((int) optional($user->candidate)->election_id);
-            }
+            $allowedElectionIds = $allowedElectionIds
+                ->merge($user->contractors()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
+                ->merge($user->candidate()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
+                ->merge($user->representatives()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values());
 
             $allowedElectionIds = $allowedElectionIds->filter()->unique()->values();
 

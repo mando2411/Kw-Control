@@ -44,9 +44,10 @@
                   class="row g-4 voters-import-form import-form-desktop"
                   enctype="multipart/form-data"
                   method="POST"
-                  novalidate
-                  data-voters-import-form="desktop">
-                @csrf
+                $allowedElectionIds = $allowedElectionIds
+                    ->merge($authUser->contractors()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
+                    ->merge($authUser->candidate()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
+                    ->merge($authUser->representatives()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values());
 
                 <div class="col-12 col-lg-6">
                     <label class="form-label">الانتخابات</label>
