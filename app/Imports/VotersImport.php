@@ -50,20 +50,31 @@ class VotersImport implements ToCollection, WithHeadingRow
                     }
 
                     try {
-                        $voter = $this->processVoter($rowData);
+                        [$voter, $state] = $this->processVoter($rowData);
                         $this->processSelection($rowData);
 
                         if (!$voter->election()->where('election_id', $this->election->id)->exists()) {
                             $voter->election()->attach($this->election->id);
                         }
-                        if ($voter->wasRecentlyCreated) {
+                        if ($state === 'created') {
                             $this->createdCount++;
+                        } elseif ($state === 'updated') {
+                            $this->existingCount++;
+                            $this->updatedCount++;
                         } else {
                             $this->existingCount++;
+                            $this->duplicateSkippedCount++;
                         }
                         $this->successCount++;
                     } catch (\Throwable $exception) {
                         $this->failedCount++;
+                        Log::warning('Voters import row failed', [
+                            'row_number' => $i + 2,
+                            'election_id' => $this->election->id,
+                            'name' => $rowData['alasm'] ?? null,
+                            'civil_id' => $rowData['alrkm_almdny'] ?? null,
+                            'error' => $exception->getMessage(),
+                        ]);
                     }
             }
         });
@@ -110,7 +121,7 @@ class VotersImport implements ToCollection, WithHeadingRow
         return $this->duplicateSkippedCount;
     }
 
-    private function processVoter(array $row)
+    private function processVoter(array $row): array
     {
 
         $familyId = null;
@@ -124,9 +135,11 @@ class VotersImport implements ToCollection, WithHeadingRow
 
         $dateOfBirth = null;
         $age = null;
-        if (!empty($row['alrkm_almdny'])) {
+        $normalizedCivilId = $this->normalizeIdentifier($row['alrkm_almdny'] ?? null);
+
+        if (!empty($normalizedCivilId)) {
             try {
-                $birthDate = $this->getBirthDateFromId($row['alrkm_almdny']);
+                $birthDate = $this->getBirthDateFromId($normalizedCivilId);
                 $dateOfBirth = $birthDate->format('Y-m-d');
                 $age = $birthDate->age;
             } catch (\Exception $e) {
@@ -148,7 +161,7 @@ class VotersImport implements ToCollection, WithHeadingRow
             'tary_kh_alandmam'             => $row['tarykh_alandmam'] ?? null,
             'alrkm_ala_yl_llaanoan'        => $row['alrkm_ala_yl_llaanoan'] ?? null,
             'alktaa'                       => $row['alktaah'] ?? null,
-            'alrkm_almd_yn'                => $row['alrkm_almdny'] ?? null,
+            'alrkm_almd_yn'                => $normalizedCivilId,
             'alsndok'                      => $row['alkyd_ao_alsndok'] ?? null,
             'alfkhd'                       => $row['alfkhd'] ?? null,
             'type'                         => $row['alnoaa'] ?? null,
@@ -166,11 +179,22 @@ class VotersImport implements ToCollection, WithHeadingRow
             'family_id'                    => $familyId,
         ];
 
-        $voter = Voter::firstOrCreate(
-            $voterData// Data to create if record doesn't exist
-        );
+        if (!empty($normalizedCivilId)) {
+            $voter = Voter::where('alrkm_almd_yn', $normalizedCivilId)->first();
+            if ($voter) {
+                $voter->fill($voterData);
+                if ($voter->isDirty()) {
+                    $voter->save();
+                    return [$voter, 'updated'];
+                }
 
-        return $voter;
+                return [$voter, 'unchanged'];
+            }
+        }
+
+        $voter = Voter::create($voterData);
+
+        return [$voter, 'created'];
     }
 
     private function mapRow(array $row): array
@@ -328,5 +352,26 @@ class VotersImport implements ToCollection, WithHeadingRow
 
         // Create a Carbon date
         return Carbon::createFromDate($year, $month, $day);
+    }
+
+    private function normalizeIdentifier(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $raw = is_string($value) ? trim($value) : (string) $value;
+        if ($raw === '') {
+            return null;
+        }
+
+        if (is_numeric($raw)) {
+            $raw = (string) (str_contains($raw, 'E') || str_contains($raw, 'e')
+                ? number_format((float) $raw, 0, '.', '')
+                : preg_replace('/\.0+$/', '', $raw));
+        }
+
+        $normalized = preg_replace('/\D+/', '', $raw);
+        return $normalized !== '' ? $normalized : null;
     }
 }

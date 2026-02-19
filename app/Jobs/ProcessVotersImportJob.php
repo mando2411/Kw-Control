@@ -16,6 +16,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -83,6 +84,13 @@ class ProcessVotersImportJob implements ShouldQueue
             $this->sendSuccessNotification($summary);
         } catch (\Throwable $exception) {
             report($exception);
+            Log::error('ProcessVotersImportJob failed', [
+                'user_id' => $this->userId,
+                'election_id' => $this->electionId,
+                'mode' => $this->mode,
+                'file_path' => $this->filePath,
+                'message' => $exception->getMessage(),
+            ]);
             $this->sendFailureNotification();
 
             throw $exception;
