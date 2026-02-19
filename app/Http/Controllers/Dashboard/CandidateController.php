@@ -45,7 +45,7 @@ class CandidateController extends Controller
         $candidates = $candidatesQuery->get();
         $isListLeaderCandidate = $currentListLeaderCandidate !== null;
 
-        return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates', 'isListLeaderCandidate'));
+        return $dataTable->render('dashboard.candidates.index', compact('elections', 'candidates', 'isListLeaderCandidate', 'currentListLeaderCandidate'));
     }
 
     public function listManagement(Request $request)
@@ -406,6 +406,44 @@ class CandidateController extends Controller
         return response()->json([
             'message' => 'Candidate Deleted Successfully!'
         ]);
+    }
+
+    public function toggleStatus(Candidate $candidate)
+    {
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+        abort_if(!$currentListLeaderCandidate, 403);
+
+        $canToggleMember = (int) ($candidate->list_leader_candidate_id ?? 0) === (int) $currentListLeaderCandidate->id
+            && (string) $candidate->candidate_type !== 'list_leader'
+            && (int) $candidate->id !== (int) $currentListLeaderCandidate->id;
+
+        abort_if(!$canToggleMember, 403);
+
+        $isStopped = (bool) ($candidate->is_stopped ?? false);
+
+        if ($isStopped) {
+            $candidate->update([
+                'is_stopped' => false,
+                'stopped_by_candidate_id' => null,
+                'stopped_at' => null,
+            ]);
+
+            session()->flash('message', 'تم تفعيل المرشح بنجاح.');
+            session()->flash('type', 'success');
+
+            return back();
+        }
+
+        $candidate->update([
+            'is_stopped' => true,
+            'stopped_by_candidate_id' => (int) $currentListLeaderCandidate->id,
+            'stopped_at' => now(),
+        ]);
+
+        session()->flash('message', 'تم إيقاف المرشح بنجاح.');
+        session()->flash('type', 'warning');
+
+        return back();
     }
     //================================================================================================
     //old

@@ -91,6 +91,10 @@
                                 $contractorsPercent = $maxContractors > 0 ? min(100, (int) round(($currentContractors / $maxContractors) * 100)) : 0;
                                 $representativesPercent = $maxRepresentatives > 0 ? min(100, (int) round(($currentRepresentatives / $maxRepresentatives) * 100)) : 0;
                                 $createdAt = optional($candidate->created_at)->format('Y/m/d') ?? '—';
+                                $canToggleCandidateStatus = !empty($isListLeaderCandidate)
+                                    && !empty($currentListLeaderCandidate)
+                                    && (int) ($candidate->list_leader_candidate_id ?? 0) === (int) $currentListLeaderCandidate->id
+                                    && (int) $candidate->id !== (int) $currentListLeaderCandidate->id;
                             @endphp
 
                             <article class="candidate-card-item">
@@ -98,6 +102,13 @@
                                     <div class="candidate-card-name-badge">
                                         <span>{{ $candidate->user?->name ?? '—' }}</span>
                                     </div>
+
+                                    @if((bool) ($candidate->is_stopped ?? false))
+                                        <div class="candidate-card-campaign-badge" style="top: 52px;">
+                                            <i class="fa fa-ban"></i>
+                                            <span>موقوف</span>
+                                        </div>
+                                    @endif
 
                                     <div class="candidate-card-campaign-badge" title="اسم الحملة">
                                         <i class="fa fa-check-circle"></i>
@@ -145,6 +156,16 @@
                                                type="button" class="btn btn-sm btn-danger btn-delete-resource-modal" data-bs-toggle="modal" data-bs-target="#deleteResourceModal">
                                                 <i class="fa fa-trash me-1"></i>حذف
                                             </a>
+
+                                            @if($canToggleCandidateStatus)
+                                                <form method="POST" action="{{ route('dashboard.candidates.toggle-status', $candidate->id) }}" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm {{ (bool) ($candidate->is_stopped ?? false) ? 'btn-success' : 'btn-warning' }}">
+                                                        <i class="fa {{ (bool) ($candidate->is_stopped ?? false) ? 'fa-check' : 'fa-ban' }} me-1"></i>
+                                                        {{ (bool) ($candidate->is_stopped ?? false) ? 'تفعيل' : 'إيقاف' }}
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

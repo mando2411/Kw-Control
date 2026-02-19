@@ -6,6 +6,7 @@ use App\Models\Candidate;
 use App\Models\Role;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class PermittedMiddleware
@@ -27,6 +28,25 @@ class PermittedMiddleware
     ];
     public function handle(Request $request, Closure $next)
     {
+        $stoppedCandidate = $this->stoppedCandidateForCurrentUser();
+        if ($stoppedCandidate) {
+            $listLeaderName = trim((string) ($stoppedCandidate->stoppedByCandidate?->user?->name ?? 'غير معروف'));
+            $message = 'تم إيقافك من قبل مرشح رئيس القائمة: ' . $listLeaderName;
+
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 403);
+            }
+
+            return redirect()->route('login')->withErrors(['login' => $message]);
+        }
+
         try {
             $permission = Str::of($request->route()->getName())
                 ->remove('dashboard.')
@@ -55,6 +75,21 @@ class PermittedMiddleware
         }
 
         return $next($request);
+    }
+
+    private function stoppedCandidateForCurrentUser(): ?Candidate
+    {
+        if (!admin()) {
+            return null;
+        }
+
+        return Candidate::withoutGlobalScopes()
+            ->with('stoppedByCandidate.user:id,name')
+            ->where('user_id', (int) admin()->id)
+            ->where('candidate_type', 'candidate')
+            ->whereNotNull('list_leader_candidate_id')
+            ->where('is_stopped', true)
+            ->first();
     }
 
     private function listLeaderHasCandidatePermission(string $permission): bool

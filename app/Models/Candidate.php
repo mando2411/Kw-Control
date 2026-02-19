@@ -23,10 +23,15 @@ class Candidate extends Model
         'list_logo',
         'is_actual_list_candidate',
         'list_leader_candidate_id',
+        'is_stopped',
+        'stopped_by_candidate_id',
+        'stopped_at',
     ];
 
     protected $casts = [
         'is_actual_list_candidate' => 'boolean',
+        'is_stopped' => 'boolean',
+        'stopped_at' => 'datetime',
     ];
     public function user(): BelongsTo
     {
@@ -59,6 +64,11 @@ class Candidate extends Model
     public function listMembers()
     {
         return $this->hasMany(self::class, 'list_leader_candidate_id');
+    }
+
+    public function stoppedByCandidate(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'stopped_by_candidate_id');
     }
 
     public function isListLeader(): bool

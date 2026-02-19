@@ -54,6 +54,36 @@ class AuthenticatedSessionController extends Controller
         }
         $request->authenticate($guard);
 
+        if ($guard !== 'client') {
+            $stoppedCandidate = Candidate::withoutGlobalScopes()
+                ->with('stoppedByCandidate.user:id,name')
+                ->where('user_id', (int) auth()->id())
+                ->where('candidate_type', 'candidate')
+                ->whereNotNull('list_leader_candidate_id')
+                ->where('is_stopped', true)
+                ->first();
+
+            if ($stoppedCandidate) {
+                $listLeaderName = trim((string) ($stoppedCandidate->stoppedByCandidate?->user?->name ?? 'غير معروف'));
+                $message = 'تم إيقافك من قبل مرشح رئيس القائمة: ' . $listLeaderName;
+
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $message,
+                    ], 403);
+                }
+
+                return back()
+                    ->withInput($request->only('login'))
+                    ->withErrors(['login' => $message]);
+            }
+        }
+
         $request->session()->regenerate();
 
         if ($guard == 'client') {
