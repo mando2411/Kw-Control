@@ -513,9 +513,10 @@ class ContractorController extends Controller
         ->event('Search')
         ->log($logString);
 
+        $scope = (string) $request->input('scope', 'all');
+
         if ($request->filled('id')) {
             $contractorId = (int) $request->input('id');
-            $scope = (string) $request->input('scope', 'all');
 
             $attachedIdsSubQuery = DB::table('contractor_voter')
                 ->select('voter_id')
@@ -533,7 +534,17 @@ class ContractorController extends Controller
                 });
             }
         }
-        $votersQuery->orderBy('name', 'asc');
+
+        if ($scope === 'attached' && $request->filled('id')) {
+            $contractorId = (int) $request->input('id');
+
+            $votersQuery
+                ->orderByRaw('status = true ASC')
+                ->orderByRaw('(SELECT cv.created_at FROM contractor_voter cv WHERE cv.contractor_id = ' . $contractorId . ' AND cv.voter_id = voters.id LIMIT 1) DESC')
+                ->orderBy('name', 'asc');
+        } else {
+            $votersQuery->orderBy('name', 'asc');
+        }
 
         if ((string) $request->input('ids_only', '0') === '1') {
             $allIds = $votersQuery->pluck('id')

@@ -2180,8 +2180,9 @@
     ->toArray();
 
     $voters = $contractor->voters()
-    ->orderByRaw('status = true ASC')  // This puts the voters with `status = true` at the end
-    ->orderBy('name', 'asc')     // This orders the rest by `created_at` ascending
+    ->orderByRaw('status = true ASC')
+    ->orderByPivot('created_at', 'desc')
+    ->orderBy('name', 'asc')
     ->get();
     @endphp
     <form action="{{route("modify")}}" method="POST" id="form-transfer">
