@@ -138,14 +138,14 @@ class VotersImport implements ToCollection, WithHeadingRow
         }
 
         $dateOfBirth = null;
-        $age = null;
+        $age = 0;
         $normalizedCivilId = $this->normalizeIdentifier($row['alrkm_almdny'] ?? null);
 
         if (!empty($normalizedCivilId)) {
             try {
                 $birthDate = $this->getBirthDateFromId($normalizedCivilId);
                 $dateOfBirth = $birthDate->format('Y-m-d');
-                $age = $birthDate->age;
+                $age = max(0, (int) $birthDate->age);
             } catch (\Exception $e) {
                 // Ignore invalid birth dates to avoid slowing down imports with excessive logging.
             }
@@ -170,7 +170,7 @@ class VotersImport implements ToCollection, WithHeadingRow
             'alfkhd'                       => $row['alfkhd'] ?? null,
             'type'                         => $row['alnoaa'] ?? null,
             'yearOfBirth'                  => $dateOfBirth,
-            'age'                          => $age,
+            'age'                          => (int) ($age ?? 0),
             'phone1'                       => $row['alhatf1'] ?? null,
             'region'                       => $row['almntk'] ?? null,
             'phone2'                       => $row['alhatf2'] ?? null,
