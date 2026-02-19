@@ -38,7 +38,6 @@
                     <div id="listleader-candidates-panel" class="dropdown-menu" dir="rtl">
                         <a class="dropdown-item" href="{{ route('dashboard.list-management') }}">إدارة القائمة</a>
                         <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
-                        <a class="dropdown-item" href="{{ route('dashboard.candidates') }}">عرض المرشحين</a>
                     </div>
                 </div>
             @endif
