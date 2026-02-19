@@ -21,6 +21,9 @@
 
                 <div class="card">
                     <div class="card-body">
+                        <h6 class="mb-3">تعديل بيانات الانتخابات</h6>
+                        <p class="text-muted mb-4">عدّل البيانات المطلوبة ثم احفظ، وسيتم تحديث المعلومات مباشرة في صفحة الانتخابات.</p>
+
                         <x-dashboard.form.input-text error-key="name" name="name" :value="$election->name" id="name" label-title="اسم الانتخابات"/>
 
 <x-dashboard.form.input-text date error-key="start_date" name="start_date" :value="$election->start_date" id="start_date" label-title="تاريخ البداية"/>
@@ -33,8 +36,10 @@
 
 <x-dashboard.form.input-text error-key="type" name="type" :value="$election->type" id="type" label-title="نوع الانتخابات"/>
 
-
-                        <x-dashboard.form.submit-button/>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{{ route('dashboard.elections.index') }}" class="btn btn-light border">العودة للقائمة</a>
+                            <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                        </div>
                     </div>
                 </div>
 

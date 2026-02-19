@@ -17,7 +17,7 @@
                         <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <form class="form-inline search-form search-box mb-0">
                                 <div class="form-group">
-                                    <input id="datatable-search" aria-label="بحث" class="form-control" type="search" placeholder="ابحث في الانتخابات...">
+                                    <input id="datatable-search" aria-label="بحث" class="form-control" type="search" placeholder="ابحث بالاسم أو النوع أو التاريخ...">
                                 </div>
                             </form>
                             @if(admin()->can('elections.create'))
@@ -27,6 +27,10 @@
                             @endif
                         </div>
                         <div class="card-body order-datatable overflow-x-auto">
+                            <div class="alert alert-light border mb-3" role="status">
+                                <strong>دليل سريع:</strong>
+                                يمكنك البحث عن أي انتخابات، ثم استخدام الإجراءات لتعديل البيانات أو الحذف.
+                            </div>
                             <div class="">
                                 {!! $dataTable->table(['class'=>'display']) !!}
                             </div>

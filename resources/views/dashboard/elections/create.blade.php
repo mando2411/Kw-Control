@@ -20,6 +20,9 @@
 
                 <div class="card">
                     <div class="card-body">
+                        <h6 class="mb-3">بيانات الانتخابات</h6>
+                        <p class="text-muted mb-4">أدخل البيانات الأساسية بدقة، لأن التواريخ والأوقات تتحكم في مراحل العمل داخل النظام.</p>
+
                         <x-dashboard.form.input-text error-key="name" name="name"  id="name" label-title="اسم الانتخابات"/>
 
 <x-dashboard.form.input-text error-key="start_date" name="start_date"  id="start_date" label-title="تاريخ البداية" date/>
@@ -32,8 +35,10 @@
 
 <x-dashboard.form.input-text error-key="type" name="type"  id="type" label-title="نوع الانتخابات"/>
 
-
-                        <x-dashboard.form.submit-button/>
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{{ route('dashboard.elections.index') }}" class="btn btn-light border">العودة للقائمة</a>
+                            <button type="submit" class="btn btn-primary">حفظ الانتخابات</button>
+                        </div>
                     </div>
                 </div>
 

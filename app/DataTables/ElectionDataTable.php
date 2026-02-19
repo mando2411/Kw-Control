@@ -8,8 +8,6 @@ use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
 use Yajra\DataTables\Services\DataTable;
 
 class ElectionDataTable extends DataTable
@@ -39,6 +37,29 @@ class ElectionDataTable extends DataTable
             //->dom('Bfrtip')
             ->orderBy(0)
             ->selectStyleSingle()
+            ->parameters([
+                'responsive' => true,
+                'autoWidth' => false,
+                'pageLength' => 25,
+                'lengthMenu' => [[10, 25, 50, 100], [10, 25, 50, 100]],
+                'language' => [
+                    'search' => 'بحث:',
+                    'searchPlaceholder' => 'ابحث في النتائج...',
+                    'lengthMenu' => 'عرض _MENU_ سجل',
+                    'info' => 'عرض _START_ إلى _END_ من أصل _TOTAL_ سجل',
+                    'infoEmpty' => 'لا توجد سجلات متاحة',
+                    'infoFiltered' => '(مفلترة من أصل _MAX_ سجل)',
+                    'zeroRecords' => 'لا توجد نتائج مطابقة',
+                    'emptyTable' => 'لا توجد بيانات حالياً',
+                    'paginate' => [
+                        'first' => 'الأول',
+                        'last' => 'الأخير',
+                        'next' => 'التالي',
+                        'previous' => 'السابق',
+                    ],
+                    'processing' => 'جاري التحميل...',
+                ],
+            ])
             ->buttons(array_reverse([
                 Button::make('excel')->text('تصدير Excel')->className('btn btn-sm float-right ms-1 p-1 text-light btn-success'),
                 Button::make('csv')->text('تصدير CSV')->className('btn btn-sm float-right ms-1 p-1 text-light btn-primary'),
