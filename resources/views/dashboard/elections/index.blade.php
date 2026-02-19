@@ -1,7 +1,7 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
-    <div class="page-body">
+    <div class="page-body" dir="rtl" style="text-align: right;">
         <!-- Container-fluid starts-->
         <x-dashboard.partials.breadcrumb title="الانتخابات">
             <li class="breadcrumb-item active">إدارة الانتخابات</li>
