@@ -15,6 +15,10 @@ class ElectionDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
+            ->editColumn('start_date', fn(Election $election) => optional($election->start_date)->format('Y/m/d'))
+            ->editColumn('end_date', fn(Election $election) => optional($election->end_date)->format('Y/m/d'))
+            ->editColumn('start_time', fn(Election $election) => $election->start_time ? \Carbon\Carbon::parse($election->start_time)->format('H:i') : '')
+            ->editColumn('end_time', fn(Election $election) => $election->end_time ? \Carbon\Carbon::parse($election->end_time)->format('H:i') : '')
             ->editColumn('created_at', fn(Election $election) => $election->created_at->format('Y/m/d'))
             ->addColumn('action', 'dashboard.elections.action')
             

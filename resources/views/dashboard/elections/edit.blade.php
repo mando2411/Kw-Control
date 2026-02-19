@@ -26,13 +26,13 @@
 
                         <x-dashboard.form.input-text error-key="name" name="name" :value="$election->name" id="name" label-title="اسم الانتخابات"/>
 
-<x-dashboard.form.input-text date error-key="start_date" name="start_date" :value="$election->start_date" id="start_date" label-title="تاريخ البداية"/>
+<x-dashboard.form.input-text date error-key="start_date" name="start_date" :value="old('start_date', optional($election->start_date)->format('Y-m-d'))" id="start_date" label-title="تاريخ البداية"/>
 
-<x-dashboard.form.input-text date error-key="end_date" name="end_date" :value="$election->end_date" id="end_date" label-title="تاريخ النهاية"/>
+<x-dashboard.form.input-text date error-key="end_date" name="end_date" :value="old('end_date', optional($election->end_date)->format('Y-m-d'))" id="end_date" label-title="تاريخ النهاية"/>
 
-<x-dashboard.form.input-text time error-key="start_time" name="start_time" :value="$election->start_time" id="start_time" label-title="وقت البداية"/>
+<x-dashboard.form.input-text time error-key="start_time" name="start_time" :value="old('start_time', $election->start_time ? \Carbon\Carbon::parse($election->start_time)->format('H:i') : '')" id="start_time" label-title="وقت البداية"/>
 
-<x-dashboard.form.input-text time error-key="end_time" name="end_time" :value="$election->end_time" id="end_time" label-title="وقت النهاية"/>
+<x-dashboard.form.input-text time error-key="end_time" name="end_time" :value="old('end_time', $election->end_time ? \Carbon\Carbon::parse($election->end_time)->format('H:i') : '')" id="end_time" label-title="وقت النهاية"/>
 
 <x-dashboard.form.input-text error-key="type" name="type" :value="$election->type" id="type" label-title="نوع الانتخابات"/>
 
