@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\DataTables\CandidateDataTable;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Requests\Dashboard\UserRequest;
 use App\Http\Requests\Dashboard\CandidateRequest;
 
@@ -410,6 +411,13 @@ class CandidateController extends Controller
 
     public function toggleStatus(Candidate $candidate)
     {
+        if (!$this->candidateStopColumnsAvailable()) {
+            session()->flash('message', 'ميزة الإيقاف غير مفعلة بعد. يرجى تشغيل تحديثات قاعدة البيانات.');
+            session()->flash('type', 'warning');
+
+            return back();
+        }
+
         $currentListLeaderCandidate = $this->currentListLeaderCandidate();
         abort_if(!$currentListLeaderCandidate, 403);
 
@@ -707,6 +715,30 @@ class CandidateController extends Controller
         }
 
         return (bool) $isActualFlag;
+    }
+
+    private function candidateStopColumnsAvailable(): bool
+    {
+        static $checked = false;
+        static $available = false;
+
+        if ($checked) {
+            return $available;
+        }
+
+        $checked = true;
+
+        try {
+            $available = Schema::hasColumns('candidates', [
+                'is_stopped',
+                'stopped_by_candidate_id',
+                'stopped_at',
+            ]);
+        } catch (\Throwable $exception) {
+            $available = false;
+        }
+
+        return $available;
     }
 
 }

@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -54,7 +55,7 @@ class AuthenticatedSessionController extends Controller
         }
         $request->authenticate($guard);
 
-        if ($guard !== 'client') {
+        if ($guard !== 'client' && $this->candidateStopColumnsAvailable()) {
             $stoppedCandidate = Candidate::withoutGlobalScopes()
                 ->with('stoppedByCandidate.user:id,name')
                 ->where('user_id', (int) auth()->id())
@@ -153,6 +154,30 @@ class AuthenticatedSessionController extends Controller
         $this->cleanCookies();
 
         return redirect('/');
+    }
+
+    private function candidateStopColumnsAvailable(): bool
+    {
+        static $checked = false;
+        static $available = false;
+
+        if ($checked) {
+            return $available;
+        }
+
+        $checked = true;
+
+        try {
+            $available = Schema::hasColumns('candidates', [
+                'is_stopped',
+                'stopped_by_candidate_id',
+                'stopped_at',
+            ]);
+        } catch (\Throwable $exception) {
+            $available = false;
+        }
+
+        return $available;
     }
 
     private function cleanCookies()

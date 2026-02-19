@@ -7,6 +7,7 @@ use App\Models\Role;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class PermittedMiddleware
@@ -83,6 +84,10 @@ class PermittedMiddleware
             return null;
         }
 
+        if (!$this->candidateStopColumnsAvailable()) {
+            return null;
+        }
+
         return Candidate::withoutGlobalScopes()
             ->with('stoppedByCandidate.user:id,name')
             ->where('user_id', (int) admin()->id)
@@ -90,6 +95,30 @@ class PermittedMiddleware
             ->whereNotNull('list_leader_candidate_id')
             ->where('is_stopped', true)
             ->first();
+    }
+
+    private function candidateStopColumnsAvailable(): bool
+    {
+        static $checked = false;
+        static $available = false;
+
+        if ($checked) {
+            return $available;
+        }
+
+        $checked = true;
+
+        try {
+            $available = Schema::hasColumns('candidates', [
+                'is_stopped',
+                'stopped_by_candidate_id',
+                'stopped_at',
+            ]);
+        } catch (\Throwable $exception) {
+            $available = false;
+        }
+
+        return $available;
     }
 
     private function listLeaderHasCandidatePermission(string $permission): bool
