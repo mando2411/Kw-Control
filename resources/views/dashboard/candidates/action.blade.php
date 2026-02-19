@@ -28,10 +28,16 @@
 @endphp
 
 @if($candidateIsMemberOfCurrentLeader)
-    <form method="POST" action="{{ route('dashboard.candidates.toggle-status', $id) }}" style="display:inline-block; margin-right: 4px;">
-        @csrf
-        <button type="submit" class="btn btn-sm {{ $isStoppedCandidate ? 'btn-success' : 'btn-warning' }}" title="{{ $isStoppedCandidate ? 'تفعيل' : 'إيقاف' }}">
-            <i class="fa {{ $isStoppedCandidate ? 'fa-check' : 'fa-ban' }}"></i>
-        </button>
-    </form>
+    <button
+        type="button"
+        class="btn btn-sm js-candidate-toggle-status {{ $isStoppedCandidate ? 'btn-success' : 'btn-warning' }}"
+        title="{{ $isStoppedCandidate ? 'تفعيل' : 'إيقاف' }}"
+        style="display:inline-block; margin-right: 4px;"
+        data-url="{{ route('dashboard.candidates.toggle-status', $id) }}"
+        data-candidate-id="{{ (int) $id }}"
+        data-is-stopped="{{ $isStoppedCandidate ? '1' : '0' }}"
+    >
+        <i class="fa {{ $isStoppedCandidate ? 'fa-check' : 'fa-ban' }}"></i>
+        <span class="js-toggle-status-label" style="display:none;">{{ $isStoppedCandidate ? 'تفعيل' : 'إيقاف' }}</span>
+    </button>
 @endif

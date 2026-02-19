@@ -97,16 +97,16 @@
                                     && (int) $candidate->id !== (int) $currentListLeaderCandidate->id;
                             @endphp
 
-                            <article class="candidate-card-item">
+                            <article class="candidate-card-item" data-candidate-id="{{ (int) $candidate->id }}">
                                 <div class="candidate-card-image" style="background-image: url('{{ $image }}')">
                                     <div class="candidate-card-name-badge">
                                         <span>{{ $candidate->user?->name ?? '—' }}</span>
                                     </div>
 
                                     @if((bool) ($candidate->is_stopped ?? false))
-                                        <div class="candidate-card-campaign-badge" style="top: 52px;">
+                                        <div class="candidate-card-campaign-badge candidate-blocked-badge" style="top: 52px;">
                                             <i class="fa fa-ban"></i>
-                                            <span>موقوف</span>
+                                            <span>محظور</span>
                                         </div>
                                     @endif
 
@@ -158,13 +158,17 @@
                                             </a>
 
                                             @if($canToggleCandidateStatus)
-                                                <form method="POST" action="{{ route('dashboard.candidates.toggle-status', $candidate->id) }}" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-sm {{ (bool) ($candidate->is_stopped ?? false) ? 'btn-success' : 'btn-warning' }}">
-                                                        <i class="fa {{ (bool) ($candidate->is_stopped ?? false) ? 'fa-check' : 'fa-ban' }} me-1"></i>
-                                                        {{ (bool) ($candidate->is_stopped ?? false) ? 'تفعيل' : 'إيقاف' }}
-                                                    </button>
-                                                </form>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm js-candidate-toggle-status {{ (bool) ($candidate->is_stopped ?? false) ? 'btn-success' : 'btn-warning' }}"
+                                                    data-url="{{ route('dashboard.candidates.toggle-status', $candidate->id) }}"
+                                                    data-candidate-id="{{ (int) $candidate->id }}"
+                                                    data-is-stopped="{{ (bool) ($candidate->is_stopped ?? false) ? '1' : '0' }}"
+                                                    title="{{ (bool) ($candidate->is_stopped ?? false) ? 'تفعيل' : 'إيقاف' }}"
+                                                >
+                                                    <i class="fa {{ (bool) ($candidate->is_stopped ?? false) ? 'fa-check' : 'fa-ban' }} me-1"></i>
+                                                    <span class="js-toggle-status-label">{{ (bool) ($candidate->is_stopped ?? false) ? 'تفعيل' : 'إيقاف' }}</span>
+                                                </button>
                                             @endif
                                         </div>
                                     </div>
@@ -486,6 +490,11 @@
     .candidates-index-page .candidate-card-campaign-badge span {
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    .candidates-index-page .candidate-card-campaign-badge.candidate-blocked-badge {
+        background: linear-gradient(120deg, rgba(220, 53, 69, .96), rgba(185, 28, 28, .94));
+        border-color: rgba(220, 53, 69, .35);
     }
 
     .candidates-index-page .candidate-card-overlay {
@@ -854,6 +863,90 @@
             $('#successModal .fa-check-circle').removeClass('text-danger').addClass('text-success');
             $('#successModal').modal('show');
         }
+
+        function updateToggleButtonState(button, isStopped) {
+            const icon = button.find('i.fa').first();
+            const label = button.find('.js-toggle-status-label').first();
+
+            button.removeClass('btn-warning btn-success')
+                .addClass(isStopped ? 'btn-success' : 'btn-warning')
+                .attr('data-is-stopped', isStopped ? '1' : '0')
+                .attr('title', isStopped ? 'تفعيل' : 'إيقاف');
+
+            icon.removeClass('fa-ban fa-check').addClass(isStopped ? 'fa-check' : 'fa-ban');
+
+            if (label.length) {
+                label.text(isStopped ? 'تفعيل' : 'إيقاف');
+            }
+        }
+
+        function updateCardBlockedBadge(candidateId, isStopped) {
+            const card = $('.candidate-card-item[data-candidate-id="' + candidateId + '"]');
+            if (!card.length) {
+                return;
+            }
+
+            const image = card.find('.candidate-card-image').first();
+            const blockedBadge = image.find('.candidate-blocked-badge');
+
+            if (isStopped) {
+                if (!blockedBadge.length) {
+                    image.append('<div class="candidate-card-campaign-badge candidate-blocked-badge" style="top: 52px;"><i class="fa fa-ban"></i><span>محظور</span></div>');
+                }
+                return;
+            }
+
+            blockedBadge.remove();
+        }
+
+        $(document).on('click', '.js-candidate-toggle-status', function(event) {
+            event.preventDefault();
+
+            const button = $(this);
+            const url = String(button.data('url') || '');
+            const candidateId = Number(button.data('candidate-id') || 0);
+
+            if (!url || button.data('loading') === 1) {
+                return;
+            }
+
+            button.data('loading', 1).prop('disabled', true);
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'json',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    const isStopped = Boolean(response && response.is_stopped);
+
+                    updateToggleButtonState(button, isStopped);
+                    if (candidateId > 0) {
+                        updateCardBlockedBadge(candidateId, isStopped);
+                    }
+
+                    const tableInstance = getDataTableInstance();
+                    if (tableInstance) {
+                        tableInstance.ajax.reload(null, false);
+                    }
+
+                    if (response && response.message) {
+                        sucessMessageInModel(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    const msg = xhr?.responseJSON?.message || 'حدث خطأ أثناء تحديث حالة المرشح';
+                    errorMessageInModel(msg);
+                },
+                complete: function() {
+                    button.data('loading', 0).prop('disabled', false);
+                }
+            });
+        });
     });
 </script>
 @endpush

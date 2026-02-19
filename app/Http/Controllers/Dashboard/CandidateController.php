@@ -412,7 +412,16 @@ class CandidateController extends Controller
     public function toggleStatus(Candidate $candidate)
     {
         if (!$this->candidateStopColumnsAvailable()) {
-            session()->flash('message', 'ميزة الإيقاف غير مفعلة بعد. يرجى تشغيل تحديثات قاعدة البيانات.');
+            $message = 'ميزة الإيقاف غير مفعلة بعد. يرجى تشغيل تحديثات قاعدة البيانات.';
+
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message,
+                ], 422);
+            }
+
+            session()->flash('message', $message);
             session()->flash('type', 'warning');
 
             return back();
@@ -436,7 +445,18 @@ class CandidateController extends Controller
                 'stopped_at' => null,
             ]);
 
-            session()->flash('message', 'تم تفعيل المرشح بنجاح.');
+            $message = 'تم تفعيل المرشح بنجاح.';
+
+            if (request()->expectsJson() || request()->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'is_stopped' => false,
+                    'candidate_id' => (int) $candidate->id,
+                ]);
+            }
+
+            session()->flash('message', $message);
             session()->flash('type', 'success');
 
             return back();
@@ -448,7 +468,18 @@ class CandidateController extends Controller
             'stopped_at' => now(),
         ]);
 
-        session()->flash('message', 'تم إيقاف المرشح بنجاح.');
+        $message = 'تم إيقاف المرشح بنجاح.';
+
+        if (request()->expectsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'is_stopped' => true,
+                'candidate_id' => (int) $candidate->id,
+            ]);
+        }
+
+        session()->flash('message', $message);
         session()->flash('type', 'warning');
 
         return back();
