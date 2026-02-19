@@ -12,9 +12,10 @@
             $allowedElectionIds->push((int) optional($authUser->contractor)->election_id);
         }
 
-        if (!empty(optional($authUser?->candidate)->election_id)) {
-            $allowedElectionIds->push((int) optional($authUser->candidate)->election_id);
-        }
+        $allowedElectionIds = $allowedElectionIds
+            ->merge($authUser->contractors()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
+            ->merge($authUser->candidate()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
+            ->merge($authUser->representatives()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values());
     }
 
     $electionsQuery = \App\Models\Election::select('id', 'name');
@@ -44,10 +45,7 @@
                   class="row g-4 voters-import-form import-form-desktop"
                   enctype="multipart/form-data"
                   method="POST"
-                $allowedElectionIds = $allowedElectionIds
-                    ->merge($authUser->contractors()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
-                    ->merge($authUser->candidate()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values())
-                    ->merge($authUser->representatives()->pluck('election_id')->filter()->map(fn ($id) => (int) $id)->values());
+                        >
 
                 <div class="col-12 col-lg-6">
                     <label class="form-label">الانتخابات</label>
