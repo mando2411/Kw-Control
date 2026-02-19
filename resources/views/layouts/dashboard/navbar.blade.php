@@ -135,7 +135,6 @@
                         <div id="listleader-candidates-panel-mobile" class="dropdown-menu dtm-notif-panel" dir="rtl">
                             <a class="dropdown-item" href="{{ route('dashboard.list-management') }}">إدارة القائمة</a>
                             <a class="dropdown-item" href="{{ route('dashboard.candidates.create') }}">إضافة مرشح</a>
-                            <a class="dropdown-item" href="{{ route('dashboard.candidates') }}">عرض المرشحين</a>
                         </div>
                     </div>
                 @endif
