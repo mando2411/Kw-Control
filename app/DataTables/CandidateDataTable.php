@@ -16,12 +16,21 @@ class CandidateDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
-            ->editColumn('name', fn(Candidate $candidate) => $candidate->user->name ?? '-') // Fetch user name
+            ->editColumn('name', function (Candidate $candidate) {
+                $name = e($candidate->user->name ?? '-');
+                $isStopped = (bool) ($candidate->is_stopped ?? false);
+
+                if (!$isStopped) {
+                    return $name;
+                }
+
+                return $name . ' <span class="badge bg-danger ms-1">موقوف</span>';
+            }) // Fetch user name
             ->editColumn('election', fn(Candidate $candidate) => $candidate->election->name ?? '-') // Fetch election name
             ->editColumn('created_at', fn(Candidate $candidate) => $candidate->created_at->format('M Y, d'))
             ->addColumn('action', 'dashboard.candidates.action')
             ->setRowId('id')
-            ->rawColumns(['action']);
+            ->rawColumns(['name', 'action']);
     }
 
     public function query(Candidate $model): QueryBuilder
