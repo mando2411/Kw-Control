@@ -103,7 +103,7 @@
                         <a href="#"><button type="button" class="btn btn-secondary button" value="show">عرض</button></a>
                     </div>
 
-                    <p class="text-danger">* ملاحظة : لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
+                    <p class="text-danger">* ملاحظة  لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
                     <div class="d-flex align-items-center mb-3 pdfe">
                         <label class="w-50 lableStyle" for="sendToNa5eb">ارسال PDF عبر whatsapp</label>
                         <input type="number" class="form-control bg-secondary bg-opacity-25" name="to" id="sendToNa5eb" placeholder="رقم الهاتف">
