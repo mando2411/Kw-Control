@@ -247,6 +247,7 @@ class VoterController extends Controller
         ]);
 
         $committees = Committee::select('name', 'id')->get();
+        $scopedContractorIds = null;
 
         $votersQuery = collect($request)->isNotEmpty()
             ? Voter::Madamen()
@@ -255,18 +256,35 @@ class VoterController extends Controller
             // Log::info(json_encode($votersQuery->get()));
         if (!auth()->user()->hasRole("Administrator") && !auth()->user()->contractor) {
             $children = auth()->user()->contractors()->children();
-            $votersIds = $children->get()->pluck('voters.*.id')->flatten()->unique();
+            $childrenCollection = $children->get();
+            $scopedContractorIds = $childrenCollection->pluck('id')->filter()->values()->all();
+            $votersIds = $childrenCollection->pluck('voters.*.id')->flatten()->unique();
             $votersQuery = $votersQuery->whereIn('id', $votersIds);
         }elseif(auth()->user()->contractor){
             $parents = auth()->user()->contractor()->get();
 			$children = auth()->user()->contractor->childs;
+            $scopedContractorIds = $children->pluck('id')->filter()->values()->all();
             $votersIds = $children->pluck('voters.*.id')->flatten()->unique();;
             $votersQuery = $votersQuery->whereIn('id', $votersIds);
         }else{
             $children=Contractor::query();
         }
-        $voters = $votersQuery->get();
-        $overAll =$voterservice->VoterOverAll($votersQuery);
+
+        if (is_array($scopedContractorIds) && !empty($scopedContractorIds)) {
+            $voters = (clone $votersQuery)
+                ->withCount([
+                    'contractors as scoped_contractors_count' => function ($query) use ($scopedContractorIds) {
+                        $query->whereIn('contractors.id', $scopedContractorIds);
+                    }
+                ])
+                ->get();
+        } else {
+            $voters = (clone $votersQuery)
+                ->withCount('contractors')
+                ->get();
+        }
+
+        $overAll =$voterservice->VoterOverAll($votersQuery, $scopedContractorIds);
         return view('dashboard.voters.madameen', compact('voters','parents','committees','children','overAll',));
     }
     //=====================================================================

@@ -58,7 +58,19 @@ class VoterService
         return $user->contractors()->children()->get();
     }
 
-    public function VoterOverAll($votersQuery){
+    public function VoterOverAll($votersQuery, ?array $scopedContractorIds = null){
+        $withScopedContractorsCount = function ($query) use ($scopedContractorIds) {
+            if (!is_array($scopedContractorIds) || empty($scopedContractorIds)) {
+                return $query->withCount('contractors');
+            }
+
+            return $query->withCount([
+                'contractors as contractors_count' => function ($contractorsQuery) use ($scopedContractorIds) {
+                    $contractorsQuery->whereIn('contractors.id', $scopedContractorIds);
+                }
+            ]);
+        };
+
         $data=[
             'MenCount' => (clone $votersQuery)->where('type', Type::MALE->value)
                 ->count(),
@@ -66,29 +78,24 @@ class VoterService
                 ->count(),
                 'Count' => (clone $votersQuery)
                 ->count(),
-            'menHasContractors' => (clone $votersQuery)->where('type', Type::MALE->value)
-                ->withCount('contractors')
+            'menHasContractors' => $withScopedContractorsCount((clone $votersQuery)->where('type', Type::MALE->value))
                 ->having('contractors_count', '>', 1)
                 ->count(),
             
-            'womenHasContractors' => (clone $votersQuery)->where('type', Type::FEMALE->value)
-                ->withCount('contractors')
+            'womenHasContractors' => $withScopedContractorsCount((clone $votersQuery)->where('type', Type::FEMALE->value))
                 ->having('contractors_count', '>', 1)
                 ->count(),
             
-            'AllHasContractors' => (clone $votersQuery)
-                ->withCount('contractors')
+            'AllHasContractors' => $withScopedContractorsCount((clone $votersQuery))
                 ->having('contractors_count', '>', 1)
                 ->count(),
-            'MenName'=>(clone $votersQuery)
-            ->where('type', Type::MALE->value)
-            ->withCount('contractors')
+            'MenName'=>$withScopedContractorsCount((clone $votersQuery)
+            ->where('type', Type::MALE->value))
             ->orderBy('contractors_count', 'desc')
             ->first()->name ?? '0',
 
-            'WomenName'=>(clone $votersQuery)
-            ->where('type', Type::FEMALE->value)
-            ->withCount('contractors')
+            'WomenName'=>$withScopedContractorsCount((clone $votersQuery)
+            ->where('type', Type::FEMALE->value))
             ->orderBy('contractors_count', 'desc')
             ->first()?->name ?? '0',
         ];

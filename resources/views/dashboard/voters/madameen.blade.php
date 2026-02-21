@@ -187,7 +187,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td>{{ $voter->contractors->count() }}</td>
+                                    <td>{{ $voter->scoped_contractors_count ?? $voter->contractors_count ?? $voter->contractors->count() }}</td>
                                     <td>0%</td>
                                 </tr>
                             @empty
