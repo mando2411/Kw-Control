@@ -159,6 +159,13 @@ body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataMo
     margin-left: 0 !important;
 }
 
+body.contractor-export-modal-layered #mota3ahdeenDataModern.modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0 !important;
+}
+
 body.contractor-export-modal-layered .contractors-modern-page #mota3ahdeenDataModern .modal-dialog {
     transform: scale(.965) translateY(6px);
     transition: transform .18s ease, opacity .18s ease;

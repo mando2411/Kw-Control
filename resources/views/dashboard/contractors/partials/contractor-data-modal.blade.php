@@ -1,4 +1,29 @@
 <!-- Unified Contractor Data Modal -->
+<style>
+#mota3ahdeenDataModern.modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+#mota3ahdeenDataModern .modal-dialog {
+    width: 100%;
+    max-width: min(1080px, calc(100vw - 2rem));
+    margin: 1.75rem auto !important;
+}
+
+@media (max-width: 991px) {
+    #mota3ahdeenDataModern.modal.show {
+        padding: .5rem;
+    }
+
+    #mota3ahdeenDataModern .modal-dialog {
+        max-width: none;
+        margin: .5rem auto !important;
+    }
+}
+</style>
 <div class="modal modal-lg rtl" id="mota3ahdeenDataModern" tabindex="-1" aria-labelledby="mota3ahdeenDataModernLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
