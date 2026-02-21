@@ -206,6 +206,7 @@ class CandidateController extends Controller
                 ->leftJoin('families as f', 'f.id', '=', 'v.family_id')
                 ->leftJoin('committees as cm', 'cm.id', '=', 'v.committee_id')
                 ->leftJoin('contractors as c', 'c.id', '=', 'cv.contractor_id')
+                ->leftJoin('users as cu', 'cu.id', '=', 'c.creator_id')
                 ->whereIn('cv.contractor_id', $contractorIds->all())
                 ->select([
                     'v.id as voter_id',
@@ -213,6 +214,7 @@ class CandidateController extends Controller
                     DB::raw($voterCivilIdColumn . ' as civil_id'),
                     'f.name as family_name',
                     'cm.name as committee_name',
+                    'cu.name as candidate_name',
                     'c.name as contractor_name',
                     'cv.created_at as attached_at',
                 ])
