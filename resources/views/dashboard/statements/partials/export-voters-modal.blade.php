@@ -108,7 +108,7 @@
                         <label class="labelStyle mb-0" for="sendToNa5eb">ارسال PDF عبر whatsapp</label>
                         <input type="text" inputmode="numeric" dir="ltr" autocomplete="off"
                             class="form-control bg-secondary bg-opacity-25 flex-grow-1" style="min-width: 180px;"
-                            name="to" id="sendToNa5eb" placeholder="رقم الهاتف">
+                            name="to" id="sendToNa5eb" placeholder="مثال: 5XXXXXXXX أو 9655XXXXXXXX">
                         <button type="button" class="btn btn-primary button" value="Send">ارسال</button>
                     </div>
                 </form>

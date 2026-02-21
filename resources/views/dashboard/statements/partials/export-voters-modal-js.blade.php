@@ -7,6 +7,21 @@
             .replace(/\D+/g, '');
     }
 
+    function normalizeKuwaitWhatsappNumber(value) {
+        var digits = normalizePhoneDigits(value);
+
+        if (digits.indexOf('00965') === 0) {
+            digits = digits.substring(5);
+        } else if (digits.indexOf('965') === 0) {
+            digits = digits.substring(3);
+        }
+
+        if (digits.length !== 8) return '';
+        if (!/^[569]\d{7}$/.test(digits)) return '';
+
+        return digits;
+    }
+
     $(document)
         .off('click.exportModalOpen', 'button[data-bs-target="#elkshoofDetails"]')
         .on('click.exportModalOpen', 'button[data-bs-target="#elkshoofDetails"]', function () {
@@ -65,12 +80,12 @@
             });
 
             if (buttonValue === 'Send') {
-                var normalizedPhone = normalizePhoneDigits(queryData.to);
+                var normalizedPhone = normalizeKuwaitWhatsappNumber(queryData.to);
                 queryData.to = normalizedPhone;
                 $('#sendToNa5eb').val(normalizedPhone);
 
                 if (!normalizedPhone) {
-                    toastr.error('يرجى إدخال رقم WhatsApp صحيح');
+                    toastr.error('يرجى إدخال رقم WhatsApp كويتي صحيح (8 أرقام، مع أو بدون 965)');
                     submitBtn.prop('disabled', false).html(originalHtml);
                     return;
                 }
