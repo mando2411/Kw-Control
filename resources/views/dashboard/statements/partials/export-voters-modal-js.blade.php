@@ -1,5 +1,12 @@
 <script>
 (function () {
+    function normalizePhoneDigits(value) {
+        return String(value || '')
+            .replace(/[\u0660-\u0669]/g, function (char) { return String(char.charCodeAt(0) - 1632); })
+            .replace(/[\u06F0-\u06F9]/g, function (char) { return String(char.charCodeAt(0) - 1776); })
+            .replace(/\D+/g, '');
+    }
+
     $(document)
         .off('click.exportModalOpen', 'button[data-bs-target="#elkshoofDetails"]')
         .on('click.exportModalOpen', 'button[data-bs-target="#elkshoofDetails"]', function () {
@@ -56,6 +63,18 @@
                     queryData[field.name] = field.value || '';
                 }
             });
+
+            if (buttonValue === 'Send') {
+                var normalizedPhone = normalizePhoneDigits(queryData.to);
+                queryData.to = normalizedPhone;
+                $('#sendToNa5eb').val(normalizedPhone);
+
+                if (!normalizedPhone) {
+                    toastr.error('يرجى إدخال رقم WhatsApp صحيح');
+                    submitBtn.prop('disabled', false).html(originalHtml);
+                    return;
+                }
+            }
 
             axios
                 .get(form.attr('action'), {
