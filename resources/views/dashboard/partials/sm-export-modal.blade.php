@@ -139,7 +139,7 @@
                     <div class="sm-export-section mb-0">
                         <h6 class="sm-export-section-title">{{ $whatsappLabel }}</h6>
                         <div class="d-flex gap-2 align-items-center">
-                            <input >
+                            <input type="tel" inputmode="numeric" dir="ltr" class="form-control sm-export-whatsapp-input" id="{{ $whatsappInputId }}" name="to" placeholder="{{ $whatsappPlaceholder }}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="button" class="btn btn-outline-primary {{ $actionButtonClass }}" value="Send">إرسال</button>
                         </div>
                     </div>
@@ -178,35 +178,14 @@
             return target.closest('.sm-export-modal input[name="to"]');
         }
 
-        document.addEventListener('mousedown', function (event) {
+        document.addEventListener('focusin', function (event) {
             var whatsappInput = getWhatsappInputFromTarget(event.target);
             if (!whatsappInput) {
                 return;
             }
 
             ensureWhatsappInputIsWritable(whatsappInput);
-            event.stopPropagation();
-        }, true);
-
-        document.addEventListener('click', function (event) {
-            var whatsappInput = getWhatsappInputFromTarget(event.target);
-            if (!whatsappInput) {
-                return;
-            }
-
-            ensureWhatsappInputIsWritable(whatsappInput);
-            event.stopPropagation();
-        }, true);
-
-        document.addEventListener('keydown', function (event) {
-            var whatsappInput = getWhatsappInputFromTarget(event.target);
-            if (!whatsappInput) {
-                return;
-            }
-
-            ensureWhatsappInputIsWritable(whatsappInput);
-            event.stopPropagation();
-        }, true);
+        });
 
         document.addEventListener('shown.bs.modal', function (event) {
             var modalElement = event.target;
