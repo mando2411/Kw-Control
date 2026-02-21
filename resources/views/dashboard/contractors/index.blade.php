@@ -124,9 +124,34 @@
                 <div id="list-management-single-candidate-warning" class="alert alert-warning mb-3 {{ $isSingleListManagementSelection ? 'd-none' : '' }}">
                     يجب اختيار مرشح واحد فقط
                 </div>
+
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        id="list-management-mode-toggle"
+                        data-mode="contractors"
+                        data-voters-url="{{ route('dashboard.candidates.list-management.voters') }}"
+                    >
+                        إدارة المضامين
+                    </button>
+                    <span id="list-management-voters-state" class="small text-muted" aria-live="polite"></span>
+                </div>
+
+                <div id="list-management-voters-section" class="card border-0 shadow-sm mb-3 d-none" style="border-radius:14px; overflow:hidden;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0" style="font-weight:900;">إدارة المضامين حسب السيليكشن</h6>
+                            <span id="list-management-voters-count" class="badge bg-primary">0</span>
+                        </div>
+                        <div id="list-management-voters-content">
+                            <div class="text-center text-muted py-3">اضغط "إدارة المضامين" لعرض البيانات.</div>
+                        </div>
+                    </div>
+                </div>
             @endif
 
-            <form id="mota3ahdeenControlForm" class="mota3ahdeenControl cm-anim cm-anim-delay-2" action="{{ route('dashboard.contractors.store') }}" method="POST">
+            <form id="mota3ahdeenControlForm" class="mota3ahdeenControl cm-anim cm-anim-delay-2 list-management-contractors-only" action="{{ route('dashboard.contractors.store') }}" method="POST">
                 @csrf
                 @if(!empty($isListManagementContext))
                     <input type="hidden" name="candidate_user_id" id="list-management-target-candidate-user" value="{{ $singleListManagementCandidateUserId ?? '' }}">
@@ -194,10 +219,10 @@
             </form>
 
 
-            <input type="search" id="searchBox"  class="form-control py-1 mb-3"
+            <input type="search" id="searchBox"  class="form-control py-1 mb-3 list-management-contractors-only"
                 placeholder="البحث بجدول المتعهدين الفرعيين">
 
-            <div class="">
+            <div class="list-management-contractors-only">
                 <button  class="Sort_Btn mt-2 btn btn-outline-success">
                     <label for="trusted">الملتزمين</label>
                     <input type="radio" role="button" class="visually-hidden" id="trustedMota3ahdeen" name="mota3ahdeenTable"
@@ -342,7 +367,7 @@
 			</div>
 			
 			</div>
-            <div id="list-management-contractors-table-wrap" class="table-responsive mt-4 cm-anim cm-anim-delay-3">
+            <div id="list-management-contractors-table-wrap" class="table-responsive mt-4 cm-anim cm-anim-delay-3 list-management-contractors-only">
                 <table id="myTable" class="table rtl overflow-hidden rounded-3 text-center">
                     <thead class="table-primary border-0 border-secondary border-bottom border-2">
                         <tr style="font-size: 15px !important">
@@ -1761,6 +1786,10 @@
                         window.history.replaceState(null, '', url);
                     }
 
+                    if (typeof window.__listManagementOnSelectionUpdated === 'function') {
+                        window.__listManagementOnSelectionUpdated();
+                    }
+
                     setFilterState('تم التحديث');
                     setTimeout(function () {
                         if (requestId === requestCounter) setFilterState('');
@@ -1820,6 +1849,125 @@
 
         syncAllStateFromCandidates();
         syncSingleCandidateActionsState();
+    })();
+
+    (function bindListManagementModeSwitch() {
+        var toggleBtn = document.getElementById('list-management-mode-toggle');
+        if (!toggleBtn) return;
+
+        var votersSection = document.getElementById('list-management-voters-section');
+        var votersContent = document.getElementById('list-management-voters-content');
+        var votersCount = document.getElementById('list-management-voters-count');
+        var stateEl = document.getElementById('list-management-voters-state');
+        var filterForm = document.getElementById('list-management-candidates-filter');
+        var contractorsOnlyBlocks = Array.prototype.slice.call(document.querySelectorAll('.list-management-contractors-only'));
+        var activeController = null;
+
+        function setState(message, isError) {
+            if (!stateEl) return;
+            stateEl.textContent = message || '';
+            stateEl.classList.toggle('text-danger', !!isError);
+            stateEl.classList.toggle('text-muted', !isError);
+        }
+
+        function getSelectedCandidateIds() {
+            if (!filterForm) return [];
+
+            return Array.prototype.slice.call(filterForm.querySelectorAll('.candidate-filter-checkbox:checked'))
+                .map(function (el) { return String(el.value); });
+        }
+
+        function setMode(mode) {
+            var isVotersMode = mode === 'voters';
+            toggleBtn.dataset.mode = isVotersMode ? 'voters' : 'contractors';
+            toggleBtn.textContent = isVotersMode ? 'إدارة المتعهدين' : 'إدارة المضامين';
+
+            if (votersSection) {
+                votersSection.classList.toggle('d-none', !isVotersMode);
+            }
+
+            contractorsOnlyBlocks.forEach(function (block) {
+                block.classList.toggle('d-none', isVotersMode);
+            });
+        }
+
+        function renderVoters() {
+            var endpoint = String(toggleBtn.dataset.votersUrl || '');
+            if (!endpoint) return;
+
+            if (activeController) {
+                activeController.abort();
+            }
+
+            activeController = new AbortController();
+            toggleBtn.disabled = true;
+            setState('جاري تحميل المضامين...');
+
+            if (votersContent) {
+                votersContent.innerHTML = '<div class="text-center text-muted py-3">جاري التحميل...</div>';
+            }
+
+            var url = new URL(endpoint, window.location.origin);
+            getSelectedCandidateIds().forEach(function (id) {
+                url.searchParams.append('candidate_users[]', id);
+            });
+
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                signal: activeController.signal
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(function (payload) {
+                    if (votersContent) {
+                        votersContent.innerHTML = String(payload?.html || '<div class="text-center text-muted py-3">لا توجد بيانات.</div>');
+                    }
+
+                    if (votersCount) {
+                        votersCount.textContent = String(payload?.total ?? 0);
+                    }
+
+                    setState('تم تحديث المضامين');
+                    setTimeout(function () { setState(''); }, 1000);
+                })
+                .catch(function (error) {
+                    if (error && error.name === 'AbortError') return;
+                    console.error(error);
+                    if (votersContent) {
+                        votersContent.innerHTML = '<div class="text-center text-danger py-3">تعذر تحميل المضامين.</div>';
+                    }
+                    setState('تعذر تحميل المضامين', true);
+                })
+                .finally(function () {
+                    toggleBtn.disabled = false;
+                });
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            var currentMode = String(toggleBtn.dataset.mode || 'contractors');
+            if (currentMode === 'contractors') {
+                setMode('voters');
+                renderVoters();
+                return;
+            }
+
+            setMode('contractors');
+            setState('');
+        });
+
+        window.__listManagementOnSelectionUpdated = function () {
+            if (String(toggleBtn.dataset.mode || 'contractors') === 'voters') {
+                renderVoters();
+            }
+        };
     })();
 
 	 

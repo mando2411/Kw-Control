@@ -55,6 +55,7 @@ Route::group(['prefix' => 'dashboard',
     Route::resource('representatives', RepresentativeController::class)->except('show');
     Route::resource('candidates', CandidateController::class)->except('show');
     Route::post('candidates/{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])->name('candidates.toggle-status');
+    Route::get('list-management/voters', [CandidateController::class, 'listManagementVoters'])->name('candidates.list-management.voters');
     Route::get('list-management', [CandidateController::class, 'listManagement'])->name('list-management');
     //========================================================================================================================================
     // fake candidates routes

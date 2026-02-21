@@ -138,6 +138,91 @@ class CandidateController extends Controller
         ));
     }
 
+    public function listManagementVoters(Request $request)
+    {
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+
+        $canAccess = admin()->can('candidates.list') || $currentListLeaderCandidate;
+        abort_if(!$canAccess, 403);
+
+        if (!$currentListLeaderCandidate) {
+            return response()->json([
+                'success' => true,
+                'total' => 0,
+                'html' => view('dashboard.contractors.partials.list-management-voters-table', ['rows' => collect()])->render(),
+            ]);
+        }
+
+        $listManagementCandidates = Candidate::withoutGlobalScopes()
+            ->with('user')
+            ->where(function (Builder $query) use ($currentListLeaderCandidate) {
+                $query
+                    ->where('id', (int) $currentListLeaderCandidate->id)
+                    ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+            })
+            ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [(int) $currentListLeaderCandidate->id])
+            ->latest('id')
+            ->get();
+
+        $allowedCandidateUserIds = $listManagementCandidates
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values()
+            ->all();
+
+        $requestedCandidateUserIds = collect((array) $request->input('candidate_users', []))
+            ->filter(fn ($value) => $value !== null && $value !== '' && (string) $value !== 'all')
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values();
+
+        $selectedCandidateUserIds = $requestedCandidateUserIds
+            ->filter(fn (int $value) => in_array($value, $allowedCandidateUserIds, true))
+            ->values()
+            ->all();
+
+        if (empty($selectedCandidateUserIds)) {
+            $selectedCandidateUserIds = $allowedCandidateUserIds;
+        }
+
+        $contractorIds = Contractor::withoutGlobalScopes()
+            ->where('election_id', (int) $currentListLeaderCandidate->election_id)
+            ->whereIn('creator_id', $selectedCandidateUserIds)
+            ->pluck('id')
+            ->map(fn ($value) => (int) $value)
+            ->filter()
+            ->values();
+
+        $rows = collect();
+        if ($contractorIds->isNotEmpty()) {
+            $rows = DB::table('contractor_voter as cv')
+                ->join('voters as v', 'v.id', '=', 'cv.voter_id')
+                ->leftJoin('families as f', 'f.id', '=', 'v.family_id')
+                ->leftJoin('committees as cm', 'cm.id', '=', 'v.committee_id')
+                ->leftJoin('contractors as c', 'c.id', '=', 'cv.contractor_id')
+                ->whereIn('cv.contractor_id', $contractorIds->all())
+                ->select([
+                    'v.id as voter_id',
+                    'v.name as voter_name',
+                    'v.civil_id',
+                    'f.name as family_name',
+                    'cm.name as committee_name',
+                    'c.name as contractor_name',
+                    DB::raw("DATE_FORMAT(cv.created_at, '%Y/%m/%d %H:%i') as attached_at"),
+                ])
+                ->orderByDesc('cv.created_at')
+                ->get();
+        }
+
+        return response()->json([
+            'success' => true,
+            'total' => $rows->count(),
+            'html' => view('dashboard.contractors.partials.list-management-voters-table', ['rows' => $rows])->render(),
+        ]);
+    }
+
     public function result()
     {
         $candidate_name = 'مرشح الفرز العام';
