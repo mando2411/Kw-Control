@@ -578,20 +578,6 @@
 @endsection
 @push('js')
     <script>
-        let url
-        $("#addMota3ahed").on('change', function() {
-            console.log($("#addMota3ahed").val());
-            if ($("#addMota3ahed").val() == "delete") {
-                url = "/delete/mad"
-            } else {
-                url = "/ass/" + $(this).val()
-            }
-
-            $("#form-attach").attr("action", url)
-        })
-    </script>
-
-    <script>
         (function () {
             if (!window.jQuery || !window.axios) return;
             if (window.__contractorsModernPageInit) return;

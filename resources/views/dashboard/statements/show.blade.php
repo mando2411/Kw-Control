@@ -576,19 +576,6 @@
         });
     </script>
 
-    <script>
-let url
-    $("#addMota3ahed").on('change',function(){
-        console.log($("#addMota3ahed").val());
-        if($("#addMota3ahed").val() == "delete"){
-            url = "/delete/mad"
-        }else{
-             url = "/ass/"+$(this).val()
-        }
-
-    $("#form-attach").attr("action", url )
-})
-</script>
 @endpush
 
 @push('js')
@@ -840,10 +827,11 @@ document.getElementById("mot3deen_table").innerHTML = cartona.join('');
 
 
 });
-$("#addMota3ahed").on('change',function(){
-let url = "/ass/"+$(this).val()
-$("#form-attach").attr("action", url )
-})
+$(document).off('change.statementAttachAction', '#addMota3ahed').on('change.statementAttachAction', '#addMota3ahed', function () {
+    var selectedValue = $(this).val();
+    var actionUrl = selectedValue === 'delete' ? '/delete/mad' : ('/ass/' + selectedValue);
+    $('#form-attach').attr('action', actionUrl);
+});
 
 $(document).off('click.copyConUrl', '#copyConUrlBtn').on('click.copyConUrl', '#copyConUrlBtn', async function (event) {
     event.preventDefault();

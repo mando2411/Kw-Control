@@ -123,7 +123,6 @@ $("#trustingRate").on("change", function () {
 (function () {
   $("th button.all").on("click", getAllInputChecked);
 })();
-var checkedValues = [];
 
 function getAllInputChecked() {
   // console.log(
@@ -147,7 +146,6 @@ function getAllInputChecked() {
       .prop("checked", false);
     // console.log("aaa");
     $(".listNumber").text(0);
-    checkedValues=[];
   } else {
     $(this)
       .parent()
@@ -156,47 +154,11 @@ function getAllInputChecked() {
       .siblings()
       .find("input.check")
       .prop("checked", true);
-      $(this)
-          .parent()
-          .parent()
-          .parent()
-          .siblings()
-          .find("input.check:checked")
-          .each(function() {
-              checkedValues.push($(this).val());
-          });
-          console.log(checkedValues);
-
-
     $(".listNumber").text(
       $(this).parent().parent().parent().siblings().find("input.check").length
     );
 }
 }
-
-$("#all_voters").on('click',function(){
-
-    if(!checkedValues){
-        var checkedElements = $('.check:checked');
-
-    var checkedValues = $.map(checkedElements, function(element) {
-    return $(element).val();
-    });
-
-    }
-    checkedValues.forEach(function(value) {
-        $('<input>').attr({
-            type: 'hidden',
-            name: 'voter[]',
-            value: value
-        }).appendTo('#form-attach');
-    });
-        if(confirm("تاكيد العمليه")){
-        $('#form-attach').submit();
-
-    }
-
-});
 
 
 // sorting
