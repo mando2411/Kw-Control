@@ -99,6 +99,28 @@
                         display: none !important;
                     }
                 }
+
+                .list-management-voters-table thead th {
+                    font-size: 1rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                }
+
+                .list-management-voters-table tbody td {
+                    font-size: .98rem;
+                    font-weight: 700;
+                    color: #1e293b;
+                }
+
+                @media (max-width: 767.98px) {
+                    .list-management-voters-table thead th {
+                        font-size: .95rem;
+                    }
+
+                    .list-management-voters-table tbody td {
+                        font-size: .93rem;
+                    }
+                }
             </style>
 
             @if(!empty($isListManagementContext) && isset($listManagementCandidates) && $listManagementCandidates->count())
