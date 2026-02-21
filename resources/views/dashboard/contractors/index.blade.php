@@ -153,10 +153,6 @@
             @endif
 
             @if(!empty($isListManagementContext))
-                <div id="list-management-single-candidate-warning" class="alert alert-warning mb-3 {{ $isSingleListManagementSelection ? 'd-none' : '' }}">
-                    يجب اختيار مرشح واحد فقط
-                </div>
-
                 <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3 text-center">
                     <button
                         type="button"
@@ -1771,7 +1767,6 @@
         var stateEl = document.getElementById('list-management-filter-state');
         var addForm = document.getElementById('mota3ahdeenControlForm');
         var targetCandidateInput = document.getElementById('list-management-target-candidate-user');
-        var warningBox = document.getElementById('list-management-single-candidate-warning');
         var candidateCheckboxes = Array.prototype.slice.call(
             filterForm.querySelectorAll('.candidate-filter-checkbox')
         );
@@ -1804,14 +1799,6 @@
 
             if (targetCandidateInput) {
                 targetCandidateInput.value = isSingle ? selectedIds[0] : '';
-            }
-
-            if (warningBox) {
-                warningBox.classList.toggle('d-none', isSingle);
-            }
-
-            if (addForm) {
-                addForm.classList.toggle('opacity-50', !isSingle);
             }
 
             return isSingle;
