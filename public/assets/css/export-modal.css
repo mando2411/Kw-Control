@@ -14,6 +14,17 @@
 #smExportModal .modal-dialog {
     width: min(760px, calc(100vw - 2rem));
     margin: 0 auto;
+    pointer-events: auto;
+}
+
+#smExportModal,
+#smExportModal .modal-content,
+#smExportModal .modal-body,
+#smExportModal input,
+#smExportModal button,
+#smExportModal select,
+#smExportModal textarea {
+    pointer-events: auto;
 }
 
 .sm-export-modal .modal-content {

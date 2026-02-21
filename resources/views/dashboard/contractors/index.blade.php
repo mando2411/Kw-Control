@@ -1011,6 +1011,10 @@
             var shouldCloseParentAfterExport = false;
             var restoreEnforceFocus = null;
 
+            if (exportModalElement && document.body && exportModalElement.parentElement !== document.body) {
+                document.body.appendChild(exportModalElement);
+            }
+
             function relaxParentModalFocusTrap() {
                 if (window.bootstrap && window.bootstrap.Modal && window.bootstrap.Modal.getInstance) {
                     var parentInstance = window.bootstrap.Modal.getInstance(modalEl);
