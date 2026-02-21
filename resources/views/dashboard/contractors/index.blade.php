@@ -23,6 +23,25 @@
                 $singleListManagementCandidateUserId = (!empty($isListManagementContext) && $isSingleListManagementSelection)
                     ? (int) ($listManagementSelectedCandidateUserIds[0] ?? 0)
                     : null;
+
+                $listManagementContractorCountsByCreator = [];
+                if (!empty($isListManagementContext) && isset($listManagementCandidates) && $listManagementCandidates->count()) {
+                    $candidateUserIdsForCounts = $listManagementCandidates
+                        ->pluck('user_id')
+                        ->filter()
+                        ->map(fn($value) => (int) $value)
+                        ->unique()
+                        ->values();
+
+                    $listManagementContractorCountsByCreator = \App\Models\Contractor::withoutGlobalScopes()
+                        ->whereNotNull('parent_id')
+                        ->whereIn('creator_id', $candidateUserIdsForCounts->all())
+                        ->selectRaw('creator_id, COUNT(*) as total')
+                        ->groupBy('creator_id')
+                        ->pluck('total', 'creator_id')
+                        ->map(fn($value) => (int) $value)
+                        ->toArray();
+                }
             @endphp
 
             <style>
@@ -105,13 +124,26 @@
                                     $candidateUserId = (int) ($candidateFilterItem->user_id ?? 0);
                                     $isSelected = in_array($candidateUserId, $listManagementSelectedCandidateUserIds, true);
                                     $avatar = $candidateUser?->image ?: ('https://ui-avatars.com/api/?name=' . urlencode($candidateUser?->name ?? 'Candidate') . '&background=2563eb&color=fff&size=180');
+                                    $candidateContractorsCount = (int) ($listManagementContractorCountsByCreator[$candidateUserId] ?? 0);
                                 @endphp
                                 <label class="list-candidate-pill {{ $isSelected ? 'is-selected' : '' }}" style="cursor:pointer;">
-                                    <input type="checkbox" name="candidate_users[]" value="{{ $candidateUserId }}" class="candidate-filter-checkbox" {{ $isSelected ? 'checked' : '' }} hidden>
+                                    <input
+                                        type="checkbox"
+                                        name="candidate_users[]"
+                                        value="{{ $candidateUserId }}"
+                                        class="candidate-filter-checkbox"
+                                        data-candidate-name="{{ $candidateUser?->name ?? 'مرشح' }}"
+                                        data-contractor-count="{{ $candidateContractorsCount }}"
+                                        {{ $isSelected ? 'checked' : '' }}
+                                        hidden
+                                    >
                                     <div class="list-candidate-pill__avatar" style="background-image:url('{{ $avatar }}');"></div>
                                     <div class="list-candidate-pill__meta">
                                         <div class="name">{{ $candidateUser?->name ?? 'مرشح' }}</div>
-                                        <small>{{ $candidateFilterItem->id == ($currentListLeaderCandidate->id ?? 0) ? 'رئيس القائمة' : 'عضو قائمة' }}</small>
+                                        <small>
+                                            {{ $candidateFilterItem->id == ($currentListLeaderCandidate->id ?? 0) ? 'رئيس القائمة' : 'عضو قائمة' }}
+                                            • متعهدون: {{ $candidateContractorsCount }}
+                                        </small>
                                     </div>
                                 </label>
                             @endforeach
@@ -2095,13 +2127,19 @@
                     var candidateId = String(input.value || '').trim();
                     if (!candidateId) return null;
 
-                    var label = input.closest('label.list-candidate-pill');
-                    var nameEl = label ? label.querySelector('.list-candidate-pill__meta .name') : null;
-                    var candidateName = nameEl ? String(nameEl.textContent || '').trim() : '';
+                    var candidateName = String(input.getAttribute('data-candidate-name') || '').trim();
+                    var contractorCount = Number(input.getAttribute('data-contractor-count') || 0);
+
+                    if (!candidateName) {
+                        var label = input.closest('label.list-candidate-pill');
+                        var nameEl = label ? label.querySelector('.list-candidate-pill__meta .name') : null;
+                        candidateName = nameEl ? String(nameEl.textContent || '').trim() : '';
+                    }
 
                     return {
                         id: candidateId,
-                        name: candidateName || ('مرشح #' + candidateId)
+                        name: candidateName || ('مرشح #' + candidateId),
+                        contractorsCount: Number.isFinite(contractorCount) ? contractorCount : 0
                     };
                 })
                 .filter(function (item) { return !!item; });
@@ -2116,7 +2154,7 @@
             getAllListManagementCandidates().forEach(function (candidate) {
                 if (!candidate?.id || seen[candidate.id]) return;
                 seen[candidate.id] = true;
-                options += '<option value="' + candidate.id + '">' + candidate.name + '</option>';
+                options += '<option value="' + candidate.id + '">' + candidate.name + ' (' + (candidate.contractorsCount || 0) + ')</option>';
             });
 
             (assignments || []).forEach(function (item) {
