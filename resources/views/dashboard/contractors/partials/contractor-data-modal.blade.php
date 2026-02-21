@@ -279,30 +279,3 @@
     'whatsappInputId' => 'smExportWhatsappTo',
     'whatsappPlaceholder' => 'رقم الهاتف لإرسال WhatsApp'
 ])
-
-<script>
-(function () {
-    var openBtn = document.getElementById('smOpenExport');
-    var exportModalElement = document.getElementById('smExportModal');
-    if (!openBtn || !exportModalElement) return;
-
-    if (openBtn.dataset.exportFallbackBound === '1') return;
-    openBtn.dataset.exportFallbackBound = '1';
-
-    openBtn.addEventListener('click', function (event) {
-        setTimeout(function () {
-            if (event.defaultPrevented) return;
-            if (exportModalElement.classList.contains('show')) return;
-
-            if (window.bootstrap && window.bootstrap.Modal) {
-                window.bootstrap.Modal.getOrCreateInstance(exportModalElement).show();
-                return;
-            }
-
-            if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
-                window.jQuery(exportModalElement).modal('show');
-            }
-        }, 0);
-    });
-})();
-</script>

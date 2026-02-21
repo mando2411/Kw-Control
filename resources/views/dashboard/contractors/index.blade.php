@@ -605,7 +605,6 @@
             var exportSearchId = document.getElementById('smExportSearchId');
             var exportCloseBtn = document.getElementById('smExportCloseBtn');
             var exportOpenBtn = document.getElementById('smOpenExport');
-            var exportWhatsappInput = document.getElementById('smExportWhatsappTo');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
             var shouldCloseParentAfterExport = false;
@@ -1204,20 +1203,6 @@
                     var latestBackdrop = backdrops.length ? backdrops[backdrops.length - 1] : null;
                     if (latestBackdrop) {
                         latestBackdrop.classList.add('sm-export-backdrop');
-                    }
-
-                    if (exportWhatsappInput) {
-                        exportWhatsappInput.disabled = false;
-                        exportWhatsappInput.readOnly = false;
-                        exportWhatsappInput.style.pointerEvents = 'auto';
-
-                        setTimeout(function () {
-                            try {
-                                exportWhatsappInput.focus();
-                                exportWhatsappInput.select();
-                            } catch (error) {
-                            }
-                        }, 0);
                     }
                 });
 
