@@ -197,6 +197,10 @@ class CandidateController extends Controller
 
         $rows = collect();
         if ($contractorIds->isNotEmpty()) {
+            $voterCivilIdColumn = Schema::hasColumn('voters', 'civil_id')
+                ? 'v.civil_id'
+                : 'v.alrkm_almd_yn';
+
             $rows = DB::table('contractor_voter as cv')
                 ->join('voters as v', 'v.id', '=', 'cv.voter_id')
                 ->leftJoin('families as f', 'f.id', '=', 'v.family_id')
@@ -206,11 +210,11 @@ class CandidateController extends Controller
                 ->select([
                     'v.id as voter_id',
                     'v.name as voter_name',
-                    'v.civil_id',
+                    DB::raw($voterCivilIdColumn . ' as civil_id'),
                     'f.name as family_name',
                     'cm.name as committee_name',
                     'c.name as contractor_name',
-                    DB::raw("DATE_FORMAT(cv.created_at, '%Y/%m/%d %H:%i') as attached_at"),
+                    'cv.created_at as attached_at',
                 ])
                 ->orderByDesc('cv.created_at')
                 ->get();

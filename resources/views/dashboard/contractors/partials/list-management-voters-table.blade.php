@@ -20,7 +20,7 @@
                     <td>{{ $row->family_name ?: '—' }}</td>
                     <td>{{ $row->committee_name ?: '—' }}</td>
                     <td>{{ $row->contractor_name ?: '—' }}</td>
-                    <td>{{ $row->attached_at ?: '—' }}</td>
+                    <td>{{ $row->attached_at ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i') : '—' }}</td>
                 </tr>
             @empty
                 <tr>
