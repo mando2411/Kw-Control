@@ -125,7 +125,7 @@
                     يجب اختيار مرشح واحد فقط
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3 text-center">
                     <button
                         type="button"
                         class="btn btn-outline-primary"
@@ -135,7 +135,7 @@
                     >
                         إدارة المضامين
                     </button>
-                    <span id="list-management-voters-state" class="small text-muted" aria-live="polite"></span>
+                    <span id="list-management-voters-state" class="small text-muted w-100" aria-live="polite"></span>
                 </div>
 
                 <div id="list-management-voters-section" class="card border-0 shadow-sm mb-3 d-none" style="border-radius:14px; overflow:hidden;">
