@@ -512,76 +512,6 @@
                 </div>
             </div>
 
-            <!-- Modal Mota3ahdeenList-->
-            <div class="modal modal-md rtl" id="Mota3ahdeenList" tabindex="-1" aria-labelledby="mota3ahdeenListLabel"
-                aria-hidden="true">
-                <div class="modal-dialog modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="mota3ahdeenListLabel">
-                                بيانات المتعهد
-                            </h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body px-4">
-
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedName">
-                                <label class="labelStyle" for="mota3aheedName">اسم المتعهد</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedPhone">
-                                <label class="labelStyle" for="mota3aheedPhone">هاتف المتعهد</label>
-                            </div>
-                            <hr>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedTrusted">
-                                <label class="labelStyle" for="mota3aheedTrusted">الألتزام</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="madameenNum">
-                                <label class="labelStyle" for="madameenNum">عدد المضامين</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="percentageTrusted">
-                                <label class="labelStyle" for="percentageTrusted">نسبة الالتزام</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="trustedNumber">
-                                <label class="labelStyle" for="trustedNumber">عدد صدق المضامين</label>
-                            </div>
-                            <hr>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="mota3aheedName2">
-                                <label class="labelStyle" for="mota3aheedName2">اسم المتعهد</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData"
-                                    id="printMejorMota3ahed">
-                                <label class="labelStyle" for="printMejorMota3ahed"> المتعهد الرئيسى</label>
-                            </div>
-                            <div>
-                                <input type="checkbox" class="" name="printMota3ahedData" id="addationDate">
-                                <label class="labelStyle" for="addationDate">تاريخ الاضافة</label>
-                            </div>
-                            <hr>
-                            <div class="d-flex align-items-center">
-                                <label class="labelStyle" for="mota3aheedTrusted">ترتيب</label>
-                                <select name="sorted" id="sorted" class="form-control py-1">
-                                    <option value="">أبجدى</option>
-                                    <option value="">الهاتف</option>
-                                    <option value="">الألتزام</option>
-                                </select>
-                            </div>
-
-
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
 			<div class="row">
 			
 				<div class="col-12 col-md-6">
@@ -1009,57 +939,9 @@
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
             var shouldCloseParentAfterExport = false;
-            var restoreEnforceFocus = null;
 
             if (exportModalElement && document.body && exportModalElement.parentElement !== document.body) {
                 document.body.appendChild(exportModalElement);
-            }
-
-            function relaxParentModalFocusTrap() {
-                if (window.bootstrap && window.bootstrap.Modal && window.bootstrap.Modal.getInstance) {
-                    var parentInstance = window.bootstrap.Modal.getInstance(modalEl);
-                    if (parentInstance && parentInstance._focustrap && typeof parentInstance._focustrap.deactivate === 'function') {
-                        parentInstance._focustrap.deactivate();
-                    }
-                }
-
-                if (window.jQuery && window.jQuery.fn && window.jQuery.fn.modal && window.jQuery.fn.modal.Constructor) {
-                    var constructor = window.jQuery.fn.modal.Constructor;
-                    if (constructor.prototype && !restoreEnforceFocus) {
-                        var originalEnforceFocus = constructor.prototype.enforceFocus;
-                        var originalPrivateEnforceFocus = constructor.prototype._enforceFocus;
-
-                        if (typeof constructor.prototype.enforceFocus === 'function') {
-                            constructor.prototype.enforceFocus = function () {};
-                        }
-                        if (typeof constructor.prototype._enforceFocus === 'function') {
-                            constructor.prototype._enforceFocus = function () {};
-                        }
-
-                        if (window.jQuery && typeof window.jQuery(document).off === 'function') {
-                            window.jQuery(document).off('focusin.modal');
-                        }
-
-                        restoreEnforceFocus = function () {
-                            constructor.prototype.enforceFocus = originalEnforceFocus;
-                            constructor.prototype._enforceFocus = originalPrivateEnforceFocus;
-                            restoreEnforceFocus = null;
-                        };
-                    }
-                }
-            }
-
-            function restoreParentModalFocusTrap() {
-                if (window.bootstrap && window.bootstrap.Modal && window.bootstrap.Modal.getInstance) {
-                    var parentInstance = window.bootstrap.Modal.getInstance(modalEl);
-                    if (parentInstance && parentInstance._focustrap && typeof parentInstance._focustrap.activate === 'function') {
-                        parentInstance._focustrap.activate();
-                    }
-                }
-
-                if (typeof restoreEnforceFocus === 'function') {
-                    restoreEnforceFocus();
-                }
             }
 
             function getListManagementSelectedCandidateIds() {
@@ -1638,7 +1520,6 @@
 
             if (exportModalElement) {
                 exportModalElement.addEventListener('show.bs.modal', function () {
-                    relaxParentModalFocusTrap();
                     setExportModalLayeredState(true);
 
                     if (exportSearchId) {
@@ -1673,7 +1554,6 @@
                 exportModalElement.addEventListener('hidden.bs.modal', function () {
                     isOpeningExportModal = false;
                     setExportModalLayeredState(false);
-                    restoreParentModalFocusTrap();
 
                     if (shouldCloseParentAfterExport) {
                         shouldCloseParentAfterExport = false;
