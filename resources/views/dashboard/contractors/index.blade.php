@@ -93,6 +93,12 @@
                     color: #64748b;
                     font-weight: 700;
                 }
+
+                @media (max-width: 767.98px) {
+                    #list-management-voters-section.is-mobile-compact .lm-col-extra {
+                        display: none !important;
+                    }
+                }
             </style>
 
             @if(!empty($isListManagementContext) && isset($listManagementCandidates) && $listManagementCandidates->count())
@@ -1944,6 +1950,7 @@
         var filterForm = document.getElementById('list-management-candidates-filter');
         var contractorsOnlyBlocks = Array.prototype.slice.call(document.querySelectorAll('.list-management-contractors-only'));
         var activeController = null;
+        var mobileVotersExpanded = false;
 
         function setState(message, isError) {
             if (!stateEl) return;
@@ -1971,6 +1978,19 @@
             contractorsOnlyBlocks.forEach(function (block) {
                 block.classList.toggle('d-none', isVotersMode);
             });
+        }
+
+        function applyMobileVotersLayout() {
+            if (!votersSection) return;
+
+            var compact = !mobileVotersExpanded;
+            votersSection.classList.toggle('is-mobile-compact', compact);
+
+            var toggleMobileBtn = votersSection.querySelector('.js-lm-voters-mobile-toggle');
+            if (toggleMobileBtn) {
+                toggleMobileBtn.setAttribute('data-expanded', mobileVotersExpanded ? '1' : '0');
+                toggleMobileBtn.textContent = mobileVotersExpanded ? 'إخفاء التفاصيل' : 'إظهار تفاصيل أكثر';
+            }
         }
 
         function renderVoters() {
@@ -2013,6 +2033,9 @@
                         votersContent.innerHTML = String(payload?.html || '<div class="text-center text-muted py-3">لا توجد بيانات.</div>');
                     }
 
+                    mobileVotersExpanded = false;
+                    applyMobileVotersLayout();
+
                     if (votersCount) {
                         votersCount.textContent = String(payload?.total ?? 0);
                     }
@@ -2050,6 +2073,17 @@
                 renderVoters();
             }
         };
+
+        if (votersContent) {
+            votersContent.addEventListener('click', function (event) {
+                var mobileToggleBtn = event.target.closest('.js-lm-voters-mobile-toggle');
+                if (!mobileToggleBtn) return;
+
+                event.preventDefault();
+                mobileVotersExpanded = !mobileVotersExpanded;
+                applyMobileVotersLayout();
+            });
+        }
 
         window.__listManagementRefreshVoters = renderVoters;
         window.__listManagementGetSelectedCandidateIds = getSelectedCandidateIds;

@@ -1,21 +1,27 @@
+<div class="d-md-none mb-2 text-start">
+    <button type="button" class="btn btn-sm btn-outline-secondary js-lm-voters-mobile-toggle" data-expanded="0">
+        إظهار تفاصيل أكثر
+    </button>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-striped table-hover align-middle text-center mb-0">
+    <table class="table table-striped table-hover align-middle text-center mb-0 list-management-voters-table">
         <thead class="table-light">
             <tr>
-                <th>#</th>
+                <th class="lm-col-extra">#</th>
                 <th>الناخب</th>
-                <th>الرقم المدني</th>
-                <th>العائلة</th>
-                <th>اللجنة</th>
+                <th class="lm-col-extra">الرقم المدني</th>
+                <th class="lm-col-extra">العائلة</th>
+                <th class="lm-col-extra">اللجنة</th>
                 <th>المرشح</th>
                 <th>المتعهد</th>
-                <th>تاريخ الإضافة</th>
+                <th class="lm-col-extra">تاريخ الإضافة</th>
             </tr>
         </thead>
         <tbody>
             @forelse($rows as $index => $row)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td class="lm-col-extra">{{ $index + 1 }}</td>
                     <td>
                         <button type="button" class="btn btn-link p-0 js-list-management-voter-open" data-voter-id="{{ (int) ($row->voter_id ?? 0) }}" style="text-decoration:none;">
                             {{ $row->voter_name ?: '—' }}
@@ -24,12 +30,12 @@
                             <span class="badge bg-danger ms-1">مكرر @if(!empty($row->duplicate_count)) ({{ $row->duplicate_count }}) @endif</span>
                         @endif
                     </td>
-                    <td>{{ $row->civil_id ?: '—' }}</td>
-                    <td>{{ $row->family_name ?: '—' }}</td>
-                    <td>{{ $row->committee_name ?: '—' }}</td>
+                    <td class="lm-col-extra">{{ $row->civil_id ?: '—' }}</td>
+                    <td class="lm-col-extra">{{ $row->family_name ?: '—' }}</td>
+                    <td class="lm-col-extra">{{ $row->committee_name ?: '—' }}</td>
                     <td>{{ $row->candidate_name ?: '—' }}</td>
                     <td>{{ $row->contractor_name ?: '—' }}</td>
-                    <td>{{ $row->attached_at ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i') : '—' }}</td>
+                    <td class="lm-col-extra">{{ $row->attached_at ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i') : '—' }}</td>
                 </tr>
             @empty
                 <tr>
