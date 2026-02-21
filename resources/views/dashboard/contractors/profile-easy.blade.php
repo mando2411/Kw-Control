@@ -656,7 +656,14 @@
       border-radius: 0.7rem;
       box-shadow: 0 10px 28px rgba(2, 6, 23, 0.18);
       padding: 0.5rem;
+      max-height: min(70vh, 320px);
+      overflow: auto;
       display: none;
+    }
+
+    .voter-add-split.opens-up .voter-add-menu {
+      top: auto;
+      bottom: calc(100% + 0.35rem);
     }
 
     .voter-add-split.is-open .voter-add-menu {
@@ -3501,6 +3508,34 @@ function getCustomGroupOptionsHtml() {
 function closeAllAddMenus() {
   document.querySelectorAll('.voter-add-split.is-open').forEach(function (wrapper) {
     wrapper.classList.remove('is-open');
+    wrapper.classList.remove('opens-up');
+  });
+}
+
+function updateAddMenuPlacement(wrapper) {
+  if (!wrapper) return;
+
+  const menu = wrapper.querySelector('.voter-add-menu');
+  if (!menu) return;
+
+  wrapper.classList.remove('opens-up');
+
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const menuRect = menu.getBoundingClientRect();
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+
+  const spaceBelow = Math.max(0, viewportHeight - wrapperRect.bottom);
+  const spaceAbove = Math.max(0, wrapperRect.top);
+  const requiredSpace = Math.min(menuRect.height + 12, viewportHeight * 0.7);
+
+  if (spaceBelow < requiredSpace && spaceAbove > spaceBelow) {
+    wrapper.classList.add('opens-up');
+  }
+}
+
+function refreshOpenAddMenusPlacement() {
+  document.querySelectorAll('.voter-add-split.is-open').forEach(function (wrapper) {
+    updateAddMenuPlacement(wrapper);
   });
 }
 
@@ -4074,8 +4109,14 @@ $(document).on('click', '.voter-add-menu-trigger', function (event) {
   closeAllAddMenus();
   if (willOpen) {
     wrapper.classList.add('is-open');
+    requestAnimationFrame(function () {
+      updateAddMenuPlacement(wrapper);
+    });
   }
 });
+
+window.addEventListener('resize', refreshOpenAddMenusPlacement, { passive: true });
+window.addEventListener('scroll', refreshOpenAddMenusPlacement, { passive: true, capture: true });
 
 $(document).on('click', '.js-add-my-list', function (event) {
   event.preventDefault();
