@@ -2,9 +2,12 @@ let newDate = new Date();
 $(".todayDate").text(newDate.getDate());
 
 (function () {
-  $(".moreSearch div.btn").on("click", function () {
-    $(this).siblings(".moreSearch .description").toggleClass("d-none");
-  });
+  $(document)
+    .off("click.moreSearchToggle", ".moreSearch div.btn")
+    .on("click.moreSearchToggle", ".moreSearch div.btn", function (event) {
+      event.preventDefault();
+      $(this).siblings(".description").toggleClass("d-none");
+    });
 })();
 
 // elmadameen
@@ -121,44 +124,24 @@ $("#trustingRate").on("change", function () {
   })();
 
 (function () {
-  $("th button.all").on("click", getAllInputChecked);
-})();
+  $(document)
+    .off("click.checkAllRows", "th button.all")
+    .on("click.checkAllRows", "th button.all", function (event) {
+      event.preventDefault();
 
-function getAllInputChecked() {
-  // console.log(
-  //   $(this).parent().parent().parent().siblings().find("input.check")
-  // );
-  if (
-    $(this)
-      .parent()
-      .parent()
-      .parent()
-      .siblings()
-      .find("input.check")
-      .prop("checked") == true
-  ) {
-    $(this)
-      .parent()
-      .parent()
-      .parent()
-      .siblings()
-      .find("input.check")
-      .prop("checked", false);
-    // console.log("aaa");
-    $(".listNumber").text(0);
-  } else {
-    $(this)
-      .parent()
-      .parent()
-      .parent()
-      .siblings()
-      .find("input.check")
-      .prop("checked", true);
-    $(".listNumber").text(
-      $(this).parent().parent().parent().siblings().find("input.check").length
-    );
-}
-}
+      const table = $(this).closest("table");
+      const checkboxes = table.find("tbody input.check");
+      if (!checkboxes.length) return;
+
+      const allChecked = checkboxes.length === checkboxes.filter(":checked").length;
+      checkboxes.prop("checked", !allChecked);
+
+      const counter = table.closest(".table-responsive").siblings(".d-flex").find(".listNumber");
+      if (counter.length) {
+        counter.text(!allChecked ? checkboxes.length : 0);
+      }
+    });
+})();
 
 
 // sorting
