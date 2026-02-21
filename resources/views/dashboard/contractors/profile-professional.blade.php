@@ -686,6 +686,15 @@
       padding: 0.34rem 0.5rem;
     }
 
+    .madameenTable.table-responsive {
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+
+    .madameenTable.table-responsive .table {
+      overflow: visible;
+    }
+
     .contractor-tab-switcher-hint {
       margin: 0 0 0.35rem;
       color: var(--ui-text-secondary, #475569);
