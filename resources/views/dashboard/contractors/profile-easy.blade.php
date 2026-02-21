@@ -696,6 +696,18 @@
       overflow: visible;
     }
 
+    .contractor-voters-table.overflow-hidden {
+      overflow: visible !important;
+    }
+
+    .contractor-voters-table tbody td {
+      overflow: visible !important;
+    }
+
+    .voter-add-split.is-open {
+      z-index: 60;
+    }
+
     .contractor-tab-switcher-hint {
       margin: 0 0 0.35rem;
       color: var(--ui-text-secondary, #475569);
