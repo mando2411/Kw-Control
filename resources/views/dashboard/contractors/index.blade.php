@@ -2204,8 +2204,13 @@
                 }
             })
                 .then(function (response) {
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    return response.json();
+                    return response.json().then(function (payload) {
+                        if (!response.ok) {
+                            throw new Error(String(payload?.message || ('HTTP ' + response.status)));
+                        }
+
+                        return payload;
+                    });
                 })
                 .then(function (payload) {
                     var voter = payload?.voter || {};
@@ -2221,9 +2226,9 @@
                 })
                 .catch(function (error) {
                     console.error(error);
-                    setModalState('تعذر تحميل تفاصيل المضمون', true);
+                    setModalState(String(error?.message || 'تعذر تحميل تفاصيل المضمون'), true);
                     if (assignmentsBody) {
-                        assignmentsBody.innerHTML = '<tr><td colspan="4" class="text-danger py-3">تعذر تحميل البيانات.</td></tr>';
+                        assignmentsBody.innerHTML = '<tr><td colspan="4" class="text-danger py-3">' + String(error?.message || 'تعذر تحميل البيانات.') + '</td></tr>';
                     }
                 });
         }

@@ -244,53 +244,71 @@ class CandidateController extends Controller
 
     public function listManagementVoterDetails(Request $request, int $voter)
     {
-        $scope = $this->resolveListManagementScope($request);
-        abort_if(!$scope['can_access'], 403);
+        try {
+            $scope = $this->resolveListManagementScope($request);
+            abort_if(!$scope['can_access'], 403);
 
-        $contractorIds = $scope['contractor_ids'];
-        $voterCivilIdColumn = Schema::hasColumn('voters', 'civil_id') ? 'v.civil_id' : 'v.alrkm_almd_yn';
+            $contractorIds = $scope['contractor_ids'];
 
-        $voterInfo = DB::table('voters as v')
-            ->where('v.id', (int) $voter)
-            ->select([
-                'v.id',
-                'v.name',
-                DB::raw($voterCivilIdColumn . ' as civil_id'),
-            ])
-            ->first();
+            $civilIdExpr = 'NULL';
+            if (Schema::hasColumn('voters', 'civil_id')) {
+                $civilIdExpr = 'v.civil_id';
+            } elseif (Schema::hasColumn('voters', 'alrkm_almd_yn')) {
+                $civilIdExpr = 'v.alrkm_almd_yn';
+            }
 
-        abort_if(!$voterInfo, 404);
-
-        $assignments = collect();
-        if (!empty($contractorIds)) {
-            $assignments = DB::table('contractor_voter as cv')
-                ->join('contractors as c', 'c.id', '=', 'cv.contractor_id')
-                ->leftJoin('users as cu', 'cu.id', '=', 'c.creator_id')
-                ->where('cv.voter_id', (int) $voter)
-                ->whereIn('cv.contractor_id', $contractorIds)
+            $voterInfo = DB::table('voters as v')
+                ->where('v.id', (int) $voter)
                 ->select([
-                    'cv.contractor_id',
-                    'c.name as contractor_name',
-                    'c.creator_id as candidate_user_id',
-                    'cu.name as candidate_name',
-                    'cv.created_at as attached_at',
+                    'v.id',
+                    'v.name',
+                    DB::raw($civilIdExpr . ' as civil_id'),
                 ])
-                ->orderByDesc('cv.created_at')
-                ->get()
-                ->map(function ($row) {
-                    $row->attached_at = $row->attached_at
-                        ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i')
-                        : null;
-                    return $row;
-                })
-                ->values();
-        }
+                ->first();
 
-        return response()->json([
-            'success' => true,
-            'voter' => $voterInfo,
-            'assignments' => $assignments,
-        ]);
+            abort_if(!$voterInfo, 404);
+
+            $assignments = collect();
+            if (!empty($contractorIds)) {
+                $assignments = DB::table('contractor_voter as cv')
+                    ->join('contractors as c', 'c.id', '=', 'cv.contractor_id')
+                    ->leftJoin('users as cu', 'cu.id', '=', 'c.creator_id')
+                    ->where('cv.voter_id', (int) $voter)
+                    ->whereIn('cv.contractor_id', $contractorIds)
+                    ->select([
+                        'cv.contractor_id',
+                        'c.name as contractor_name',
+                        'c.creator_id as candidate_user_id',
+                        'cu.name as candidate_name',
+                        'cv.created_at as attached_at',
+                    ])
+                    ->orderByDesc('cv.created_at')
+                    ->get()
+                    ->map(function ($row) {
+                        $row->attached_at = $row->attached_at
+                            ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i')
+                            : null;
+                        return $row;
+                    })
+                    ->values();
+            }
+
+            return response()->json([
+                'success' => true,
+                'voter' => $voterInfo,
+                'assignments' => $assignments,
+            ]);
+        } catch (\Throwable $exception) {
+            Log::error('listManagementVoterDetails failed', [
+                'voter_id' => (int) $voter,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر تحميل تفاصيل المضمون. يرجى المحاولة مرة أخرى.',
+            ], 500);
+        }
     }
 
     public function listManagementContractorsByCandidate(Request $request)
