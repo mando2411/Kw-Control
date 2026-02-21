@@ -395,7 +395,7 @@ class CandidateController extends Controller
                     DB::raw($civilIdExpr . ' as civil_id'),
                     'v.phone1 as phone',
                 ])
-                ->orderBy('v.name')
+                ->orderByDesc('cv.created_at')
                 ->limit(300)
                 ->get();
         } else {
