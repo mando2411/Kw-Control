@@ -950,7 +950,7 @@
                                                         <div class="sm-export-section mb-0">
                                                             <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
                                                                 <div class="d-flex gap-2 align-items-center">
-                                                                        <input type="number" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
+                                                                <input type="text" inputmode="numeric" dir="ltr" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
                                                                 <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
                                                                 </div>
                                                         </div>
@@ -1657,6 +1657,21 @@
                         queryData[key] = value || '';
                     }
                 });
+
+                if (actionType === 'Send') {
+                    var rawPhone = String(queryData.to || '');
+                    var normalizedPhone = rawPhone
+                        .replace(/[\u0660-\u0669]/g, function (char) { return String(char.charCodeAt(0) - 1632); })
+                        .replace(/[\u06F0-\u06F9]/g, function (char) { return String(char.charCodeAt(0) - 1776); })
+                        .replace(/\D+/g, '');
+
+                    queryData.to = normalizedPhone;
+
+                    if (!normalizedPhone) {
+                        showExportStatus('يرجى إدخال رقم WhatsApp صحيح', 'error');
+                        return;
+                    }
+                }
 
                 submitBtn.disabled = true;
                 showExportStatus('جاري تنفيذ العملية...', 'info');
