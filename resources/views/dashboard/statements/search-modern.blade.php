@@ -1121,6 +1121,7 @@
             button.addEventListener('click', function () {
                 const actionType = button.value;
                 const selectedIds = getSelectedVoterIdsForExport();
+                let sendPendingTab = null;
 
                 if (selectedIds.length === 0) {
                     toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
@@ -1140,6 +1141,10 @@
 
                 const submitBtn = button;
                 submitBtn.disabled = true;
+
+                if (actionType === 'Send') {
+                    sendPendingTab = window.open('about:blank', '_blank');
+                }
 
                 const formData = new FormData(exportForm);
                 const queryData = {};
@@ -1206,10 +1211,11 @@
                         }
 
                         if (actionType === 'Send' && res.data?.Redirect_Url) {
-                            const newTab = window.open();
-                            newTab.document.open();
-                            newTab.location.href = res.data.Redirect_Url;
-                            newTab.document.close();
+                            if (sendPendingTab && !sendPendingTab.closed) {
+                                sendPendingTab.location.href = res.data.Redirect_Url;
+                            } else {
+                                window.location.href = res.data.Redirect_Url;
+                            }
                             return;
                         }
 
@@ -1219,6 +1225,9 @@
                         newTab.document.close();
                     })
                     .catch((error) => {
+                        if (sendPendingTab && !sendPendingTab.closed) {
+                            sendPendingTab.close();
+                        }
                         console.error(error);
                         toastr.error(error.response?.data?.error || 'حدث خطأ غير متوقع');
                     })

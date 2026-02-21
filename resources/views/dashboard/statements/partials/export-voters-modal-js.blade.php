@@ -43,7 +43,7 @@
 
             var buttonValue = $(this).val();
             $('#type').val(buttonValue);
-
+            let sendPendingTab = null;
             var form = $('#export');
             if (!form.length) return;
 
@@ -89,6 +89,8 @@
                     submitBtn.prop('disabled', false).html(originalHtml);
                     return;
                 }
+
+                sendPendingTab = window.open('about:blank', '_blank');
             }
 
             axios
@@ -110,7 +112,11 @@
                     }
 
                     if (buttonValue === 'Send' && res.data && res.data.Redirect_Url) {
-                        window.open(res.data.Redirect_Url, '_blank');
+                        if (sendPendingTab && !sendPendingTab.closed) {
+                            sendPendingTab.location.href = res.data.Redirect_Url;
+                        } else {
+                            window.location.href = res.data.Redirect_Url;
+                        }
                         return;
                     }
 
@@ -127,6 +133,9 @@
                     }
                 })
                 .catch(function (error) {
+                    if (sendPendingTab && !sendPendingTab.closed) {
+                        sendPendingTab.close();
+                    }
                     toastr.error(error.response?.data?.error ?? '{{ __('main.unexpected-error') }}');
                 })
                 .finally(function () {
