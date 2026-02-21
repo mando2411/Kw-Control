@@ -61,7 +61,7 @@
                         </div>
                     </div>
 
-                    <p class="text-danger small mb-2">* ملاحظة: لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
+                    <p class="text-danger small mb-2">* ملاحظة لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
 
                     <div class="sm-export-section mb-0">
                         <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
