@@ -2039,6 +2039,7 @@
     (function bindListManagementVoterModal() {
         var toggleBtn = document.getElementById('list-management-mode-toggle');
         var modalEl = document.getElementById('listManagementVoterModal');
+        var filterForm = document.getElementById('list-management-candidates-filter');
         if (!toggleBtn || !modalEl) return;
 
         var modal = null;
