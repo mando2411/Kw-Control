@@ -1,12 +1,52 @@
 @php
     $includeSearchId = $includeSearchId ?? false;
     $searchIdValue = $searchIdValue ?? '';
+    $searchIdInputId = $searchIdInputId ?? 'smExportSearchId';
+    $searchIdInputName = $searchIdInputName ?? 'search_id';
     $sourceValue = $sourceValue ?? null;
+    $modalId = $modalId ?? 'smExportModal';
+    $closeBtnId = $closeBtnId ?? 'smExportCloseBtn';
+    $formId = $formId ?? 'smExportForm';
+    $typeInputId = $typeInputId ?? 'smExportType';
+    $sortedSelectName = $sortedSelectName ?? 'sorted';
     $whatsappInputId = $whatsappInputId ?? 'smExportWhatsappTo';
+    $whatsappLabel = $whatsappLabel ?? 'إرسال PDF عبر WhatsApp';
     $whatsappPlaceholder = $whatsappPlaceholder ?? 'رقم الهاتف لإرسال WhatsApp';
+    $noteText = $noteText ?? '* ملاحظة لا يمكن استخراج البيانات الضخمة عبر ملف PDF';
+    $actionButtonClass = $actionButtonClass ?? 'sm-export-action';
+    $showRegionField = $showRegionField ?? false;
+    $regionLabel = $regionLabel ?? 'المنطقة';
+    $regionInputId = $regionInputId ?? 'na5ebArea';
+    $regionInputName = $regionInputName ?? 'region';
+    $regionInputValue = $regionInputValue ?? '';
+
+    $columns = $columns ?? [
+        ['value' => 'name', 'label' => 'اسم الناخب', 'checked' => true, 'disabled' => true],
+        ['value' => 'family', 'label' => 'العائلة', 'checked' => true],
+        ['value' => 'age', 'label' => 'العمر'],
+        ['value' => 'phone', 'label' => 'الهاتف'],
+        ['value' => 'type', 'label' => 'الجنس'],
+        ['value' => 'madrasa', 'label' => 'مدرسة الانتخاب'],
+        ['value' => 'restricted', 'label' => 'حالة القيد', 'checked' => true],
+        ['value' => 'created_at', 'label' => 'تاريخ القيد'],
+        ['value' => 'checked_time', 'label' => 'وقت التصويت'],
+    ];
+
+    $sortOptions = $sortOptions ?? [
+        ['value' => 'asc', 'label' => 'أبجدي'],
+        ['value' => 'phone', 'label' => 'الهاتف'],
+        ['value' => 'commitment', 'label' => 'الالتزام'],
+    ];
+
+    $actionButtons = $actionButtons ?? [
+        ['value' => 'PDF', 'label' => 'PDF', 'class' => 'btn btn-primary'],
+        ['value' => 'Excel', 'label' => 'Excel', 'class' => 'btn btn-success'],
+        ['value' => 'print', 'label' => 'طباعة', 'class' => 'btn btn-secondary'],
+        ['value' => 'show', 'label' => 'عرض', 'class' => 'btn btn-secondary'],
+    ];
 @endphp
 
-<div class="modal fade rtl sm-export-modal" id="smExportModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade rtl sm-export-modal" id="{{ $modalId }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
@@ -14,60 +54,93 @@
                     <h5 class="sm-export-title">استخراج الكشوف</h5>
                     <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                 </div>
-                <button type="button" id="smExportCloseBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" id="{{ $closeBtnId }}" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form action="{{ route('export') }}" method="GET" id="smExportForm">
+                <form action="{{ route('export') }}" method="GET" id="{{ $formId }}">
                     @if($includeSearchId)
-                        <input type="hidden" name="search_id" id="smExportSearchId" value="{{ $searchIdValue }}">
+                        <input type="hidden" name="{{ $searchIdInputName }}" id="{{ $searchIdInputId }}" value="{{ $searchIdValue }}">
                     @endif
                     @if(!is_null($sourceValue))
                         <input type="hidden" name="source" value="{{ $sourceValue }}">
                     @endif
 
+                    @if($showRegionField)
+                        <div class="d-flex align-items-center mb-3">
+                            <label class="labelStyle pt-2 pb-1 rounded-3" for="{{ $regionInputId }}">{{ $regionLabel }}</label>
+                            <input type="text" class="form-control bg-secondary bg-opacity-25" value="{{ $regionInputValue }}" name="{{ $regionInputName }}" id="{{ $regionInputId }}">
+                        </div>
+                    @endif
+
                     <div class="sm-export-section">
                         <h6 class="sm-export-section-title">أعمدة الكشف</h6>
                         <div class="row g-2">
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked disabled type="checkbox" value="name"><span class="sm-chip-pill">اسم الناخب</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="family"><span class="sm-chip-pill">العائلة</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="age"><span class="sm-chip-pill">العمر</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="phone"><span class="sm-chip-pill">الهاتف</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="type"><span class="sm-chip-pill">الجنس</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="madrasa"><span class="sm-chip-pill">مدرسة الانتخاب</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" checked type="checkbox" name="columns[]" value="restricted"><span class="sm-chip-pill">حالة القيد</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="created_at"><span class="sm-chip-pill">تاريخ القيد</span></label></div>
-                            <div class="col-6"><label class="sm-chip-option"><input class="sm-chip-input" type="checkbox" name="columns[]" value="checked_time"><span class="sm-chip-pill">وقت التصويت</span></label></div>
+                            @foreach($columns as $index => $column)
+                                @php
+                                    $columnId = $column['id'] ?? ('smCol' . $index);
+                                    $columnName = $column['name'] ?? 'columns[]';
+                                    $columnValue = $column['value'] ?? '';
+                                    $columnLabel = $column['label'] ?? '';
+                                    $columnClass = $column['class'] ?? 'sm-chip-input';
+                                    $columnColClass = $column['colClass'] ?? 'col-6';
+                                    $columnChecked = !empty($column['checked']);
+                                    $columnDisabled = !empty($column['disabled']);
+                                @endphp
+                                <div class="{{ $columnColClass }}">
+                                    <label class="sm-chip-option" for="{{ $columnId }}">
+                                        <input class="{{ $columnClass }}"
+                                            id="{{ $columnId }}"
+                                            type="checkbox"
+                                            name="{{ $columnName }}"
+                                            value="{{ $columnValue }}"
+                                            @checked($columnChecked)
+                                            @disabled($columnDisabled)>
+                                        <span class="sm-chip-pill">{{ $columnLabel }}</span>
+                                    </label>
+                                    @if(!empty($column['select']) && is_array($column['select']))
+                                        @php
+                                            $select = $column['select'];
+                                            $selectName = $select['name'] ?? '';
+                                            $selectClass = $select['class'] ?? 'form-select mt-1';
+                                        @endphp
+                                        <select name="{{ $selectName }}" class="{{ $selectClass }}">
+                                            @foreach(($select['options'] ?? []) as $option)
+                                                <option value="{{ $option['value'] ?? '' }}">{{ $option['label'] ?? '' }}</option>
+                                            @endforeach
+                                        </select>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
                     </div>
 
                     <div class="sm-export-section">
                         <h6 class="sm-export-section-title">ترتيب النتائج</h6>
-                        <select name="sorted" class="form-select">
-                            <option value="asc">أبجدي</option>
-                            <option value="phone">الهاتف</option>
-                            <option value="commitment">الالتزام</option>
+                        <select name="{{ $sortedSelectName }}" class="form-select">
+                            @foreach($sortOptions as $option)
+                                <option value="{{ $option['value'] ?? '' }}">{{ $option['label'] ?? '' }}</option>
+                            @endforeach
                         </select>
                     </div>
 
-                    <input type="hidden" name="type" id="smExportType">
+                    <input type="hidden" name="type" id="{{ $typeInputId }}">
 
                     <div class="sm-export-section">
                         <h6 class="sm-export-section-title">إجراء الإخراج</h6>
                         <div class="sm-export-actions">
-                            <button type="button" class="btn btn-primary sm-export-action" value="PDF">PDF</button>
-                            <button type="button" class="btn btn-success sm-export-action" value="Excel">Excel</button>
-                            <button type="button" class="btn btn-secondary sm-export-action" value="print">طباعة</button>
-                            <button type="button" class="btn btn-secondary sm-export-action" value="show">عرض</button>
+                            @foreach($actionButtons as $button)
+                                <button type="button" class="{{ $button['class'] ?? 'btn btn-secondary' }} {{ $actionButtonClass }}" value="{{ $button['value'] ?? '' }}">{{ $button['label'] ?? '' }}</button>
+                            @endforeach
                         </div>
                     </div>
 
-                    <p class="text-danger small mb-2">* ملاحظة لا يمكن استخراج البيانات الضخمة عبر ملف PDF</p>
+                    <p class="text-danger small mb-2">{{ $noteText }}</p>
 
                     <div class="sm-export-section mb-0">
-                        <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
+                        <h6 class="sm-export-section-title">{{ $whatsappLabel }}</h6>
                         <div class="d-flex gap-2 align-items-center">
                             <input type="text" inputmode="numeric" dir="ltr" class="form-control" id="{{ $whatsappInputId }}" name="to" placeholder="{{ $whatsappPlaceholder }}">
-                            <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
+                            <button type="button" class="btn btn-outline-primary {{ $actionButtonClass }}" value="Send">إرسال</button>
                         </div>
                     </div>
                 </form>
