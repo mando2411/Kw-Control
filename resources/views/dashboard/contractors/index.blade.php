@@ -1008,6 +1008,41 @@
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
             var shouldCloseParentAfterExport = false;
+            var restoreEnforceFocus = null;
+
+            function relaxParentModalFocusTrap() {
+                if (window.bootstrap && window.bootstrap.Modal && window.bootstrap.Modal.getInstance) {
+                    var parentInstance = window.bootstrap.Modal.getInstance(modalEl);
+                    if (parentInstance && parentInstance._focustrap && typeof parentInstance._focustrap.deactivate === 'function') {
+                        parentInstance._focustrap.deactivate();
+                    }
+                }
+
+                if (window.jQuery && window.jQuery.fn && window.jQuery.fn.modal && window.jQuery.fn.modal.Constructor) {
+                    var constructor = window.jQuery.fn.modal.Constructor;
+                    if (constructor.prototype && typeof constructor.prototype.enforceFocus === 'function' && !restoreEnforceFocus) {
+                        var originalEnforceFocus = constructor.prototype.enforceFocus;
+                        constructor.prototype.enforceFocus = function () {};
+                        restoreEnforceFocus = function () {
+                            constructor.prototype.enforceFocus = originalEnforceFocus;
+                            restoreEnforceFocus = null;
+                        };
+                    }
+                }
+            }
+
+            function restoreParentModalFocusTrap() {
+                if (window.bootstrap && window.bootstrap.Modal && window.bootstrap.Modal.getInstance) {
+                    var parentInstance = window.bootstrap.Modal.getInstance(modalEl);
+                    if (parentInstance && parentInstance._focustrap && typeof parentInstance._focustrap.activate === 'function') {
+                        parentInstance._focustrap.activate();
+                    }
+                }
+
+                if (typeof restoreEnforceFocus === 'function') {
+                    restoreEnforceFocus();
+                }
+            }
 
             function getListManagementSelectedCandidateIds() {
                 return Array.from(document.querySelectorAll('#list-management-candidates-filter .candidate-filter-checkbox:checked'))
@@ -1585,6 +1620,7 @@
 
             if (exportModalElement) {
                 exportModalElement.addEventListener('show.bs.modal', function () {
+                    relaxParentModalFocusTrap();
                     setExportModalLayeredState(true);
 
                     if (exportSearchId) {
@@ -1609,6 +1645,7 @@
                 exportModalElement.addEventListener('hidden.bs.modal', function () {
                     isOpeningExportModal = false;
                     setExportModalLayeredState(false);
+                    restoreParentModalFocusTrap();
 
                     if (shouldCloseParentAfterExport) {
                         shouldCloseParentAfterExport = false;
