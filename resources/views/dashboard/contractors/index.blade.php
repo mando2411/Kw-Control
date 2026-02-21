@@ -237,7 +237,7 @@
                                     </div>
                                     <div class="mt-3 d-flex gap-2 justify-content-end">
                                         <button type="button" class="btn btn-outline-secondary" id="list-management-transfer-cancel">إلغاء</button>
-                                        <button type="button" class="btn btn-primary" id="list-management-transfer-submit">تأكيد النقل</button>
+                                        <button type="button" class="btn btn-primary" id="list-management-transfer-submit" style="background-color:#2563eb !important;border-color:#2563eb !important;color:#fff !important;">تأكيد النقل</button>
                                     </div>
                                 </div>
                             </div>
@@ -2189,8 +2189,8 @@
                     '<td>' + attachedAt + '</td>' +
                     '<td>' +
                         '<div class="d-flex justify-content-center gap-2 flex-wrap">' +
-                            '<button type="button" class="btn btn-sm btn-danger js-list-management-delete-assignment" style="background-color:#dc3545;border-color:#dc3545;color:#fff;" data-source-contractor-id="' + contractorId + '">حذف</button>' +
-                            '<button type="button" class="btn btn-sm btn-primary js-list-management-open-transfer" style="background-color:#2563eb;border-color:#2563eb;color:#fff;" data-source-contractor-id="' + contractorId + '">نقل</button>' +
+                            '<button type="button" class="btn btn-sm btn-danger js-list-management-delete-assignment" style="background-color:#dc3545 !important;border-color:#dc3545 !important;color:#fff !important;" data-source-contractor-id="' + contractorId + '">حذف</button>' +
+                            '<button type="button" class="btn btn-sm btn-primary js-list-management-open-transfer" style="background-color:#2563eb !important;border-color:#2563eb !important;color:#fff !important;" data-source-contractor-id="' + contractorId + '">نقل</button>' +
                         '</div>' +
                     '</td>' +
                 '</tr>';
