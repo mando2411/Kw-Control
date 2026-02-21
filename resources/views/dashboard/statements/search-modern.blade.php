@@ -738,27 +738,15 @@
                 return;
             }
 
-            function normalizeArabicSearchText(value) {
-                return String(value || '')
-                    .trim()
-                    .replace(/[\u0610-\u061A\u064B-\u065F\u06D6-\u06ED]/g, '')
-                    .replace(/[\u0640]/g, '')
-                    .replace(/[أإآٱ]/g, 'ا')
-                    .replace(/[ؤ]/g, 'و')
-                    .replace(/[ئ]/g, 'ي')
-                    .replace(/[ى]/g, 'ي')
-                    .replace(/[ة]/g, 'ه')
-                    .replace(/\s+/g, ' ')
-                    .toLowerCase();
-            }
-
             const familySelect = window.jQuery('#smFamily');
             if (!familySelect.length) {
                 return;
             }
 
+            const currentValue = String(familySelect.val() || '');
+
             if (familySelect.hasClass('select2-hidden-accessible')) {
-                return;
+                familySelect.select2('destroy');
             }
 
             familySelect.select2({
@@ -766,21 +754,16 @@
                 dir: 'rtl',
                 placeholder: 'العائلة...',
                 allowClear: true,
-                matcher: function (params, data) {
-                    const term = normalizeArabicSearchText(params && params.term ? params.term : '');
-                    if (!term) {
-                        return data;
-                    }
-
-                    const text = normalizeArabicSearchText(data && data.text ? data.text : '');
-                    return text.includes(term) ? data : null;
-                },
                 language: {
                     noResults: function () {
                         return 'لا توجد عائلات مطابقة';
                     }
                 }
             });
+
+            if (currentValue && familySelect.find(`option[value="${currentValue}"]`).length) {
+                familySelect.val(currentValue).trigger('change.select2');
+            }
         }
 
         function showLoading() {
@@ -1041,8 +1024,9 @@
         function updateDynamicSelect(selector, options) {
             const select = $(selector);
             if (!select.length) return;
+            const isFamilySelect = selector === '#smFamily';
             const normalizedSource = options && typeof options === 'object' ? options : {};
-            if (Object.keys(normalizedSource).length === 0) return;
+            if (!isFamilySelect && Object.keys(normalizedSource).length === 0) return;
 
             if ((select.val() || '') !== '') {
                 return;
@@ -1062,10 +1046,8 @@
                 select.append(`<option value="${optionValue}">${label}</option>`);
             });
 
-            if (selector === '#smFamily') {
-                if (select.hasClass('select2-hidden-accessible')) {
-                    select.trigger('change.select2');
-                }
+            if (isFamilySelect) {
+                initFamilySearchableSelect();
             }
 
         }
