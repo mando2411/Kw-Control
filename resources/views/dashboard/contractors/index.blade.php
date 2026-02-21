@@ -184,9 +184,15 @@
                 <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3 text-center">
                     <button
                         type="button"
+                        class="btn btn-primary"
+                        id="list-management-contractors-btn"
+                    >
+                        إدارة المتعهدين
+                    </button>
+                    <button
+                        type="button"
                         class="btn btn-outline-primary"
                         id="list-management-mode-toggle"
-                        data-mode="contractors"
                         data-voters-url="{{ route('dashboard.candidates.list-management.voters') }}"
                         data-voter-details-url-template="{{ route('dashboard.candidates.list-management.voters.details', ['voter' => '__VOTER__']) }}"
                         data-voter-delete-url-template="{{ route('dashboard.candidates.list-management.voters.delete-assignment', ['voter' => '__VOTER__']) }}"
@@ -195,6 +201,12 @@
                     >
                         إدارة المضامين
                     </button>
+                    <a
+                        href="{{ route('dashboard.voters.create') }}"
+                        class="btn btn-outline-success"
+                    >
+                        إضافة مضامين
+                    </a>
                     <span id="list-management-voters-state" class="small text-muted w-100" aria-live="polite"></span>
                 </div>
 
@@ -1975,8 +1987,10 @@
     })();
 
     (function bindListManagementModeSwitch() {
-        var toggleBtn = document.getElementById('list-management-mode-toggle');
-        if (!toggleBtn) return;
+        var votersBtn = document.getElementById('list-management-mode-toggle');
+        if (!votersBtn) return;
+
+        var contractorsBtn = document.getElementById('list-management-contractors-btn');
 
         var votersSection = document.getElementById('list-management-voters-section');
         var votersContent = document.getElementById('list-management-voters-content');
@@ -1989,6 +2003,7 @@
         var activeController = null;
         var mobileVotersExpanded = false;
         var votersSearchKeyword = '';
+        var currentMode = 'contractors';
 
         function setState(message, isError) {
             if (!stateEl) return;
@@ -2006,8 +2021,7 @@
 
         function setMode(mode) {
             var isVotersMode = mode === 'voters';
-            toggleBtn.dataset.mode = isVotersMode ? 'voters' : 'contractors';
-            toggleBtn.textContent = isVotersMode ? 'إدارة المتعهدين' : 'إدارة المضامين';
+            currentMode = isVotersMode ? 'voters' : 'contractors';
 
             if (votersSection) {
                 votersSection.classList.toggle('d-none', !isVotersMode);
@@ -2016,6 +2030,16 @@
             contractorsOnlyBlocks.forEach(function (block) {
                 block.classList.toggle('d-none', isVotersMode);
             });
+
+            if (contractorsBtn) {
+                contractorsBtn.classList.toggle('btn-primary', !isVotersMode);
+                contractorsBtn.classList.toggle('btn-outline-primary', isVotersMode);
+            }
+
+            if (votersBtn) {
+                votersBtn.classList.toggle('btn-primary', isVotersMode);
+                votersBtn.classList.toggle('btn-outline-primary', !isVotersMode);
+            }
         }
 
         function applyMobileVotersLayout() {
@@ -2080,7 +2104,7 @@
         }
 
         function renderVoters() {
-            var endpoint = String(toggleBtn.dataset.votersUrl || '');
+            var endpoint = String(votersBtn.dataset.votersUrl || '');
             if (!endpoint) return;
 
             if (activeController) {
@@ -2088,7 +2112,7 @@
             }
 
             activeController = new AbortController();
-            toggleBtn.disabled = true;
+            votersBtn.disabled = true;
             setState('جاري تحميل المضامين...');
 
             if (votersContent) {
@@ -2146,24 +2170,26 @@
                     setState('تعذر تحميل المضامين', true);
                 })
                 .finally(function () {
-                    toggleBtn.disabled = false;
+                    votersBtn.disabled = false;
                 });
         }
 
-        toggleBtn.addEventListener('click', function () {
-            var currentMode = String(toggleBtn.dataset.mode || 'contractors');
-            if (currentMode === 'contractors') {
+        votersBtn.addEventListener('click', function () {
+            if (currentMode !== 'voters') {
                 setMode('voters');
                 renderVoters();
-                return;
             }
-
-            setMode('contractors');
-            setState('');
         });
 
+        if (contractorsBtn) {
+            contractorsBtn.addEventListener('click', function () {
+                setMode('contractors');
+                setState('');
+            });
+        }
+
         window.__listManagementOnSelectionUpdated = function () {
-            if (String(toggleBtn.dataset.mode || 'contractors') === 'voters') {
+            if (currentMode === 'voters') {
                 renderVoters();
             }
         };
@@ -2190,6 +2216,8 @@
                 updateVotersSearch(votersSearchDesktop.value);
             });
         }
+
+        setMode('contractors');
 
         window.__listManagementRefreshVoters = renderVoters;
         window.__listManagementGetSelectedCandidateIds = getSelectedCandidateIds;
