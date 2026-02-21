@@ -738,6 +738,20 @@
                 return;
             }
 
+            function normalizeArabicSearchText(value) {
+                return String(value || '')
+                    .trim()
+                    .replace(/[\u0610-\u061A\u064B-\u065F\u06D6-\u06ED]/g, '')
+                    .replace(/[\u0640]/g, '')
+                    .replace(/[أإآٱ]/g, 'ا')
+                    .replace(/[ؤ]/g, 'و')
+                    .replace(/[ئ]/g, 'ي')
+                    .replace(/[ى]/g, 'ي')
+                    .replace(/[ة]/g, 'ه')
+                    .replace(/\s+/g, ' ')
+                    .toLowerCase();
+            }
+
             const familySelect = window.jQuery('#smFamily');
             if (!familySelect.length) {
                 return;
@@ -752,6 +766,15 @@
                 dir: 'rtl',
                 placeholder: 'العائلة...',
                 allowClear: true,
+                matcher: function (params, data) {
+                    const term = normalizeArabicSearchText(params && params.term ? params.term : '');
+                    if (!term) {
+                        return data;
+                    }
+
+                    const text = normalizeArabicSearchText(data && data.text ? data.text : '');
+                    return text.includes(term) ? data : null;
+                },
                 language: {
                     noResults: function () {
                         return 'لا توجد عائلات مطابقة';
