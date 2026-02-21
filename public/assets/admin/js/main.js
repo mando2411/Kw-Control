@@ -672,6 +672,7 @@ function formatTime(time) {
       $(".resultcandidateName").html(cartona);
     }
   }
-  }
+
+
 
 
