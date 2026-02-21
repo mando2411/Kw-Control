@@ -201,12 +201,16 @@
                     >
                         إدارة المضامين
                     </button>
-                    <a
-                        href="{{ route('dashboard.voters.create') }}"
+                    <button
+                        type="button"
                         class="btn btn-outline-success"
+                        id="list-management-add-voters-btn"
+                        data-add-contractors-url="{{ route('dashboard.candidates.list-management.add-voters.contractors') }}"
+                        data-add-source-voters-url="{{ route('dashboard.candidates.list-management.add-voters.source-voters') }}"
+                        data-add-voter-url-template="{{ route('dashboard.candidates.list-management.add-voters.attach', ['voter' => '__VOTER__']) }}"
                     >
                         إضافة مضامين
-                    </a>
+                    </button>
                     <span id="list-management-voters-state" class="small text-muted w-100" aria-live="polite"></span>
                 </div>
 
@@ -231,6 +235,58 @@
                         </div>
                         <div id="list-management-voters-content">
                             <div class="text-center text-muted py-3">اضغط "إدارة المضامين" لعرض البيانات.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="list-management-add-voters-section" class="card border-0 shadow-sm mb-3 d-none" style="border-radius:14px; overflow:hidden;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <h6 class="mb-0" style="font-weight:900;">إضافة مضامين بدون ريلود</h6>
+                            <span id="list-management-add-voters-state" class="small text-muted" aria-live="polite"></span>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label for="lm-add-target-contractor" class="form-label mb-1">المتعهد المحدد (الهدف)</label>
+                                <select id="lm-add-target-contractor" class="form-select form-select-sm">
+                                    <option value="">اختر المتعهد الهدف</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lm-add-source-contractor" class="form-label mb-1">المتعهد المصدر</label>
+                                <select id="lm-add-source-contractor" class="form-select form-select-sm">
+                                    <option value="">اختر متعهداً لعرض مضامينه</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <input
+                                type="search"
+                                id="lm-add-voters-search"
+                                class="form-control form-control-sm"
+                                placeholder="ابحث في مضامين المتعهد المصدر (اسم / رقم مدني / هاتف)"
+                                aria-label="بحث في مضامين المتعهد المصدر"
+                            >
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped align-middle text-center mb-0" id="lm-add-voters-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الرقم المدني</th>
+                                        <th>الهاتف</th>
+                                        <th>الإجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lm-add-voters-body">
+                                    <tr>
+                                        <td colspan="4" class="text-muted py-3">اختر متعهدًا مصدرًا أولاً لعرض المضامين.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1991,8 +2047,10 @@
         if (!votersBtn) return;
 
         var contractorsBtn = document.getElementById('list-management-contractors-btn');
+        var addVotersBtn = document.getElementById('list-management-add-voters-btn');
 
         var votersSection = document.getElementById('list-management-voters-section');
+        var addVotersSection = document.getElementById('list-management-add-voters-section');
         var votersContent = document.getElementById('list-management-voters-content');
         var votersCount = document.getElementById('list-management-voters-count');
         var votersCountMobile = document.getElementById('list-management-voters-count-mobile');
@@ -2020,25 +2078,40 @@
         }
 
         function setMode(mode) {
-            var isVotersMode = mode === 'voters';
-            currentMode = isVotersMode ? 'voters' : 'contractors';
+            var nextMode = (mode === 'voters' || mode === 'add-voters') ? mode : 'contractors';
+            var isVotersMode = nextMode === 'voters';
+            var isAddVotersMode = nextMode === 'add-voters';
+            currentMode = nextMode;
 
             if (votersSection) {
                 votersSection.classList.toggle('d-none', !isVotersMode);
             }
 
+            if (addVotersSection) {
+                addVotersSection.classList.toggle('d-none', !isAddVotersMode);
+            }
+
             contractorsOnlyBlocks.forEach(function (block) {
-                block.classList.toggle('d-none', isVotersMode);
+                block.classList.toggle('d-none', isVotersMode || isAddVotersMode);
             });
 
             if (contractorsBtn) {
-                contractorsBtn.classList.toggle('btn-primary', !isVotersMode);
-                contractorsBtn.classList.toggle('btn-outline-primary', isVotersMode);
+                contractorsBtn.classList.toggle('btn-primary', currentMode === 'contractors');
+                contractorsBtn.classList.toggle('btn-outline-primary', currentMode !== 'contractors');
             }
 
             if (votersBtn) {
                 votersBtn.classList.toggle('btn-primary', isVotersMode);
                 votersBtn.classList.toggle('btn-outline-primary', !isVotersMode);
+            }
+
+            if (addVotersBtn) {
+                addVotersBtn.classList.toggle('btn-success', isAddVotersMode);
+                addVotersBtn.classList.toggle('btn-outline-success', !isAddVotersMode);
+            }
+
+            if (typeof window.__listManagementModeChanged === 'function') {
+                window.__listManagementModeChanged(currentMode);
             }
         }
 
@@ -2188,9 +2261,20 @@
             });
         }
 
+        if (addVotersBtn) {
+            addVotersBtn.addEventListener('click', function () {
+                setMode('add-voters');
+                setState('');
+            });
+        }
+
         window.__listManagementOnSelectionUpdated = function () {
             if (currentMode === 'voters') {
                 renderVoters();
+            }
+
+            if (currentMode === 'add-voters' && typeof window.__listManagementReloadAddVoters === 'function') {
+                window.__listManagementReloadAddVoters();
             }
         };
 
@@ -2221,6 +2305,326 @@
 
         window.__listManagementRefreshVoters = renderVoters;
         window.__listManagementGetSelectedCandidateIds = getSelectedCandidateIds;
+        window.__listManagementSetMode = setMode;
+    })();
+
+    (function bindListManagementAddVotersMode() {
+        var addBtn = document.getElementById('list-management-add-voters-btn');
+        var section = document.getElementById('list-management-add-voters-section');
+        if (!addBtn || !section) return;
+
+        var targetSelect = document.getElementById('lm-add-target-contractor');
+        var sourceSelect = document.getElementById('lm-add-source-contractor');
+        var searchInput = document.getElementById('lm-add-voters-search');
+        var tableBody = document.getElementById('lm-add-voters-body');
+        var stateEl = document.getElementById('list-management-add-voters-state');
+        var activeRowsAbort = null;
+        var searchDebounceTimer = null;
+        var contractorsLoaded = false;
+
+        function setState(message, isError) {
+            if (!stateEl) return;
+            stateEl.textContent = message || '';
+            stateEl.classList.toggle('text-danger', !!isError);
+            stateEl.classList.toggle('text-muted', !isError);
+        }
+
+        function csrfToken() {
+            var tokenEl = document.querySelector('meta[name="csrf-token"]');
+            return tokenEl ? tokenEl.getAttribute('content') : '';
+        }
+
+        function selectedCandidateIds() {
+            if (typeof window.__listManagementGetSelectedCandidateIds === 'function') {
+                return window.__listManagementGetSelectedCandidateIds();
+            }
+            return [];
+        }
+
+        function buildUrl(baseUrl, paramsBuilder) {
+            var url = new URL(String(baseUrl || ''), window.location.origin);
+            selectedCandidateIds().forEach(function (id) {
+                url.searchParams.append('candidate_users[]', id);
+            });
+
+            if (typeof paramsBuilder === 'function') {
+                paramsBuilder(url.searchParams);
+            }
+
+            return url.toString();
+        }
+
+        function renderRows(rows) {
+            if (!tableBody) return;
+
+            if (!Array.isArray(rows) || rows.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">لا توجد نتائج.</td></tr>';
+                return;
+            }
+
+            var html = rows.map(function (row) {
+                var voterId = Number(row?.voter_id || 0);
+                var voterName = String(row?.voter_name || '—');
+                var civilId = String(row?.civil_id || '—');
+                var phone = String(row?.phone || '—');
+                var attached = !!row?.is_attached_to_target;
+
+                return '<tr>' +
+                    '<td>' + voterName + '</td>' +
+                    '<td>' + civilId + '</td>' +
+                    '<td>' + phone + '</td>' +
+                    '<td>' +
+                        (attached
+                            ? '<span class="badge bg-success">مضاف</span>'
+                            : '<button type="button" class="btn btn-sm btn-primary js-lm-add-voter" data-voter-id="' + voterId + '">إضافة</button>') +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+
+            tableBody.innerHTML = html;
+        }
+
+        function loadSourceVoters() {
+            var endpoint = String(addBtn.dataset.addSourceVotersUrl || '');
+            if (!endpoint || !sourceSelect || !tableBody) return;
+
+            var sourceContractorId = Number(sourceSelect.value || 0);
+            if (!sourceContractorId) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">اختر متعهدًا مصدرًا أولاً لعرض المضامين.</td></tr>';
+                return;
+            }
+
+            var targetContractorId = Number(targetSelect ? targetSelect.value : 0);
+
+            if (targetContractorId > 0 && targetContractorId === sourceContractorId) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-danger py-3">لا يمكن اختيار نفس المتعهد كمصدر وهدف.</td></tr>';
+                setState('يجب اختيار متعهد مختلف كهدف.', true);
+                return;
+            }
+
+            if (activeRowsAbort) {
+                activeRowsAbort.abort();
+            }
+
+            activeRowsAbort = new AbortController();
+            setState('جاري تحميل المضامين...');
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">جاري التحميل...</td></tr>';
+
+            var url = buildUrl(endpoint, function (params) {
+                params.set('source_contractor_id', String(sourceContractorId));
+                if (targetContractorId > 0) {
+                    params.set('target_contractor_id', String(targetContractorId));
+                }
+
+                var search = searchInput ? String(searchInput.value || '').trim() : '';
+                if (search) {
+                    params.set('search', search);
+                }
+            });
+
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                signal: activeRowsAbort.signal
+            })
+                .then(function (response) {
+                    return response.json().then(function (payload) {
+                        if (!response.ok) {
+                            throw new Error(String(payload?.message || ('HTTP ' + response.status)));
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    renderRows(Array.isArray(payload?.rows) ? payload.rows : []);
+                    setState('تم تحديث النتائج');
+                    setTimeout(function () { setState(''); }, 800);
+                })
+                .catch(function (error) {
+                    if (error && error.name === 'AbortError') return;
+                    console.error(error);
+                    tableBody.innerHTML = '<tr><td colspan="4" class="text-danger py-3">' + String(error?.message || 'تعذر تحميل المضامين.') + '</td></tr>';
+                    setState(String(error?.message || 'تعذر تحميل المضامين.'), true);
+                });
+        }
+
+        function fillContractorsSelects(contractors) {
+            if (!targetSelect || !sourceSelect) return;
+
+            var targetValue = String(targetSelect.value || '');
+            var sourceValue = String(sourceSelect.value || '');
+            var options = ['<option value="">اختر المتعهد</option>'];
+
+            (Array.isArray(contractors) ? contractors : []).forEach(function (item) {
+                var contractorId = Number(item?.id || 0);
+                if (!contractorId) return;
+                var contractorName = String(item?.name || 'متعهد');
+                var candidateName = String(item?.candidate_name || 'مرشح');
+                options.push('<option value="' + contractorId + '">' + contractorName + ' - ' + candidateName + '</option>');
+            });
+
+            var html = options.join('');
+            targetSelect.innerHTML = html;
+            sourceSelect.innerHTML = html;
+
+            if (targetValue && targetSelect.querySelector('option[value="' + targetValue + '"]')) {
+                targetSelect.value = targetValue;
+            }
+
+            if (sourceValue && sourceSelect.querySelector('option[value="' + sourceValue + '"]')) {
+                sourceSelect.value = sourceValue;
+            }
+        }
+
+        function loadContractors() {
+            var endpoint = String(addBtn.dataset.addContractorsUrl || '');
+            if (!endpoint) return Promise.resolve();
+
+            setState('جاري تحميل المتعهدين...');
+
+            var url = buildUrl(endpoint);
+            return fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+                .then(function (response) {
+                    return response.json().then(function (payload) {
+                        if (!response.ok) {
+                            throw new Error(String(payload?.message || ('HTTP ' + response.status)));
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    fillContractorsSelects(payload?.contractors || []);
+                    contractorsLoaded = true;
+                    setState('');
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    setState(String(error?.message || 'تعذر تحميل المتعهدين.'), true);
+                });
+        }
+
+        function addVoter(voterId) {
+            var endpointTemplate = String(addBtn.dataset.addVoterUrlTemplate || '');
+            var targetContractorId = Number(targetSelect ? targetSelect.value : 0);
+            var sourceContractorId = Number(sourceSelect ? sourceSelect.value : 0);
+
+            if (!targetContractorId) {
+                setState('يجب تحديد متعهد هدف واحد فقط قبل الإضافة.', true);
+                if (window.toastr) toastr.error('يجب تحديد متعهد هدف واحد فقط قبل الإضافة.');
+                return;
+            }
+
+            if (!sourceContractorId) {
+                setState('اختر المتعهد المصدر أولاً.', true);
+                return;
+            }
+
+            if (targetContractorId === sourceContractorId) {
+                setState('لا يمكن الإضافة من نفس المتعهد.', true);
+                return;
+            }
+
+            var endpoint = endpointTemplate.replace('__VOTER__', String(voterId || 0));
+            if (!endpoint) return;
+
+            setState('جاري الإضافة...');
+
+            var body = new URLSearchParams();
+            body.append('_token', csrfToken());
+            body.append('source_contractor_id', String(sourceContractorId));
+            body.append('target_contractor_id', String(targetContractorId));
+            selectedCandidateIds().forEach(function (id) {
+                body.append('candidate_users[]', id);
+            });
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: body.toString()
+            })
+                .then(function (response) {
+                    return response.json().then(function (payload) {
+                        if (!response.ok) {
+                            throw new Error(String(payload?.message || ('HTTP ' + response.status)));
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    var message = String(payload?.message || 'تمت الإضافة بنجاح.');
+                    setState(message, false);
+                    if (window.toastr) toastr.success(message);
+                    loadSourceVoters();
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    setState(String(error?.message || 'تعذر الإضافة.'), true);
+                    if (window.toastr) toastr.error(String(error?.message || 'تعذر الإضافة.'));
+                });
+        }
+
+        if (sourceSelect) {
+            sourceSelect.addEventListener('change', function () {
+                loadSourceVoters();
+            });
+        }
+
+        if (targetSelect) {
+            targetSelect.addEventListener('change', function () {
+                loadSourceVoters();
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                if (searchDebounceTimer) {
+                    clearTimeout(searchDebounceTimer);
+                }
+
+                searchDebounceTimer = setTimeout(function () {
+                    loadSourceVoters();
+                }, 280);
+            });
+        }
+
+        if (tableBody) {
+            tableBody.addEventListener('click', function (event) {
+                var addRowBtn = event.target.closest('.js-lm-add-voter');
+                if (!addRowBtn) return;
+                event.preventDefault();
+                addVoter(Number(addRowBtn.getAttribute('data-voter-id') || 0));
+            });
+        }
+
+        window.__listManagementModeChanged = function (mode) {
+            if (mode !== 'add-voters') return;
+
+            loadContractors().then(function () {
+                if (contractorsLoaded) {
+                    loadSourceVoters();
+                }
+            });
+        };
+
+        window.__listManagementReloadAddVoters = function () {
+            contractorsLoaded = false;
+            loadContractors().then(function () {
+                loadSourceVoters();
+            });
+        };
     })();
 
     (function bindListManagementVoterModal() {

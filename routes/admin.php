@@ -58,6 +58,9 @@ Route::group(['prefix' => 'dashboard',
     Route::get('list-management/voters', [CandidateController::class, 'listManagementVoters'])->name('candidates.list-management.voters');
     Route::get('list-management/voters/{voter}/details', [CandidateController::class, 'listManagementVoterDetails'])->name('candidates.list-management.voters.details');
     Route::get('list-management/contractors-by-candidate', [CandidateController::class, 'listManagementContractorsByCandidate'])->name('candidates.list-management.contractors-by-candidate');
+    Route::get('list-management/add-voters/contractors', [CandidateController::class, 'listManagementAddVotersContractors'])->name('candidates.list-management.add-voters.contractors');
+    Route::get('list-management/add-voters/source-voters', [CandidateController::class, 'listManagementAddVotersSourceVoters'])->name('candidates.list-management.add-voters.source-voters');
+    Route::post('list-management/add-voters/{voter}/attach', [CandidateController::class, 'listManagementAddVoterToContractor'])->name('candidates.list-management.add-voters.attach');
     Route::post('list-management/voters/{voter}/delete-assignment', [CandidateController::class, 'listManagementDeleteVoterAssignment'])->name('candidates.list-management.voters.delete-assignment');
     Route::post('list-management/voters/{voter}/transfer-assignment', [CandidateController::class, 'listManagementTransferVoterAssignment'])->name('candidates.list-management.voters.transfer-assignment');
     Route::get('list-management', [CandidateController::class, 'listManagement'])->name('list-management');

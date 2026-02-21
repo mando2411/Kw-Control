@@ -337,6 +337,184 @@ class CandidateController extends Controller
         ]);
     }
 
+    public function listManagementAddVotersContractors(Request $request)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $contractors = Contractor::withoutGlobalScopes()
+            ->from('contractors as c')
+            ->leftJoin('users as u', 'u.id', '=', 'c.creator_id')
+            ->where('c.election_id', (int) $scope['leader_election_id'])
+            ->whereIn('c.creator_id', $scope['selected_candidate_user_ids'])
+            ->whereNotNull('c.parent_id')
+            ->orderBy('u.name')
+            ->orderBy('c.name')
+            ->get([
+                'c.id',
+                'c.name',
+                'c.creator_id as candidate_user_id',
+                DB::raw('COALESCE(u.name, "مرشح") as candidate_name'),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'contractors' => $contractors,
+        ]);
+    }
+
+    public function listManagementAddVotersSourceVoters(Request $request)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $sourceContractorId = (int) $request->input('source_contractor_id', 0);
+        $targetContractorId = (int) $request->input('target_contractor_id', 0);
+        $search = trim((string) $request->input('search', ''));
+
+        if (!$sourceContractorId || !in_array($sourceContractorId, $scope['contractor_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتعهد المصدر غير متاح ضمن النطاق.',
+            ], 422);
+        }
+
+        $civilIdExpr = 'NULL';
+        if (Schema::hasColumn('voters', 'civil_id')) {
+            $civilIdExpr = 'v.civil_id';
+        } elseif (Schema::hasColumn('voters', 'alrkm_almd_yn')) {
+            $civilIdExpr = 'v.alrkm_almd_yn';
+        }
+
+        $query = DB::table('contractor_voter as cv')
+            ->join('voters as v', 'v.id', '=', 'cv.voter_id')
+            ->where('cv.contractor_id', $sourceContractorId)
+            ->select([
+                'v.id as voter_id',
+                'v.name as voter_name',
+                DB::raw($civilIdExpr . ' as civil_id'),
+                'v.phone1 as phone',
+            ])
+            ->orderBy('v.name');
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search, $civilIdExpr) {
+                $subQuery
+                    ->where('v.name', 'like', '%' . $search . '%')
+                    ->orWhere('v.phone1', 'like', '%' . $search . '%');
+
+                if ($civilIdExpr !== 'NULL') {
+                    $subQuery->orWhereRaw($civilIdExpr . ' like ?', ['%' . $search . '%']);
+                }
+            });
+        }
+
+        $rows = $query
+            ->limit(300)
+            ->get();
+
+        $targetAttachedMap = [];
+        if ($targetContractorId > 0 && $rows->isNotEmpty()) {
+            $targetAttachedMap = DB::table('contractor_voter')
+                ->where('contractor_id', $targetContractorId)
+                ->whereIn('voter_id', $rows->pluck('voter_id')->map(fn ($id) => (int) $id)->all())
+                ->pluck('voter_id')
+                ->map(fn ($id) => (int) $id)
+                ->flip()
+                ->toArray();
+        }
+
+        $rows = $rows
+            ->map(function ($row) use ($targetAttachedMap) {
+                $voterId = (int) ($row->voter_id ?? 0);
+                $isAttachedToTarget = $voterId > 0 && array_key_exists($voterId, $targetAttachedMap);
+
+                return [
+                    'voter_id' => $voterId,
+                    'voter_name' => (string) ($row->voter_name ?? ''),
+                    'civil_id' => (string) ($row->civil_id ?? ''),
+                    'phone' => (string) ($row->phone ?? ''),
+                    'is_attached_to_target' => $isAttachedToTarget,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'rows' => $rows,
+            'total' => $rows->count(),
+        ]);
+    }
+
+    public function listManagementAddVoterToContractor(Request $request, int $voter)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $sourceContractorId = (int) $request->input('source_contractor_id', 0);
+        $targetContractorId = (int) $request->input('target_contractor_id', 0);
+
+        if (!$sourceContractorId || !in_array($sourceContractorId, $scope['contractor_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتعهد المصدر غير متاح.',
+            ], 422);
+        }
+
+        if (!$targetContractorId || !in_array($targetContractorId, $scope['contractor_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتعهد الهدف غير متاح.',
+            ], 422);
+        }
+
+        if ($sourceContractorId === $targetContractorId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن الإضافة لنفس المتعهد المصدر.',
+            ], 422);
+        }
+
+        $sourceHasVoter = DB::table('contractor_voter')
+            ->where('contractor_id', $sourceContractorId)
+            ->where('voter_id', (int) $voter)
+            ->exists();
+
+        if (!$sourceHasVoter) {
+            return response()->json([
+                'success' => false,
+                'message' => 'هذا الناخب غير موجود ضمن مضامين المتعهد المصدر.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($targetContractorId, $voter) {
+            DB::table('contractor_voter_delete')
+                ->where('contractor_id', $targetContractorId)
+                ->where('voter_id', (int) $voter)
+                ->delete();
+
+            $alreadyAttached = DB::table('contractor_voter')
+                ->where('contractor_id', $targetContractorId)
+                ->where('voter_id', (int) $voter)
+                ->exists();
+
+            if (!$alreadyAttached) {
+                DB::table('contractor_voter')->insert([
+                    'contractor_id' => $targetContractorId,
+                    'voter_id' => (int) $voter,
+                    'percentage' => '0',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تمت إضافة المضمون للمتعهد المحدد بنجاح.',
+        ]);
+    }
+
     public function listManagementDeleteVoterAssignment(Request $request, int $voter)
     {
         $scope = $this->resolveListManagementScope($request);
