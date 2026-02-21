@@ -139,7 +139,7 @@
                     <div class="sm-export-section mb-0">
                         <h6 class="sm-export-section-title">{{ $whatsappLabel }}</h6>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="tel" >
+                            <input >
                             <button type="button" class="btn btn-outline-primary {{ $actionButtonClass }}" value="Send">إرسال</button>
                         </div>
                     </div>
