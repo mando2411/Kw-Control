@@ -16,7 +16,12 @@
             @forelse($rows as $index => $row)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $row->voter_name ?: '—' }}</td>
+                    <td>
+                        {{ $row->voter_name ?: '—' }}
+                        @if(!empty($row->is_duplicate))
+                            <span class="badge bg-danger ms-1">مكرر @if(!empty($row->duplicate_count)) ({{ $row->duplicate_count }}) @endif</span>
+                        @endif
+                    </td>
                     <td>{{ $row->civil_id ?: '—' }}</td>
                     <td>{{ $row->family_name ?: '—' }}</td>
                     <td>{{ $row->committee_name ?: '—' }}</td>

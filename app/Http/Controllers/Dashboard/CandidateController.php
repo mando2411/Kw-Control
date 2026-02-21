@@ -220,6 +220,19 @@ class CandidateController extends Controller
                 ])
                 ->orderByDesc('cv.created_at')
                 ->get();
+
+            $duplicateCounts = $rows
+                ->groupBy(fn ($row) => (int) ($row->voter_id ?? 0))
+                ->map(fn ($group) => $group->count());
+
+            $rows = $rows->map(function ($row) use ($duplicateCounts) {
+                $key = (int) ($row->voter_id ?? 0);
+                $repeatCount = (int) ($duplicateCounts[$key] ?? 0);
+                $row->is_duplicate = $repeatCount > 1;
+                $row->duplicate_count = $repeatCount;
+
+                return $row;
+            });
         }
 
         return response()->json([
