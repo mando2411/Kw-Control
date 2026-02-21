@@ -132,6 +132,10 @@
                         id="list-management-mode-toggle"
                         data-mode="contractors"
                         data-voters-url="{{ route('dashboard.candidates.list-management.voters') }}"
+                        data-voter-details-url-template="{{ route('dashboard.candidates.list-management.voters.details', ['voter' => '__VOTER__']) }}"
+                        data-voter-delete-url-template="{{ route('dashboard.candidates.list-management.voters.delete-assignment', ['voter' => '__VOTER__']) }}"
+                        data-voter-transfer-url-template="{{ route('dashboard.candidates.list-management.voters.transfer-assignment', ['voter' => '__VOTER__']) }}"
+                        data-contractors-by-candidate-url="{{ route('dashboard.candidates.list-management.contractors-by-candidate') }}"
                     >
                         إدارة المضامين
                     </button>
@@ -146,6 +150,65 @@
                         </div>
                         <div id="list-management-voters-content">
                             <div class="text-center text-muted py-3">اضغط "إدارة المضامين" لعرض البيانات.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="listManagementVoterModal" tabindex="-1" aria-labelledby="listManagementVoterModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="listManagementVoterModalLabel">تفاصيل المضمون</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="list-management-voter-modal-state" class="small text-muted mb-2" aria-live="polite"></div>
+                                <div class="mb-3">
+                                    <strong id="list-management-voter-name">—</strong>
+                                    <span class="text-muted ms-2" id="list-management-voter-civil">—</span>
+                                </div>
+
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm table-striped align-middle text-center">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>المتعهد</th>
+                                                <th>المرشح</th>
+                                                <th>تاريخ الإضافة</th>
+                                                <th>الإجراءات</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="list-management-voter-assignments-body">
+                                            <tr>
+                                                <td colspan="4" class="text-muted py-3">اختر مضمونًا لعرض التفاصيل.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="list-management-transfer-panel" class="border rounded p-3 d-none">
+                                    <h6 class="mb-3">نقل المضمون</h6>
+                                    <input type="hidden" id="list-management-transfer-source-contractor-id" value="">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">اختر المرشح</label>
+                                            <select id="list-management-transfer-candidate" class="form-select">
+                                                <option value="">اختر المرشح</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">اختر المتعهد</label>
+                                            <select id="list-management-transfer-contractor" class="form-select" disabled>
+                                                <option value="">اختر المتعهد</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-outline-secondary" id="list-management-transfer-cancel">إلغاء</button>
+                                        <button type="button" class="btn btn-primary" id="list-management-transfer-submit">تأكيد النقل</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1968,6 +2031,390 @@
                 renderVoters();
             }
         };
+
+        window.__listManagementRefreshVoters = renderVoters;
+        window.__listManagementGetSelectedCandidateIds = getSelectedCandidateIds;
+    })();
+
+    (function bindListManagementVoterModal() {
+        var toggleBtn = document.getElementById('list-management-mode-toggle');
+        var modalEl = document.getElementById('listManagementVoterModal');
+        if (!toggleBtn || !modalEl) return;
+
+        var modal = window.bootstrap && window.bootstrap.Modal
+            ? window.bootstrap.Modal.getOrCreateInstance(modalEl)
+            : null;
+
+        var stateEl = document.getElementById('list-management-voter-modal-state');
+        var voterNameEl = document.getElementById('list-management-voter-name');
+        var voterCivilEl = document.getElementById('list-management-voter-civil');
+        var assignmentsBody = document.getElementById('list-management-voter-assignments-body');
+        var transferPanel = document.getElementById('list-management-transfer-panel');
+        var transferSourceInput = document.getElementById('list-management-transfer-source-contractor-id');
+        var transferCandidateSelect = document.getElementById('list-management-transfer-candidate');
+        var transferContractorSelect = document.getElementById('list-management-transfer-contractor');
+        var transferSubmitBtn = document.getElementById('list-management-transfer-submit');
+        var transferCancelBtn = document.getElementById('list-management-transfer-cancel');
+
+        var currentVoterId = null;
+
+        function csrfToken() {
+            var tokenEl = document.querySelector('meta[name="csrf-token"]');
+            return tokenEl ? tokenEl.getAttribute('content') : '';
+        }
+
+        function selectedCandidateIds() {
+            if (typeof window.__listManagementGetSelectedCandidateIds === 'function') {
+                return window.__listManagementGetSelectedCandidateIds();
+            }
+            return [];
+        }
+
+        function buildUrl(template, voterId) {
+            return String(template || '').replace('__VOTER__', String(voterId || '0'));
+        }
+
+        function setModalState(message, isError) {
+            if (!stateEl) return;
+            stateEl.textContent = message || '';
+            stateEl.classList.toggle('text-danger', !!isError);
+            stateEl.classList.toggle('text-muted', !isError);
+        }
+
+        function populateCandidateOptions(assignments) {
+            if (!transferCandidateSelect) return;
+
+            var seen = {};
+            var options = '<option value="">اختر المرشح</option>';
+
+            (assignments || []).forEach(function (item) {
+                var candidateId = String(item?.candidate_user_id || '');
+                var candidateName = String(item?.candidate_name || '').trim();
+                if (!candidateId || !candidateName || seen[candidateId]) return;
+                seen[candidateId] = true;
+                options += '<option value="' + candidateId + '">' + candidateName + '</option>';
+            });
+
+            transferCandidateSelect.innerHTML = options;
+            transferCandidateSelect.value = '';
+        }
+
+        function setAssignmentsRows(assignments) {
+            if (!assignmentsBody) return;
+
+            if (!Array.isArray(assignments) || assignments.length === 0) {
+                assignmentsBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">لا توجد بيانات ربط لهذا المضمون ضمن السيليكشن الحالي.</td></tr>';
+                return;
+            }
+
+            var rowsHtml = assignments.map(function (row) {
+                var contractorId = Number(row?.contractor_id || 0);
+                var contractorName = String(row?.contractor_name || '—');
+                var candidateName = String(row?.candidate_name || '—');
+                var attachedAt = String(row?.attached_at || '—');
+
+                return '<tr>' +
+                    '<td>' + contractorName + '</td>' +
+                    '<td>' + candidateName + '</td>' +
+                    '<td>' + attachedAt + '</td>' +
+                    '<td>' +
+                        '<div class="d-flex justify-content-center gap-2 flex-wrap">' +
+                            '<button type="button" class="btn btn-sm btn-danger js-list-management-delete-assignment" data-source-contractor-id="' + contractorId + '">حذف</button>' +
+                            '<button type="button" class="btn btn-sm btn-outline-primary js-list-management-open-transfer" data-source-contractor-id="' + contractorId + '">نقل</button>' +
+                        '</div>' +
+                    '</td>' +
+                '</tr>';
+            }).join('');
+
+            assignmentsBody.innerHTML = rowsHtml;
+        }
+
+        function hideTransferPanel() {
+            if (transferPanel) {
+                transferPanel.classList.add('d-none');
+            }
+            if (transferSourceInput) {
+                transferSourceInput.value = '';
+            }
+            if (transferContractorSelect) {
+                transferContractorSelect.innerHTML = '<option value="">اختر المتعهد</option>';
+                transferContractorSelect.value = '';
+                transferContractorSelect.disabled = true;
+            }
+            if (transferCandidateSelect) {
+                transferCandidateSelect.value = '';
+            }
+        }
+
+        function refreshVotersTableIfNeeded() {
+            if (typeof window.__listManagementRefreshVoters === 'function') {
+                window.__listManagementRefreshVoters();
+            }
+        }
+
+        function fetchDetails(voterId) {
+            var detailsTemplate = toggleBtn.dataset.voterDetailsUrlTemplate;
+            var endpoint = buildUrl(detailsTemplate, voterId);
+            if (!endpoint) return;
+
+            var url = new URL(endpoint, window.location.origin);
+            selectedCandidateIds().forEach(function (id) {
+                url.searchParams.append('candidate_users[]', id);
+            });
+
+            setModalState('جاري تحميل البيانات...');
+            hideTransferPanel();
+
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function (payload) {
+                    var voter = payload?.voter || {};
+                    var assignments = Array.isArray(payload?.assignments) ? payload.assignments : [];
+
+                    currentVoterId = Number(voter?.id || voterId || 0);
+                    if (voterNameEl) voterNameEl.textContent = String(voter?.name || '—');
+                    if (voterCivilEl) voterCivilEl.textContent = String(voter?.civil_id || '—');
+
+                    setAssignmentsRows(assignments);
+                    populateCandidateOptions(assignments);
+                    setModalState('');
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    setModalState('تعذر تحميل تفاصيل المضمون', true);
+                    if (assignmentsBody) {
+                        assignmentsBody.innerHTML = '<tr><td colspan="4" class="text-danger py-3">تعذر تحميل البيانات.</td></tr>';
+                    }
+                });
+        }
+
+        function openModal(voterId) {
+            currentVoterId = Number(voterId || 0);
+            if (!currentVoterId) return;
+
+            if (modal) {
+                modal.show();
+            }
+
+            fetchDetails(currentVoterId);
+        }
+
+        function loadContractorsForCandidate(candidateUserId) {
+            var endpoint = String(toggleBtn.dataset.contractorsByCandidateUrl || '');
+            if (!endpoint || !candidateUserId) return;
+
+            var url = new URL(endpoint, window.location.origin);
+            url.searchParams.append('candidate_user_id', String(candidateUserId));
+            selectedCandidateIds().forEach(function (id) {
+                url.searchParams.append('candidate_users[]', id);
+            });
+
+            if (transferContractorSelect) {
+                transferContractorSelect.disabled = true;
+                transferContractorSelect.innerHTML = '<option value="">جاري تحميل المتعهدين...</option>';
+            }
+
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function (payload) {
+                    var contractors = Array.isArray(payload?.contractors) ? payload.contractors : [];
+                    var options = '<option value="">اختر المتعهد</option>';
+                    contractors.forEach(function (item) {
+                        options += '<option value="' + Number(item.id) + '">' + String(item.name || 'متعهد') + '</option>';
+                    });
+
+                    if (transferContractorSelect) {
+                        transferContractorSelect.innerHTML = options;
+                        transferContractorSelect.disabled = false;
+                    }
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    if (transferContractorSelect) {
+                        transferContractorSelect.innerHTML = '<option value="">تعذر تحميل المتعهدين</option>';
+                        transferContractorSelect.disabled = true;
+                    }
+                });
+        }
+
+        function performDelete(sourceContractorId) {
+            if (!currentVoterId || !sourceContractorId) return;
+
+            var endpoint = buildUrl(toggleBtn.dataset.voterDeleteUrlTemplate, currentVoterId);
+            if (!endpoint) return;
+
+            setModalState('جاري حذف المضمون...');
+
+            var formData = new FormData();
+            formData.append('source_contractor_id', String(sourceContractorId));
+            selectedCandidateIds().forEach(function (id) {
+                formData.append('candidate_users[]', id);
+            });
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: formData
+            })
+                .then(function (response) {
+                    return response.json().then(function (payload) {
+                        if (!response.ok) {
+                            throw new Error(String(payload?.message || 'تعذر حذف المضمون'));
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    setModalState(String(payload?.message || 'تم حذف المضمون بنجاح'));
+                    fetchDetails(currentVoterId);
+                    refreshVotersTableIfNeeded();
+                })
+                .catch(function (error) {
+                    setModalState(String(error?.message || 'تعذر حذف المضمون'), true);
+                });
+        }
+
+        function performTransfer() {
+            if (!currentVoterId || !transferSourceInput || !transferCandidateSelect || !transferContractorSelect) return;
+
+            var sourceContractorId = Number(transferSourceInput.value || 0);
+            var targetCandidateUserId = Number(transferCandidateSelect.value || 0);
+            var targetContractorId = Number(transferContractorSelect.value || 0);
+
+            if (!sourceContractorId || !targetCandidateUserId || !targetContractorId) {
+                setModalState('اختر المرشح والمتعهد قبل التأكيد.', true);
+                return;
+            }
+
+            var endpoint = buildUrl(toggleBtn.dataset.voterTransferUrlTemplate, currentVoterId);
+            if (!endpoint) return;
+
+            if (transferSubmitBtn) transferSubmitBtn.disabled = true;
+            setModalState('جاري نقل المضمون...');
+
+            var formData = new FormData();
+            formData.append('source_contractor_id', String(sourceContractorId));
+            formData.append('target_candidate_user_id', String(targetCandidateUserId));
+            formData.append('target_contractor_id', String(targetContractorId));
+            selectedCandidateIds().forEach(function (id) {
+                formData.append('candidate_users[]', id);
+            });
+
+            fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken()
+                },
+                body: formData
+            })
+                .then(function (response) {
+                    return response.json().then(function (payload) {
+                        if (!response.ok) {
+                            throw new Error(String(payload?.message || 'تعذر نقل المضمون'));
+                        }
+                        return payload;
+                    });
+                })
+                .then(function (payload) {
+                    setModalState(String(payload?.message || 'تم النقل بنجاح'));
+                    hideTransferPanel();
+                    fetchDetails(currentVoterId);
+                    refreshVotersTableIfNeeded();
+                })
+                .catch(function (error) {
+                    setModalState(String(error?.message || 'تعذر نقل المضمون'), true);
+                })
+                .finally(function () {
+                    if (transferSubmitBtn) transferSubmitBtn.disabled = false;
+                });
+        }
+
+        document.addEventListener('click', function (event) {
+            var openBtn = event.target.closest('.js-list-management-voter-open');
+            if (openBtn) {
+                event.preventDefault();
+                openModal(Number(openBtn.getAttribute('data-voter-id') || 0));
+                return;
+            }
+
+            var deleteBtn = event.target.closest('.js-list-management-delete-assignment');
+            if (deleteBtn) {
+                event.preventDefault();
+                var sourceId = Number(deleteBtn.getAttribute('data-source-contractor-id') || 0);
+                if (!sourceId) return;
+                performDelete(sourceId);
+                return;
+            }
+
+            var openTransferBtn = event.target.closest('.js-list-management-open-transfer');
+            if (openTransferBtn) {
+                event.preventDefault();
+                var transferSourceId = Number(openTransferBtn.getAttribute('data-source-contractor-id') || 0);
+                if (!transferSourceId) return;
+
+                if (transferSourceInput) transferSourceInput.value = String(transferSourceId);
+                if (transferPanel) transferPanel.classList.remove('d-none');
+                if (transferCandidateSelect) transferCandidateSelect.value = '';
+                if (transferContractorSelect) {
+                    transferContractorSelect.innerHTML = '<option value="">اختر المتعهد</option>';
+                    transferContractorSelect.disabled = true;
+                }
+
+                setModalState('');
+            }
+        });
+
+        if (transferCandidateSelect) {
+            transferCandidateSelect.addEventListener('change', function () {
+                var candidateUserId = Number(transferCandidateSelect.value || 0);
+                if (!candidateUserId) {
+                    if (transferContractorSelect) {
+                        transferContractorSelect.innerHTML = '<option value="">اختر المتعهد</option>';
+                        transferContractorSelect.disabled = true;
+                    }
+                    return;
+                }
+
+                loadContractorsForCandidate(candidateUserId);
+            });
+        }
+
+        if (transferCancelBtn) {
+            transferCancelBtn.addEventListener('click', function () {
+                hideTransferPanel();
+                setModalState('');
+            });
+        }
+
+        if (transferSubmitBtn) {
+            transferSubmitBtn.addEventListener('click', function () {
+                performTransfer();
+            });
+        }
     })();
 
 	 

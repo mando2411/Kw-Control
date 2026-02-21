@@ -17,7 +17,9 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>
-                        {{ $row->voter_name ?: '—' }}
+                        <button type="button" class="btn btn-link p-0 js-list-management-voter-open" data-voter-id="{{ (int) ($row->voter_id ?? 0) }}" style="text-decoration:none;">
+                            {{ $row->voter_name ?: '—' }}
+                        </button>
                         @if(!empty($row->is_duplicate))
                             <span class="badge bg-danger ms-1">مكرر @if(!empty($row->duplicate_count)) ({{ $row->duplicate_count }}) @endif</span>
                         @endif

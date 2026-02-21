@@ -242,6 +242,229 @@ class CandidateController extends Controller
         ]);
     }
 
+    public function listManagementVoterDetails(Request $request, int $voter)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $contractorIds = $scope['contractor_ids'];
+        $voterCivilIdColumn = Schema::hasColumn('voters', 'civil_id') ? 'v.civil_id' : 'v.alrkm_almd_yn';
+
+        $voterInfo = DB::table('voters as v')
+            ->where('v.id', (int) $voter)
+            ->select([
+                'v.id',
+                'v.name',
+                DB::raw($voterCivilIdColumn . ' as civil_id'),
+            ])
+            ->first();
+
+        abort_if(!$voterInfo, 404);
+
+        $assignments = collect();
+        if (!empty($contractorIds)) {
+            $assignments = DB::table('contractor_voter as cv')
+                ->join('contractors as c', 'c.id', '=', 'cv.contractor_id')
+                ->leftJoin('users as cu', 'cu.id', '=', 'c.creator_id')
+                ->where('cv.voter_id', (int) $voter)
+                ->whereIn('cv.contractor_id', $contractorIds)
+                ->select([
+                    'cv.contractor_id',
+                    'c.name as contractor_name',
+                    'c.creator_id as candidate_user_id',
+                    'cu.name as candidate_name',
+                    'cv.created_at as attached_at',
+                ])
+                ->orderByDesc('cv.created_at')
+                ->get()
+                ->map(function ($row) {
+                    $row->attached_at = $row->attached_at
+                        ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i')
+                        : null;
+                    return $row;
+                })
+                ->values();
+        }
+
+        return response()->json([
+            'success' => true,
+            'voter' => $voterInfo,
+            'assignments' => $assignments,
+        ]);
+    }
+
+    public function listManagementContractorsByCandidate(Request $request)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $candidateUserId = (int) $request->input('candidate_user_id', 0);
+        if (!$candidateUserId || !in_array($candidateUserId, $scope['allowed_candidate_user_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المرشح غير متاح ضمن القائمة.',
+            ], 422);
+        }
+
+        $contractors = Contractor::withoutGlobalScopes()
+            ->where('election_id', (int) $scope['leader_election_id'])
+            ->where('creator_id', $candidateUserId)
+            ->whereNotNull('parent_id')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'success' => true,
+            'contractors' => $contractors,
+        ]);
+    }
+
+    public function listManagementDeleteVoterAssignment(Request $request, int $voter)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $sourceContractorId = (int) $request->input('source_contractor_id', 0);
+        if (!$sourceContractorId || !in_array($sourceContractorId, $scope['contractor_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتعهد غير متاح ضمن نطاق القائمة.',
+            ], 422);
+        }
+
+        $deleted = 0;
+        DB::transaction(function () use (&$deleted, $sourceContractorId, $voter) {
+            $deleted = DB::table('contractor_voter')
+                ->where('contractor_id', $sourceContractorId)
+                ->where('voter_id', (int) $voter)
+                ->delete();
+
+            if ($deleted > 0) {
+                $alreadyDeleted = DB::table('contractor_voter_delete')
+                    ->where('contractor_id', $sourceContractorId)
+                    ->where('voter_id', (int) $voter)
+                    ->exists();
+
+                if (!$alreadyDeleted) {
+                    DB::table('contractor_voter_delete')->insert([
+                        'contractor_id' => $sourceContractorId,
+                        'voter_id' => (int) $voter,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        });
+
+        if ($deleted < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لم يتم العثور على هذا الربط للحذف.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم حذف المضمون بنجاح.',
+        ]);
+    }
+
+    public function listManagementTransferVoterAssignment(Request $request, int $voter)
+    {
+        $scope = $this->resolveListManagementScope($request);
+        abort_if(!$scope['can_access'], 403);
+
+        $sourceContractorId = (int) $request->input('source_contractor_id', 0);
+        $targetCandidateUserId = (int) $request->input('target_candidate_user_id', 0);
+        $targetContractorId = (int) $request->input('target_contractor_id', 0);
+
+        if (!$sourceContractorId || !in_array($sourceContractorId, $scope['contractor_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتعهد المصدر غير متاح.',
+            ], 422);
+        }
+
+        if (!$targetCandidateUserId || !in_array($targetCandidateUserId, $scope['allowed_candidate_user_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المرشح الهدف غير متاح.',
+            ], 422);
+        }
+
+        $targetContractor = Contractor::withoutGlobalScopes()
+            ->where('id', $targetContractorId)
+            ->where('election_id', (int) $scope['leader_election_id'])
+            ->where('creator_id', $targetCandidateUserId)
+            ->first();
+
+        if (!$targetContractor) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتعهد الهدف غير متاح للمرشح المختار.',
+            ], 422);
+        }
+
+        if ((int) $targetContractor->id === $sourceContractorId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى اختيار متعهد مختلف عن المصدر.',
+            ], 422);
+        }
+
+        $pivotRow = DB::table('contractor_voter')
+            ->where('contractor_id', $sourceContractorId)
+            ->where('voter_id', (int) $voter)
+            ->first();
+
+        if (!$pivotRow) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لم يتم العثور على هذا الربط للنقل.',
+            ], 404);
+        }
+
+        DB::transaction(function () use ($pivotRow, $sourceContractorId, $targetContractor, $voter) {
+            DB::table('contractor_voter')
+                ->where('contractor_id', $sourceContractorId)
+                ->where('voter_id', (int) $voter)
+                ->delete();
+
+            DB::table('contractor_voter_delete')
+                ->where('contractor_id', (int) $targetContractor->id)
+                ->where('voter_id', (int) $voter)
+                ->delete();
+
+            $existingTarget = DB::table('contractor_voter')
+                ->where('contractor_id', (int) $targetContractor->id)
+                ->where('voter_id', (int) $voter)
+                ->exists();
+
+            if ($existingTarget) {
+                DB::table('contractor_voter')
+                    ->where('contractor_id', (int) $targetContractor->id)
+                    ->where('voter_id', (int) $voter)
+                    ->update([
+                        'percentage' => (string) ($pivotRow->percentage ?? 0),
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::table('contractor_voter')->insert([
+                    'contractor_id' => (int) $targetContractor->id,
+                    'voter_id' => (int) $voter,
+                    'percentage' => (string) ($pivotRow->percentage ?? 0),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم نقل المضمون بنجاح.',
+        ]);
+    }
+
     public function result()
     {
         $candidate_name = 'مرشح الفرز العام';
@@ -874,6 +1097,67 @@ class CandidateController extends Controller
         }
 
         return $available;
+    }
+
+    private function resolveListManagementScope(Request $request): array
+    {
+        $currentListLeaderCandidate = $this->currentListLeaderCandidate();
+        $canAccess = admin()->can('candidates.list') || $currentListLeaderCandidate;
+
+        if (!$canAccess || !$currentListLeaderCandidate) {
+            return [
+                'can_access' => false,
+                'leader_election_id' => 0,
+                'allowed_candidate_user_ids' => [],
+                'selected_candidate_user_ids' => [],
+                'contractor_ids' => [],
+            ];
+        }
+
+        $listManagementCandidates = Candidate::withoutGlobalScopes()
+            ->where(function (Builder $query) use ($currentListLeaderCandidate) {
+                $query
+                    ->where('id', (int) $currentListLeaderCandidate->id)
+                    ->orWhere('list_leader_candidate_id', (int) $currentListLeaderCandidate->id);
+            })
+            ->pluck('user_id')
+            ->filter()
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values()
+            ->all();
+
+        $requestedCandidateUserIds = collect((array) $request->input('candidate_users', []))
+            ->filter(fn ($value) => $value !== null && $value !== '' && (string) $value !== 'all')
+            ->map(fn ($value) => (int) $value)
+            ->unique()
+            ->values();
+
+        $selectedCandidateUserIds = $requestedCandidateUserIds
+            ->filter(fn (int $value) => in_array($value, $listManagementCandidates, true))
+            ->values()
+            ->all();
+
+        if (empty($selectedCandidateUserIds)) {
+            $selectedCandidateUserIds = $listManagementCandidates;
+        }
+
+        $contractorIds = Contractor::withoutGlobalScopes()
+            ->where('election_id', (int) $currentListLeaderCandidate->election_id)
+            ->whereIn('creator_id', $selectedCandidateUserIds)
+            ->pluck('id')
+            ->map(fn ($value) => (int) $value)
+            ->filter()
+            ->values()
+            ->all();
+
+        return [
+            'can_access' => true,
+            'leader_election_id' => (int) $currentListLeaderCandidate->election_id,
+            'allowed_candidate_user_ids' => $listManagementCandidates,
+            'selected_candidate_user_ids' => $selectedCandidateUserIds,
+            'contractor_ids' => $contractorIds,
+        ];
     }
 
 }

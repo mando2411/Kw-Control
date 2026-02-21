@@ -56,6 +56,10 @@ Route::group(['prefix' => 'dashboard',
     Route::resource('candidates', CandidateController::class)->except('show');
     Route::post('candidates/{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])->name('candidates.toggle-status');
     Route::get('list-management/voters', [CandidateController::class, 'listManagementVoters'])->name('candidates.list-management.voters');
+    Route::get('list-management/voters/{voter}/details', [CandidateController::class, 'listManagementVoterDetails'])->name('candidates.list-management.voters.details');
+    Route::get('list-management/contractors-by-candidate', [CandidateController::class, 'listManagementContractorsByCandidate'])->name('candidates.list-management.contractors-by-candidate');
+    Route::post('list-management/voters/{voter}/delete-assignment', [CandidateController::class, 'listManagementDeleteVoterAssignment'])->name('candidates.list-management.voters.delete-assignment');
+    Route::post('list-management/voters/{voter}/transfer-assignment', [CandidateController::class, 'listManagementTransferVoterAssignment'])->name('candidates.list-management.voters.transfer-assignment');
     Route::get('list-management', [CandidateController::class, 'listManagement'])->name('list-management');
     //========================================================================================================================================
     // fake candidates routes
