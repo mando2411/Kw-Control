@@ -733,6 +733,33 @@
         const locationSelectors = ['#smStreet', '#smAlharaa', '#smHome'];
         const allDynamicSelectors = dynamicSelectors.concat(locationSelectors);
 
+        function initFamilySearchSelect() {
+            if (!window.jQuery || typeof window.jQuery.fn.select2 !== 'function') {
+                return;
+            }
+
+            const familySelect = window.jQuery('#smFamily');
+            if (!familySelect.length) {
+                return;
+            }
+
+            if (familySelect.hasClass('select2-hidden-accessible')) {
+                return;
+            }
+
+            familySelect.select2({
+                width: '100%',
+                dir: 'rtl',
+                placeholder: 'ابحث عن العائلة...',
+                allowClear: true,
+                language: {
+                    noResults: function () {
+                        return 'لا توجد نتائج';
+                    }
+                }
+            });
+        }
+
         function showLoading() {
             loading.classList.add('show');
         }
@@ -1012,6 +1039,10 @@
                 select.append(`<option value="${optionValue}">${label}</option>`);
             });
 
+            if (selector === '#smFamily' && select.hasClass('select2-hidden-accessible')) {
+                select.trigger('change.select2');
+            }
+
         }
 
         function refreshDynamicFilters() {
@@ -1050,6 +1081,8 @@
         $(allDynamicSelectors.join(',')).on('change', function () {
             refreshDynamicFilters();
         });
+
+        initFamilySearchSelect();
 
         form.addEventListener('submit', function (event) {
             event.preventDefault();
