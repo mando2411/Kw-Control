@@ -23,7 +23,7 @@
  <input type="hidden" id="conUrl" data-url="{{ route('con-profile', $con->token) }}">
  <td class="bg-warning bg-opacity-25 w30">{{$voter->phone1}}</td>
  <td class="bg-warning bg-opacity-25">{{$con->trust}}%</td>
- <td class="bg-warning bg-opacity-25" data-bs-toggle="modal"  data-bs-target="#mota3ahdeenName">{{$con->user->name}}</td>
+ <td class="bg-warning bg-opacity-25" data-bs-toggle="modal"  data-bs-target="#mota3ahdeenDataModern">{{$con->user->name}}</td>
  <td class="bg-warning bg-opacity-25 w30">{{$con->voters->count()}}</td>
  <td class="bg-warning bg-opacity-25">{{$con->pivot->percentage}}%</td>
  <td class="bg-warning bg-opacity-25">{{$con->user->phone}}</td>
