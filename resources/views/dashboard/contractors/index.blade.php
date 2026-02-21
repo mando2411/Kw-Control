@@ -2086,16 +2086,42 @@
             stateEl.classList.toggle('text-muted', !isError);
         }
 
+        function getAllListManagementCandidates() {
+            if (!filterForm) return [];
+
+            return Array.prototype.slice.call(filterForm.querySelectorAll('.candidate-filter-checkbox'))
+                .map(function (input) {
+                    var candidateId = String(input.value || '').trim();
+                    if (!candidateId) return null;
+
+                    var label = input.closest('label.list-candidate-pill');
+                    var nameEl = label ? label.querySelector('.list-candidate-pill__meta .name') : null;
+                    var candidateName = nameEl ? String(nameEl.textContent || '').trim() : '';
+
+                    return {
+                        id: candidateId,
+                        name: candidateName || ('مرشح #' + candidateId)
+                    };
+                })
+                .filter(function (item) { return !!item; });
+        }
+
         function populateCandidateOptions(assignments) {
             if (!transferCandidateSelect) return;
 
             var seen = {};
             var options = '<option value="">اختر المرشح</option>';
 
+            getAllListManagementCandidates().forEach(function (candidate) {
+                if (!candidate?.id || seen[candidate.id]) return;
+                seen[candidate.id] = true;
+                options += '<option value="' + candidate.id + '">' + candidate.name + '</option>';
+            });
+
             (assignments || []).forEach(function (item) {
-                var candidateId = String(item?.candidate_user_id || '');
+                var candidateId = String(item?.candidate_user_id || '').trim();
                 var candidateName = String(item?.candidate_name || '').trim();
-                if (!candidateId || !candidateName || seen[candidateId]) return;
+                if (!candidateId || seen[candidateId]) return;
                 seen[candidateId] = true;
                 options += '<option value="' + candidateId + '">' + candidateName + '</option>';
             });
