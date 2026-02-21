@@ -98,6 +98,10 @@
                     #list-management-voters-section.is-mobile-compact .lm-col-extra {
                         display: none !important;
                     }
+
+                    #list-management-add-voters-section.is-mobile-compact .lm-add-col-extra {
+                        display: none !important;
+                    }
                 }
 
                 .list-management-voters-table thead th {
@@ -112,12 +116,32 @@
                     color: #1e293b;
                 }
 
+                #lm-add-voters-table thead th {
+                    font-size: 1rem;
+                    font-weight: 800;
+                    color: #0f172a;
+                }
+
+                #lm-add-voters-table tbody td {
+                    font-size: .98rem;
+                    font-weight: 700;
+                    color: #1e293b;
+                }
+
                 @media (max-width: 767.98px) {
                     .list-management-voters-table thead th {
                         font-size: .95rem;
                     }
 
                     .list-management-voters-table tbody td {
+                        font-size: .93rem;
+                    }
+
+                    #lm-add-voters-table thead th {
+                        font-size: .95rem;
+                    }
+
+                    #lm-add-voters-table tbody td {
                         font-size: .93rem;
                     }
                 }
@@ -265,13 +289,19 @@
                             >
                         </div>
 
+                        <div class="d-md-none mb-2 text-start">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="lm-add-voters-mobile-toggle" data-expanded="0">
+                                إظهار تفاصيل أكثر
+                            </button>
+                        </div>
+
                         <div class="table-responsive">
                             <table class="table table-sm table-striped align-middle text-center mb-0" id="lm-add-voters-table">
                                 <thead class="table-light">
                                     <tr>
                                         <th>الاسم</th>
-                                        <th>الرقم المدني</th>
-                                        <th>الهاتف</th>
+                                        <th class="lm-add-col-extra">الرقم المدني</th>
+                                        <th class="lm-add-col-extra">الهاتف</th>
                                         <th>الإجراء</th>
                                     </tr>
                                 </thead>
@@ -2310,10 +2340,12 @@
         var targetSelect = document.getElementById('lm-add-target-contractor');
         var searchInput = document.getElementById('lm-add-voters-search');
         var tableBody = document.getElementById('lm-add-voters-body');
+        var mobileToggleBtn = document.getElementById('lm-add-voters-mobile-toggle');
         var stateEl = document.getElementById('list-management-add-voters-state');
         var activeRowsAbort = null;
         var searchDebounceTimer = null;
         var contractorsLoaded = false;
+        var mobileExpanded = false;
 
         function setState(message, isError) {
             if (!stateEl) return;
@@ -2364,8 +2396,8 @@
 
                 return '<tr>' +
                     '<td>' + voterName + '</td>' +
-                    '<td>' + civilId + '</td>' +
-                    '<td>' + phone + '</td>' +
+                    '<td class="lm-add-col-extra">' + civilId + '</td>' +
+                    '<td class="lm-add-col-extra">' + phone + '</td>' +
                     '<td>' +
                         (attached
                             ? '<span class="badge bg-success">مضاف</span>'
@@ -2375,6 +2407,18 @@
             }).join('');
 
             tableBody.innerHTML = html;
+            applyMobileAddVotersLayout();
+        }
+
+        function applyMobileAddVotersLayout() {
+            if (!section) return;
+            var compact = !mobileExpanded;
+            section.classList.toggle('is-mobile-compact', compact);
+
+            if (mobileToggleBtn) {
+                mobileToggleBtn.setAttribute('data-expanded', mobileExpanded ? '1' : '0');
+                mobileToggleBtn.textContent = mobileExpanded ? 'إخفاء التفاصيل' : 'إظهار تفاصيل أكثر';
+            }
         }
 
         function loadVoters() {
@@ -2384,6 +2428,7 @@
             var contractorId = Number(targetSelect.value || 0);
             if (!contractorId) {
                 tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">اختر متعهدًا أولاً لعرض مضامينه.</td></tr>';
+                applyMobileAddVotersLayout();
                 return;
             }
 
@@ -2546,6 +2591,14 @@
             });
         }
 
+        if (mobileToggleBtn) {
+            mobileToggleBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                mobileExpanded = !mobileExpanded;
+                applyMobileAddVotersLayout();
+            });
+        }
+
         if (searchInput) {
             searchInput.addEventListener('input', function () {
                 if (searchDebounceTimer) {
@@ -2570,6 +2623,9 @@
         window.__listManagementModeChanged = function (mode) {
             if (mode !== 'add-voters') return;
 
+            mobileExpanded = false;
+            applyMobileAddVotersLayout();
+
             loadContractors().then(function () {
                 if (contractorsLoaded) {
                     loadVoters();
@@ -2579,10 +2635,14 @@
 
         window.__listManagementReloadAddVoters = function () {
             contractorsLoaded = false;
+            mobileExpanded = false;
+            applyMobileAddVotersLayout();
             loadContractors().then(function () {
                 loadVoters();
             });
         };
+
+        applyMobileAddVotersLayout();
     })();
 
     (function bindListManagementVoterModal() {
