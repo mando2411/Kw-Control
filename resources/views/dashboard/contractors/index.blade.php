@@ -2041,9 +2041,14 @@
         var modalEl = document.getElementById('listManagementVoterModal');
         if (!toggleBtn || !modalEl) return;
 
-        var modal = window.bootstrap && window.bootstrap.Modal
-            ? window.bootstrap.Modal.getOrCreateInstance(modalEl)
-            : null;
+        var modal = null;
+        if (window.bootstrap && window.bootstrap.Modal) {
+            if (typeof window.bootstrap.Modal.getOrCreateInstance === 'function') {
+                modal = window.bootstrap.Modal.getOrCreateInstance(modalEl);
+            } else {
+                modal = new window.bootstrap.Modal(modalEl);
+            }
+        }
 
         var stateEl = document.getElementById('list-management-voter-modal-state');
         var voterNameEl = document.getElementById('list-management-voter-name');
@@ -2201,8 +2206,10 @@
             currentVoterId = Number(voterId || 0);
             if (!currentVoterId) return;
 
-            if (modal) {
+            if (modal && typeof modal.show === 'function') {
                 modal.show();
+            } else if (window.jQuery && typeof window.jQuery.fn.modal === 'function') {
+                window.jQuery(modalEl).modal('show');
             }
 
             fetchDetails(currentVoterId);
