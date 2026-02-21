@@ -2189,8 +2189,8 @@
                     '<td>' + attachedAt + '</td>' +
                     '<td>' +
                         '<div class="d-flex justify-content-center gap-2 flex-wrap">' +
-                            '<button type="button" class="btn btn-sm btn-danger js-list-management-delete-assignment" data-source-contractor-id="' + contractorId + '">حذف</button>' +
-                            '<button type="button" class="btn btn-sm btn-outline-primary js-list-management-open-transfer" data-source-contractor-id="' + contractorId + '">نقل</button>' +
+                            '<button type="button" class="btn btn-sm btn-danger js-list-management-delete-assignment" style="background-color:#dc3545;border-color:#dc3545;color:#fff;" data-source-contractor-id="' + contractorId + '">حذف</button>' +
+                            '<button type="button" class="btn btn-sm btn-primary js-list-management-open-transfer" style="background-color:#2563eb;border-color:#2563eb;color:#fff;" data-source-contractor-id="' + contractorId + '">نقل</button>' +
                         '</div>' +
                     '</td>' +
                 '</tr>';
