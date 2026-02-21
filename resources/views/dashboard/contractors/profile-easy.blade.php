@@ -638,6 +638,55 @@
       animation: voterActionSwitch 320ms ease;
     }
 
+    .voter-add-split {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .voter-add-menu {
+      position: absolute;
+      top: calc(100% + 0.35rem);
+      right: 0;
+      z-index: 25;
+      min-width: 220px;
+      background: var(--ui-bg-primary, #fff);
+      border: 1px solid var(--ui-border, #dbe3ef);
+      border-radius: 0.7rem;
+      box-shadow: 0 10px 28px rgba(2, 6, 23, 0.18);
+      padding: 0.5rem;
+      display: none;
+    }
+
+    .voter-add-split.is-open .voter-add-menu {
+      display: block;
+    }
+
+    .voter-add-menu__actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .voter-add-menu__custom {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.35rem;
+    }
+
+    .voter-add-menu__custom .form-select {
+      min-width: 0;
+      font-size: 0.8rem;
+    }
+
+    .voter-add-menu__custom .btn {
+      white-space: nowrap;
+      font-size: 0.75rem;
+      padding: 0.34rem 0.5rem;
+    }
+
     .contractor-tab-switcher-hint {
       margin: 0 0 0.35rem;
       color: var(--ui-text-secondary, #475569);
@@ -3410,6 +3459,30 @@ function submitAssignVotersToGroup(voterIds, groupId) {
   });
 }
 
+function getCustomGroupOptionsHtml() {
+  if (!Array.isArray(contractorGroups) || contractorGroups.length === 0) {
+    return '<option value="">لا توجد قوائم مخصصة</option>';
+  }
+
+  return contractorGroups
+    .map(function (group) {
+      const id = Number(group?.id || 0);
+      const name = escapeHtml(group?.name || '');
+      if (!id || !name) {
+        return '';
+      }
+
+      return `<option value="${id}">${name}</option>`;
+    })
+    .join('');
+}
+
+function closeAllAddMenus() {
+  document.querySelectorAll('.voter-add-split.is-open').forEach(function (wrapper) {
+    wrapper.classList.remove('is-open');
+  });
+}
+
 function getGroupNameById(groupId) {
   const normalizedId = String(groupId || '').trim();
   if (!normalizedId) return '';
@@ -3446,6 +3519,10 @@ function previewGroupMoveConflicts(voterIds, groupId) {
 
 function addSingleVoter(voterId) {
   submitAttachVoters([voterId]);
+}
+
+function addToCustomGroup(voterId, groupId) {
+  return submitAssignVotersToGroup([String(voterId)], String(groupId));
 }
 
 function toggleVoterStatus(buttonEl, voterId, isCurrentlyAdded) {
@@ -3571,6 +3648,24 @@ function buildVoterRow(voter) {
   const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle voter-action-toggle--icon' : 'btn btn-success voter-action-toggle voter-action-toggle--icon';
   const actionBtnIcon = isAdded ? '<i class="fa fa-trash"></i>' : '<i class="fa fa-plus"></i>';
   const actionBtnLabel = isAdded ? 'حذف' : 'اضافة';
+  const groupOptionsHtml = getCustomGroupOptionsHtml();
+  const addControlHtml = isAdded
+    ? `<button type="button" class="${actionBtnClass}" title="${actionBtnLabel}" aria-label="${actionBtnLabel}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnIcon}</button>`
+    : `<div class="voter-add-split" data-voter-id="${voterId}">
+        <button type="button" class="${actionBtnClass} voter-add-menu-trigger" title="${actionBtnLabel}" aria-label="${actionBtnLabel}">${actionBtnIcon}</button>
+        <div class="voter-add-menu">
+          <div class="voter-add-menu__actions">
+            <button type="button" class="btn btn-sm btn-outline-primary js-add-my-list" data-voter-id="${voterId}">قائمتي</button>
+            <div class="voter-add-menu__custom">
+              <select class="form-select form-select-sm js-custom-group-select" data-voter-id="${voterId}">
+                <option value="" hidden>قائمة مخصصة</option>
+                ${groupOptionsHtml}
+              </select>
+              <button type="button" class="btn btn-sm btn-outline-secondary js-add-custom-list" data-voter-id="${voterId}">إضافة</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
   const groupedNames = Array.isArray(voter?.group_names)
     ? voter.group_names.filter(name => typeof name === 'string' && name.trim() !== '').join('، ')
     : (typeof voter?.group_names === 'string' ? voter.group_names : '');
@@ -3588,7 +3683,7 @@ function buildVoterRow(voter) {
     <td>% ${trustRate}</td>
     <td>
       <div class="d-flex justify-content-center gap-2 flex-wrap">
-        <button type="button" class="${actionBtnClass}" title="${actionBtnLabel}" aria-label="${actionBtnLabel}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnIcon}</button>
+        ${addControlHtml}
       </div>
     </td>
   </tr>`;
@@ -3935,6 +4030,88 @@ function searchRelatives(voterName, voterId) {
     membershipScope: activeFilters.membershipScope || 'attached'
   });
 }
+
+$(document).on('click', function (event) {
+  const target = event.target;
+  if (!target || !target.closest) {
+    return;
+  }
+
+  if (!target.closest('.voter-add-split')) {
+    closeAllAddMenus();
+  }
+});
+
+$(document).on('click', '.voter-add-menu-trigger', function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const wrapper = this.closest('.voter-add-split');
+  if (!wrapper) return;
+
+  const willOpen = !wrapper.classList.contains('is-open');
+  closeAllAddMenus();
+  if (willOpen) {
+    wrapper.classList.add('is-open');
+  }
+});
+
+$(document).on('click', '.js-add-my-list', function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const voterId = String($(this).data('voterId') || '').trim();
+  if (!voterId) return;
+
+  submitAttachVoters([voterId])
+    .then(function (response) {
+      showCreateGroupFeedback('success', response?.data?.message || 'تمت الإضافة إلى قائمتي بنجاح');
+      closeAllAddMenus();
+      runLiveSearch({
+        name: activeFilters.name || '',
+        family: activeFilters.family || '',
+        sibling: activeFilters.sibling || '',
+        siblingExcludeId: activeFilters.siblingExcludeId || '',
+        membershipScope: activeFilters.membershipScope || 'attached'
+      });
+    })
+    .catch(function (error) {
+      showCreateGroupFeedback('error', error?.response?.data?.message || 'تعذر الإضافة إلى قائمتي');
+    });
+});
+
+$(document).on('click', '.js-add-custom-list', function (event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const button = $(this);
+  const voterId = String(button.data('voterId') || '').trim();
+  if (!voterId) return;
+
+  const selectEl = button.closest('.voter-add-menu').find('.js-custom-group-select');
+  const groupId = String(selectEl.val() || '').trim();
+
+  if (!groupId) {
+    showCreateGroupFeedback('error', 'اختر قائمة مخصصة أولًا');
+    return;
+  }
+
+  addToCustomGroup(voterId, groupId)
+    .then(function (response) {
+      showCreateGroupFeedback('success', response?.data?.message || 'تمت الإضافة إلى القائمة المخصصة بنجاح');
+      closeAllAddMenus();
+      runLiveSearch({
+        name: activeFilters.name || '',
+        family: activeFilters.family || '',
+        sibling: activeFilters.sibling || '',
+        siblingExcludeId: activeFilters.siblingExcludeId || '',
+        membershipScope: activeFilters.membershipScope || 'attached'
+      });
+    })
+    .catch(function (error) {
+      showCreateGroupFeedback('error', error?.response?.data?.message || 'تعذر الإضافة إلى القائمة المخصصة');
+    });
+});
 
 $('#membershipFilterButtons .membership-filter-btn').on('click', function () {
   const scope = $(this).data('membershipScope') || 'attached';
