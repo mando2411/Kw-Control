@@ -248,15 +248,9 @@
 
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
-                                <label for="lm-add-target-contractor" class="form-label mb-1">المتعهد المحدد (الهدف)</label>
+                                <label for="lm-add-target-contractor" class="form-label mb-1">اختر المتعهد</label>
                                 <select id="lm-add-target-contractor" class="form-select form-select-sm">
-                                    <option value="">اختر المتعهد الهدف</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="lm-add-source-contractor" class="form-label mb-1">المتعهد المصدر</label>
-                                <select id="lm-add-source-contractor" class="form-select form-select-sm">
-                                    <option value="">اختر متعهداً لعرض مضامينه</option>
+                                    <option value="">اختر متعهداً</option>
                                 </select>
                             </div>
                         </div>
@@ -266,8 +260,8 @@
                                 type="search"
                                 id="lm-add-voters-search"
                                 class="form-control form-control-sm"
-                                placeholder="ابحث في مضامين المتعهد المصدر (اسم / رقم مدني / هاتف)"
-                                aria-label="بحث في مضامين المتعهد المصدر"
+                                placeholder="بحث في كل الناخبين (اسم / رقم مدني / هاتف)"
+                                aria-label="بحث في كل الناخبين"
                             >
                         </div>
 
@@ -283,7 +277,7 @@
                                 </thead>
                                 <tbody id="lm-add-voters-body">
                                     <tr>
-                                        <td colspan="4" class="text-muted py-3">اختر متعهدًا مصدرًا أولاً لعرض المضامين.</td>
+                                        <td colspan="4" class="text-muted py-3">اختر متعهدًا أولاً لعرض مضامينه.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2314,7 +2308,6 @@
         if (!addBtn || !section) return;
 
         var targetSelect = document.getElementById('lm-add-target-contractor');
-        var sourceSelect = document.getElementById('lm-add-source-contractor');
         var searchInput = document.getElementById('lm-add-voters-search');
         var tableBody = document.getElementById('lm-add-voters-body');
         var stateEl = document.getElementById('list-management-add-voters-state');
@@ -2367,7 +2360,7 @@
                 var voterName = String(row?.voter_name || '—');
                 var civilId = String(row?.civil_id || '—');
                 var phone = String(row?.phone || '—');
-                var attached = !!row?.is_attached_to_target;
+                var attached = !!row?.is_attached;
 
                 return '<tr>' +
                     '<td>' + voterName + '</td>' +
@@ -2384,21 +2377,13 @@
             tableBody.innerHTML = html;
         }
 
-        function loadSourceVoters() {
+        function loadVoters() {
             var endpoint = String(addBtn.dataset.addSourceVotersUrl || '');
-            if (!endpoint || !sourceSelect || !tableBody) return;
+            if (!endpoint || !targetSelect || !tableBody) return;
 
-            var sourceContractorId = Number(sourceSelect.value || 0);
-            if (!sourceContractorId) {
-                tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">اختر متعهدًا مصدرًا أولاً لعرض المضامين.</td></tr>';
-                return;
-            }
-
-            var targetContractorId = Number(targetSelect ? targetSelect.value : 0);
-
-            if (targetContractorId > 0 && targetContractorId === sourceContractorId) {
-                tableBody.innerHTML = '<tr><td colspan="4" class="text-danger py-3">لا يمكن اختيار نفس المتعهد كمصدر وهدف.</td></tr>';
-                setState('يجب اختيار متعهد مختلف كهدف.', true);
+            var contractorId = Number(targetSelect.value || 0);
+            if (!contractorId) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">اختر متعهدًا أولاً لعرض مضامينه.</td></tr>';
                 return;
             }
 
@@ -2411,10 +2396,7 @@
             tableBody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">جاري التحميل...</td></tr>';
 
             var url = buildUrl(endpoint, function (params) {
-                params.set('source_contractor_id', String(sourceContractorId));
-                if (targetContractorId > 0) {
-                    params.set('target_contractor_id', String(targetContractorId));
-                }
+                params.set('contractor_id', String(contractorId));
 
                 var search = searchInput ? String(searchInput.value || '').trim() : '';
                 if (search) {
@@ -2452,10 +2434,9 @@
         }
 
         function fillContractorsSelects(contractors) {
-            if (!targetSelect || !sourceSelect) return;
+            if (!targetSelect) return;
 
             var targetValue = String(targetSelect.value || '');
-            var sourceValue = String(sourceSelect.value || '');
             var options = ['<option value="">اختر المتعهد</option>'];
 
             (Array.isArray(contractors) ? contractors : []).forEach(function (item) {
@@ -2468,14 +2449,9 @@
 
             var html = options.join('');
             targetSelect.innerHTML = html;
-            sourceSelect.innerHTML = html;
 
             if (targetValue && targetSelect.querySelector('option[value="' + targetValue + '"]')) {
                 targetSelect.value = targetValue;
-            }
-
-            if (sourceValue && sourceSelect.querySelector('option[value="' + sourceValue + '"]')) {
-                sourceSelect.value = sourceValue;
             }
         }
 
@@ -2514,22 +2490,11 @@
 
         function addVoter(voterId) {
             var endpointTemplate = String(addBtn.dataset.addVoterUrlTemplate || '');
-            var targetContractorId = Number(targetSelect ? targetSelect.value : 0);
-            var sourceContractorId = Number(sourceSelect ? sourceSelect.value : 0);
+            var contractorId = Number(targetSelect ? targetSelect.value : 0);
 
-            if (!targetContractorId) {
-                setState('يجب تحديد متعهد هدف واحد فقط قبل الإضافة.', true);
-                if (window.toastr) toastr.error('يجب تحديد متعهد هدف واحد فقط قبل الإضافة.');
-                return;
-            }
-
-            if (!sourceContractorId) {
-                setState('اختر المتعهد المصدر أولاً.', true);
-                return;
-            }
-
-            if (targetContractorId === sourceContractorId) {
-                setState('لا يمكن الإضافة من نفس المتعهد.', true);
+            if (!contractorId) {
+                setState('يجب تحديد متعهد واحد فقط قبل الإضافة.', true);
+                if (window.toastr) toastr.error('يجب تحديد متعهد واحد فقط قبل الإضافة.');
                 return;
             }
 
@@ -2540,8 +2505,7 @@
 
             var body = new URLSearchParams();
             body.append('_token', csrfToken());
-            body.append('source_contractor_id', String(sourceContractorId));
-            body.append('target_contractor_id', String(targetContractorId));
+            body.append('contractor_id', String(contractorId));
             selectedCandidateIds().forEach(function (id) {
                 body.append('candidate_users[]', id);
             });
@@ -2567,7 +2531,7 @@
                     var message = String(payload?.message || 'تمت الإضافة بنجاح.');
                     setState(message, false);
                     if (window.toastr) toastr.success(message);
-                    loadSourceVoters();
+                    loadVoters();
                 })
                 .catch(function (error) {
                     console.error(error);
@@ -2576,15 +2540,9 @@
                 });
         }
 
-        if (sourceSelect) {
-            sourceSelect.addEventListener('change', function () {
-                loadSourceVoters();
-            });
-        }
-
         if (targetSelect) {
             targetSelect.addEventListener('change', function () {
-                loadSourceVoters();
+                loadVoters();
             });
         }
 
@@ -2595,7 +2553,7 @@
                 }
 
                 searchDebounceTimer = setTimeout(function () {
-                    loadSourceVoters();
+                    loadVoters();
                 }, 280);
             });
         }
@@ -2614,7 +2572,7 @@
 
             loadContractors().then(function () {
                 if (contractorsLoaded) {
-                    loadSourceVoters();
+                    loadVoters();
                 }
             });
         };
@@ -2622,7 +2580,7 @@
         window.__listManagementReloadAddVoters = function () {
             contractorsLoaded = false;
             loadContractors().then(function () {
-                loadSourceVoters();
+                loadVoters();
             });
         };
     })();

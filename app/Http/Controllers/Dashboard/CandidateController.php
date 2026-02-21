@@ -368,14 +368,13 @@ class CandidateController extends Controller
         $scope = $this->resolveListManagementScope($request);
         abort_if(!$scope['can_access'], 403);
 
-        $sourceContractorId = (int) $request->input('source_contractor_id', 0);
-        $targetContractorId = (int) $request->input('target_contractor_id', 0);
+        $contractorId = (int) $request->input('contractor_id', 0);
         $search = trim((string) $request->input('search', ''));
 
-        if (!$sourceContractorId || !in_array($sourceContractorId, $scope['contractor_ids'], true)) {
+        if (!$contractorId || !in_array($contractorId, $scope['contractor_ids'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'المتعهد المصدر غير متاح ضمن النطاق.',
+                'message' => 'المتعهد غير متاح ضمن النطاق.',
             ], 422);
         }
 
@@ -386,37 +385,45 @@ class CandidateController extends Controller
             $civilIdExpr = 'v.alrkm_almd_yn';
         }
 
-        $query = DB::table('contractor_voter as cv')
-            ->join('voters as v', 'v.id', '=', 'cv.voter_id')
-            ->where('cv.contractor_id', $sourceContractorId)
-            ->select([
-                'v.id as voter_id',
-                'v.name as voter_name',
-                DB::raw($civilIdExpr . ' as civil_id'),
-                'v.phone1 as phone',
-            ])
-            ->orderBy('v.name');
+        if ($search === '') {
+            $rows = DB::table('contractor_voter as cv')
+                ->join('voters as v', 'v.id', '=', 'cv.voter_id')
+                ->where('cv.contractor_id', $contractorId)
+                ->select([
+                    'v.id as voter_id',
+                    'v.name as voter_name',
+                    DB::raw($civilIdExpr . ' as civil_id'),
+                    'v.phone1 as phone',
+                ])
+                ->orderBy('v.name')
+                ->limit(300)
+                ->get();
+        } else {
+            $query = DB::table('voters as v')
+                ->select([
+                    'v.id as voter_id',
+                    'v.name as voter_name',
+                    DB::raw($civilIdExpr . ' as civil_id'),
+                    'v.phone1 as phone',
+                ])
+                ->where(function ($subQuery) use ($search, $civilIdExpr) {
+                    $subQuery
+                        ->where('v.name', 'like', '%' . $search . '%')
+                        ->orWhere('v.phone1', 'like', '%' . $search . '%');
 
-        if ($search !== '') {
-            $query->where(function ($subQuery) use ($search, $civilIdExpr) {
-                $subQuery
-                    ->where('v.name', 'like', '%' . $search . '%')
-                    ->orWhere('v.phone1', 'like', '%' . $search . '%');
+                    if ($civilIdExpr !== 'NULL') {
+                        $subQuery->orWhereRaw($civilIdExpr . ' like ?', ['%' . $search . '%']);
+                    }
+                })
+                ->orderBy('v.name');
 
-                if ($civilIdExpr !== 'NULL') {
-                    $subQuery->orWhereRaw($civilIdExpr . ' like ?', ['%' . $search . '%']);
-                }
-            });
+            $rows = $query->limit(300)->get();
         }
 
-        $rows = $query
-            ->limit(300)
-            ->get();
-
-        $targetAttachedMap = [];
-        if ($targetContractorId > 0 && $rows->isNotEmpty()) {
-            $targetAttachedMap = DB::table('contractor_voter')
-                ->where('contractor_id', $targetContractorId)
+        $attachedMap = [];
+        if ($rows->isNotEmpty()) {
+            $attachedMap = DB::table('contractor_voter')
+                ->where('contractor_id', $contractorId)
                 ->whereIn('voter_id', $rows->pluck('voter_id')->map(fn ($id) => (int) $id)->all())
                 ->pluck('voter_id')
                 ->map(fn ($id) => (int) $id)
@@ -425,16 +432,16 @@ class CandidateController extends Controller
         }
 
         $rows = $rows
-            ->map(function ($row) use ($targetAttachedMap) {
+            ->map(function ($row) use ($attachedMap) {
                 $voterId = (int) ($row->voter_id ?? 0);
-                $isAttachedToTarget = $voterId > 0 && array_key_exists($voterId, $targetAttachedMap);
+                $isAttached = $voterId > 0 && array_key_exists($voterId, $attachedMap);
 
                 return [
                     'voter_id' => $voterId,
                     'voter_name' => (string) ($row->voter_name ?? ''),
                     'civil_id' => (string) ($row->civil_id ?? ''),
                     'phone' => (string) ($row->phone ?? ''),
-                    'is_attached_to_target' => $isAttachedToTarget,
+                    'is_attached' => $isAttached,
                 ];
             })
             ->values();
@@ -451,56 +458,28 @@ class CandidateController extends Controller
         $scope = $this->resolveListManagementScope($request);
         abort_if(!$scope['can_access'], 403);
 
-        $sourceContractorId = (int) $request->input('source_contractor_id', 0);
-        $targetContractorId = (int) $request->input('target_contractor_id', 0);
-
-        if (!$sourceContractorId || !in_array($sourceContractorId, $scope['contractor_ids'], true)) {
+        $contractorId = (int) $request->input('contractor_id', 0);
+        if (!$contractorId || !in_array($contractorId, $scope['contractor_ids'], true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'المتعهد المصدر غير متاح.',
+                'message' => 'المتعهد المحدد غير متاح.',
             ], 422);
         }
 
-        if (!$targetContractorId || !in_array($targetContractorId, $scope['contractor_ids'], true)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'المتعهد الهدف غير متاح.',
-            ], 422);
-        }
-
-        if ($sourceContractorId === $targetContractorId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'لا يمكن الإضافة لنفس المتعهد المصدر.',
-            ], 422);
-        }
-
-        $sourceHasVoter = DB::table('contractor_voter')
-            ->where('contractor_id', $sourceContractorId)
-            ->where('voter_id', (int) $voter)
-            ->exists();
-
-        if (!$sourceHasVoter) {
-            return response()->json([
-                'success' => false,
-                'message' => 'هذا الناخب غير موجود ضمن مضامين المتعهد المصدر.',
-            ], 422);
-        }
-
-        DB::transaction(function () use ($targetContractorId, $voter) {
+        DB::transaction(function () use ($contractorId, $voter) {
             DB::table('contractor_voter_delete')
-                ->where('contractor_id', $targetContractorId)
+                ->where('contractor_id', $contractorId)
                 ->where('voter_id', (int) $voter)
                 ->delete();
 
             $alreadyAttached = DB::table('contractor_voter')
-                ->where('contractor_id', $targetContractorId)
+                ->where('contractor_id', $contractorId)
                 ->where('voter_id', (int) $voter)
                 ->exists();
 
             if (!$alreadyAttached) {
                 DB::table('contractor_voter')->insert([
-                    'contractor_id' => $targetContractorId,
+                    'contractor_id' => $contractorId,
                     'voter_id' => (int) $voter,
                     'percentage' => '0',
                     'created_at' => now(),
