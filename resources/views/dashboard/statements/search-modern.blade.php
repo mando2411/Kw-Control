@@ -450,7 +450,6 @@
 
                 <div class="sm-field sm-col-4 sm-mobile-full sm-order-family">
                     <label for="smFamily">العائلة</label>
-                    <input id="smFamilyFilter" type="text" class="form-control mb-2" placeholder="اكتب لتقليل خيارات العائلة">
                     <select id="smFamily" name="family" class="form-select sm-dynamic-select">
                         <option value="" hidden>العائلة...</option>
                         <option value="">--</option>
@@ -733,65 +732,32 @@
         const dynamicSelectors = Object.keys(dynamicSelectMap);
         const locationSelectors = ['#smStreet', '#smAlharaa', '#smHome'];
         const allDynamicSelectors = dynamicSelectors.concat(locationSelectors);
-        const familyFilterInput = document.getElementById('smFamilyFilter');
-        const familySelectElement = document.getElementById('smFamily');
-        let familyOptionsCache = [];
 
-        function refreshFamilyOptionsCache() {
-            if (!familySelectElement) {
-                familyOptionsCache = [];
+        function initFamilySearchableSelect() {
+            if (!window.jQuery || typeof window.jQuery.fn.select2 !== 'function') {
                 return;
             }
 
-            familyOptionsCache = Array.from(familySelectElement.options)
-                .filter((option) => option.value !== '')
-                .map((option) => ({
-                    value: String(option.value || ''),
-                    label: String(option.text || ''),
-                }));
-        }
-
-        function applyFamilyFilter() {
-            if (!familySelectElement) {
+            const familySelect = window.jQuery('#smFamily');
+            if (!familySelect.length) {
                 return;
             }
 
-            const query = String(familyFilterInput?.value || '').trim().toLowerCase();
-            const currentValue = String(familySelectElement.value || '');
-            const filtered = query
-                ? familyOptionsCache.filter((item) => item.label.toLowerCase().includes(query))
-                : familyOptionsCache.slice();
-            const selectedItem = currentValue
-                ? familyOptionsCache.find((item) => item.value === currentValue)
-                : null;
-
-            familySelectElement.innerHTML = '<option value="" hidden>العائلة...</option><option value="">--</option>';
-
-            if (selectedItem && !filtered.some((item) => item.value === selectedItem.value)) {
-                const pinnedSelectedOption = document.createElement('option');
-                pinnedSelectedOption.value = selectedItem.value;
-                pinnedSelectedOption.textContent = selectedItem.label;
-                familySelectElement.appendChild(pinnedSelectedOption);
+            if (familySelect.hasClass('select2-hidden-accessible')) {
+                return;
             }
 
-            filtered.forEach((item) => {
-                const option = document.createElement('option');
-                option.value = item.value;
-                option.textContent = item.label;
-                familySelectElement.appendChild(option);
+            familySelect.select2({
+                width: '100%',
+                dir: 'rtl',
+                placeholder: 'العائلة...',
+                allowClear: true,
+                language: {
+                    noResults: function () {
+                        return 'لا توجد عائلات مطابقة';
+                    }
+                }
             });
-
-            if (currentValue && familyOptionsCache.some((item) => item.value === currentValue)) {
-                familySelectElement.value = currentValue;
-            }
-
-            if (filtered.length === 0) {
-                const noResultOption = document.createElement('option');
-                noResultOption.value = '';
-                noResultOption.textContent = 'لا توجد عائلات مطابقة';
-                noResultOption.disabled = true;
-                familySelectElement.appendChild(noResultOption);
-            }
         }
 
         function showLoading() {
@@ -1074,8 +1040,9 @@
             });
 
             if (selector === '#smFamily') {
-                refreshFamilyOptionsCache();
-                applyFamilyFilter();
+                if (select.hasClass('select2-hidden-accessible')) {
+                    select.trigger('change.select2');
+                }
             }
 
         }
@@ -1117,11 +1084,7 @@
             refreshDynamicFilters();
         });
 
-        if (familyFilterInput) {
-            familyFilterInput.addEventListener('input', applyFamilyFilter);
-        }
-
-        refreshFamilyOptionsCache();
+        initFamilySearchableSelect();
 
         form.addEventListener('submit', function (event) {
             event.preventDefault();
