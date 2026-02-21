@@ -126,7 +126,7 @@
                     <input type="hidden" name="type" id="{{ $typeInputId }}">
 
                     <div class="sm-export-section">
-                        <h6 class="sm-export-section-title">إجراء الإخراج</h6>
+                        <h6 class="sm-export-section-title">شإجراء الإخراج</h6>
                         <div class="sm-export-actions">
                             @foreach($actionButtons as $button)
                                 <button type="button" class="{{ $button['class'] ?? 'btn btn-secondary' }} {{ $actionButtonClass }}" value="{{ $button['value'] ?? '' }}">{{ $button['label'] ?? '' }}</button>
