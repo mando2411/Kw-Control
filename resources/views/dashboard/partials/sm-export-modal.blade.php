@@ -126,7 +126,7 @@
                     <input type="hidden" name="type" id="{{ $typeInputId }}">
 
                     <div class="sm-export-section">
-                        <h6 class="sm-export-section-title">شإجراء الإخراج</h6>
+                        <h6 class="sm-export-section-title">إجراء الإخراج</h6>
                         <div class="sm-export-actions">
                             @foreach($actionButtons as $button)
                                 <button type="button" class="{{ $button['class'] ?? 'btn btn-secondary' }} {{ $actionButtonClass }}" value="{{ $button['value'] ?? '' }}">{{ $button['label'] ?? '' }}</button>
@@ -139,7 +139,7 @@
                     <div class="sm-export-section mb-0">
                         <h6 class="sm-export-section-title">{{ $whatsappLabel }}</h6>
                         <div class="d-flex gap-2 align-items-center">
-                            <input type="text" inputmode="numeric" dir="ltr" class="form-control" id="{{ $whatsappInputId }}" name="to" placeholder="{{ $whatsappPlaceholder }}">
+                            <input type="tel" inputmode="numeric" dir="ltr" class="form-control sm-export-whatsapp-input" id="{{ $whatsappInputId }}" name="to" placeholder="{{ $whatsappPlaceholder }}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <button type="button" class="btn btn-outline-primary {{ $actionButtonClass }}" value="Send">إرسال</button>
                         </div>
                     </div>
@@ -148,3 +148,86 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function () {
+        if (window.__smExportWhatsappInputGuardInstalled) {
+            return;
+        }
+
+        window.__smExportWhatsappInputGuardInstalled = true;
+
+        function ensureWhatsappInputIsWritable(input) {
+            if (!input) {
+                return;
+            }
+
+            input.disabled = false;
+            input.readOnly = false;
+            input.style.pointerEvents = 'auto';
+            input.style.userSelect = 'text';
+            input.style.webkitUserSelect = 'text';
+            input.style.touchAction = 'manipulation';
+        }
+
+        function getWhatsappInputFromTarget(target) {
+            if (!target || !target.closest) {
+                return null;
+            }
+
+            return target.closest('.sm-export-modal input[name="to"]');
+        }
+
+        document.addEventListener('mousedown', function (event) {
+            var whatsappInput = getWhatsappInputFromTarget(event.target);
+            if (!whatsappInput) {
+                return;
+            }
+
+            ensureWhatsappInputIsWritable(whatsappInput);
+            event.stopPropagation();
+        }, true);
+
+        document.addEventListener('click', function (event) {
+            var whatsappInput = getWhatsappInputFromTarget(event.target);
+            if (!whatsappInput) {
+                return;
+            }
+
+            ensureWhatsappInputIsWritable(whatsappInput);
+            event.stopPropagation();
+        }, true);
+
+        document.addEventListener('keydown', function (event) {
+            var whatsappInput = getWhatsappInputFromTarget(event.target);
+            if (!whatsappInput) {
+                return;
+            }
+
+            ensureWhatsappInputIsWritable(whatsappInput);
+            event.stopPropagation();
+        }, true);
+
+        document.addEventListener('shown.bs.modal', function (event) {
+            var modalElement = event.target;
+            if (!modalElement || !modalElement.classList || !modalElement.classList.contains('sm-export-modal')) {
+                return;
+            }
+
+            var whatsappInput = modalElement.querySelector('input[name="to"]');
+            ensureWhatsappInputIsWritable(whatsappInput);
+
+            if (!whatsappInput) {
+                return;
+            }
+
+            setTimeout(function () {
+                try {
+                    whatsappInput.focus();
+                    whatsappInput.select();
+                } catch (error) {
+                }
+            }, 0);
+        });
+    })();
+</script>
