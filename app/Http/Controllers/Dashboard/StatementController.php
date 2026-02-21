@@ -441,13 +441,35 @@ public function export(Request $request)
             $pdf->setPaper([0, 0, 841.89, 1190.55], 'portrait');
 
         if ($request->type == "Send") {
+            $directory = public_path('Pdf');
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
             $pdf->save($VoterPath);
-            $phoneNumber = request('to') ?? "55150551"; // Replace with your phone number in international format
-            $message = env("APP_URL") . "/Pdf/" . $VoterFile;
+            $rawPhone = (string) $request->input('to', '');
+            $phoneNumber = preg_replace('/\D+/', '', $rawPhone);
+
+            if (str_starts_with($phoneNumber, '00965')) {
+                $phoneNumber = substr($phoneNumber, 5);
+            } elseif (str_starts_with($phoneNumber, '965')) {
+                $phoneNumber = substr($phoneNumber, 3);
+            }
+
+            if (strlen($phoneNumber) !== 8 || !preg_match('/^[569]\d{7}$/', $phoneNumber)) {
+                return response()->json([
+                    'error' => 'يرجى إدخال رقم WhatsApp كويتي صحيح (8 أرقام، مع أو بدون 965).'
+                ], 422);
+            }
+
+            $message = url('/Pdf/' . $VoterFile);
             $encodedMessage = urlencode($message);
             $whatsappUrl = "https://wa.me/965" . $phoneNumber . "?text=" . $encodedMessage;
             return response()->json(
                 [
+                    'success' => true,
+                    'message' => 'تم تجهيز الملف بنجاح.',
+                    'file_url' => $message,
                     'Redirect_Url'=>$whatsappUrl
                 ]
             );
