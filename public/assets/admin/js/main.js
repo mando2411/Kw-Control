@@ -576,56 +576,6 @@ function formatTime(time) {
 }
 
 
-  // البحث بجدول المتعهدين الفرعيين
-  let subMota3ahdeenName = [
-    { name: "انفال فيصل حسين على جديع اباالصافى"},
-    { name: "عزة حسام حسين على جديع اباالخيل"},
-    { name: "احمد على محمد مسعد هانى ابا صفا" },
-    { name: "خخخخخخ على محمد مسعد هانى ابا صفا"},
-    { name: " خالد السيد على محمد بديع الابراهيمى"},
-  ];
-
-  // mota3ahdeeen
-  function getMota3ahdeenName() {
-    let searchSubMota3ahdeenNameInput = document.getElementById(
-      "mota3ahdeenTableSearch"
-    );
-    let searchSubMota3ahdeenNameValue = searchSubMota3ahdeenNameInput.value;
-    let cartona = "";
-
-    if (searchSubMota3ahdeenNameValue == "") {
-      alert("Not found data matched");
-    } else {
-
-      for (let i = 0; i < subMota3ahdeenName.length; i++) {
-
-        if (subMota3ahdeenName[i].name.includes(searchSubMota3ahdeenNameValue)) {
-
-          cartona += `
-          <tr>
-                  <td>
-                    <input
-                      type="checkbox"
-                      class="check"
-                      name="subMota3ahdeenNameChecked"
-                    />
-                  </td>
-                  <td>1</td>
-                    <td data-bs-toggle="modal" data-bs-target="#mota3ahdeenDataModern">
-                      ${subMota3ahdeenName[i].name}
-                  </td>
-                  <td>7721654</td>
-                  <td>0</td>
-                  <td>2</td>
-                  <td>0%</td>
-                  <td>2</td>
-                </tr>`;
-        }
-      }
-      $('#searchSubMota3ahdeenName').html(cartona)
-    }
-  }
-
   // abdallah
   (function () {
     $(".allBtn").on("click", getInputChecked);
@@ -777,55 +727,6 @@ function formatTime(time) {
       $(".resultcandidateName").html(cartona);
     }
   }
-
-  // elma7zofeen
-  // البحث بجدول المتعهدين الفرعيين
-  let searchSubMota3ahdeenName = [
-    { name: "انفال فيصل حسين على جديع اباالصافى"},
-    { name: "عزة حسام حسين على جديع اباالخيل"},
-    { name: "احمد على محمد مسعد هانى ابا صفا" },
-    { name: "خخخخخخ على محمد مسعد هانى ابا صفا"},
-    { name: " خالد السيد على محمد بديع الابراهيمى"},
-  ];
-
-  // mota3ahdeeen
-  function getSubMota3ahdeenName() {
-    let searchSubMota3ahdeenNameInput = document.getElementById(
-      "searchInMota3ahdeenTable"
-    );
-    let searchSubMota3ahdeenNameValue = searchSubMota3ahdeenNameInput.value;
-    let cartona = "";
-
-    if (searchSubMota3ahdeenNameValue == "") {
-      alert("Not found data matched");
-    } else {
-
-      for (let i = 0; i < searchSubMota3ahdeenName.length; i++) {
-
-        if (searchSubMota3ahdeenName[i].name.includes(searchSubMota3ahdeenNameValue)) {
-
-          cartona += `
-          <tr>
-                    <td>150</td>
-                    <td
-                      data-bs-toggle="modal"
-                      data-bs-target="#ma7azofeenMota3ahdeenData"
-                    >
-                    ${searchSubMota3ahdeenName[i].name}
-                    </td>
-                    <td>7721654</td>
-                    <td>0</td>
-                    <td>
-                      <span>12-05-2024</span>
-                      <span>03:05:16</span>
-                    </td>
-                  </tr>
-          `;
-
-
-        }
-      }
-      $('.searchSubMota3ahdeenName').html(cartona)
-    }
   }
+
 

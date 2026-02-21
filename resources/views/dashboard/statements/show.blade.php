@@ -594,7 +594,8 @@ let url
 @push('js')
 
 <script>
-    $('td[data-bs-target="#mota3ahdeenDataModern"]').on("click", function () {
+    $(document).off('click.statementContractorOpen', 'td[data-bs-target="#mota3ahdeenDataModern"]');
+    $(document).on('click.statementContractorOpen', 'td[data-bs-target="#mota3ahdeenDataModern"]', function () {
     // var id=$("#user_id").val();
     var id=$(this).siblings("#user_id").text();
     var conUrl=$(this).siblings("#conUrl").data('url');
@@ -639,12 +640,12 @@ let url
             let message= $('#message').val()
             document.getElementById('whatsapp-link').href = `https://wa.me/965${phoneNumber}?text=${encodeURIComponent(message)}%0A%0A${encodeURIComponent(conUrl)}`;
 
-            $("#phone_wa").on("change", function() {
+            $("#phone_wa").off("change.statementContractorWa").on("change.statementContractorWa", function() {
                 let phone = $(this).val();
                 let updatedMessage = $("#message").val(); // Update message if changed
                 document.getElementById('whatsapp-link').href = `https://wa.me/965${phone}?text=${encodeURIComponent(updatedMessage)}%0A%0A${encodeURIComponent(conUrl)}`;
             });
-            $('#delete-con').on('click',function(){
+            $('#delete-con').off('click.statementContractorDelete').on('click.statementContractorDelete',function(){
                 var contractorId =$(this).val();
                 var delete_url = `/dashboard/contractors/${contractorId}`;
                 axios.delete(delete_url)
@@ -696,7 +697,7 @@ let url
                 console.error('Error:', error);
                 alert(error.response.data.message);
             });
-            $('[data-bs-target="edit-mot"]').on('change', function() {
+            $('[data-bs-target="edit-mot"]').off('change.statementContractorEdit').on('change.statementContractorEdit', function() {
                 var elementName = $(this).attr('name') || $(this).prop('tagName').toLowerCase();
                 var elementValue = $(this).val();
                 var api = '/dashboard/mot-up/' + id ;
