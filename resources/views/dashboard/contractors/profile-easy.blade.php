@@ -2790,6 +2790,33 @@
       </div>
     </div>
 
+    <div class="modal fade" id="singleAddVoterModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title">إضافة ناخب</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="d-grid gap-2">
+              <button type="button" class="btn btn-outline-primary" id="singleAddToMyListBtn">إضافة إلى قائمتي</button>
+            </div>
+            <hr>
+            <label for="singleAddCustomGroupSelect" class="form-label fw-bold">إضافة إلى قائمة مخصصة</label>
+            <div class="d-flex align-items-center gap-2">
+              <select id="singleAddCustomGroupSelect" class="form-control">
+                <option value="" hidden>قائمة مخصصة</option>
+              </select>
+              <button type="button" class="btn btn-primary" id="singleAddToCustomBtn">إضافة</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إغلاق</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <footer class="contractor-marketing-footer" aria-label="الفوتر التسويقي">
       <div class="contractor-marketing-footer__inner">
         <div>
@@ -3113,6 +3140,8 @@ let bulkActionConfirmModalInstance = null;
 let bulkActionConfirmResolver = null;
 let bulkCustomListModalInstance = null;
 let bulkCustomListResolver = null;
+let singleAddVoterModalInstance = null;
+let currentSingleAddVoterId = '';
 let listsRefreshRequest = null;
 let contractorGroups = @json($contractor->groups->map(fn($group) => ['id' => (int) $group->id, 'name' => (string) $group->name, 'type' => (string) ($group->type ?? '')])->values());
 let activeFilters = {
@@ -3311,6 +3340,61 @@ function openBulkCustomListPicker() {
 
     modal.show();
   });
+}
+
+function ensureSingleAddVoterModal() {
+  const modalEl = document.getElementById('singleAddVoterModal');
+  if (!modalEl || typeof bootstrap === 'undefined') return null;
+
+  if (!singleAddVoterModalInstance) {
+    singleAddVoterModalInstance = new bootstrap.Modal(modalEl, {
+      backdrop: true,
+      keyboard: true
+    });
+
+    modalEl.addEventListener('hidden.bs.modal', function () {
+      currentSingleAddVoterId = '';
+      const selectEl = document.getElementById('singleAddCustomGroupSelect');
+      if (selectEl) {
+        selectEl.value = '';
+      }
+    });
+  }
+
+  return singleAddVoterModalInstance;
+}
+
+function openSingleAddVoterModal(voterId) {
+  const normalizedVoterId = String(voterId || '').trim();
+  if (!normalizedVoterId) {
+    return;
+  }
+
+  currentSingleAddVoterId = normalizedVoterId;
+
+  const selectEl = $('#singleAddCustomGroupSelect');
+  selectEl.empty();
+  selectEl.append('<option value="" hidden>قائمة مخصصة</option>');
+
+  if (Array.isArray(contractorGroups) && contractorGroups.length > 0) {
+    contractorGroups.forEach(function (group) {
+      const label = `${group.name}${group.type ? ' (' + group.type + ')' : ''}`;
+      selectEl.append(`<option value="${group.id}">${label}</option>`);
+    });
+    selectEl.prop('disabled', false);
+    $('#singleAddToCustomBtn').prop('disabled', false);
+  } else {
+    selectEl.append('<option value="">لا توجد قوائم مخصصة</option>');
+    selectEl.prop('disabled', true);
+    $('#singleAddToCustomBtn').prop('disabled', true);
+  }
+
+  const modal = ensureSingleAddVoterModal();
+  if (!modal) {
+    return;
+  }
+
+  modal.show();
 }
 
 function getCurrentlyCheckedVoterIds() {
@@ -3704,24 +3788,9 @@ function buildVoterRow(voter) {
   const actionBtnClass = isAdded ? 'btn btn-danger voter-action-toggle voter-action-toggle--icon' : 'btn btn-success voter-action-toggle voter-action-toggle--icon';
   const actionBtnIcon = isAdded ? '<i class="fa fa-trash"></i>' : '<i class="fa fa-plus"></i>';
   const actionBtnLabel = isAdded ? 'حذف' : 'اضافة';
-  const groupOptionsHtml = getCustomGroupOptionsHtml();
   const addControlHtml = isAdded
     ? `<button type="button" class="${actionBtnClass}" title="${actionBtnLabel}" aria-label="${actionBtnLabel}" onclick="toggleVoterStatus(this, '${voterId}', ${isAdded})">${actionBtnIcon}</button>`
-    : `<div class="voter-add-split" data-voter-id="${voterId}">
-        <button type="button" class="${actionBtnClass} voter-add-menu-trigger" title="${actionBtnLabel}" aria-label="${actionBtnLabel}">${actionBtnIcon}</button>
-        <div class="voter-add-menu">
-          <div class="voter-add-menu__actions">
-            <button type="button" class="btn btn-sm btn-outline-primary js-add-my-list" data-voter-id="${voterId}">قائمتي</button>
-            <div class="voter-add-menu__custom">
-              <select class="form-select form-select-sm js-custom-group-select" data-voter-id="${voterId}">
-                <option value="" hidden>قائمة مخصصة</option>
-                ${groupOptionsHtml}
-              </select>
-              <button type="button" class="btn btn-sm btn-outline-secondary js-add-custom-list" data-voter-id="${voterId}">إضافة</button>
-            </div>
-          </div>
-        </div>
-      </div>`;
+    : `<button type="button" class="${actionBtnClass} js-open-add-voter-modal" data-voter-id="${voterId}" title="${actionBtnLabel}" aria-label="${actionBtnLabel}">${actionBtnIcon}</button>`;
   const groupedNames = Array.isArray(voter?.group_names)
     ? voter.group_names.filter(name => typeof name === 'string' && name.trim() !== '').join('، ')
     : (typeof voter?.group_names === 'string' ? voter.group_names : '');
@@ -4087,48 +4156,30 @@ function searchRelatives(voterName, voterId) {
   });
 }
 
-$(document).on('click', function (event) {
-  const target = event.target;
-  if (!target || !target.closest) {
-    return;
-  }
-
-  if (!target.closest('.voter-add-split')) {
-    closeAllAddMenus();
-  }
-});
-
-$(document).on('click', '.voter-add-menu-trigger', function (event) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  const wrapper = this.closest('.voter-add-split');
-  if (!wrapper) return;
-
-  const willOpen = !wrapper.classList.contains('is-open');
-  closeAllAddMenus();
-  if (willOpen) {
-    wrapper.classList.add('is-open');
-    requestAnimationFrame(function () {
-      updateAddMenuPlacement(wrapper);
-    });
-  }
-});
-
-window.addEventListener('resize', refreshOpenAddMenusPlacement, { passive: true });
-window.addEventListener('scroll', refreshOpenAddMenusPlacement, { passive: true, capture: true });
-
-$(document).on('click', '.js-add-my-list', function (event) {
+$(document).on('click', '.js-open-add-voter-modal', function (event) {
   event.preventDefault();
   event.stopPropagation();
 
   const voterId = String($(this).data('voterId') || '').trim();
+  openSingleAddVoterModal(voterId);
+});
+
+$('#singleAddToMyListBtn').on('click', function () {
+  const voterId = String(currentSingleAddVoterId || '').trim();
   if (!voterId) return;
+
+  const myListBtn = $(this);
+  const customBtn = $('#singleAddToCustomBtn');
+  myListBtn.prop('disabled', true);
+  customBtn.prop('disabled', true);
 
   submitAttachVoters([voterId])
     .then(function (response) {
       showCreateGroupFeedback('success', response?.data?.message || 'تمت الإضافة إلى قائمتي بنجاح');
-      closeAllAddMenus();
+      const modal = ensureSingleAddVoterModal();
+      if (modal) {
+        modal.hide();
+      }
       runLiveSearch({
         name: activeFilters.name || '',
         family: activeFilters.family || '',
@@ -4139,18 +4190,20 @@ $(document).on('click', '.js-add-my-list', function (event) {
     })
     .catch(function (error) {
       showCreateGroupFeedback('error', error?.response?.data?.message || 'تعذر الإضافة إلى قائمتي');
+    })
+    .finally(function () {
+      myListBtn.prop('disabled', false);
+      customBtn.prop('disabled', $('#singleAddCustomGroupSelect').is(':disabled'));
     });
 });
 
-$(document).on('click', '.js-add-custom-list', function (event) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  const button = $(this);
-  const voterId = String(button.data('voterId') || '').trim();
+$('#singleAddToCustomBtn').on('click', function () {
+  const voterId = String(currentSingleAddVoterId || '').trim();
   if (!voterId) return;
 
-  const selectEl = button.closest('.voter-add-menu').find('.js-custom-group-select');
+  const myListBtn = $('#singleAddToMyListBtn');
+  const customBtn = $(this);
+  const selectEl = $('#singleAddCustomGroupSelect');
   const groupId = String(selectEl.val() || '').trim();
 
   if (!groupId) {
@@ -4158,10 +4211,16 @@ $(document).on('click', '.js-add-custom-list', function (event) {
     return;
   }
 
+  myListBtn.prop('disabled', true);
+  customBtn.prop('disabled', true);
+
   addToCustomGroup(voterId, groupId)
     .then(function (response) {
       showCreateGroupFeedback('success', response?.data?.message || 'تمت الإضافة إلى القائمة المخصصة بنجاح');
-      closeAllAddMenus();
+      const modal = ensureSingleAddVoterModal();
+      if (modal) {
+        modal.hide();
+      }
       runLiveSearch({
         name: activeFilters.name || '',
         family: activeFilters.family || '',
@@ -4172,6 +4231,10 @@ $(document).on('click', '.js-add-custom-list', function (event) {
     })
     .catch(function (error) {
       showCreateGroupFeedback('error', error?.response?.data?.message || 'تعذر الإضافة إلى القائمة المخصصة');
+    })
+    .finally(function () {
+      myListBtn.prop('disabled', false);
+      customBtn.prop('disabled', $('#singleAddCustomGroupSelect').is(':disabled'));
     });
 });
 
