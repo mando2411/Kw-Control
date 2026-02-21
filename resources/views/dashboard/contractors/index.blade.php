@@ -2,7 +2,7 @@
 
 @section('content')
     <link rel="stylesheet" href="/assets/css/contractors-modern.css?v=20260215e">
-    <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260215b">
+    <link rel="stylesheet" href="/assets/css/export-modal.css?v=20260221a">
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <!-- DataTables Buttons CSS -->
@@ -1207,6 +1207,10 @@
                     }
 
                     if (exportWhatsappInput) {
+                        exportWhatsappInput.disabled = false;
+                        exportWhatsappInput.readOnly = false;
+                        exportWhatsappInput.style.pointerEvents = 'auto';
+
                         setTimeout(function () {
                             try {
                                 exportWhatsappInput.focus();

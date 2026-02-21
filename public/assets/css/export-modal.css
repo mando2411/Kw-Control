@@ -4,27 +4,33 @@
     max-width: 760px;
 }
 
-#smExportModal.modal.show {
+.sm-export-modal.modal.show {
     display: flex !important;
     align-items: center;
     justify-content: center;
     padding: 1rem;
 }
 
-#smExportModal .modal-dialog {
+.sm-export-modal .modal-dialog {
     width: min(760px, calc(100vw - 2rem));
     margin: 0 auto;
     pointer-events: auto;
 }
 
-#smExportModal,
-#smExportModal .modal-content,
-#smExportModal .modal-body,
-#smExportModal input,
-#smExportModal button,
-#smExportModal select,
-#smExportModal textarea {
+.sm-export-modal,
+.sm-export-modal .modal-content,
+.sm-export-modal .modal-body,
+.sm-export-modal input,
+.sm-export-modal button,
+.sm-export-modal select,
+.sm-export-modal textarea {
     pointer-events: auto;
+}
+
+.sm-export-modal input[name="to"] {
+    position: relative;
+    z-index: 2;
+    pointer-events: auto !important;
 }
 
 .sm-export-modal .modal-content {
@@ -143,11 +149,11 @@
     opacity: 1;
 }
 
-#smExportModal.fade .modal-dialog {
+.sm-export-modal.fade .modal-dialog {
     transform: translateY(14px) scale(.98);
     transition: transform .22s ease-out;
 }
-#smExportModal.show .modal-dialog {
+.sm-export-modal.show .modal-dialog {
     transform: translateY(0) scale(1);
 }
 
@@ -197,11 +203,11 @@ body.contractor-export-modal-layered #smExportModal .modal-content {
 }
 
 @media (max-width: 768px) {
-    #smExportModal.modal.show {
+    .sm-export-modal.modal.show {
         padding: .5rem;
     }
 
-    #smExportModal .modal-dialog {
+    .sm-export-modal .modal-dialog {
         width: calc(100vw - 1rem);
     }
 }

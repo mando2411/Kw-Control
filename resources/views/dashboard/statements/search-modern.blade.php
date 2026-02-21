@@ -1,7 +1,7 @@
 @extends('layouts.dashboard.app')
 
 @section('content')
-<link rel="stylesheet" href="/assets/css/export-modal.css?v=20260214b">
+<link rel="stylesheet" href="/assets/css/export-modal.css?v=20260221a">
 <style>
     .stmt-modern {
         direction: rtl;
@@ -707,6 +707,7 @@
         const exportType = document.getElementById('smExportType');
         const exportModalElement = document.getElementById('smExportModal');
         const exportCloseBtn = document.getElementById('smExportCloseBtn');
+        const exportWhatsappInput = document.getElementById('smExportWhatsappTo');
         const selectedVoterIds = new Set();
         const exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
 
@@ -1278,6 +1279,22 @@
         }, true);
 
         if (exportModalElement) {
+            exportModalElement.addEventListener('shown.bs.modal', function () {
+                if (!exportWhatsappInput) return;
+
+                exportWhatsappInput.disabled = false;
+                exportWhatsappInput.readOnly = false;
+                exportWhatsappInput.style.pointerEvents = 'auto';
+
+                setTimeout(function () {
+                    try {
+                        exportWhatsappInput.focus();
+                        exportWhatsappInput.select();
+                    } catch (error) {
+                    }
+                }, 0);
+            });
+
             exportModalElement.addEventListener('hidden.bs.modal', function () {
                 forceModalCleanup();
             });
