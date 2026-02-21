@@ -1,7 +1,13 @@
-<div class="d-md-none mb-2 text-start">
+<div class="d-md-none mb-2 d-flex align-items-center gap-2">
     <button type="button" class="btn btn-sm btn-outline-secondary js-lm-voters-mobile-toggle" data-expanded="0">
         إظهار تفاصيل أكثر
     </button>
+    <input
+        type="search"
+        class="form-control form-control-sm js-lm-voters-search-mobile"
+        placeholder="بحث..."
+        aria-label="بحث داخل المضامين"
+    >
 </div>
 
 <div class="table-responsive">

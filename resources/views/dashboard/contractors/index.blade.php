@@ -200,9 +200,22 @@
 
                 <div id="list-management-voters-section" class="card border-0 shadow-sm mb-3 d-none" style="border-radius:14px; overflow:hidden;">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2 d-none d-md-flex">
                             <h6 class="mb-0" style="font-weight:900;">إدارة المضامين حسب السيليكشن</h6>
+                            <div class="mx-3 flex-grow-1" style="max-width: 360px;">
+                                <input
+                                    type="search"
+                                    id="list-management-voters-search-desktop"
+                                    class="form-control form-control-sm"
+                                    placeholder="بحث داخل المضامين..."
+                                    aria-label="بحث داخل المضامين"
+                                >
+                            </div>
                             <span id="list-management-voters-count" class="badge bg-primary">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2 d-md-none">
+                            <h6 class="mb-0" style="font-weight:900;">إدارة المضامين حسب السيليكشن</h6>
+                            <span id="list-management-voters-count-mobile" class="badge bg-primary">0</span>
                         </div>
                         <div id="list-management-voters-content">
                             <div class="text-center text-muted py-3">اضغط "إدارة المضامين" لعرض البيانات.</div>
@@ -1968,11 +1981,14 @@
         var votersSection = document.getElementById('list-management-voters-section');
         var votersContent = document.getElementById('list-management-voters-content');
         var votersCount = document.getElementById('list-management-voters-count');
+        var votersCountMobile = document.getElementById('list-management-voters-count-mobile');
+        var votersSearchDesktop = document.getElementById('list-management-voters-search-desktop');
         var stateEl = document.getElementById('list-management-voters-state');
         var filterForm = document.getElementById('list-management-candidates-filter');
         var contractorsOnlyBlocks = Array.prototype.slice.call(document.querySelectorAll('.list-management-contractors-only'));
         var activeController = null;
         var mobileVotersExpanded = false;
+        var votersSearchKeyword = '';
 
         function setState(message, isError) {
             if (!stateEl) return;
@@ -2013,6 +2029,54 @@
                 toggleMobileBtn.setAttribute('data-expanded', mobileVotersExpanded ? '1' : '0');
                 toggleMobileBtn.textContent = mobileVotersExpanded ? 'إخفاء التفاصيل' : 'إظهار تفاصيل أكثر';
             }
+        }
+
+        function syncVotersSearchInputs() {
+            var mobileSearchInput = votersContent ? votersContent.querySelector('.js-lm-voters-search-mobile') : null;
+
+            if (votersSearchDesktop && votersSearchDesktop.value !== votersSearchKeyword) {
+                votersSearchDesktop.value = votersSearchKeyword;
+            }
+
+            if (mobileSearchInput && mobileSearchInput.value !== votersSearchKeyword) {
+                mobileSearchInput.value = votersSearchKeyword;
+            }
+        }
+
+        function applyVotersSearchFilter() {
+            if (!votersContent) return;
+
+            var rows = Array.prototype.slice.call(votersContent.querySelectorAll('table.list-management-voters-table tbody tr'));
+            if (!rows.length) {
+                if (votersCount) votersCount.textContent = '0';
+                if (votersCountMobile) votersCountMobile.textContent = '0';
+                return;
+            }
+
+            var keyword = String(votersSearchKeyword || '').toLowerCase().trim();
+            var visibleRows = 0;
+
+            rows.forEach(function (row) {
+                var noDataCell = row.querySelector('td[colspan]');
+                if (noDataCell) {
+                    row.style.display = '';
+                    return;
+                }
+
+                var rowText = String(row.textContent || '').toLowerCase();
+                var isMatch = !keyword || rowText.indexOf(keyword) !== -1;
+                row.style.display = isMatch ? '' : 'none';
+                if (isMatch) visibleRows += 1;
+            });
+
+            if (votersCount) votersCount.textContent = String(visibleRows);
+            if (votersCountMobile) votersCountMobile.textContent = String(visibleRows);
+        }
+
+        function updateVotersSearch(value) {
+            votersSearchKeyword = String(value || '');
+            syncVotersSearchInputs();
+            applyVotersSearchFilter();
         }
 
         function renderVoters() {
@@ -2057,10 +2121,16 @@
 
                     mobileVotersExpanded = false;
                     applyMobileVotersLayout();
+                    syncVotersSearchInputs();
 
                     if (votersCount) {
                         votersCount.textContent = String(payload?.total ?? 0);
                     }
+                    if (votersCountMobile) {
+                        votersCountMobile.textContent = String(payload?.total ?? 0);
+                    }
+
+                    applyVotersSearchFilter();
 
                     setState('تم تحديث المضامين');
                     setTimeout(function () { setState(''); }, 1000);
@@ -2071,6 +2141,8 @@
                     if (votersContent) {
                         votersContent.innerHTML = '<div class="text-center text-danger py-3">تعذر تحميل المضامين.</div>';
                     }
+                    if (votersCount) votersCount.textContent = '0';
+                    if (votersCountMobile) votersCountMobile.textContent = '0';
                     setState('تعذر تحميل المضامين', true);
                 })
                 .finally(function () {
@@ -2104,6 +2176,18 @@
                 event.preventDefault();
                 mobileVotersExpanded = !mobileVotersExpanded;
                 applyMobileVotersLayout();
+            });
+
+            votersContent.addEventListener('input', function (event) {
+                var mobileSearchInput = event.target.closest('.js-lm-voters-search-mobile');
+                if (!mobileSearchInput) return;
+                updateVotersSearch(mobileSearchInput.value);
+            });
+        }
+
+        if (votersSearchDesktop) {
+            votersSearchDesktop.addEventListener('input', function () {
+                updateVotersSearch(votersSearchDesktop.value);
             });
         }
 
