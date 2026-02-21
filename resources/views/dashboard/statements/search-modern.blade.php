@@ -761,8 +761,18 @@
             const filtered = query
                 ? familyOptionsCache.filter((item) => item.label.toLowerCase().includes(query))
                 : familyOptionsCache.slice();
+            const selectedItem = currentValue
+                ? familyOptionsCache.find((item) => item.value === currentValue)
+                : null;
 
             familySelectElement.innerHTML = '<option value="" hidden>العائلة...</option><option value="">--</option>';
+
+            if (selectedItem && !filtered.some((item) => item.value === selectedItem.value)) {
+                const pinnedSelectedOption = document.createElement('option');
+                pinnedSelectedOption.value = selectedItem.value;
+                pinnedSelectedOption.textContent = selectedItem.label;
+                familySelectElement.appendChild(pinnedSelectedOption);
+            }
 
             filtered.forEach((item) => {
                 const option = document.createElement('option');
@@ -771,10 +781,16 @@
                 familySelectElement.appendChild(option);
             });
 
-            if (currentValue && filtered.some((item) => item.value === currentValue)) {
+            if (currentValue && familyOptionsCache.some((item) => item.value === currentValue)) {
                 familySelectElement.value = currentValue;
-            } else if (currentValue) {
-                familySelectElement.value = '';
+            }
+
+            if (filtered.length === 0) {
+                const noResultOption = document.createElement('option');
+                noResultOption.value = '';
+                noResultOption.textContent = 'لا توجد عائلات مطابقة';
+                noResultOption.disabled = true;
+                familySelectElement.appendChild(noResultOption);
             }
         }
 
