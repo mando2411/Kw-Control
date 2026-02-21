@@ -950,7 +950,7 @@
                                                         <div class="sm-export-section mb-0">
                                                             <h6 class="sm-export-section-title">إرسال PDF عبر WhatsApp</h6>
                                                                 <div class="d-flex gap-2 align-items-center">
-                                                                <input type="text" inputmode="numeric" dir="ltr" class="form-control" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
+                                                                <input type="text" inputmode="numeric" dir="ltr" class="form-control" id="smExportWhatsappTo" name="to" placeholder="رقم الهاتف لإرسال WhatsApp">
                                                                 <button type="button" class="btn btn-outline-primary sm-export-action" value="Send">إرسال</button>
                                                                 </div>
                                                         </div>
@@ -1005,6 +1005,7 @@
             var exportSearchId = document.getElementById('smExportSearchId');
             var exportCloseBtn = document.getElementById('smExportCloseBtn');
             var exportOpenBtn = document.getElementById('smOpenExport');
+            var exportWhatsappInput = document.getElementById('smExportWhatsappTo');
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
             var shouldCloseParentAfterExport = false;
@@ -1020,11 +1021,24 @@
 
                 if (window.jQuery && window.jQuery.fn && window.jQuery.fn.modal && window.jQuery.fn.modal.Constructor) {
                     var constructor = window.jQuery.fn.modal.Constructor;
-                    if (constructor.prototype && typeof constructor.prototype.enforceFocus === 'function' && !restoreEnforceFocus) {
+                    if (constructor.prototype && !restoreEnforceFocus) {
                         var originalEnforceFocus = constructor.prototype.enforceFocus;
-                        constructor.prototype.enforceFocus = function () {};
+                        var originalPrivateEnforceFocus = constructor.prototype._enforceFocus;
+
+                        if (typeof constructor.prototype.enforceFocus === 'function') {
+                            constructor.prototype.enforceFocus = function () {};
+                        }
+                        if (typeof constructor.prototype._enforceFocus === 'function') {
+                            constructor.prototype._enforceFocus = function () {};
+                        }
+
+                        if (window.jQuery && typeof window.jQuery(document).off === 'function') {
+                            window.jQuery(document).off('focusin.modal');
+                        }
+
                         restoreEnforceFocus = function () {
                             constructor.prototype.enforceFocus = originalEnforceFocus;
+                            constructor.prototype._enforceFocus = originalPrivateEnforceFocus;
                             restoreEnforceFocus = null;
                         };
                     }
@@ -1635,6 +1649,16 @@
                     var latestBackdrop = backdrops.length ? backdrops[backdrops.length - 1] : null;
                     if (latestBackdrop) {
                         latestBackdrop.classList.add('sm-export-backdrop');
+                    }
+
+                    if (exportWhatsappInput) {
+                        setTimeout(function () {
+                            try {
+                                exportWhatsappInput.focus();
+                                exportWhatsappInput.select();
+                            } catch (error) {
+                            }
+                        }, 0);
                     }
                 });
 
