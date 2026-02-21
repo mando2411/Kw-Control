@@ -280,7 +280,7 @@
                                         <h5 class="sm-export-title">استخراج الكشوف</h5>
                                         <p class="sm-export-sub">حدد الأعمدة ونوع الإخراج ثم صدّر النتائج المحددة.</p>
                                 </div>
-                                <button type="button" id="smExportCloseBtn" class="btn-close" aria-label="Close"></button>
+                                <button type="button" id="smExportCloseBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                                 <form action="{{ route('export') }}" method="GET" id="smExportForm">
@@ -337,3 +337,30 @@
                 </div>
         </div>
 </div>
+
+<script>
+(function () {
+    var openBtn = document.getElementById('smOpenExport');
+    var exportModalElement = document.getElementById('smExportModal');
+    if (!openBtn || !exportModalElement) return;
+
+    if (openBtn.dataset.exportFallbackBound === '1') return;
+    openBtn.dataset.exportFallbackBound = '1';
+
+    openBtn.addEventListener('click', function (event) {
+        setTimeout(function () {
+            if (event.defaultPrevented) return;
+            if (exportModalElement.classList.contains('show')) return;
+
+            if (window.bootstrap && window.bootstrap.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(exportModalElement).show();
+                return;
+            }
+
+            if (window.jQuery && typeof window.jQuery(exportModalElement).modal === 'function') {
+                window.jQuery(exportModalElement).modal('show');
+            }
+        }, 0);
+    });
+})();
+</script>
