@@ -1623,6 +1623,7 @@
                 var actionType = this.value;
                 var submitBtn = this;
                 var selectedIds = getSelectedVoterIdsForExport();
+                var sendPendingTab = null;
 
                 if (!selectedIds.length) {
                     showExportStatus('اختر ناخبًا واحدًا على الأقل', 'error');
@@ -1660,6 +1661,10 @@
                 submitBtn.disabled = true;
                 showExportStatus('جاري تنفيذ العملية...', 'info');
 
+                if (actionType === 'Send') {
+                    sendPendingTab = window.open('about:blank', '_blank');
+                }
+
                 if (actionType === 'Excel' || actionType === 'PDF') {
                     closeExportModal();
                     axios.post(exportAsyncUrl, formData, {
@@ -1691,9 +1696,10 @@
                         showExportStatus('تم تنفيذ العملية', 'success');
 
                         if (actionType === 'Send' && res.data?.Redirect_Url) {
-                            var waTab = window.open();
-                            if (waTab) {
-                                waTab.location.href = res.data.Redirect_Url;
+                            if (sendPendingTab) {
+                                sendPendingTab.location.href = res.data.Redirect_Url;
+                            } else {
+                                window.location.href = res.data.Redirect_Url;
                             }
                             return;
                         }
@@ -1710,6 +1716,9 @@
                         }
                     })
                     .catch(function (error) {
+                        if (sendPendingTab && !sendPendingTab.closed) {
+                            sendPendingTab.close();
+                        }
                         console.error(error);
                         showExportStatus(error?.response?.data?.error || 'حدث خطأ غير متوقع', 'error');
                     })
