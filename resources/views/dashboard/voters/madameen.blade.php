@@ -66,9 +66,9 @@
                 </form>
 
                 <div class="d-flex widthOn3 mt-3 text-white">
-                    <div class="text-center rounded-3 pt-3 bg-info font-sm">
-                        استخراخ كشوف (<span class="listNumber">0</span>)
-                    </div>
+                    <button type="button" class="btn text-white text-center rounded-3 bg-info font-sm">
+                        استخراج كشوف (<span class="listNumber">0</span>)
+                    </button>
                     <div class="text-center rounded-3 pt-3 mx-2 bg-dark font-sm">
                         المضامين ( <span class="madameednumber">{{ $voters->count() }}</span> )
                     </div>
