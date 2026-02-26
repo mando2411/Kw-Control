@@ -649,7 +649,7 @@
                     <button type="submit" class="btn btn-primary">بحث الآن</button>
                     <button type="button" id="smResetBtn" class="btn btn-outline-secondary">إعادة تعيين</button>
                 </div>
-                <small class="text-muted">كل النتائج تُحمّل بسرعة عبر Ajax بدون إعادة تحميل الصفحة.</small>
+                <small class="text-muted">كل النتائج تُحمّل بسرعة بدون إعادة تحميل الصفحة.</small>
             </div>
         </form>
     </div>
