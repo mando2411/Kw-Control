@@ -118,30 +118,46 @@
         @endif
     </style>
 </head>
+
 @php
     $reportUser = $reportUser ?? auth()->user();
-
-    $candidateRelation = $reportUser?->candidate;
-    if ($candidateRelation instanceof \Illuminate\Support\Collection) {
-        $candidate = $candidateRelation->firstWhere('election_id', $reportUser?->election_id)
-            ?? $candidateRelation->first();
-    } else {
-        $candidate = $candidateRelation;
+    if ($reportUser instanceof \Illuminate\Support\Collection) {
+        $reportUser = $reportUser->first();
     }
 
+    $candidate = null;
+    if (is_object($reportUser) && isset($reportUser->candidate)) {
+        $candidateRelation = $reportUser->candidate;
+
+        if ($candidateRelation instanceof \Illuminate\Support\Collection) {
+            $candidate = $candidateRelation->firstWhere('election_id', $reportUser?->election_id)
+                ?? $candidateRelation->first();
+        } else {
+            $candidate = $candidateRelation;
+        }
+    }
+
+    if ($candidate instanceof \Illuminate\Support\Collection) {
+        $candidate = $candidate->firstWhere('election_id', $reportUser?->election_id)
+            ?? $candidate->first();
+    }
+
+    $candidateTypeValue = is_object($candidate) ? ($candidate->candidate_type ?? null) : null;
+    $listLeaderCandidateId = is_object($candidate) ? ($candidate->list_leader_candidate_id ?? null) : null;
+
     $candidateType = 'مرشح';
-    if ($candidate?->candidate_type === 'list_leader') {
+    if ($candidateTypeValue === 'list_leader') {
         $candidateType = 'مرشح رئيس قائمة';
-    } elseif (!is_null($candidate?->list_leader_candidate_id)) {
+    } elseif (!is_null($listLeaderCandidateId)) {
         $candidateType = 'مرشح عضو قائمة';
     } elseif (!$candidate && $reportUser && method_exists($reportUser, 'hasRole') && $reportUser->hasRole('متعهد')) {
         $candidateType = 'متعهد';
     }
 
     $listName = null;
-    if ($candidate?->candidate_type === 'list_leader') {
-        $listName = $candidate->list_name;
-    } elseif (!is_null($candidate?->list_leader_candidate_id)) {
+    if ($candidateTypeValue === 'list_leader') {
+        $listName = $candidate->list_name ?? null;
+    } elseif (!is_null($listLeaderCandidateId)) {
         $listName = optional($candidate?->listLeader)->list_name;
     }
 
