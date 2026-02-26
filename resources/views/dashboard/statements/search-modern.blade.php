@@ -763,6 +763,7 @@
         let nextPageToLoad = 2;
         let isAppending = false;
         let hasActiveSearch = false;
+        let lastSearchTotal = 0;
 
         const dynamicSelectMap = {
             '#smFakhd': 'alfkhd',
@@ -970,6 +971,35 @@
             }
         }
 
+        function syncCheckAllState() {
+            if (!checkAll) return;
+
+            const total = Number(lastSearchTotal || 0);
+            const selectedCount = selectedVoterIds.size;
+
+            if (total <= 0 || selectedCount === 0) {
+                checkAll.checked = false;
+                checkAll.indeterminate = false;
+                return;
+            }
+
+            checkAll.checked = selectedCount >= total;
+            checkAll.indeterminate = selectedCount > 0 && selectedCount < total;
+        }
+
+        async function fetchAllMatchingVoterIds() {
+            const params = lastParams ? { ...lastParams } : toParams(1);
+            params.page = 1;
+            params.per_page = 'all';
+
+            const response = await axios.get(form.action, { params });
+            const voters = Array.isArray(response?.data?.voters) ? response.data.voters : [];
+
+            return voters
+                .map((voter) => String(voter?.id || '').trim())
+                .filter((id) => id !== '');
+        }
+
         function getSelectedVoterIdsForExport() {
             const checkedNow = Array.from(resultsBody.querySelectorAll('.sm-check:checked'))
                 .map((item) => String(item.value || '').trim())
@@ -1034,7 +1064,9 @@
         function updateMeta(meta) {
             totalCount.textContent = String(meta?.total || 0);
             currentPage.textContent = String(meta?.current_page || 1);
+            lastSearchTotal = Number(meta?.total || 0);
             updateExportBarVisibility(meta?.total || 0);
+            syncCheckAllState();
         }
 
         function runSearch(page, options = {}) {
@@ -1068,10 +1100,7 @@
                     const lastPage = Number(payload?.pagination?.last_page || 1);
                     hasMorePages = currentPage < lastPage;
                     nextPageToLoad = currentPage + 1;
-
-                    if (checkAll) {
-                        checkAll.checked = false;
-                    }
+                    syncCheckAllState();
                 })
                 .catch((error) => {
                     if (requestId !== currentRequestId) return;
@@ -1234,21 +1263,56 @@
             } else {
                 selectedVoterIds.delete(id);
             }
+
+            syncCheckAllState();
         });
 
         if (checkAll) {
-            checkAll.addEventListener('change', function () {
+            checkAll.addEventListener('change', async function () {
                 const checked = !!checkAll.checked;
-                resultsBody.querySelectorAll('.sm-check').forEach((item) => {
-                    item.checked = checked;
-                    const id = String(item.value || '');
-                    if (!id) return;
-                    if (checked) {
-                        selectedVoterIds.add(id);
-                    } else {
-                        selectedVoterIds.delete(id);
-                    }
-                });
+
+                if (!checked) {
+                    selectedVoterIds.clear();
+                    resultsBody.querySelectorAll('.sm-check').forEach((item) => {
+                        item.checked = false;
+                    });
+                    syncCheckAllState();
+                    return;
+                }
+
+                if (!hasActiveSearch) {
+                    checkAll.checked = false;
+                    checkAll.indeterminate = false;
+                    toastr.warning('نفّذ البحث أولًا قبل تحديد كل النتائج.');
+                    return;
+                }
+
+                checkAll.disabled = true;
+                checkAll.indeterminate = false;
+
+                try {
+                    const allIds = await fetchAllMatchingVoterIds();
+
+                    selectedVoterIds.clear();
+                    allIds.forEach((id) => selectedVoterIds.add(id));
+
+                    resultsBody.querySelectorAll('.sm-check').forEach((item) => {
+                        const id = String(item.value || '').trim();
+                        item.checked = id !== '' && selectedVoterIds.has(id);
+                    });
+
+                    lastSearchTotal = Math.max(lastSearchTotal, allIds.length);
+                    syncCheckAllState();
+
+                    toastr.success(`تم تحديد كل النتائج (${allIds.length}).`);
+                } catch (error) {
+                    console.error(error);
+                    checkAll.checked = false;
+                    checkAll.indeterminate = false;
+                    toastr.error('تعذر تحديد كل النتائج. حاول مرة أخرى.');
+                } finally {
+                    checkAll.disabled = false;
+                }
             });
         }
 
@@ -1416,6 +1480,7 @@
             form.reset();
             lastParams = null;
             selectedVoterIds.clear();
+            lastSearchTotal = 0;
             setEmpty('تمت إعادة التعيين. ابدأ البحث لعرض النتائج.');
             totalCount.textContent = '0';
             currentPage.textContent = '1';
@@ -1426,6 +1491,7 @@
             nextPageToLoad = 2;
             isAppending = false;
             hasActiveSearch = false;
+            syncCheckAllState();
             refreshDynamicFilters();
         });
 
@@ -1480,3 +1546,4 @@
     })();
 </script>
 @endpush
+
