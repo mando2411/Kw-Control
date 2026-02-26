@@ -5,10 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تصدير الجدول</title>
     <style>
+        html,
+        body {
+            direction: rtl;
+        }
+
         body {
             font-family: DejaVu Sans, sans-serif;
             margin: 12px;
             color: #111827;
+            text-align: right;
         }
 
         .report-header {
@@ -30,6 +36,9 @@
             margin-right: 140px;
             min-height: 104px;
             padding-right: 8px;
+            direction: rtl;
+            text-align: right;
+            unicode-bidi: plaintext;
         }
 
         .candidate-avatar {
@@ -60,11 +69,16 @@
             line-height: 1.25;
             color: #0f172a;
             font-weight: 700;
+            text-align: right;
+            direction: rtl;
         }
 
         .meta-line {
             margin: 4px 0;
             font-size: 15px;
+            text-align: right;
+            direction: rtl;
+            unicode-bidi: plaintext;
         }
 
         .meta-label {
@@ -210,14 +224,55 @@
     }
 
     $imageBase64 = null;
+    $imageMime = 'image/jpeg';
+
+    $imageCandidates = [];
+    if (is_object($reportUser) && method_exists($reportUser, 'getRawOriginal')) {
+        $rawImage = (string) $reportUser->getRawOriginal('image');
+        if ($rawImage !== '') {
+            $imageCandidates[] = $rawImage;
+        }
+    }
+
     $imageUrl = (string) ($reportUser?->image ?? '');
     if ($imageUrl !== '') {
-        $relativePath = parse_url($imageUrl, PHP_URL_PATH);
-        if (is_string($relativePath) && $relativePath !== '') {
-            $filePath = public_path(ltrim($relativePath, '/'));
-            if (file_exists($filePath)) {
-                $imageContent = file_get_contents($filePath);
-                $imageBase64 = base64_encode($imageContent);
+        $imageCandidates[] = $imageUrl;
+    }
+
+    foreach (array_unique(array_filter($imageCandidates)) as $candidateImagePath) {
+        $parsedPath = parse_url($candidateImagePath, PHP_URL_PATH);
+        $parsedPath = is_string($parsedPath) ? $parsedPath : $candidateImagePath;
+        $parsedPath = '/' . ltrim($parsedPath, '/');
+
+        $possiblePaths = [
+            public_path(ltrim($parsedPath, '/')),
+        ];
+
+        if (str_starts_with($parsedPath, '/media-file/')) {
+            $relativeMediaPath = ltrim(substr($parsedPath, strlen('/media-file/')), '/');
+            $possiblePaths[] = storage_path('app/public/media/' . $relativeMediaPath);
+            $possiblePaths[] = public_path('storage/media/' . $relativeMediaPath);
+        }
+
+        if (str_starts_with($parsedPath, '/storage/media/')) {
+            $relativeMediaPath = ltrim(substr($parsedPath, strlen('/storage/media/')), '/');
+            $possiblePaths[] = storage_path('app/public/media/' . $relativeMediaPath);
+        }
+
+        foreach ($possiblePaths as $filePath) {
+            if (is_string($filePath) && $filePath !== '' && file_exists($filePath) && is_file($filePath)) {
+                $imageContent = @file_get_contents($filePath);
+                if ($imageContent !== false) {
+                    if (function_exists('mime_content_type')) {
+                        $detectedMime = @mime_content_type($filePath);
+                        if (is_string($detectedMime) && str_starts_with($detectedMime, 'image/')) {
+                            $imageMime = $detectedMime;
+                        }
+                    }
+
+                    $imageBase64 = base64_encode($imageContent);
+                    break 2;
+                }
             }
         }
     }
@@ -229,7 +284,7 @@
 <div class="report-header">
     <div class="right-col">
         @if($imageBase64)
-            <img class="candidate-avatar" src="data:image/jpeg;base64,{{ $imageBase64 }}" alt="صورة المستخدم">
+            <img class="candidate-avatar" src="data:{{ $imageMime }};base64,{{ $imageBase64 }}" alt="صورة المستخدم">
         @else
             <div class="avatar-fallback">{{ $nameInitial }}</div>
         @endif
