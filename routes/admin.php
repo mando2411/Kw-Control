@@ -129,6 +129,7 @@ Route::post('committee/status/{id}',[CommitteeController::class,'status'])->name
 Route::post('ass/{id}',[ContractorController::class,'ass'])->name('ass');
 Route::post('delete/mad',[ContractorController::class,'delete_mad'])->name('delete_mad');
 Route::get('contract/{token}/profile',[ContractorController::class,'profile'])->name('con-profile');
+Route::get('contract/{token}/keep-alive',[ContractorController::class,'portalKeepAlive'])->name('con-keep-alive');
 Route::get('contract/{token}/support', function ($token) {
     $contractor = \App\Models\Contractor::where('token', $token)->firstOrFail();
     return view('dashboard.contractors.support', compact('contractor'));

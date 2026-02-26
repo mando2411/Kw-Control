@@ -408,6 +408,13 @@ class ContractorController extends Controller
             ->with(['creator', 'election'])
             ->where('token', $normalizedToken)
             ->firstOrFail();
+
+        if (!empty($contractor->user_id)) {
+            User::query()
+                ->where('id', (int) $contractor->user_id)
+                ->update(['last_active_at' => now()]);
+        }
+
         $electionId = $contractor->election_id ?? optional($contractor->creator)->election_id;
         $families = Family::withoutGlobalScopes()
             ->select('name', 'id')
@@ -429,6 +436,26 @@ class ContractorController extends Controller
 
 		return view($profileView, compact('contractor','families'));
     }
+
+    public function portalKeepAlive(string $token)
+    {
+        $normalizedToken = trim((string) urldecode($token));
+
+        $contractor = Contractor::withoutGlobalScopes()
+            ->where('token', $normalizedToken)
+            ->firstOrFail();
+
+        if (!empty($contractor->user_id)) {
+            User::query()
+                ->where('id', (int) $contractor->user_id)
+                ->update(['last_active_at' => now()]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+        ]);
+    }
+
     public function search(Request $request){
         $contractorToken = trim((string) $request->input('contractor_token', ''));
         $isPortalContext = $contractorToken !== '';

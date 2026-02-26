@@ -4846,6 +4846,50 @@ $(document).off('click.groupEdit', '#delete-g').on('click.groupEdit', '#delete-g
 
 
 
+(function () {
+  const keepAliveUrl = @json(route('con-keep-alive', ['token' => $contractor->token]));
+  let keepAliveTimer = null;
+  let keepAliveInFlight = false;
+
+  function pingKeepAlive() {
+    if (keepAliveInFlight || document.hidden) return;
+    keepAliveInFlight = true;
+
+    fetch(keepAliveUrl, {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    })
+      .catch(function () {})
+      .finally(function () {
+        keepAliveInFlight = false;
+      });
+  }
+
+  function startKeepAlive() {
+    if (keepAliveTimer) {
+      clearInterval(keepAliveTimer);
+    }
+    pingKeepAlive();
+    keepAliveTimer = setInterval(pingKeepAlive, 60000);
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) {
+      pingKeepAlive();
+    }
+  });
+
+  window.addEventListener('focus', pingKeepAlive);
+  window.addEventListener('online', pingKeepAlive);
+
+  startKeepAlive();
+})();
+
+
     </script>
   </body>
 </html>
