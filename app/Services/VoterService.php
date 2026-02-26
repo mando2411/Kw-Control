@@ -79,6 +79,13 @@ class VoterService
                 });
         };
 
+        $topRepeatedName = function ($query) use ($withScopedContractorsCount) {
+            return $withScopedContractorsCount($query)
+                ->having('contractors_count', '>', 1)
+                ->orderBy('contractors_count', 'desc')
+                ->value('name') ?? '0';
+        };
+
         $data=[
             'MenCount' => (clone $votersQuery)->where('type', Type::MALE->value)
                 ->count(),
@@ -91,15 +98,9 @@ class VoterService
             'womenHasContractors' => $duplicateOccurrences((clone $votersQuery)->where('type', Type::FEMALE->value)),
             
             'AllHasContractors' => $duplicateOccurrences((clone $votersQuery)),
-            'MenName'=>$withScopedContractorsCount((clone $votersQuery)
-            ->where('type', Type::MALE->value))
-            ->orderBy('contractors_count', 'desc')
-            ->first()->name ?? '0',
+            'MenName'=>$topRepeatedName((clone $votersQuery)->where('type', Type::MALE->value)),
 
-            'WomenName'=>$withScopedContractorsCount((clone $votersQuery)
-            ->where('type', Type::FEMALE->value))
-            ->orderBy('contractors_count', 'desc')
-            ->first()?->name ?? '0',
+            'WomenName'=>$topRepeatedName((clone $votersQuery)->where('type', Type::FEMALE->value)),
         ];
         return $data;
         
