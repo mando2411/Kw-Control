@@ -28,6 +28,60 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class StatementController extends Controller
 {
+    private function buildReportHeaderData($reportUser): array
+    {
+        if ($reportUser instanceof \Illuminate\Support\Collection) {
+            $reportUser = $reportUser->first();
+        }
+
+        $candidate = null;
+        if (is_object($reportUser) && isset($reportUser->candidate)) {
+            $candidateRelation = $reportUser->candidate;
+
+            if ($candidateRelation instanceof \Illuminate\Support\Collection) {
+                $candidate = $candidateRelation->firstWhere('election_id', $reportUser?->election_id)
+                    ?? $candidateRelation->first();
+            } else {
+                $candidate = $candidateRelation;
+            }
+        }
+
+        if ($candidate instanceof \Illuminate\Support\Collection) {
+            $candidate = $candidate->firstWhere('election_id', $reportUser?->election_id)
+                ?? $candidate->first();
+        }
+
+        $candidateTypeValue = is_object($candidate) ? ($candidate->candidate_type ?? null) : null;
+        $listLeaderCandidateId = is_object($candidate) ? ($candidate->list_leader_candidate_id ?? null) : null;
+
+        $candidateType = 'مرشح';
+        if ($candidateTypeValue === 'list_leader') {
+            $candidateType = 'مرشح رئيس قائمة';
+        } elseif (!is_null($listLeaderCandidateId)) {
+            $candidateType = 'مرشح عضو قائمة';
+        } elseif (!$candidate && $reportUser && method_exists($reportUser, 'hasRole') && $reportUser->hasRole('متعهد')) {
+            $candidateType = 'متعهد';
+        }
+
+        $listName = null;
+        if ($candidateTypeValue === 'list_leader') {
+            $listName = $candidate->list_name ?? null;
+        } elseif (!is_null($listLeaderCandidateId)) {
+            $listName = optional($candidate?->listLeader)->list_name;
+        }
+
+        $campaignName = $reportUser?->election?->name
+            ?? $candidate?->election?->name
+            ?? 'غير محدد';
+
+        return [
+            'reportUser' => $reportUser,
+            'reportCandidateType' => $candidateType,
+            'reportListName' => $listName,
+            'reportCampaignName' => $campaignName,
+        ];
+    }
+
     private function resolveStatementSearchView(): string
     {
         return 'dashboard.statements.search-modern';
@@ -425,6 +479,9 @@ public function export(Request $request)
     if ($request->type == "Excel") {
         return Excel::download(new VotersExport($voters, request('columns')), 'Voters.xlsx');
     } elseif ($request->type == "PDF" || $request->type == "Send") {
+        $reportUser = auth()->user()?->loadMissing(['candidate.listLeader', 'election']);
+        $reportHeaderData = $this->buildReportHeaderData($reportUser);
+
         $token = bin2hex(random_bytes(16));
         $VoterFile = $token . ".pdf";
         $VoterPath = public_path("Pdf/" . $VoterFile);
@@ -437,7 +494,7 @@ public function export(Request $request)
             'voters' => $voters,
             'mode' => 'pdf',
             'columns' => request("columns"),
-            'reportUser' => auth()->user()?->loadMissing(['candidate.listLeader', 'election']),
+            ...$reportHeaderData,
         ])->toArabicHTML();
         $pdf = Pdf::loadHTML($html)
             // ->setPaper('a4', 'landscape')
@@ -489,10 +546,13 @@ public function export(Request $request)
 
     } else {
         $columns = request('columns');
+        $reportUser = auth()->user()?->loadMissing(['candidate.listLeader', 'election']);
+        $reportHeaderData = $this->buildReportHeaderData($reportUser);
+
         return view('dashboard.exports.pdf', [
             'voters' => $voters,
             'columns' => $columns,
-            'reportUser' => auth()->user()?->loadMissing(['candidate.listLeader', 'election']),
+            ...$reportHeaderData,
         ]);
     }
     return redirect()->back();

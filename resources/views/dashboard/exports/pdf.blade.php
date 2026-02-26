@@ -125,45 +125,9 @@
         $reportUser = $reportUser->first();
     }
 
-    $candidate = null;
-    if (is_object($reportUser) && isset($reportUser->candidate)) {
-        $candidateRelation = $reportUser->candidate;
-
-        if ($candidateRelation instanceof \Illuminate\Support\Collection) {
-            $candidate = $candidateRelation->firstWhere('election_id', $reportUser?->election_id)
-                ?? $candidateRelation->first();
-        } else {
-            $candidate = $candidateRelation;
-        }
-    }
-
-    if ($candidate instanceof \Illuminate\Support\Collection) {
-        $candidate = $candidate->firstWhere('election_id', $reportUser?->election_id)
-            ?? $candidate->first();
-    }
-
-    $candidateTypeValue = is_object($candidate) ? ($candidate->candidate_type ?? null) : null;
-    $listLeaderCandidateId = is_object($candidate) ? ($candidate->list_leader_candidate_id ?? null) : null;
-
-    $candidateType = 'مرشح';
-    if ($candidateTypeValue === 'list_leader') {
-        $candidateType = 'مرشح رئيس قائمة';
-    } elseif (!is_null($listLeaderCandidateId)) {
-        $candidateType = 'مرشح عضو قائمة';
-    } elseif (!$candidate && $reportUser && method_exists($reportUser, 'hasRole') && $reportUser->hasRole('متعهد')) {
-        $candidateType = 'متعهد';
-    }
-
-    $listName = null;
-    if ($candidateTypeValue === 'list_leader') {
-        $listName = $candidate->list_name ?? null;
-    } elseif (!is_null($listLeaderCandidateId)) {
-        $listName = optional($candidate?->listLeader)->list_name;
-    }
-
-    $campaignName = $reportUser?->election?->name
-        ?? $candidate?->election?->name
-        ?? 'غير محدد';
+    $candidateType = $reportCandidateType ?? 'مرشح';
+    $listName = $reportListName ?? null;
+    $campaignName = $reportCampaignName ?? ($reportUser?->election?->name ?? 'غير محدد');
 
     $headers = ['#', 'name'];
     if (in_array('family', $columns ?? [])) {

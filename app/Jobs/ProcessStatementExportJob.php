@@ -61,11 +61,14 @@ class ProcessStatementExportJob implements ShouldQueue
                 Excel::store(new VotersExport($voters, $this->columns), $relativePath, 'public');
             } else {
                 $relativePath = $directory . '/statement_' . $timestamp . '.pdf';
+                $reportUser = $user->loadMissing(['candidate.listLeader', 'election']);
+                $reportHeaderData = $this->buildReportHeaderData($reportUser);
+
                 $html = view('dashboard.exports.pdf', [
                     'voters' => $voters,
                     'mode' => 'pdf',
                     'columns' => $this->columns,
-                    'reportUser' => $user->loadMissing(['candidate.listLeader', 'election']),
+                    ...$reportHeaderData,
                 ])->toArabicHTML();
 
                 $pdf = Pdf::loadHTML($html)
@@ -126,6 +129,60 @@ class ProcessStatementExportJob implements ShouldQueue
             $this->sendFailureNotification($user, 'حدث خطأ أثناء تجهيز ملف الكشوف. حاول مرة أخرى.');
             throw $exception;
         }
+    }
+
+    private function buildReportHeaderData($reportUser): array
+    {
+        if ($reportUser instanceof \Illuminate\Support\Collection) {
+            $reportUser = $reportUser->first();
+        }
+
+        $candidate = null;
+        if (is_object($reportUser) && isset($reportUser->candidate)) {
+            $candidateRelation = $reportUser->candidate;
+
+            if ($candidateRelation instanceof \Illuminate\Support\Collection) {
+                $candidate = $candidateRelation->firstWhere('election_id', $reportUser?->election_id)
+                    ?? $candidateRelation->first();
+            } else {
+                $candidate = $candidateRelation;
+            }
+        }
+
+        if ($candidate instanceof \Illuminate\Support\Collection) {
+            $candidate = $candidate->firstWhere('election_id', $reportUser?->election_id)
+                ?? $candidate->first();
+        }
+
+        $candidateTypeValue = is_object($candidate) ? ($candidate->candidate_type ?? null) : null;
+        $listLeaderCandidateId = is_object($candidate) ? ($candidate->list_leader_candidate_id ?? null) : null;
+
+        $candidateType = 'مرشح';
+        if ($candidateTypeValue === 'list_leader') {
+            $candidateType = 'مرشح رئيس قائمة';
+        } elseif (!is_null($listLeaderCandidateId)) {
+            $candidateType = 'مرشح عضو قائمة';
+        } elseif (!$candidate && $reportUser && method_exists($reportUser, 'hasRole') && $reportUser->hasRole('متعهد')) {
+            $candidateType = 'متعهد';
+        }
+
+        $listName = null;
+        if ($candidateTypeValue === 'list_leader') {
+            $listName = $candidate->list_name ?? null;
+        } elseif (!is_null($listLeaderCandidateId)) {
+            $listName = optional($candidate?->listLeader)->list_name;
+        }
+
+        $campaignName = $reportUser?->election?->name
+            ?? $candidate?->election?->name
+            ?? 'غير محدد';
+
+        return [
+            'reportUser' => $reportUser,
+            'reportCandidateType' => $candidateType,
+            'reportListName' => $listName,
+            'reportCampaignName' => $campaignName,
+        ];
     }
 
     private function sendFailureNotification(User $user, string $message): void
