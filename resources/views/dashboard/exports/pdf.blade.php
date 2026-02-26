@@ -38,23 +38,21 @@
             border: 1px solid #cfd9e6;
             border-radius: 8px;
             background: #eef4fb;
-            padding: 7px 10px;
+            padding: 9px 10px;
             margin-bottom: 12px;
-            overflow: hidden;
+            text-align: center;
         }
 
         .header-title {
-            float: right;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 700;
             color: #0f172a;
         }
 
         .header-date {
-            float: left;
             font-size: 12px;
             color: #334155;
-            margin-top: 2px;
+            margin-top: 4px;
         }
 
         .report-header .right-col {
@@ -68,7 +66,7 @@
             min-height: 104px;
             padding-right: 8px;
             direction: rtl;
-            text-align: right;
+            text-align: center;
             unicode-bidi: plaintext;
         }
 
@@ -100,7 +98,7 @@
             line-height: 1.25;
             color: #0f172a;
             font-weight: 700;
-            text-align: right;
+            text-align: center;
             direction: rtl;
         }
 
@@ -109,14 +107,29 @@
             font-size: 13px;
             color: #475569;
             font-weight: 700;
+            text-align: center;
         }
 
         .meta-line {
-            margin: 5px 0;
+            margin: 7px 0;
             font-size: 14px;
-            text-align: right;
+            text-align: center;
             direction: rtl;
             unicode-bidi: plaintext;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .meta-line.main {
+            font-size: 15px;
+            color: #0b2443;
+        }
+
+        .meta-divider {
+            width: 160px;
+            height: 1px;
+            background: #d6e0ea;
+            margin: 8px auto;
         }
 
         .meta-label {
@@ -134,7 +147,7 @@
             border-radius: 999px;
             background: #f8fafc;
             padding: 3px 10px;
-            margin-left: 6px;
+            margin: 0 3px 4px;
             margin-bottom: 4px;
             font-size: 12px;
             color: #334155;
@@ -144,12 +157,12 @@
             margin-top: 10px;
             border-top: 1px dashed #cbd5e1;
             padding-top: 8px;
-            overflow: hidden;
+            text-align: center;
         }
 
         .stats-item {
-            float: right;
-            margin-left: 12px;
+            display: inline-block;
+            margin: 0 8px 4px;
             font-size: 12px;
             color: #334155;
         }
@@ -372,7 +385,6 @@
         <div class="header-top">
             <div class="header-title">كشف بيانات الناخبين</div>
             <div class="header-date">تاريخ التصدير: {{ $generatedAt }}</div>
-            <div class="clearfix"></div>
         </div>
 
         <div class="right-col">
@@ -386,14 +398,15 @@
         <div class="left-col">
             <h1 class="candidate-name">{{ $reportUser?->name ?? 'مستخدم النظام' }}</h1>
             <p class="candidate-subtitle">تقرير رسمي معتمد للاستخدام التشغيلي</p>
+            <div class="meta-divider"></div>
 
-            <p class="meta-line"><span class="meta-label">الصفة:</span> <span class="meta-value">{{ $candidateType }}</span></p>
+            <p class="meta-line main">الصفة: {{ $candidateType }}</p>
             @if(!empty($listName))
-                <p class="meta-line"><span class="meta-label">اسم القائمة:</span> <span class="meta-value">{{ $listName }}</span></p>
+                <p class="meta-line">اسم القائمة: {{ $listName }}</p>
             @endif
-            <p class="meta-line"><span class="meta-label">الحملة الانتخابية:</span> <span class="meta-value">{{ $campaignName }}</span></p>
+            <p class="meta-line">الحملة الانتخابية: {{ $campaignName }}</p>
 
-            <div style="margin-top:6px;">
+            <div style="margin-top:8px; text-align:center;">
                 <span class="meta-chip">إجمالي السجلات: {{ $rowsCount }}</span>
                 <span class="meta-chip">اتجاه التقرير: RTL</span>
             </div>
