@@ -66,7 +66,7 @@
                 </form>
 
                 <div class="d-flex widthOn3 mt-3 text-white">
-                    <button type="button" id="exportStatementsBtn" class="btn text-white text-center rounded-3 bg-info font-sm">
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#elkshoofDetails" class="btn text-white text-center rounded-3 bg-info font-sm">
                         استخراج كشوف (<span class="listNumber">0</span>)
                     </button>
                     <div class="text-center rounded-3 pt-3 mx-2 bg-dark font-sm">
@@ -89,6 +89,7 @@
                 <button data-bs-toggle="modal" data-bs-target="#displayData" class="btn btn-secondary w-100 mb-3 mt-2 fs-5">
                  عرض تفاصيل المضامين
                 </button>
+                @include('dashboard.statements.partials.export-voters-modal', ['regionLabel' => 'المنطقة'])
                 <div class="modal modal-l rtl" id="displayData" tabindex="-1" aria-labelledby="exampleModalLabel"
                 aria-hidden="true">
                 <div class="modal-dialog modal-dialog-scrollable">
@@ -453,36 +454,5 @@
         })
     </script>
 
-    <script>
-        $(document).ready(function() {
-            $('#exportStatementsBtn').on('click', function() {
-                const checkedValues = $('.check:checked').map(function() {
-                    return $(this).val();
-                }).get();
-
-                if (!checkedValues.length) {
-                    toastr.error('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف');
-                    return;
-                }
-
-                const submitBtn = $(this);
-                submitBtn.prop('disabled', true);
-
-                axios.post("{{ route('dashboard.statement.export-async') }}", {
-                        type: 'PDF',
-                        source: 'contractors',
-                        voter: checkedValues
-                    })
-                    .then((res) => {
-                        toastr.success(res.data.message ?? 'بدأ تجهيز الملف في الخلفية.');
-                    })
-                    .catch(error => {
-                        toastr.error(error.response?.data?.message ?? '{{ __('main.unexpected-error') }}');
-                    })
-                    .finally(() => {
-                        submitBtn.prop('disabled', false);
-                    });
-            });
-        });
-    </script>
+    @include('dashboard.statements.partials.export-voters-modal-js')
 @endpush
