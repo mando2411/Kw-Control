@@ -406,16 +406,16 @@
             @endif
             <p class="meta-line">الحملة الانتخابية: {{ $campaignName }}</p>
 
-            <div style="margin-top:8px; text-align:center;">
+          <!--  <div style="margin-top:8px; text-align:center;">
                 <span class="meta-chip">إجمالي السجلات: {{ $rowsCount }}</span>
                 <span class="meta-chip">اتجاه التقرير: RTL</span>
-            </div>
+            </div> -->
         </div>
 
-        <div class="stats-row">
+      <!--  <div class="stats-row">
             <span class="stats-item">المستخدم: <span class="stats-value">{{ $reportUser?->name ?? 'غير محدد' }}</span></span>
             <span class="stats-item">نوع الملف: <span class="stats-value">PDF</span></span>
-        </div>
+        </div> -->
 
         <div class="clearfix"></div>
     </div>
