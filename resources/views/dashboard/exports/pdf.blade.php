@@ -71,8 +71,8 @@
         }
 
         .candidate-avatar {
-            width: 140px;
-            height: 140px;
+            width: 150px;
+            height: 150px;
             border-radius: 20%;
             border: 3px solid #0f172a;
             object-fit: cover;
@@ -80,10 +80,10 @@
         }
 
         .avatar-fallback {
-            width: 96px;
-            height: 96px;
-            line-height: 92px;
-            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            line-height: 146px;
+            border-radius: 20%;
             border: 3px solid #1e293b;
             background: #cbd5e1;
             color: #0f172a;
