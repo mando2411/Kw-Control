@@ -257,8 +257,30 @@ class VoterController extends Controller
             ? Voter::Madamen()
             : Voter::whereHas('contractors');
 
+        $isCurrentUserCandidate = auth()->user()->candidate()->exists();
+
             // Log::info(json_encode($votersQuery->get()));
-        if (!auth()->user()->hasRole("Administrator") && !auth()->user()->contractor) {
+        if ($isCurrentUserCandidate) {
+            $parents = Contractor::withoutGlobalScopes()
+                ->parents()
+                ->where('creator_id', auth()->id())
+                ->get()
+                ->map(fn($contractor) => [
+                    'id' => $contractor->id,
+                    'name' => $contractor->name,
+                ]);
+
+            $childrenCollection = Contractor::withoutGlobalScopes()
+                ->children()
+                ->where('creator_id', auth()->id())
+                ->with('voters:id')
+                ->get();
+
+            $children = $childrenCollection;
+            $scopedContractorIds = $childrenCollection->pluck('id')->filter()->values()->all();
+            $votersIds = $childrenCollection->pluck('voters.*.id')->flatten()->unique();
+            $votersQuery = $votersQuery->whereIn('id', $votersIds);
+        } elseif (!auth()->user()->hasRole("Administrator") && !auth()->user()->contractor) {
             $children = auth()->user()->contractors()->children();
             $childrenCollection = $children->get();
             $scopedContractorIds = $childrenCollection->pluck('id')->filter()->values()->all();
