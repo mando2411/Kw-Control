@@ -249,7 +249,11 @@ class VoterController extends Controller
         $committees = Committee::select('name', 'id')->get();
         $scopedContractorIds = null;
 
-        $votersQuery = collect($request)->isNotEmpty()
+        $hasMadameenFilters = $request->filled('mot3ahed')
+            || $request->filled('committee')
+            || $request->filled('date');
+
+        $votersQuery = $hasMadameenFilters
             ? Voter::Madamen()
             : Voter::whereHas('contractors');
 
