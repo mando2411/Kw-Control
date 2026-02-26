@@ -246,5 +246,50 @@
     </div>
 
     <script src="{{ asset('assets/admin/js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+      (function () {
+        const keepAlivePath = @json('/contract/' . rawurlencode((string) $contractor->token) . '/keep-alive');
+        let keepAliveTimer = null;
+        let keepAliveInFlight = false;
+
+        function pingKeepAlive() {
+          if (keepAliveInFlight || document.hidden) return;
+          keepAliveInFlight = true;
+
+          fetch(keepAlivePath + '?t=' + Date.now(), {
+            method: 'GET',
+            cache: 'no-store',
+            credentials: 'same-origin',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          })
+            .catch(function () {})
+            .finally(function () {
+              keepAliveInFlight = false;
+            });
+        }
+
+        function startKeepAlive() {
+          if (keepAliveTimer) {
+            clearInterval(keepAliveTimer);
+          }
+          pingKeepAlive();
+          keepAliveTimer = setInterval(pingKeepAlive, 60000);
+        }
+
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) {
+            pingKeepAlive();
+          }
+        });
+
+        window.addEventListener('focus', pingKeepAlive);
+        window.addEventListener('online', pingKeepAlive);
+
+        startKeepAlive();
+      })();
+    </script>
   </body>
 </html>

@@ -4847,7 +4847,7 @@ $(document).off('click.groupEdit', '#delete-g').on('click.groupEdit', '#delete-g
 
 
 (function () {
-  const keepAliveUrl = @json(route('con-keep-alive', ['token' => $contractor->token]));
+  const keepAlivePath = @json('/contract/' . rawurlencode((string) $contractor->token) . '/keep-alive');
   let keepAliveTimer = null;
   let keepAliveInFlight = false;
 
@@ -4855,8 +4855,9 @@ $(document).off('click.groupEdit', '#delete-g').on('click.groupEdit', '#delete-g
     if (keepAliveInFlight || document.hidden) return;
     keepAliveInFlight = true;
 
-    fetch(keepAliveUrl, {
+    fetch(keepAlivePath + '?t=' + Date.now(), {
       method: 'GET',
+      cache: 'no-store',
       credentials: 'same-origin',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',

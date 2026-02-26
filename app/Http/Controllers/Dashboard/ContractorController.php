@@ -17,6 +17,7 @@ use App\DataTables\ContractorDataTable;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -409,6 +410,8 @@ class ContractorController extends Controller
             ->where('token', $normalizedToken)
             ->firstOrFail();
 
+        $this->ensureContractorLinkedUser($contractor);
+
         if (!empty($contractor->user_id)) {
             User::query()
                 ->where('id', (int) $contractor->user_id)
@@ -445,6 +448,12 @@ class ContractorController extends Controller
             ->where('token', $normalizedToken)
             ->firstOrFail();
 
+        $this->ensureContractorLinkedUser($contractor);
+
+        Contractor::withoutGlobalScopes()
+            ->where('id', (int) $contractor->id)
+            ->update(['updated_at' => now()]);
+
         if (!empty($contractor->user_id)) {
             User::query()
                 ->where('id', (int) $contractor->user_id)
@@ -453,7 +462,51 @@ class ContractorController extends Controller
 
         return response()->json([
             'status' => 'success',
+        ], 200, [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
+    }
+
+    private function ensureContractorLinkedUser(Contractor $contractor): void
+    {
+        if (!empty($contractor->user_id)) {
+            return;
+        }
+
+        $resolvedUser = null;
+        $email = trim((string) ($contractor->email ?? ''));
+        $phone = trim((string) ($contractor->phone ?? ''));
+
+        if ($email !== '') {
+            $resolvedUser = User::query()->where('email', $email)->first();
+        }
+
+        if (!$resolvedUser && $phone !== '') {
+            $resolvedUser = User::query()->where('phone', $phone)->first();
+        }
+
+        if (!$resolvedUser) {
+            $safeEmail = $email !== ''
+                ? $email
+                : ('contractor.' . (int) $contractor->id . '.' . substr((string) ($contractor->token ?? Str::random(12)), 0, 12) . '@kw.local');
+
+            $resolvedUser = User::query()->create([
+                'name' => (string) ($contractor->name ?? ('متعهد #' . (int) $contractor->id)),
+                'email' => $safeEmail,
+                'password' => bcrypt(Str::random(40)),
+                'phone' => $phone !== '' ? $phone : null,
+                'creator_id' => (int) ($contractor->creator_id ?? 0) ?: null,
+                'election_id' => (int) ($contractor->election_id ?? 0) ?: null,
+            ]);
+        }
+
+        Contractor::withoutGlobalScopes()
+            ->where('id', (int) $contractor->id)
+            ->update(['user_id' => (int) $resolvedUser->id]);
+
+        $contractor->user_id = (int) $resolvedUser->id;
     }
 
     public function search(Request $request){
