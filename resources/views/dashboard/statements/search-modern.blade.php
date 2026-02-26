@@ -868,6 +868,25 @@
         function closeAttachMadameenModal() {
             if (!attachMadameenModalElement) return;
 
+            const forceAttachModalCleanup = function () {
+                if (!attachMadameenModalElement) return;
+
+                attachMadameenModalElement.classList.remove('show');
+                attachMadameenModalElement.style.display = 'none';
+                attachMadameenModalElement.setAttribute('aria-hidden', 'true');
+                attachMadameenModalElement.removeAttribute('aria-modal');
+                attachMadameenModalElement.removeAttribute('role');
+
+                if (document.querySelector('.modal.show')) {
+                    return;
+                }
+
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('padding-right');
+                document.body.style.removeProperty('overflow');
+                document.querySelectorAll('.modal-backdrop').forEach((el) => el.remove());
+            };
+
             if (window.bootstrap && window.bootstrap.Modal) {
                 const modalInstance = window.bootstrap.Modal.getInstance
                     ? window.bootstrap.Modal.getInstance(attachMadameenModalElement)
@@ -877,13 +896,20 @@
 
                 if (modalInstance && typeof modalInstance.hide === 'function') {
                     modalInstance.hide();
+                    setTimeout(forceAttachModalCleanup, 50);
+                    setTimeout(forceAttachModalCleanup, 220);
                     return;
                 }
             }
 
             if (window.jQuery && typeof window.jQuery(attachMadameenModalElement).modal === 'function') {
                 window.jQuery(attachMadameenModalElement).modal('hide');
+                setTimeout(forceAttachModalCleanup, 50);
+                setTimeout(forceAttachModalCleanup, 220);
+                return;
             }
+
+            forceAttachModalCleanup();
         }
 
         function setAdvancedOpen(open) {
