@@ -37,7 +37,12 @@
            <canvas id="myChart"></canvas>
           </div>
 
-      @include('dashboard.statements.partials.export-voters-modal', ['regionLabel' => 'المنطقة'])
+      @include('dashboard.partials.sm-export-modal', [
+        'includeSearchId' => true,
+        'searchIdInputId' => 'smExportSearchId',
+        'searchIdInputName' => 'family_id',
+        'regionLabel' => 'المنطقة'
+      ])
 
       <form action="{{route('dashboard.statement')}}" method="GET" class="d-flex ">
         <input type="search" name="family" id="searchByFamily" class="form-control w-75" placeholder="البحث">
@@ -73,7 +78,7 @@
                 <td>{{$family['total']}}</td>
                 <td >
                     <input type="hidden" id="family_id" value="{{$family['id']}}">
-                    <button data-bs-toggle="modal" data-bs-target="#elkshoofDetails" class="btn btn-outline-dark">كشوف</button>
+                    <button data-bs-toggle="modal" data-bs-target="#smExportModal" class="btn btn-outline-dark sm-open-export-family" data-family-id="{{$family['id']}}">كشوف</button>
                 </td>
             </tr>
 
@@ -134,5 +139,96 @@ let x = new Chart(ctx, {
 
 </script>
 
-@include('dashboard.statements.partials.export-voters-modal-js')
+<script>
+  (function () {
+    const exportForm = document.getElementById('smExportForm');
+    const exportType = document.getElementById('smExportType');
+    const familyInput = document.getElementById('smExportSearchId');
+
+    if (!exportForm || !exportType || !familyInput) {
+      return;
+    }
+
+    document.querySelectorAll('.sm-open-export-family').forEach((button) => {
+      button.addEventListener('click', function () {
+        familyInput.value = String(button.getAttribute('data-family-id') || '');
+      });
+    });
+
+    document.querySelectorAll('.sm-export-action').forEach((button) => {
+      button.addEventListener('click', function () {
+        const actionType = button.value;
+        const familyId = String(familyInput.value || '');
+
+        if (!familyId) {
+          toastr.warning('تعذر تحديد العائلة المطلوبة لاستخراج الكشف.');
+          return;
+        }
+
+        exportType.value = actionType;
+
+        const submitBtn = button;
+        submitBtn.disabled = true;
+
+        const formData = new FormData(exportForm);
+        const queryData = {};
+        formData.forEach((value, key) => {
+          if (Object.prototype.hasOwnProperty.call(queryData, key)) {
+            if (!Array.isArray(queryData[key])) {
+              queryData[key] = [queryData[key]];
+            }
+            queryData[key].push(value || '');
+          } else {
+            queryData[key] = value || '';
+          }
+        });
+
+        axios.get(exportForm.action, {
+          params: queryData,
+          responseType: actionType === 'Excel' || actionType === 'PDF' ? 'blob' : 'json',
+        })
+        .then(async (res) => {
+          if (actionType === 'Excel' || actionType === 'PDF') {
+            const contentType = String(res?.headers?.['content-type'] || '').toLowerCase();
+            if (contentType.includes('text/html') || contentType.includes('application/json')) {
+              const errorText = await res.data.text();
+              toastr.error('تعذر استخراج الملف. حاول مرة أخرى.');
+              console.error('Export unexpected payload:', errorText);
+              return;
+            }
+
+            const fileUrl = window.URL.createObjectURL(new Blob([res.data]));
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.setAttribute('download', actionType === 'Excel' ? 'Voters.xlsx' : 'Voters.pdf');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(fileUrl);
+            return;
+          }
+
+          if (actionType === 'Send' && res.data?.Redirect_Url) {
+            window.location.href = res.data.Redirect_Url;
+            return;
+          }
+
+          const newTab = window.open();
+          if (newTab && typeof res.data === 'string') {
+            newTab.document.open();
+            newTab.document.write(res.data);
+            newTab.document.close();
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          toastr.error(error.response?.data?.error || 'حدث خطأ غير متوقع');
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+        });
+      });
+    });
+  })();
+</script>
 @endpush

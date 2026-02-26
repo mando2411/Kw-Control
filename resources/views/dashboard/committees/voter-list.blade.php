@@ -70,7 +70,7 @@
         <div class="container">
 
             <div class="flex-grow-1 ms-2">
-                <button data-bs-toggle="modal" data-bs-target="#elkshoofDetails" class="btn btn-info w-100">استخراج
+                <button data-bs-toggle="modal" data-bs-target="#smExportModal" id="smOpenExportFromCommittee" class="btn btn-info w-100">استخراج
                     كشوف</button>
             </div>
             <div class="mainTable table-responsive mt-4">
@@ -99,7 +99,10 @@
                     @endif
                 </div>
             </div>
-            @include('dashboard.statements.partials.export-voters-modal', ['regionLabel' => 'العائلة'])
+            @include('dashboard.partials.sm-export-modal', [
+                'sourceValue' => 'contractors',
+                'regionLabel' => 'العائلة'
+            ])
             <!-- Modal voterData-->
             <div class="modal modal-md rtl" id="voterData" tabindex="-1" aria-labelledby="exampleModalLabel"
                 aria-hidden="true">
@@ -424,5 +427,73 @@
             });
     </script>
 
-    @include('dashboard.statements.partials.export-voters-modal-js')
+    <script>
+        (function () {
+            const openExportBtn = document.getElementById('smOpenExportFromCommittee');
+            const exportForm = document.getElementById('smExportForm');
+            const exportType = document.getElementById('smExportType');
+            const exportAsyncUrl = "{{ route('dashboard.statement.export-async') }}";
+
+            if (!openExportBtn || !exportForm || !exportType) {
+                return;
+            }
+
+            openExportBtn.addEventListener('click', function (event) {
+                const selectedIds = Array.from(document.querySelectorAll('.check:checked')).map((item) => String(item.value || '')).filter(Boolean);
+                if (!selectedIds.length) {
+                    event.preventDefault();
+                    toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
+                }
+            });
+
+            document.querySelectorAll('.sm-export-action').forEach((button) => {
+                button.addEventListener('click', function () {
+                    const actionType = button.value;
+                    const selectedIds = Array.from(document.querySelectorAll('.check:checked')).map((item) => String(item.value || '')).filter(Boolean);
+
+                    if (!selectedIds.length) {
+                        toastr.warning('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف.');
+                        return;
+                    }
+
+                    exportType.value = actionType;
+
+                    exportForm.querySelectorAll('input[name="voter[]"]').forEach((input) => input.remove());
+                    selectedIds.forEach((id) => {
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'voter[]';
+                        hidden.value = id;
+                        exportForm.appendChild(hidden);
+                    });
+
+                    if (actionType !== 'Excel' && actionType !== 'PDF') {
+                        return;
+                    }
+
+                    const submitBtn = button;
+                    submitBtn.disabled = true;
+
+                    const formData = new FormData(exportForm);
+
+                    axios.post(exportAsyncUrl, formData, {
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then((res) => {
+                        toastr.success(res?.data?.message || 'بدأ تجهيز الملف في الخلفية. سيتم إرسال إشعار عند الانتهاء.');
+                    })
+                    .catch((error) => {
+                        toastr.error(error?.response?.data?.message || 'تعذر بدء تجهيز الملف. حاول مرة أخرى.');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                    });
+                });
+            });
+        })();
+    </script>
 @endpush
