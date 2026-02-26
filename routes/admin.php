@@ -301,28 +301,7 @@ Route::post('voter/change', [ContractorController::class,'modify'])->name('modif
 Route::post('voter/change/group', [ContractorController::class,'modify_g'])->name('modify_g');
 Route::get('voters/export', [StatementController::class, 'export'])->name('export');
 Route::get('/get-users', [UserController::class, 'getUsers']);
-Route::get('/users/online', function (Request $request) {
-
-    if (!Auth::check()) {
-        return response()->json([
-            'message' => 'Unauthenticated'
-        ], 401);
-    }
-
-    $users = User::where('creator_id', Auth::id())->paginate(10);
-
-    $users->getCollection()->transform(function ($user) {
-        return [
-            'id' => $user->id,
-            'name' => $user->name,
-            'is_online' => $user->isOnline(),
-            'is_offline' => $user->isOffline(),
-            'last_active_at' => $user->LoginTime($user->last_active_at),
-        ];
-    });
-
-    return response()->json($users);
-});
+Route::get('/users/online', [UserController::class, 'onlineUsers']);
 
 Route::get('/voters/load-more', [StatementController::class, 'loadMore'])->name('voters.load-more');
 Route::get('/voters/attended', [StatementController::class, 'voters_attends'])->name('voters.voters-attends');

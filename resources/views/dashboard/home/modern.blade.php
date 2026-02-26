@@ -2,6 +2,11 @@
     $user = auth()->user();
     $election = $user?->election;
     $isAdmin = $user && $user->hasRole('Administrator');
+    $showOnlineUsersSection = $user && (
+        $user->hasRole('Administrator')
+        || $user->hasRole('مرشح')
+        || !empty($isListLeaderUser)
+    );
 @endphp
 
 <div class="home-modern-mode" id="homeModernRoot">
@@ -223,7 +228,9 @@
                     </a>
                 </div>
             </div>
+        @endif
 
+        @if ($showOnlineUsersSection)
             <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 380ms;">
                 <div class="hm-section-title">
                     <i class="bi bi-broadcast"></i>
@@ -236,7 +243,7 @@
                     </div>
                     <div class="hm-table-body">
                         @php
-                            $users = \App\Models\User::where('creator_id', $user->id)->take(10)->get();
+                            $users = $onlineUsers ?? collect();
                         @endphp
                         @forelse ($users as $u)
                             @if ($u->isOnline() || $u->isOffline())
@@ -259,26 +266,17 @@
                         @endforelse
                     </div>
                 </div>
-                @can('import-voters')
-                    <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 430ms;">
-                        <div class="hm-section-title">
-                            <i class="bi bi-upload"></i>
-                            استيراد الناخبين
-                        </div>
-                        <div data-voters-import-slot="modern"></div>
-                    </div>
-                @endcan
             </div>
-        @else
-            @can('import-voters')
-                <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 320ms;">
-                    <div class="hm-section-title">
-                        <i class="bi bi-upload"></i>
-                        استيراد الناخبين
-                    </div>
-                    <div data-voters-import-slot="modern"></div>
-                </div>
-            @endcan
         @endif
+
+        @can('import-voters')
+            <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 430ms;">
+                <div class="hm-section-title">
+                    <i class="bi bi-upload"></i>
+                    استيراد الناخبين
+                </div>
+                <div data-voters-import-slot="modern"></div>
+            </div>
+        @endcan
     </div>
 </div>

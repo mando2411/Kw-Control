@@ -153,7 +153,11 @@ Route::get('/', function () {
             $show_all_result=true;
         }
     }
-    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl', 'listLeaderCandidate', 'isListLeaderUser'));
+    $onlineUsers = \App\Http\Controllers\Dashboard\UserController::visibleOnlineUsersQuery(auth()->user())
+        ->take(10)
+        ->get();
+
+    return view('dashboard.home.index',compact('show_all_result', 'pendingJoinRequest', 'approvedContractorPortalUrl', 'listLeaderCandidate', 'isListLeaderUser', 'onlineUsers'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

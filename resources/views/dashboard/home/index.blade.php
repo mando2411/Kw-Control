@@ -1149,6 +1149,14 @@
             </div>
         </div>
 
+        @endif
+
+        @php
+            $showOnlineUsersSection = auth()->user()->hasRole('Administrator')
+                || auth()->user()->hasRole('مرشح')
+                || !empty($isListLeaderUser);
+        @endphp
+        @if ($showOnlineUsersSection)
         <div>
             <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتواجدين الأن</h1>
 
@@ -1162,7 +1170,7 @@
                     </thead>
                     <tbody class="table-group-divider" id="user-list">
                         @php
-                        $users=App\Models\User::where('creator_id', auth()->user()->id)->take(10)->get();
+                        $users = $onlineUsers ?? collect();
                         @endphp
                         @foreach ( $users as $user )
                         @if ($user->isOnline() || $user->isOffline())
@@ -1574,18 +1582,71 @@
     })();
 </script>
 <script>
-    $('#load-more').on('click', function() {
-        var page = $(this).data('page');
-        page++;
+    if ($('#user-list').length) {
+        $('#load-more').on('click', function() {
+            var page = $(this).data('page');
+            page++;
 
-        $.ajax({
-            url: '/get-users',
-            method: 'GET',
-            data: {
-                page: page
-            },
-            success: function(response) {
-                if (response.data.length > 0) {
+            $.ajax({
+                url: '/get-users',
+                method: 'GET',
+                data: {
+                    page: page
+                },
+                success: function(response) {
+                    if (response.data.length > 0) {
+                        response.data.forEach(function(user) {
+                            if (user.is_online || user.is_offline) {
+                                var row = `
+                        <tr>
+                            <td>
+                                <i class="fa fa-circle rounded-circle ${user.is_online ? 'online text-success' : 'text-danger'} ms-1"></i>
+                                ${user.name}
+                            </td>
+                            <td>
+                                ${user.is_offline ? user.last_active_at : ''}
+                            </td>
+                        </tr>
+                    `;
+
+                                $('#user-list').append(row);
+
+                                setTimeout(function() {
+                                    $('#user-list tr:last-child').css({
+                                        'opacity': 1,
+                                        'transform': 'translateY(0)',
+                                        'transition': 'all 0.5s ease'
+                                    });
+                                }, 100);
+                            }
+                        });
+
+                        $('#load-more').data('page', page);
+                    } else {
+                        $('#load-more').hide();
+                    }
+                }
+            });
+        });
+
+        setInterval(function() {
+            $.ajax({
+                url: '/users/online',
+                method: 'GET',
+                data: {
+                    page: $('#load-more').data('page')
+                },
+                success: function(response) {
+                    console.log(response);
+
+                    $('#user-list tr').css({
+                        'opacity': 0,
+                        'transform': 'translateY(20px)',
+                        'transition': 'all 0.5s ease'
+                    });
+                    $('#user-list').html('');
+
+
                     response.data.forEach(function(user) {
                         if (user.is_online || user.is_offline) {
                             var row = `
@@ -1601,6 +1662,7 @@
                     `;
 
                             $('#user-list').append(row);
+                            $('#load-more').data('page', 1);
 
                             setTimeout(function() {
                                 $('#user-list tr:last-child').css({
@@ -1611,62 +1673,10 @@
                             }, 100);
                         }
                     });
-
-                    $('#load-more').data('page', page);
-                } else {
-                    $('#load-more').hide();
                 }
-            }
-        });
-    });
-
-    setInterval(function() {
-        $.ajax({
-            url: '/users/online',
-            method: 'GET',
-            data: {
-                page: $('#load-more').data('page')
-            },
-            success: function(response) {
-                console.log(response);
-
-                $('#user-list tr').css({
-                    'opacity': 0,
-                    'transform': 'translateY(20px)',
-                    'transition': 'all 0.5s ease'
-                });
-                $('#user-list').html('');
-
-
-                response.data.forEach(function(user) {
-                    if (user.is_online || user.is_offline) {
-                        var row = `
-                        <tr>
-                            <td>
-                                <i class="fa fa-circle rounded-circle ${user.is_online ? 'online text-success' : 'text-danger'} ms-1"></i>
-                                ${user.name}
-                            </td>
-                            <td>
-                                ${user.is_offline ? user.last_active_at : ''}
-                            </td>
-                        </tr>
-                    `;
-
-                        $('#user-list').append(row);
-                        $('#load-more').data('page', 1);
-
-                        setTimeout(function() {
-                            $('#user-list tr:last-child').css({
-                                'opacity': 1,
-                                'transform': 'translateY(0)',
-                                'transition': 'all 0.5s ease'
-                            });
-                        }, 100);
-                    }
-                });
-            }
-        });
-    }, 120000);
+            });
+        }, 120000);
+    }
 </script>
 
 
