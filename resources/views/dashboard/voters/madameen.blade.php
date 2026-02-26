@@ -66,7 +66,7 @@
                 </form>
 
                 <div class="d-flex widthOn3 mt-3 text-white">
-                    <button type="button" class="btn text-white text-center rounded-3 bg-info font-sm">
+                    <button type="button" id="exportStatementsBtn" class="btn text-white text-center rounded-3 bg-info font-sm">
                         استخراج كشوف (<span class="listNumber">0</span>)
                     </button>
                     <div class="text-center rounded-3 pt-3 mx-2 bg-dark font-sm">
@@ -455,49 +455,32 @@
 
     <script>
         $(document).ready(function() {
-            $('.button').on('click', function() {
-                var buttonValue = $(this).val();
-                $('#type').val(buttonValue);
+            $('#exportStatementsBtn').on('click', function() {
+                const checkedValues = $('.check:checked').map(function() {
+                    return $(this).val();
+                }).get();
 
-                if (!checkedValues) {
-                    var checkedElements = $('.check:checked');
-
-                    var checkedValues = $.map(checkedElements, function(element) {
-                        return $(element).val();
-                    });
-
+                if (!checkedValues.length) {
+                    toastr.error('اختر ناخبًا واحدًا على الأقل قبل استخراج الكشوف');
+                    return;
                 }
-                checkedValues.forEach(function(value) {
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: 'voter[]',
-                        value: value
-                    }).appendTo('#export');
-                });
 
+                const submitBtn = $(this);
+                submitBtn.prop('disabled', true);
 
-                var form = $('#export')[0]; // Ensure we get the DOM element, not jQuery object
-                var formData = new FormData(form);
-                var submitBtn = $(this);
-                axios.get(form.action, formData)
+                axios.post("{{ route('dashboard.statement.export-async') }}", {
+                        type: 'PDF',
+                        source: 'contractors',
+                        voter: checkedValues
+                    })
                     .then((res) => {
-                        console.log(res);
-                        setTimeout(() => {
-                            console.log(res.data);
-                        }, 2000);
-                        if (res.data.Redirect_Url) {
-                            window.location.href = res.data.Redirect_Url;
-                        } else {
-                            toastr.success(res.data.success);
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1000);
-                        }
+                        toastr.success(res.data.message ?? 'بدأ تجهيز الملف في الخلفية.');
                     })
                     .catch(error => {
-                        console.log(error);
-                        toastr.error(error.response.data.error ?? '{{ __('main.unexpected-error') }}');
-                        submitBtn.attr('disabled', false);
+                        toastr.error(error.response?.data?.message ?? '{{ __('main.unexpected-error') }}');
+                    })
+                    .finally(() => {
+                        submitBtn.prop('disabled', false);
                     });
             });
         });
