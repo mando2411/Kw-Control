@@ -656,9 +656,39 @@
 
     <div class="sm-card sm-export-bar d-none" id="smExportBar">
         <div class="sm-export-meta">اختر الناخبين من النتائج ثم استخرج كشفًا بنفس إعدادات النسخة الكلاسيكية.</div>
-        <button type="button" class="btn btn-info" id="smOpenExport" data-bs-toggle="modal" data-bs-target="#smExportModal">
-            استخراج كشوف
-        </button>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" id="smOpenAttachMadameen" data-bs-toggle="modal" data-bs-target="#smAttachMadameenModal">
+                إضافة المحدد كمضامين
+            </button>
+            <button type="button" class="btn btn-info" id="smOpenExport" data-bs-toggle="modal" data-bs-target="#smExportModal">
+                استخراج كشوف
+            </button>
+        </div>
+    </div>
+
+    <div class="modal fade rtl" id="smAttachMadameenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">إضافة المحدد كمضامين</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="smAttachContractorSelect" class="form-label">اختر المتعهد</label>
+                    <select id="smAttachContractorSelect" class="form-control">
+                        <option value="">-- اختر --</option>
+                        @foreach(($relations['contractors'] ?? []) as $contractor)
+                            <option value="{{ $contractor->id }}">{{ $contractor->name }}</option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted d-block mt-2">سيتم إضافة الناخبين المحددين إلى قائمة المتعهد المختار.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-primary" id="smConfirmAttachMadameen">إضافة</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="sm-card">
@@ -720,8 +750,12 @@
         const exportModalElement = document.getElementById('smExportModal');
         const exportCloseBtn = document.getElementById('smExportCloseBtn');
         const exportWhatsappInput = document.getElementById('smExportWhatsappTo');
+        const attachMadameenModalElement = document.getElementById('smAttachMadameenModal');
+        const attachMadameenSelect = document.getElementById('smAttachContractorSelect');
+        const attachMadameenConfirmBtn = document.getElementById('smConfirmAttachMadameen');
         const selectedVoterIds = new Set();
         const exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
+        const attachMadameenUrlTemplate = '{{ route('ass', ['id' => '__ID__']) }}';
 
         let lastParams = null;
         let currentRequestId = 0;
@@ -829,6 +863,27 @@
             }
 
             forceModalCleanup();
+        }
+
+        function closeAttachMadameenModal() {
+            if (!attachMadameenModalElement) return;
+
+            if (window.bootstrap && window.bootstrap.Modal) {
+                const modalInstance = window.bootstrap.Modal.getInstance
+                    ? window.bootstrap.Modal.getInstance(attachMadameenModalElement)
+                    : (window.bootstrap.Modal.getOrCreateInstance
+                        ? window.bootstrap.Modal.getOrCreateInstance(attachMadameenModalElement)
+                        : null);
+
+                if (modalInstance && typeof modalInstance.hide === 'function') {
+                    modalInstance.hide();
+                    return;
+                }
+            }
+
+            if (window.jQuery && typeof window.jQuery(attachMadameenModalElement).modal === 'function') {
+                window.jQuery(attachMadameenModalElement).modal('hide');
+            }
         }
 
         function setAdvancedOpen(open) {
@@ -1290,6 +1345,46 @@
                     });
             });
         });
+
+        if (attachMadameenConfirmBtn) {
+            attachMadameenConfirmBtn.addEventListener('click', function () {
+                const selectedIds = getSelectedVoterIdsForExport();
+                const contractorId = String(attachMadameenSelect?.value || '').trim();
+
+                if (selectedIds.length === 0) {
+                    toastr.warning('اختر ناخبًا واحدًا على الأقل قبل الإضافة.');
+                    return;
+                }
+
+                if (!contractorId) {
+                    toastr.warning('اختر المتعهد أولًا.');
+                    return;
+                }
+
+                const requestUrl = attachMadameenUrlTemplate.replace('__ID__', contractorId);
+                attachMadameenConfirmBtn.disabled = true;
+
+                axios.post(requestUrl, {
+                    voter: selectedIds,
+                }, {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    }
+                })
+                    .then((res) => {
+                        toastr.success(res?.data?.message || 'تمت الإضافة بنجاح');
+                        closeAttachMadameenModal();
+                    })
+                    .catch((error) => {
+                        toastr.error(error?.response?.data?.message || 'تعذر تنفيذ الإضافة. حاول مرة أخرى.');
+                    })
+                    .finally(() => {
+                        attachMadameenConfirmBtn.disabled = false;
+                    });
+            });
+        }
 
         resetBtn.addEventListener('click', function () {
             form.reset();
