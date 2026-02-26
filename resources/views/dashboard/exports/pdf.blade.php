@@ -34,53 +34,123 @@
         }
         thead tr {
             background-color: #009879;
-            color: #ffffff;
-            font-weight: bold;
+        .report-header {
+            margin: 14px 0 16px;
+            padding: 14px;
+            border: 1px solid #0f172a;
+            border-radius: 12px;
+            background: #f8fafc;
+            overflow: hidden;
         }
-        th, td {
-            border: 1px solid #dddddd;
-
-        }
-        tbody tr:nth-of-type(even) {
-            background-color: #f3f3f3;
-        }
-        .banner {
-            width: 95%;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .banner img {
-            height: 100px;
-            width: 100px;
-            border-radius: 50%;
-        }
-        .banner .text-center {
+        .report-header .right-col {
+            float: right;
+            width: 120px;
             text-align: center;
         }
-        .banner .fw-bold {
+        .report-header .left-col {
+            margin-right: 138px;
+            padding-right: 12px;
+            min-height: 110px;
+        }
+        .candidate-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #1e293b;
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+        .avatar-fallback {
+            width: 100px;
+            height: 100px;
+            line-height: 94px;
+            border-radius: 50%;
+            border: 3px solid #1e293b;
+            background: #cbd5e1;
+            color: #0f172a;
+            font-size: 34px;
+            font-weight: 700;
+            margin: 0 auto;
+        }
+        .candidate-name {
+            margin: 0 0 8px;
+            font-size: 28px;
+            line-height: 1.25;
+            color: #0f172a;
+            font-weight: 700;
+        }
+        .meta-line {
+            margin: 4px 0;
+            font-size: 16px;
+            color: #111827;
+        }
+        .meta-label {
+            font-weight: 700;
+            color: #1f2937;
+        }
+        .meta-value {
+            color: #0f172a;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            color: #111827 !important;
+            margin-top: 8px;
+        }
+        table thead tr {
+            background-color: #0f172a !important;
+        }
+        table thead th {
+            color: #ffffff !important;
+            font-weight: 700;
+            border: 1px solid #0f172a;
+            padding: 8px 6px;
+        }
+        table tbody td {
+            border: 1px solid #cbd5e1;
+            color: #111827 !important;
+            padding: 7px 6px;
+            background: #ffffff;
+        }
+        table tbody tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+        .clearfix {
+            clear: both;
+        }
+            color: #ffffff;
             font-weight: bold;
-        }
-        .banner .fs-5 {
-            font-size: 1.25rem;
-        }
-    </style>
-    @if(isset($mode) && $mode == 'pdf')
-        <style>
-            table {
-                border-collapse: separate;
-                border-spacing: 1px 1px;
-                width: 100%;
-                color: #000 !important;
-                border-color: transparent;
+            .report-header {
+                border-radius: 0;
+                margin-top: 0;
+                background: #ffffff;
             }
-
-            table thead tr, table tr td:last-child {
+            .candidate-name {
+                font-size: 24px;
+            }
                 background-color: silver !important;
             }
              th, td {
                 border: 1px solid #000;
+    $candidate = auth()->user()?->candidate;
+    $candidateType = 'مرشح';
+    if ($candidate?->candidate_type === 'list_leader') {
+        $candidateType = 'مرشح رئيس قائمة';
+    } elseif (!is_null($candidate?->list_leader_candidate_id)) {
+        $candidateType = 'مرشح عضو قائمة';
+    }
+
+    $listName = null;
+    if ($candidate?->candidate_type === 'list_leader') {
+        $listName = $candidate->list_name;
+    } elseif (!is_null($candidate?->list_leader_candidate_id)) {
+        $listName = optional($candidate?->listLeader)->list_name;
+    }
+
+    $campaignName = auth()->user()->election?->name
+        ?? $candidate?->election?->name
+        ?? 'غير محدد';
+
                 color: #000 !important;
             }
             .banner {
@@ -189,41 +259,45 @@
 
 @endphp
 @php
-   if(!auth()->user()->hasRole('Administrator')){
-        $imageUrl = auth()->user()->image;
-    $relativePath = parse_url($imageUrl, PHP_URL_PATH);
-
-    // Remove leading slash and resolve to public path
-    $filePath = public_path(ltrim($relativePath, '/'));
-
-    if (file_exists($filePath)) {
-        $imageContent = file_get_contents(public_path($relativePath));
-        $imageBase64 = base64_encode($imageContent);
-    } else {
-        $imageBase64 = null;
+    $imageBase64 = null;
+    $imageUrl = (string) (auth()->user()->image ?? '');
+    if ($imageUrl !== '') {
+        $relativePath = parse_url($imageUrl, PHP_URL_PATH);
+        if (is_string($relativePath) && $relativePath !== '') {
+            $filePath = public_path(ltrim($relativePath, '/'));
+            if (file_exists($filePath)) {
+                $imageContent = file_get_contents($filePath);
+                $imageBase64 = base64_encode($imageContent);
+            }
+        }
     }
-   }
+
+    $nameInitial = mb_substr((string) auth()->user()->name, 0, 1);
 @endphp
 
 
 <body>
-<div class="banner" style="margin-bottom: 1px">
-    @if(!auth()->user()->hasRole('Administrator'))
-
-    <div class="image-box">
-        <figure>
-
-            <img src="data:image/jpeg;base64,{{ $imageBase64 }}" alt="User Image">
-        </figure>
+<div class="report-header">
+    <div class="right-col">
+        @if($imageBase64)
+            <img class="candidate-avatar" src="data:image/jpeg;base64,{{ $imageBase64 }}" alt="صورة المستخدم">
+        @else
+            <div class="avatar-fallback">{{ $nameInitial }}</div>
+        @endif
     </div>
-@endif
-        <div class="description">
-            <h1 class="fw-bold">{{ auth()->user()->name }}</h1>
-            @if(!auth()->user()->hasRole('Administrator'))
-                <p class="fs-5"> {{"مرشح". "  ".  (auth()->user()->election?->name ?? 'غير محدد') }} </p>
-            @endif
-        </div>
+
+    <div class="left-col">
+        <h1 class="candidate-name">{{ auth()->user()->name }}</h1>
+        <p class="meta-line"><span class="meta-label">الصفة:</span> <span class="meta-value">{{ $candidateType }}</span></p>
+        @if(!empty($listName))
+            <p class="meta-line"><span class="meta-label">اسم القائمة:</span> <span class="meta-value">{{ $listName }}</span></p>
+        @endif
+        <p class="meta-line"><span class="meta-label">الحملة الانتخابية:</span> <span class="meta-value">{{ $campaignName }}</span></p>
     </div>
+
+    <div class="clearfix"></div>
+</div>
+
     @if(isset($mode) && $mode == 'pdf')
         <br>
     @endif
