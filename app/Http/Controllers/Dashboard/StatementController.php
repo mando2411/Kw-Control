@@ -433,7 +433,12 @@ public function export(Request $request)
         ini_set('max_input_vars', 5000);
 
 
-        $html = view('dashboard.exports.pdf', ['voters' => $voters, 'mode' => 'pdf', 'columns' => request("columns")])->toArabicHTML();
+        $html = view('dashboard.exports.pdf', [
+            'voters' => $voters,
+            'mode' => 'pdf',
+            'columns' => request("columns"),
+            'reportUser' => auth()->user()?->loadMissing(['candidate.listLeader', 'election']),
+        ])->toArabicHTML();
         $pdf = Pdf::loadHTML($html)
             // ->setPaper('a4', 'landscape')
             ->setOption('isHtml5ParserEnabled', true)
@@ -484,7 +489,11 @@ public function export(Request $request)
 
     } else {
         $columns = request('columns');
-        return view('dashboard.exports.pdf', compact('voters', 'columns'));
+        return view('dashboard.exports.pdf', [
+            'voters' => $voters,
+            'columns' => $columns,
+            'reportUser' => auth()->user()?->loadMissing(['candidate.listLeader', 'election']),
+        ]);
     }
     return redirect()->back();
 }

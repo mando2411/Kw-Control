@@ -65,6 +65,7 @@ class ProcessStatementExportJob implements ShouldQueue
                     'voters' => $voters,
                     'mode' => 'pdf',
                     'columns' => $this->columns,
+                    'reportUser' => $user->loadMissing(['candidate.listLeader', 'election']),
                 ])->toArabicHTML();
 
                 $pdf = Pdf::loadHTML($html)
