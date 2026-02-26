@@ -18,6 +18,7 @@
     $maxRepresentatives = max(0, (int) ($candidate->max_represent ?? 0));
     $contractorsPercent = $maxContractors > 0 ? min(100, (int) round(($contractorsCount / $maxContractors) * 100)) : 0;
     $representativesPercent = $maxRepresentatives > 0 ? min(100, (int) round(($representativesCount / $maxRepresentatives) * 100)) : 0;
+    $maskedMetric = '••••';
 @endphp
 
 <div class="candidate-public-page" dir="rtl">
@@ -77,17 +78,17 @@
                 <div class="metric-row">
                     <div class="metric-head">
                         <span>المتعهدين</span>
-                        <strong>{{ $contractorsCount }}/{{ $maxContractors }}</strong>
+                        <strong class="sensitive-blur">{{ $maskedMetric }}</strong>
                     </div>
-                    <div class="metric-bar"><span style="width: {{ $contractorsPercent }}%"></span></div>
+                    <div class="metric-bar metric-bar--masked"><span></span></div>
                 </div>
 
                 <div class="metric-row mb-0">
                     <div class="metric-head">
                         <span>المناديب</span>
-                        <strong>{{ $representativesCount }}/{{ $maxRepresentatives }}</strong>
+                        <strong class="sensitive-blur">{{ $maskedMetric }}</strong>
                     </div>
-                    <div class="metric-bar"><span style="width: {{ $representativesPercent }}%"></span></div>
+                    <div class="metric-bar metric-bar--masked"><span></span></div>
                 </div>
             </div>
         </aside>
@@ -114,10 +115,10 @@
                     </div>
                 </div>
                 <div class="team-status-grid">
-                    <div><small>المتعهدين الحاليين</small><strong>{{ $contractorsCount }}</strong></div>
-                    <div><small>المناديب الحاليين</small><strong>{{ $representativesCount }}</strong></div>
-                    <div><small>الحد الأقصى للمتعهدين</small><strong>{{ $maxContractors }}</strong></div>
-                    <div><small>الحد الأقصى للمناديب</small><strong>{{ $maxRepresentatives }}</strong></div>
+                    <div><small>المتعهدين الحاليين</small><strong class="sensitive-blur">{{ $maskedMetric }}</strong></div>
+                    <div><small>المناديب الحاليين</small><strong class="sensitive-blur">{{ $maskedMetric }}</strong></div>
+                    <div><small>الحد الأقصى للمتعهدين</small><strong class="sensitive-blur">{{ $maskedMetric }}</strong></div>
+                    <div><small>الحد الأقصى للمناديب</small><strong class="sensitive-blur">{{ $maskedMetric }}</strong></div>
                 </div>
             </article>
         </main>
@@ -261,6 +262,14 @@
     .metric-head span { color: #65676b; }
     .metric-bar { height: 8px; border-radius: 99px; background: #e4e6eb; overflow: hidden; }
     .metric-bar span { display: block; height: 100%; background: #1877f2; }
+    .metric-bar--masked span { width: 70%; filter: blur(7px); opacity: .7; }
+    .sensitive-blur {
+        filter: blur(6px);
+        user-select: none;
+        pointer-events: none;
+        display: inline-block;
+        letter-spacing: .08rem;
+    }
 
     .post-card + .post-card { margin-top: .9rem; }
     .post-head { display: flex; align-items: center; gap: .55rem; margin-bottom: .6rem; }
