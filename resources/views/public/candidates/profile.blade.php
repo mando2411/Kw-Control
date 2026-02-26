@@ -48,6 +48,7 @@
                             @csrf
                             <button type="submit" class="btn btn-primary"><i class="fa fa-user-plus me-1"></i>طلب الانضمام كمتعهد</button>
                         </form>
+                        <a href="https://kw-control.com/" class="btn btn-light"><i class="fa fa-arrow-right me-1"></i>الرجوع للرئيسية</a>
                     </div>
                 </div>
             </div>
