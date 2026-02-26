@@ -400,11 +400,11 @@
             <p class="candidate-subtitle">تقرير رسمي معتمد للاستخدام التشغيلي</p>
             <div class="meta-divider"></div>
 
-            <p class="meta-line main">الصفة: {{ $candidateType }}</p>
+            <p class="meta-line main"> {{ $candidateType }}</p>
             @if(!empty($listName))
-                <p class="meta-line">اسم القائمة: {{ $listName }}</p>
+                <p class="meta-line"> {{ $listName }}</p>
             @endif
-            <p class="meta-line">الحملة الانتخابية: {{ $campaignName }}</p>
+            <p class="meta-line"> {{ $campaignName }}</p>
 
           <!--  <div style="margin-top:8px; text-align:center;">
                 <span class="meta-chip">إجمالي السجلات: {{ $rowsCount }}</span>
