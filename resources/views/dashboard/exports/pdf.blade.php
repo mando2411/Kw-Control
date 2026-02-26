@@ -121,7 +121,13 @@
 @php
     $reportUser = $reportUser ?? auth()->user();
 
-    $candidate = $reportUser?->candidate;
+    $candidateRelation = $reportUser?->candidate;
+    if ($candidateRelation instanceof \Illuminate\Support\Collection) {
+        $candidate = $candidateRelation->firstWhere('election_id', $reportUser?->election_id)
+            ?? $candidateRelation->first();
+    } else {
+        $candidate = $candidateRelation;
+    }
 
     $candidateType = 'مرشح';
     if ($candidate?->candidate_type === 'list_leader') {
