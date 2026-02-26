@@ -382,10 +382,10 @@
 <body>
 <div class="report-shell">
     <div class="report-header">
-        <div class="header-top">
+      <!--  <div class="header-top">
             <div class="header-title">كشف بيانات الناخبين</div>
             <div class="header-date">تاريخ التصدير: {{ $generatedAt }}</div>
-        </div>
+        </div> -->
 
         <div class="right-col">
             @if($imageBase64)
