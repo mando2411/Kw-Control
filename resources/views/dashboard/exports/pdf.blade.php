@@ -71,9 +71,9 @@
         }
 
         .candidate-avatar {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
+            width: 140px;
+            height: 140px;
+            border-radius: 20%;
             border: 3px solid #0f172a;
             object-fit: cover;
             background: #e2e8f0;
