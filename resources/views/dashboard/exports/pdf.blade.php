@@ -15,15 +15,46 @@
             margin: 12px;
             color: #111827;
             text-align: right;
+            background: #ffffff;
+        }
+
+        .report-shell {
+            border: 1px solid #dbe4ee;
+            border-radius: 14px;
+            padding: 10px;
+            background: #ffffff;
         }
 
         .report-header {
-            border: 1px solid #0f172a;
-            border-radius: 10px;
-            padding: 14px;
-            background: #f8fafc;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            background: #f8fbff;
             overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .header-top {
+            border: 1px solid #cfd9e6;
+            border-radius: 8px;
+            background: #eef4fb;
+            padding: 7px 10px;
             margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .header-title {
+            float: right;
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .header-date {
+            float: left;
+            font-size: 12px;
+            color: #334155;
+            margin-top: 2px;
         }
 
         .report-header .right-col {
@@ -42,10 +73,10 @@
         }
 
         .candidate-avatar {
-            width: 96px;
-            height: 96px;
+            width: 98px;
+            height: 98px;
             border-radius: 50%;
-            border: 3px solid #1e293b;
+            border: 3px solid #0f172a;
             object-fit: cover;
             background: #e2e8f0;
         }
@@ -58,14 +89,14 @@
             border: 3px solid #1e293b;
             background: #cbd5e1;
             color: #0f172a;
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 700;
             margin: 0 auto;
         }
 
         .candidate-name {
-            margin: 0 0 8px;
-            font-size: 25px;
+            margin: 0 0 6px;
+            font-size: 26px;
             line-height: 1.25;
             color: #0f172a;
             font-weight: 700;
@@ -73,9 +104,16 @@
             direction: rtl;
         }
 
+        .candidate-subtitle {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: #475569;
+            font-weight: 700;
+        }
+
         .meta-line {
-            margin: 4px 0;
-            font-size: 15px;
+            margin: 5px 0;
+            font-size: 14px;
             text-align: right;
             direction: rtl;
             unicode-bidi: plaintext;
@@ -90,10 +128,48 @@
             color: #0f172a;
         }
 
+        .meta-chip {
+            display: inline-block;
+            border: 1px solid #cbd5e1;
+            border-radius: 999px;
+            background: #f8fafc;
+            padding: 3px 10px;
+            margin-left: 6px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #334155;
+        }
+
+        .stats-row {
+            margin-top: 10px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 8px;
+            overflow: hidden;
+        }
+
+        .stats-item {
+            float: right;
+            margin-left: 12px;
+            font-size: 12px;
+            color: #334155;
+        }
+
+        .stats-value {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .table-wrap {
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
         table {
             border-collapse: collapse;
             width: 100%;
-            margin-top: 8px;
+            margin-top: 0;
         }
 
         thead tr {
@@ -102,14 +178,14 @@
 
         thead th {
             color: #ffffff;
-            border: 1px solid #0f172a;
-            padding: 8px 6px;
+            border: 1px solid #1e293b;
+            padding: 9px 6px;
             font-size: 14px;
             text-align: center;
         }
 
         tbody td {
-            border: 1px solid #cbd5e1;
+            border: 1px solid #dde4ee;
             padding: 7px 6px;
             font-size: 13px;
             text-align: center;
@@ -125,9 +201,17 @@
         }
 
         @if(isset($mode) && $mode === 'pdf')
+            .report-shell {
+                border-radius: 0;
+            }
+
             .report-header {
                 border-radius: 0;
                 background: #ffffff;
+            }
+
+            .table-wrap {
+                border-radius: 0;
             }
         @endif
     </style>
@@ -142,6 +226,7 @@
     $candidateType = $reportCandidateType ?? 'مرشح';
     $listName = $reportListName ?? null;
     $campaignName = $reportCampaignName ?? ($reportUser?->election?->name ?? 'غير محدد');
+    $generatedAt = now()->format('Y/m/d - H:i');
 
     $headers = ['#', 'name'];
     if (in_array('family', $columns ?? [])) {
@@ -278,51 +363,74 @@
     }
 
     $nameInitial = mb_substr((string) ($reportUser?->name ?? 'م'), 0, 1);
+    $rowsCount = count($rows);
 @endphp
 
 <body>
-<div class="report-header">
-    <div class="right-col">
-        @if($imageBase64)
-            <img class="candidate-avatar" src="data:{{ $imageMime }};base64,{{ $imageBase64 }}" alt="صورة المستخدم">
-        @else
-            <div class="avatar-fallback">{{ $nameInitial }}</div>
-        @endif
+<div class="report-shell">
+    <div class="report-header">
+        <div class="header-top">
+            <div class="header-title">كشف بيانات الناخبين</div>
+            <div class="header-date">تاريخ التصدير: {{ $generatedAt }}</div>
+            <div class="clearfix"></div>
+        </div>
+
+        <div class="right-col">
+            @if($imageBase64)
+                <img class="candidate-avatar" src="data:{{ $imageMime }};base64,{{ $imageBase64 }}" alt="صورة المستخدم">
+            @else
+                <div class="avatar-fallback">{{ $nameInitial }}</div>
+            @endif
+        </div>
+
+        <div class="left-col">
+            <h1 class="candidate-name">{{ $reportUser?->name ?? 'مستخدم النظام' }}</h1>
+            <p class="candidate-subtitle">تقرير رسمي معتمد للاستخدام التشغيلي</p>
+
+            <p class="meta-line"><span class="meta-label">الصفة:</span> <span class="meta-value">{{ $candidateType }}</span></p>
+            @if(!empty($listName))
+                <p class="meta-line"><span class="meta-label">اسم القائمة:</span> <span class="meta-value">{{ $listName }}</span></p>
+            @endif
+            <p class="meta-line"><span class="meta-label">الحملة الانتخابية:</span> <span class="meta-value">{{ $campaignName }}</span></p>
+
+            <div style="margin-top:6px;">
+                <span class="meta-chip">إجمالي السجلات: {{ $rowsCount }}</span>
+                <span class="meta-chip">اتجاه التقرير: RTL</span>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <span class="stats-item">المستخدم: <span class="stats-value">{{ $reportUser?->name ?? 'غير محدد' }}</span></span>
+            <span class="stats-item">نوع الملف: <span class="stats-value">PDF</span></span>
+        </div>
+
+        <div class="clearfix"></div>
     </div>
 
-    <div class="left-col">
-        <h1 class="candidate-name">{{ $reportUser?->name ?? 'مستخدم النظام' }}</h1>
-        <p class="meta-line"><span class="meta-label">الصفة:</span> <span class="meta-value">{{ $candidateType }}</span></p>
-        @if(!empty($listName))
-            <p class="meta-line"><span class="meta-label">اسم القائمة:</span> <span class="meta-value">{{ $listName }}</span></p>
-        @endif
-        <p class="meta-line"><span class="meta-label">الحملة الانتخابية:</span> <span class="meta-value">{{ $campaignName }}</span></p>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                @foreach($headers as $header)
+                    <th>{{ __('main.' . $header) }}</th>
+                @endforeach
+            </tr>
+            </thead>
+            <tbody>
+            @forelse($rows as $row)
+                <tr>
+                    @foreach($headers as $header)
+                        <td>{{ $row[$header] }}</td>
+                    @endforeach
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="{{ count($headers) }}">لا يوجد بيانات</td>
+                </tr>
+            @endforelse
+            </tbody>
+        </table>
     </div>
-
-    <div class="clearfix"></div>
 </div>
-
-<table>
-    <thead>
-    <tr>
-        @foreach($headers as $header)
-            <th>{{ __('main.' . $header) }}</th>
-        @endforeach
-    </tr>
-    </thead>
-    <tbody>
-    @forelse($rows as $row)
-        <tr>
-            @foreach($headers as $header)
-                <td>{{ $row[$header] }}</td>
-            @endforeach
-        </tr>
-    @empty
-        <tr>
-            <td colspan="{{ count($headers) }}">لا يوجد بيانات</td>
-        </tr>
-    @endforelse
-    </tbody>
-</table>
 </body>
 </html>
