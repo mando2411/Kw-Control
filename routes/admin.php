@@ -51,7 +51,6 @@ Route::group(['prefix' => 'dashboard',
         });
     Route::resource('elections', ElectionController::class)->except('show');
     Route::resource('contractors', ContractorController::class)->except('show');
-    Route::get('contractors/online', [ContractorController::class, 'onlineChildren'])->name('contractors.online');
     Route::post('contractor/main', [ContractorController::class,'contractor'])->name('con-main');
     Route::resource('representatives', RepresentativeController::class)->except('show');
     Route::resource('candidates', CandidateController::class)->except('show');
@@ -118,6 +117,7 @@ Route::group([
     'middleware' => ['auth:web'],
     'as' => 'dashboard.'
 ], function () {
+    Route::get('contractors/online', [ContractorController::class, 'onlineChildren'])->name('contractors.online');
     Route::get('notifications/{id}', [NotificationController::class, 'show'])->name('notifications.show');
     Route::get('contractor-join-requests/{joinRequest}', [ContractorJoinRequestController::class, 'review'])->name('contractor-join-requests.review');
     Route::post('contractor-join-requests/{joinRequest}/decision', [ContractorJoinRequestController::class, 'decide'])->name('contractor-join-requests.decision');

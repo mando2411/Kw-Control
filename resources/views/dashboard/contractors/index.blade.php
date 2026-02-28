@@ -793,6 +793,7 @@
                     }
                 })
                     .then(function (response) {
+                        window.__lastFoundedNowStatus = response.status;
                         if (!response.ok) throw new Error('HTTP ' + response.status);
                         return response.json();
                     })
@@ -802,10 +803,16 @@
                         setFoundedNowState('عدد المتواجدين الآن: ' + rows.length, 'success');
                     })
                     .catch(function () {
+                        var statusText = '';
+                        try {
+                            if (window.__lastFoundedNowStatus) {
+                                statusText = ' (HTTP ' + String(window.__lastFoundedNowStatus) + ')';
+                            }
+                        } catch (e) {}
                         if (foundedNowBody) {
                             foundedNowBody.innerHTML = '<tr><td colspan="2" class="text-muted py-3">تعذر تحميل البيانات حالياً.</td></tr>';
                         }
-                        setFoundedNowState('تعذر تحميل بيانات المتواجدين حالياً.', 'error');
+                        setFoundedNowState('تعذر تحميل بيانات المتواجدين حالياً.' + statusText, 'error');
                     })
                     .finally(function () {
                         foundedNowLoading = false;
