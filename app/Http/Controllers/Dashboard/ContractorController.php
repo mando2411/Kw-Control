@@ -28,6 +28,19 @@ use App\Enums\SettingKey;
 class ContractorController extends Controller
 {
 
+    private function resolveVisibleChildrenForCurrentUser()
+    {
+        if (auth()->user()->hasRole('Administrator')) {
+            return Contractor::Children()->get();
+        }
+
+        if (auth()->user()->contractor) {
+            return auth()->user()->contractor->childs;
+        }
+
+        return auth()->user()->contractors()->Children()->get();
+    }
+
     public function index(ContractorDataTable $dataTable)
     {
             $parents = Contractor::parents()->where('creator_id',auth()->user()->id)->get()->map(fn($contractor)=>[
@@ -35,18 +48,47 @@ class ContractorController extends Controller
                 'name'=>$contractor->name
             ]);
 
-                if(auth()->user()->hasRole("Administrator")){
-                    $children=Contractor::Children()->get();
-                }elseif(auth()->user()->contractor){
+                if(auth()->user()->contractor){
 					$parents = auth()->user()->contractor()->get();
-                    $children=auth()->user()->contractor->childs;
                 }
-                else{
-                    $children = auth()->user()->contractors()->Children()->get();
-                }
+
+                $children = $this->resolveVisibleChildrenForCurrentUser();
 
 
             return view('dashboard.contractors.index', compact('parents','children'));
+    }
+
+    public function onlineChildren(Request $request)
+    {
+        $threshold = now()->subMinutes(5);
+
+        $children = $this->resolveVisibleChildrenForCurrentUser()
+            ->filter(function ($contractor) use ($threshold) {
+                return !empty($contractor->user_id)
+                    && $contractor->user
+                    && $contractor->user->last_active_at
+                    && $contractor->user->last_active_at->gt($threshold);
+            })
+            ->sortByDesc(function ($contractor) {
+                return optional($contractor->user)->last_active_at;
+            })
+            ->values();
+
+        $rows = $children->map(function ($contractor) {
+            $user = $contractor->user;
+
+            return [
+                'id' => (int) $contractor->id,
+                'name' => (string) ($contractor->name ?? ''),
+                'last_active_at' => optional($user->last_active_at)?->toIso8601String(),
+                'last_active_at_text' => $user ? (string) $user->LoginTime($user->last_active_at) : '',
+            ];
+        })->all();
+
+        return response()->json([
+            'count' => count($rows),
+            'rows' => $rows,
+        ]);
     }
 
 

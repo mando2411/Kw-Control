@@ -462,7 +462,7 @@
                     <input type="radio" role="button" class="visually-hidden" id="allMota3ahdeen" name="mota3ahdeenTable"
                         value="all">
                 </button>
-                <div role="button" class="mt-2 btn btn-dark" data-bs-toggle="modal" data-bs-target="#foundedNow">
+                <div role="button" class="mt-2 btn btn-dark" data-bs-toggle="modal" data-bs-target="#foundedNow" data-online-url="{{ route('dashboard.contractors.online') }}">
                     المتواجدين
                 </div>
 				
@@ -489,6 +489,8 @@
                         </div>
                         <div class="modal-body">
 
+                            <div id="foundedNowState" class="small text-muted mb-2" aria-live="polite">جاري التحميل...</div>
+
                             <div class="table-responsive mt-4">
                                 <table class="table overflow-hidden rtl">
                                     <thead class="table-secondary text-center border-0 border-dark border-bottom border-2">
@@ -497,12 +499,10 @@
                                             <th>اخر ظهور</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="table-group-divider text-center">
+                                    <tbody id="foundedNowBody" class="table-group-divider text-center">
                                         <tr>
-                                            <td>هابس بدر الشويب</td>
-                                            <td>03:52:11</td>
+                                            <td colspan="2" class="text-muted py-3">جاري تحميل المتواجدين...</td>
                                         </tr>
-
                                     </tbody>
                                 </table>
                             </div>
@@ -608,6 +608,11 @@
             var exportAsyncUrl = '{{ route('dashboard.statement.export-async') }}';
             var isOpeningExportModal = false;
             var shouldCloseParentAfterExport = false;
+            var foundedNowModal = document.getElementById('foundedNow');
+            var foundedNowBody = document.getElementById('foundedNowBody');
+            var foundedNowState = document.getElementById('foundedNowState');
+            var foundedNowBtn = pageRoot.querySelector('[data-bs-target="#foundedNow"][data-online-url]');
+            var foundedNowLoading = false;
 
             if (exportModalElement && document.body && exportModalElement.parentElement !== document.body) {
                 document.body.appendChild(exportModalElement);
@@ -716,6 +721,102 @@
             }
 
             function clearExportStatus(delay) {}
+
+            function foundedNowEscape(value) {
+                var safeValue = value == null ? '' : String(value);
+                return safeValue
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function setFoundedNowState(message, tone) {
+                if (!foundedNowState) return;
+                foundedNowState.textContent = message || '';
+                foundedNowState.classList.remove('text-muted', 'text-danger', 'text-success');
+
+                if (tone === 'error') {
+                    foundedNowState.classList.add('text-danger');
+                    return;
+                }
+
+                if (tone === 'success') {
+                    foundedNowState.classList.add('text-success');
+                    return;
+                }
+
+                foundedNowState.classList.add('text-muted');
+            }
+
+            function renderFoundedNowRows(rows) {
+                if (!foundedNowBody) return;
+
+                if (!Array.isArray(rows) || rows.length === 0) {
+                    foundedNowBody.innerHTML = '<tr><td colspan="2" class="text-muted py-3">لا يوجد متعهدون متواجدون الآن.</td></tr>';
+                    return;
+                }
+
+                var html = rows.map(function (row) {
+                    return '<tr>' +
+                        '<td>' + foundedNowEscape(row && row.name ? row.name : '—') + '</td>' +
+                        '<td>' + foundedNowEscape(row && row.last_active_at_text ? row.last_active_at_text : '—') + '</td>' +
+                        '</tr>';
+                }).join('');
+
+                foundedNowBody.innerHTML = html;
+            }
+
+            function loadFoundedNowData() {
+                if (foundedNowLoading) return;
+                if (!foundedNowBtn) return;
+
+                var onlineUrl = String(foundedNowBtn.getAttribute('data-online-url') || '').trim();
+                if (!onlineUrl) {
+                    setFoundedNowState('تعذر تحديد مصدر البيانات.', 'error');
+                    renderFoundedNowRows([]);
+                    return;
+                }
+
+                foundedNowLoading = true;
+                setFoundedNowState('جاري تحميل المتواجدين...', 'info');
+                if (foundedNowBody) {
+                    foundedNowBody.innerHTML = '<tr><td colspan="2" class="text-muted py-3">جاري تحميل المتواجدين...</td></tr>';
+                }
+
+                fetch(onlineUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(function (response) {
+                        if (!response.ok) throw new Error('HTTP ' + response.status);
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        var rows = Array.isArray(payload && payload.rows) ? payload.rows : [];
+                        renderFoundedNowRows(rows);
+                        setFoundedNowState('عدد المتواجدين الآن: ' + rows.length, 'success');
+                    })
+                    .catch(function () {
+                        if (foundedNowBody) {
+                            foundedNowBody.innerHTML = '<tr><td colspan="2" class="text-muted py-3">تعذر تحميل البيانات حالياً.</td></tr>';
+                        }
+                        setFoundedNowState('تعذر تحميل بيانات المتواجدين حالياً.', 'error');
+                    })
+                    .finally(function () {
+                        foundedNowLoading = false;
+                    });
+            }
+
+            if (foundedNowModal) {
+                foundedNowModal.addEventListener('shown.bs.modal', function () {
+                    loadFoundedNowData();
+                });
+            }
 
             function setCopyButtonState(text, tone) {
                 if (!copyConUrlBtn || !copyConUrlText) return;
