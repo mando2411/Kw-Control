@@ -984,16 +984,19 @@
             function buildContractorWhatsappMessage() {
                 var candidateName = String(currentContractorCreatorName || '').trim();
                 var signature = 'أخوكم المرشح' + (candidateName ? ': ' + candidateName : '');
+                var rawUrl = String(currentContractorUrl || '').trim();
+                var matchedUrls = rawUrl.match(/https?:\/\/[^\s]+/g);
+                var contractorUrl = matchedUrls && matchedUrls.length ? matchedUrls[0] : rawUrl;
 
                 return [
                     'السلام عليكم',
                     'هذا الرابط لمتابعة حالة المتعهدين',
                     '',
-                    String(currentContractorUrl || '').trim(),
+                    contractorUrl,
                     '',
                     'وشاكر لكم تعاونكم',
                     signature
-                ].join('\n');
+                ].join('\r\n');
             }
 
             function updateWhatsappLink(phone) {
