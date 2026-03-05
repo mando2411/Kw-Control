@@ -592,7 +592,6 @@
             var modalStatus = document.getElementById('contractorModalStatus');
             var currentContractorId = null;
             var currentContractorUrl = '';
-            var currentContractorCreatorName = '';
             var openConUrlBtn = document.getElementById('RedirectLink');
             var copyConUrlBtn = document.getElementById('copyConUrlBtn');
             var copyConUrlText = document.getElementById('copyConUrlText');
@@ -981,29 +980,6 @@
                 }, delay || 900);
             }
 
-            function buildContractorWhatsappMessage() {
-                var candidateName = String(currentContractorCreatorName || '').trim();
-                var signature = 'أخوكم المرشح' + (candidateName ? ': ' + candidateName : '');
-
-                return [
-                    'السلام عليكم',
-                    'هذا الرابط لمتابعة حالة المتعهدين',
-                    '',
-                    String(currentContractorUrl || '').trim(),
-                    '',
-                    'وشاكر لكم تعاونكم',
-                    signature
-                ].join('\n');
-            }
-
-            function updateWhatsappLink(phone) {
-                var phoneNumber = String(phone || '').replace(/\s+/g, '');
-                var linkElement = document.getElementById('whatsapp-link');
-                if (!linkElement) return;
-
-                linkElement.href = 'https://wa.me/965' + phoneNumber + '?text=' + encodeURIComponent(buildContractorWhatsappMessage());
-            }
-
             function getSelectedVoterIdsForExport() {
                 var ids = [];
                 document.querySelectorAll('#voters_con input[type="checkbox"]:checked').forEach(function (element) {
@@ -1056,8 +1032,13 @@
 
                 var phoneNumber = Number(String(user.phone || '').replace(/\s+/g, '')) || '';
                 $('#phone_wa').val(phoneNumber);
-                currentContractorCreatorName = String(user.creator || '').trim();
-                updateWhatsappLink(phoneNumber);
+                var candidateLine = (user.creator || '') + ': اخوكم المرشح';
+                var message = ($('#message').val() || '') + candidateLine;
+
+                function bindWhatsapp(phone) {
+                    document.getElementById('whatsapp-link').href = 'https://wa.me/965' + phone + '?text=' + encodeURIComponent(message) + '%0A%0A' + encodeURIComponent(currentContractorUrl || '');
+                }
+                bindWhatsapp(phoneNumber);
 
                 var votersHtml = '';
                 voters.forEach(function (voter, idx) {
@@ -1147,7 +1128,8 @@
 
             $('#phone_wa').off('change.contractorWa').on('change.contractorWa', function () {
                 var phone = $(this).val();
-                updateWhatsappLink(phone);
+                var candidateLine = ($('#message').val() || '') + '';
+                document.getElementById('whatsapp-link').href = 'https://wa.me/965' + phone + '?text=' + encodeURIComponent(candidateLine) + '%0A%0A' + encodeURIComponent(currentContractorUrl || '');
             });
 
             $('[data-bs-target="edit-mot"]').off('change.contractorEdit').on('change.contractorEdit', function () {
