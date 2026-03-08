@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Enums\Type;
 use App\Scopes\ElectionScope;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
 
 class GeneralController extends Controller
@@ -46,11 +47,11 @@ class GeneralController extends Controller
         }
 
         $searchValue = trim((string) $request->input('searchValue', ''));
-        $voterType = Type::normalize((string) ($committee->type ?? ''));
+        $voterTypes = $this->resolveCommitteeVoterTypeVariants((string) ($committee->type ?? ''));
         $electionId = (int) ($committee->election_id ?? 0);
 
         $votersQuery = Voter::withoutGlobalScope(ElectionScope::class)
-            ->where('type', $voterType)
+            ->whereIn('type', $voterTypes)
             ->when($electionId > 0, function ($query) use ($electionId) {
                 $query->whereHas('election', function ($electionQuery) use ($electionId) {
                     $electionQuery->where('elections.id', $electionId);
@@ -93,11 +94,11 @@ class GeneralController extends Controller
             ], 403);
         }
 
-        $voterType = Type::normalize((string) ($committee->type ?? ''));
+        $voterTypes = $this->resolveCommitteeVoterTypeVariants((string) ($committee->type ?? ''));
         $electionId = (int) ($committee->election_id ?? 0);
 
         $baseQuery = Voter::withoutGlobalScope(ElectionScope::class)
-            ->where('type', $voterType)
+            ->whereIn('type', $voterTypes)
             ->when($electionId > 0, function ($query) use ($electionId) {
                 $query->whereHas('election', function ($electionQuery) use ($electionId) {
                     $electionQuery->where('elections.id', $electionId);
@@ -120,6 +121,12 @@ class GeneralController extends Controller
     //==============================================================
     public function search2($voters, $search_value) {
         if ($search_value != '') {
+            $searchValue = preg_replace('/\s+/u', ' ', trim((string) $search_value));
+            $searchValue = $searchValue === null ? '' : $searchValue;
+            if ($searchValue === '') {
+                return $voters;
+            }
+
             // Normalized characters mapping
             $normalizedChars = [
                 'أ' => ['أ', 'ا', 'إ', 'آ'],
@@ -131,7 +138,7 @@ class GeneralController extends Controller
                 'ة' => ['ة', 'ه'],
                 'ه' => ['ة', 'ه']
             ];
-    
+
             // Word substitutions
             $substitutions = [
                 'نجلاء' => ['نجله'],
@@ -141,36 +148,49 @@ class GeneralController extends Controller
                 'سارا' => ['سارة'],
                 'نورا' => ['نوره']
             ];
-    
+
             // Extract first name and remaining words
-            $keywords = explode(' ', trim($search_value));
-            $firstWord = $keywords[0]; // First name must match exactly
+            $keywords = array_values(array_filter(explode(' ', $searchValue), fn ($word) => $word !== ''));
+            $firstWord = (string) ($keywords[0] ?? ''); // First name must match exactly when available
             $remainingWords = array_slice($keywords, 1); // Other words
 
-            $voters->where(function ($query) use ($search_value, $firstWord, $remainingWords, $normalizedChars, $substitutions) {
-                $query->where(function ($nameQuery) use ($firstWord, $remainingWords, $normalizedChars, $substitutions) {
-                    // Generate variations for the first word
-                    $firstWordVariations = $this->generateSearchTerms($firstWord, $normalizedChars);
+            $hasNormalizedName = Schema::hasColumn('voters', 'normalized_name');
+            $normalizedSearch = str_replace(['أ', 'إ', 'آ', 'ى', 'ة'], ['ا', 'ا', 'ا', 'ي', 'ه'], $searchValue);
 
-                    // Add word substitutions
-                    if (array_key_exists($firstWord, $substitutions)) {
-                        $firstWordVariations = array_merge($firstWordVariations, $substitutions[$firstWord]);
-                    }
+            $voters->where(function ($query) use ($searchValue, $firstWord, $remainingWords, $normalizedChars, $substitutions, $hasNormalizedName, $normalizedSearch) {
+                if ($firstWord !== '') {
+                    $query->orWhere(function ($nameQuery) use ($firstWord, $remainingWords, $normalizedChars, $substitutions) {
+                        // Generate variations for the first word
+                        $firstWordVariations = $this->generateSearchTerms($firstWord, $normalizedChars);
 
-                    // Ensure first name is EXACT match at the beginning
-                    $nameQuery->where(function ($subQuery) use ($firstWordVariations) {
-                        foreach ($firstWordVariations as $variation) {
-                            $subQuery->orWhere('name', 'LIKE', "{$variation} %");
+                        // Add word substitutions
+                        if (array_key_exists($firstWord, $substitutions)) {
+                            $firstWordVariations = array_merge($firstWordVariations, $substitutions[$firstWord]);
+                        }
+
+                        // Ensure first name is match at the beginning
+                        $nameQuery->where(function ($subQuery) use ($firstWordVariations) {
+                            foreach ($firstWordVariations as $variation) {
+                                $subQuery->orWhere('name', 'LIKE', "{$variation}%");
+                            }
+                        });
+
+                        // If there are additional words, ensure they appear somewhere in the name
+                        if (!empty($remainingWords)) {
+                            foreach ($remainingWords as $word) {
+                                $nameQuery->where('name', 'LIKE', "%{$word}%");
+                            }
                         }
                     });
+                }
 
-                    // If there are additional words, ensure they appear somewhere in the name
-                    if (!empty($remainingWords)) {
-                        foreach ($remainingWords as $word) {
-                            $nameQuery->where('name', 'LIKE', "%{$word}%");
-                        }
-                    }
-                })->orWhere('alsndok', 'like', $search_value . '%');
+                // Broad fallback search to avoid false zero-results from strict first-name matching.
+                $query->orWhere('name', 'LIKE', "%{$searchValue}%")
+                    ->orWhere('alsndok', 'like', "%{$searchValue}%");
+
+                if ($hasNormalizedName && $normalizedSearch !== '') {
+                    $query->orWhere('normalized_name', 'LIKE', '%' . $normalizedSearch . '%');
+                }
             });
         }
         return $voters;
@@ -200,6 +220,28 @@ class GeneralController extends Controller
         }
     
         return $combinations;
+    }
+    //==============================================================
+    private function resolveCommitteeVoterTypeVariants(string $committeeType): array
+    {
+        $type = trim($committeeType);
+        $womenTypes = ['اناث', 'انثى', 'انثي'];
+        $menTypes = ['ذكور', 'ذكر'];
+
+        if (in_array($type, $womenTypes, true)) {
+            return $womenTypes;
+        }
+
+        if (in_array($type, $menTypes, true)) {
+            return $menTypes;
+        }
+
+        return collect([$type, Type::normalize($type)])
+            ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+            ->map(fn ($value) => trim($value))
+            ->unique()
+            ->values()
+            ->all();
     }
     //==============================================================
     private function resolveAttendingScope(?User $user): array
@@ -263,7 +305,7 @@ class GeneralController extends Controller
 
         $committeeIds = Committee::withoutGlobalScopes()
             ->when(
-                \Illuminate\Support\Facades\Schema::hasColumn('committees', 'election_id'),
+                Schema::hasColumn('committees', 'election_id'),
                 fn ($query) => $query->whereIn('election_id', $allowedElectionIds->all())
             )
             ->pluck('id')
