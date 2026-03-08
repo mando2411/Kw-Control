@@ -313,8 +313,12 @@
       var quickCandidateClearAll = document.getElementById('quick_candidate_clear_all');
 
       var quickAddCollapse = null;
-      if (quickAddFormElement) {
-        quickAddCollapse = bootstrap.Collapse.getOrCreateInstance(quickAddFormElement, { toggle: false });
+      if (quickAddFormElement && window.bootstrap && bootstrap.Collapse) {
+        if (typeof bootstrap.Collapse.getOrCreateInstance === 'function') {
+          quickAddCollapse = bootstrap.Collapse.getOrCreateInstance(quickAddFormElement, { toggle: false });
+        } else {
+          quickAddCollapse = new bootstrap.Collapse(quickAddFormElement, { toggle: false });
+        }
       }
 
       if (schoolSelect && schoolForm) {
@@ -338,8 +342,20 @@
       }
 
       if (quickAddCloseButton && quickAddCollapse) {
-        quickAddCloseButton.addEventListener('click', function () {
+        quickAddCloseButton.addEventListener('click', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
           quickAddCollapse.hide();
+        });
+      }
+
+      // Hard fallback in case Collapse JS plugin is unavailable or fails.
+      if (quickAddCloseButton && !quickAddCollapse && quickAddFormElement) {
+        quickAddCloseButton.addEventListener('click', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          quickAddFormElement.classList.remove('show');
+          quickAddFormElement.style.height = null;
         });
       }
 
