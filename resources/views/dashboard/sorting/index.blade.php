@@ -621,7 +621,7 @@
         <form action="{{ route('committee.status', $committee->id) }}" method="POST" id="CommStatus">
           @csrf
           <input type="hidden" name="status" id="status" value="{{ $committee->status }}">
-          <button id="toggle-lock-button" type="submit" class="btn-lock-control">
+          <button id="toggle-lock-button" type="button" class="btn-lock-control">
             <i id="icon" class="fa-solid fa-unlock"></i>
             <span id="lockButtonText">تبديل حالة الفرز</span>
           </button>
@@ -824,13 +824,21 @@
       $('#successModal').modal('show');
     }
 
-    $('#CommStatus').on('submit', function(e) {
+    $('#toggle-lock-button').on('click', function(e) {
       e.preventDefault();
-      axios.post($(this).attr('action'), $(this).serialize()).then((res) => {
-        $('#status').val(res.data.status);
-        setTimeout(() => {
-          checkLocked();
-        }, 800);
+
+      var $form = $('#CommStatus');
+      var $btn = $(this);
+      if (!$form.length || $btn.prop('disabled')) {
+        return;
+      }
+
+      $btn.prop('disabled', true);
+
+      axios.post($form.attr('action'), $form.serialize()).then((res) => {
+        var normalizedStatus = normalizeStatusValue(res.data.status);
+        $('#status').val(normalizedStatus);
+        checkLocked();
       }).catch(error => {
         var backendError = null;
         if (error.response && error.response.data) {
@@ -840,6 +848,8 @@
           }
         }
         toastr.error(backendError || 'حدث خطأ غير متوقع أثناء تغيير حالة الفرز.');
+      }).finally(() => {
+        $btn.prop('disabled', false);
       });
     });
 
@@ -873,13 +883,20 @@
   let icon = $('#icon');
   let isLocked = false;
 
+  function normalizeStatusValue(value) {
+    if (value === true || value === 'true' || value === 1 || value === '1') {
+      return 1;
+    }
+    return 0;
+  }
+
   function checkLocked() {
     const statusElement = $('#status');
     if (!statusElement.length) {
       return;
     }
 
-    let status = statusElement.val();
+    let status = normalizeStatusValue(statusElement.val());
 
     if (status == 1) {
       unlockPage();

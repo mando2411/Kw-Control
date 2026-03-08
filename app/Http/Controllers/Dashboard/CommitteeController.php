@@ -239,7 +239,7 @@ class CommitteeController extends Controller
 
         return  response()->json(
             [
-                'status'=>(bool) $committee->status,
+                'status'=>(int) $committee->status,
                 'message' => 'تم تحديث حالة الفرز بنجاح.'
             ]
         );
