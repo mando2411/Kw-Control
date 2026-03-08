@@ -14,7 +14,7 @@
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
             <h5 class="mb-0">توزيع المندوبين</h5>
             @if(admin()->can('representatives.create'))
-              <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#quickAddRepresentativeForm" aria-expanded="false" aria-controls="quickAddRepresentativeForm">
+              <button type="button" id="openQuickAddRepresentativeForm" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#quickAddRepresentativeForm" aria-expanded="false" aria-controls="quickAddRepresentativeForm">
                 إضافة مندوب جديد
               </button>
             @endif
@@ -70,21 +70,33 @@
 
                   @if(($relations['is_list_leader_user'] ?? false) && ($relations['list_candidates'] ?? collect())->isNotEmpty())
                     <div class="col-12">
-                      <label class="form-label" for="quick_candidate_ids">المرشحون المسموحون للمندوب</label>
-                      <select name="candidate_ids[]" id="quick_candidate_ids" class="form-select" multiple>
-                        @foreach ($relations['list_candidates'] as $candidateOption)
-                          <option value="{{ $candidateOption->id }}" @selected(in_array((string) $candidateOption->id, array_map('strval', (array) old('candidate_ids', [])), true))>
-                            {{ $candidateOption->user?->name ?? ('مرشح #' . $candidateOption->id) }}
-                          </option>
-                        @endforeach
-                      </select>
-                      <small class="text-muted d-block mt-1">يمكن اختيار أكثر من مرشح، وسيظهر هؤلاء المرشحون فقط للمندوب في شاشة الفرز.</small>
+                      <div class="candidate-selector-panel">
+                        <div class="candidate-selector-head">
+                          <label class="form-label mb-0" for="quick_candidate_ids">المرشحون المسموحون للمندوب</label>
+                          <span class="candidate-selector-count">المحدد: <strong id="quick_candidate_count">0</strong></span>
+                        </div>
+
+                        <select name="candidate_ids[]" id="quick_candidate_ids" class="form-select candidate-selector-input" multiple>
+                          @foreach ($relations['list_candidates'] as $candidateOption)
+                            <option value="{{ $candidateOption->id }}" @selected(in_array((string) $candidateOption->id, array_map('strval', (array) old('candidate_ids', [])), true))>
+                              {{ $candidateOption->user?->name ?? ('مرشح #' . $candidateOption->id) }}
+                            </option>
+                          @endforeach
+                        </select>
+
+                        <div class="candidate-selector-actions">
+                          <button type="button" class="btn btn-sm btn-outline-primary" id="quick_candidate_select_all">تحديد الكل</button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary" id="quick_candidate_clear_all">إلغاء الكل</button>
+                        </div>
+
+                        <small class="text-muted d-block mt-1">المرشح الإداري (غير فعلي) لا يظهر في هذه القائمة. يمكنك اختيار أكثر من مرشح، وسيظهر هؤلاء فقط للمندوب في شاشة الفرز.</small>
+                      </div>
                     </div>
                   @endif
 
                   <div class="col-12 d-flex gap-2">
                     <button class="btn btn-success" type="submit">حفظ</button>
-                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#quickAddRepresentativeForm">إغلاق</button>
+                    <button class="btn btn-outline-secondary" id="quickAddCloseButton" type="button">إغلاق</button>
                   </div>
                 </form>
               </div>
@@ -230,6 +242,59 @@
       background: #eef4ff;
       color: #1f4b76;
     }
+
+    .candidate-selector-panel {
+      border: 1px solid #d8e5fb;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
+      padding: 0.85rem;
+    }
+
+    .candidate-selector-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .candidate-selector-count {
+      background: #e8f0ff;
+      color: #1a4f8f;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+    }
+
+    .candidate-selector-input {
+      min-height: 140px;
+      border-color: #bfd3f4;
+      font-weight: 600;
+    }
+
+    .candidate-selector-input option {
+      padding: 0.45rem;
+      border-bottom: 1px solid #eef3fb;
+    }
+
+    .candidate-selector-actions {
+      margin-top: 0.55rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+      .candidate-selector-actions {
+        flex-direction: column;
+      }
+
+      .candidate-selector-actions .btn {
+        width: 100%;
+      }
+    }
   </style>
 @endpush
 
@@ -240,6 +305,17 @@
       var schoolForm = document.getElementById('school-form');
       var quickCommitteeSelect = document.getElementById('quick_committee_id');
       var quickElectionInput = document.getElementById('quick_add_election_id');
+      var quickAddFormElement = document.getElementById('quickAddRepresentativeForm');
+      var quickAddCloseButton = document.getElementById('quickAddCloseButton');
+      var quickCandidateSelect = document.getElementById('quick_candidate_ids');
+      var quickCandidateCount = document.getElementById('quick_candidate_count');
+      var quickCandidateSelectAll = document.getElementById('quick_candidate_select_all');
+      var quickCandidateClearAll = document.getElementById('quick_candidate_clear_all');
+
+      var quickAddCollapse = null;
+      if (quickAddFormElement) {
+        quickAddCollapse = bootstrap.Collapse.getOrCreateInstance(quickAddFormElement, { toggle: false });
+      }
 
       if (schoolSelect && schoolForm) {
         schoolSelect.addEventListener('change', function () {
@@ -259,6 +335,43 @@
       if (quickCommitteeSelect) {
         quickCommitteeSelect.addEventListener('change', syncQuickElection);
         syncQuickElection();
+      }
+
+      if (quickAddCloseButton && quickAddCollapse) {
+        quickAddCloseButton.addEventListener('click', function () {
+          quickAddCollapse.hide();
+        });
+      }
+
+      var syncQuickCandidateCount = function () {
+        if (!quickCandidateSelect || !quickCandidateCount) {
+          return;
+        }
+
+        quickCandidateCount.textContent = String(quickCandidateSelect.selectedOptions.length);
+      };
+
+      if (quickCandidateSelect) {
+        quickCandidateSelect.addEventListener('change', syncQuickCandidateCount);
+        syncQuickCandidateCount();
+      }
+
+      if (quickCandidateSelectAll && quickCandidateSelect) {
+        quickCandidateSelectAll.addEventListener('click', function () {
+          Array.from(quickCandidateSelect.options).forEach(function (option) {
+            option.selected = true;
+          });
+          syncQuickCandidateCount();
+        });
+      }
+
+      if (quickCandidateClearAll && quickCandidateSelect) {
+        quickCandidateClearAll.addEventListener('click', function () {
+          Array.from(quickCandidateSelect.options).forEach(function (option) {
+            option.selected = false;
+          });
+          syncQuickCandidateCount();
+        });
       }
 
       var modalElement = document.getElementById('repEditModal');

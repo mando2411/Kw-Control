@@ -417,6 +417,7 @@ class RepresentativeController extends Controller
     {
         $viewerId = (int) $user->id;
         $viewerElectionId = (int) ($user->election_id ?? 0);
+        $hasActualCandidateColumn = Schema::hasColumn('candidates', 'is_actual_list_candidate');
 
         $listLeaderCandidateQuery = Candidate::withoutGlobalScopes()
             ->select(['id', 'election_id'])
@@ -437,6 +438,14 @@ class RepresentativeController extends Controller
                 $query->where('id', (int) $listLeaderCandidate->id)
                     ->orWhere('list_leader_candidate_id', (int) $listLeaderCandidate->id);
             });
+
+        // Hide administrative-only list candidates from representative candidate selector.
+        if ($hasActualCandidateColumn) {
+            $listMembersQuery->where(function (Builder $query) {
+                $query->where('is_actual_list_candidate', true)
+                    ->orWhereNull('is_actual_list_candidate');
+            });
+        }
 
         if ($viewerElectionId > 0) {
             $listMembersQuery->where('election_id', $viewerElectionId);
