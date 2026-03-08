@@ -33,14 +33,19 @@ class SchoolPermissionSeeder extends Seeder
         }
 
         $schools = [
-            ['name' => 'مدرسه نساء', 'type' => Type::WOMEN],
-            ['name' => 'مدرسه رجال', 'type' => Type::MEN],
+            ['name' => 'مدرسه نساء', 'type' => Type::WOMEN->value, 'election_id' => null],
+            ['name' => 'مدرسه رجال', 'type' => Type::MEN->value, 'election_id' => null],
         ];
-        foreach($schools as $school){
+
+        foreach ($schools as $school) {
             School::updateOrCreate(
-                ['name'=>$school],
+                [
+                    'name' => $school['name'],
+                    'type' => $school['type'],
+                    'election_id' => $school['election_id'],
+                ],
                 $school
-        );
+            );
         }
     }
 }

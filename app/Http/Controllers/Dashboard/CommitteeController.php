@@ -9,6 +9,7 @@ use App\DataTables\CommitteeDataTable;
 use App\Models\Election;
 use Illuminate\Http\Request;
 use App\Models\School;
+use App\Models\Voter;
 use App\Services\Query\CommitteeGenerator;
 use App\Events\CommitteeUpdate;
 
@@ -100,19 +101,74 @@ class CommitteeController extends Controller
             'message' => 'Committee Deleted Successfully!'
         ]);
     }
-    public function home(Request $request){
-        if (collect($request->all())->isEmpty() || $request->id=="all") {
-            $relations=[
-                'schools' => School::with('committees')->get(),
-            ];
-            return view('dashboard.committees.committee' ,compact('relations'));
-        }else{
-                $school=School::where('id',$request->id)->get();
-                $relations=[
-                'schools' => School::with('committees')->get(),
-            ];
-            return view('dashboard.committees.committee' ,compact('relations','school','request'));
+    public function home(Request $request)
+    {
+        $user = auth('web')->user();
+        $schoolId = (string) $request->input('id', 'all');
+
+        $dropdownQuery = School::query()->select('id', 'name', 'type');
+        $schoolsQuery = School::query()->with([
+            'committees' => function ($query) {
+                $query->with(['voters', 'representatives.user']);
+            },
+        ]);
+
+        if ($user && !$user->hasRole('Administrator')) {
+            $electionId = (int) $user->election_id;
+
+            $dropdownQuery
+                ->where(function ($query) use ($electionId) {
+                    $query->where('election_id', $electionId)
+                        ->orWhereNull('election_id');
+                })
+                ->whereHas('committees');
+
+            $schoolsQuery->where(function ($query) use ($electionId) {
+                $query->where('election_id', $electionId)
+                    ->orWhereNull('election_id');
+            });
         }
+
+        $relations = [
+            'schools' => $dropdownQuery->orderBy('name')->get(),
+        ];
+
+        if ($schoolId !== 'all') {
+            $schoolsQuery->where('id', (int) $schoolId);
+        }
+
+        $schools = $schoolsQuery->get();
+        $committeeIds = $schools->pluck('committees.*.id')->flatten()->unique()->values();
+
+        $summary = [
+            'male_voters' => 0,
+            'female_voters' => 0,
+            'total_voters' => 0,
+            'male_attended' => 0,
+            'female_attended' => 0,
+            'total_attended' => 0,
+            'male_remaining' => 0,
+            'female_remaining' => 0,
+            'total_remaining' => 0,
+        ];
+
+        if ($committeeIds->isNotEmpty()) {
+            $baseVoters = Voter::query()->whereIn('committee_id', $committeeIds->all());
+
+            $summary['male_voters'] = (clone $baseVoters)->where('type', 'ذكر')->count();
+            $summary['female_voters'] = (clone $baseVoters)->where('type', '!=', 'ذكر')->count();
+            $summary['total_voters'] = (clone $baseVoters)->count();
+
+            $summary['male_attended'] = (clone $baseVoters)->where('type', 'ذكر')->where('status', 1)->count();
+            $summary['female_attended'] = (clone $baseVoters)->where('type', '!=', 'ذكر')->where('status', 1)->count();
+            $summary['total_attended'] = (clone $baseVoters)->where('status', 1)->count();
+
+            $summary['male_remaining'] = (clone $baseVoters)->where('type', 'ذكر')->where('status', 0)->count();
+            $summary['female_remaining'] = (clone $baseVoters)->where('type', '!=', 'ذكر')->where('status', 0)->count();
+            $summary['total_remaining'] = (clone $baseVoters)->where('status', 0)->count();
+        }
+
+        return view('dashboard.committees.committee', compact('relations', 'schools', 'summary', 'request'));
     }
 
     public function status(Request $request,$id){

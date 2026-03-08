@@ -21,11 +21,15 @@
                 <div class="card">
                     <div class="card-body">
                         <x-dashboard.form.input-text error-key="name" name="name"  id="name" label-title="Name"/>
+
                         <label for="type">TYPE </label>
-                        <select name="type" id="type" error-key="type" >
+                        <select name="type" id="type">
                             <option value="ذكور">ذكور</option>
                             <option value="اناث">اناث</option>
                         </select>
+
+                        <x-dashboard.form.input-select name="election_id" :options="$relations['elections']" track-by="id"
+                            option-lable="name" label-title="Election" id="election_id" error-key="election_id" />
 
                         <x-dashboard.form.submit-button/>
                     </div>

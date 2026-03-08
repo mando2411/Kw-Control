@@ -17,6 +17,8 @@ class SchoolDataTable extends DataTable
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
+            ->editColumn('type', fn(School $school) => $school->type ?? '-')
+            ->addColumn('election', fn(School $school) => $school->election?->name ?? 'عام')
             ->editColumn('created_at', fn(School $school) => $school->created_at->format('M Y, d'))
             ->addColumn('action', 'dashboard.schools.action')
             
@@ -26,7 +28,16 @@ class SchoolDataTable extends DataTable
 
     public function query(School $model): QueryBuilder
     {
-        return $model->newQuery();
+        $query = $model->newQuery()->with('election');
+
+        if (auth()->check() && !auth()->user()->hasRole('Administrator')) {
+            $query->where(function ($nested) {
+                $nested->where('election_id', auth()->user()->election_id)
+                    ->orWhereNull('election_id');
+            });
+        }
+
+        return $query;
     }
 
     public function html(): HtmlBuilder
@@ -52,6 +63,8 @@ class SchoolDataTable extends DataTable
         return [
             Column::make('id'),
             Column::make('name'),
+            Column::make('type'),
+            Column::computed('election')->title('Election'),
             Column::make('created_at'),
             Column::computed('action')
                   ->exportable(false)

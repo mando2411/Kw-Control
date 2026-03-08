@@ -894,3 +894,45 @@ When the next deploy is done, append a short release entry including:
 - أي تعديل في صلاحيات اللجان أو ربطها بالـsidebar يحتاج بعدها `php artisan optimize:clear`.
 - قبل الإنتاج يفضل توحيد تمثيل النوع (ذكور/اناث مقابل ذكر/انثى) ضمن enum وvalidation وواجهات الإدخال.
 - يوصى بنقل حسابات الإحصاءات الثقيلة من Blade إلى Queries محسنة (`withCount`/aggregates) لتقليل زمن الصفحة.
+
+---
+
+## Schools <-> Committees Logic Review (2026-03-08)
+
+مراجعة منطق المدارس وعلاقته باللجان تمت من المصدر المباشر (Models/Controllers/Requests/Migrations/Views/Seeders).
+
+### Applied Fixes (completed)
+
+1. تم إضافة `election_id` لجدول المدارس عبر migration:
+   - `database/migrations/2026_03_08_120000_add_election_id_to_schools_table.php`
+   - يتضمن backfill ذكي عندما تكون المدرسة مرتبطة بلجان من انتخاب واحد فقط.
+2. تم توسيع نموذج `School` ليدعم:
+   - `election_id` في `$fillable`
+   - علاقة `election()`.
+3. تم إصلاح منطق ربط المدرسة باللجنة داخل `Committee::created`:
+   - الاختيار الآن حسب `type + election_id` مع fallback لمدارس `election_id = null`.
+4. تم إضافة إعادة ضبط تلقائي لـ`school_id` عند تعديل `Committee.type` أو `Committee.election_id` (`updating` hook).
+5. تم إصلاح `SchoolRequest`:
+   - `election_id` مطلوب.
+   - `type` مضبوط على enum (`ذكور/اناث`).
+   - منع تكرار `type` داخل نفس `election_id` (unique rule) لتفادي الربط الغامض.
+6. تم إصلاح `SchoolController` لتمرير `elections` في صفحات create/edit.
+7. تم تحديث واجهات المدارس:
+   - `schools/create` يحتوي الآن اختيار `type` + `election_id`.
+   - `schools/edit` يحتوي الآن `name` + `type` + `election_id` ومتوافق مع الـvalidation.
+8. تم إصلاح `SchoolPermissionSeeder`:
+   - إصلاح `updateOrCreate` الخاطئ.
+   - استخدام قيم enum الصحيحة (`Type::...->value`).
+9. تم تحسين `SchoolDataTable`:
+   - إضافة أعمدة `type` و`election`.
+   - فلترة حسب انتخاب المستخدم (مع fallback للمدارس العامة) لغير الـAdministrator.
+10. تم تحسين صفحة `committee.home`:
+    - إلغاء العدادات العامة غير scoped.
+    - اعتماد summary مربوط بالمدرسة/المدارس المختارة.
+    - تصحيح إجمالي الحضور لكل مدرسة/لجنة ليعتمد على بياناتها الفعلية.
+11. تم جعل `RepresentativeController@home` election-aware عند تحميل المدارس واللجان.
+
+### Residual Notes (still open)
+
+1. `SchoolObserver` لا يزال فارغًا وغير مستخدم (يمكن حذفه أو استغلاله لقواعد domain).
+2. ما زال اختيار المدرسة في نموذج اللجنة تلقائيًا (based on type+election) وليس اختيارًا يدويًا صريحًا من الفورم؛ إذا مطلوب دقة تشغيلية أعلى، يفضل إضافة `school_id` مباشرة في create/edit اللجنة.

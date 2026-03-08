@@ -31,21 +31,21 @@
                     <tbody>
                         <tr>
                             <td class="fw-semibold">الناخبين</td>
-                            <td>{{ App\Models\Voter::where('type', 'ذكر')->count() }}</td>
-                            <td>{{ App\Models\Voter::where('type', '!=', 'ذكر')->count() }}</td>
-                            <td>{{ App\Models\Voter::count() }}</td>
+                            <td>{{ $summary['male_voters'] ?? 0 }}</td>
+                            <td>{{ $summary['female_voters'] ?? 0 }}</td>
+                            <td>{{ $summary['total_voters'] ?? 0 }}</td>
                         </tr>
                         <tr>
                             <td class="fw-semibold">الحضور</td>
-                            <td>{{ App\Models\Voter::where('type', 'ذكر')->where('status', 1)->count() }}</td>
-                            <td>{{ App\Models\Voter::where('type', '!=', 'ذكر')->where('status', 1)->count() }}</td>
-                            <td>{{ App\Models\Voter::where('status', 1)->count() }}</td>
+                            <td>{{ $summary['male_attended'] ?? 0 }}</td>
+                            <td>{{ $summary['female_attended'] ?? 0 }}</td>
+                            <td>{{ $summary['total_attended'] ?? 0 }}</td>
                         </tr>
                         <tr>
                             <td class="fw-semibold">الباقى</td>
-                            <td>{{ App\Models\Voter::where('type', 'ذكر')->where('status', 0)->count() }}</td>
-                            <td>{{ App\Models\Voter::where('type', '!=', 'ذكر')->where('status', 0)->count() }}</td>
-                            <td>{{ App\Models\Voter::where('status', 0)->count() }}</td>
+                            <td>{{ $summary['male_remaining'] ?? 0 }}</td>
+                            <td>{{ $summary['female_remaining'] ?? 0 }}</td>
+                            <td>{{ $summary['total_remaining'] ?? 0 }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -76,23 +76,17 @@
                             <th class="fs-5 w150">الملاحظات</th>
                         </tr>
                     </thead>
-                    @php
-                        if (isset($school)) {
-                            $schools = $school;
-                        } else {
-                            $schools = $relations['schools'];
-                        }
-                    @endphp
                     <!-- مدرسة حيطان رجال -->
                     @foreach ($schools as $school)
                         <tbody class="@if ($school->type == 'ذكور') man @else weman @endif">
 
                             @php
                                 $attends = 0;
-                                $all = 0;
+                                $schoolTotalVoters = 0;
                                 $trust = 0;
                                 $attendTrust = 0;
                                 foreach ($school->committees as $com) {
+                                    $schoolTotalVoters += $com->voters->count();
                                     $attends += $com->voters
                                         ->filter(function ($voter) {
                                             return $voter->status == 1;
@@ -112,7 +106,7 @@
                                     {{ $school->name }}({{ $school->type }})
                                     <p class="bg-white mt-2" style="color: #000">
                                         الحضور <span class="attend">{{ $attends }}</span> من
-                                        <span class="totalAttend">{{ counts($school->type) }}</span>
+                                        <span class="totalAttend">{{ $schoolTotalVoters }}</span>
                                     </p>
                                 </td>
                                 <td>
@@ -162,7 +156,7 @@
                                                     })->count() }}
                                             </span> من
                                             <span class="totalAttend">
-                                                {{ counts($school->type) }}
+                                                {{ $com->voters->count() }}
                                             </span>
                                         </p>
                                     </td>

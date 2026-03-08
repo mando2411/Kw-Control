@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Dashboard;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SchoolRequest extends FormRequest
 {
@@ -24,8 +25,10 @@ class SchoolRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [
-"name" => "Name",
-];
+            "name" => "Name",
+            "type" => "Type",
+            "election_id" => "Election",
+        ];
 
         return $attributes;
     }
@@ -37,9 +40,18 @@ class SchoolRequest extends FormRequest
      */
     public function rules(): array
     {
+        $schoolId = $this->route('school')?->id;
+
         $rules = [
-            'name' => ['required'],
-            'type' => ['required'],
+            'name' => ['required', 'string', 'max:255'],
+            'type' => [
+                'required',
+                'in:ذكور,اناث',
+                Rule::unique('schools', 'type')
+                    ->where(fn ($query) => $query->where('election_id', $this->input('election_id')))
+                    ->ignore($schoolId),
+            ],
+            'election_id' => ['required', 'exists:elections,id'],
 
         ];
 

@@ -43,13 +43,37 @@ class Committee extends Model
                 $committee->candidates()->syncWithoutDetaching($candidateIds);
             }
 
-            $school=School::where('type',$committee->type)->first();
+            $school = School::query()
+                ->where('type', $committee->type)
+                ->where(function ($query) use ($committee) {
+                    $query->where('election_id', $committee->election_id)
+                        ->orWhereNull('election_id');
+                })
+                ->orderByRaw('CASE WHEN election_id = ? THEN 0 ELSE 1 END', [(int) $committee->election_id])
+                ->first();
+
             if ($school) {
-                # code...
                 $committee->update([
-                    'school_id'=>$school->id
+                    'school_id' => $school->id
                 ]);
             }
+        });
+
+        static::updating(function ($committee) {
+            if (!$committee->isDirty(['type', 'election_id'])) {
+                return;
+            }
+
+            $school = School::query()
+                ->where('type', $committee->type)
+                ->where(function ($query) use ($committee) {
+                    $query->where('election_id', $committee->election_id)
+                        ->orWhereNull('election_id');
+                })
+                ->orderByRaw('CASE WHEN election_id = ? THEN 0 ELSE 1 END', [(int) $committee->election_id])
+                ->first();
+
+            $committee->school_id = $school?->id;
         });
     }
 

@@ -150,17 +150,35 @@ class RepresentativeController extends Controller
     }
     //================================================================================================
     public function home(Request $request){
+        $user = auth('web')->user();
+
+        $schoolsQuery = School::query();
+        $committeesQuery = Committee::query();
+
+        if ($user && !$user->hasRole('Administrator')) {
+            $electionId = (int) $user->election_id;
+
+            $schoolsQuery
+                ->where(function ($query) use ($electionId) {
+                    $query->where('election_id', $electionId)
+                        ->orWhereNull('election_id');
+                })
+                ->whereHas('committees');
+
+            $committeesQuery->where('election_id', $electionId);
+        }
+
         if (collect($request->all())->isEmpty() || $request->id=="all") {
             $relations=[
-                'committees' => Committee::all(),
-                'schools' => School::all(),
+                'committees' => $committeesQuery->get(),
+                'schools' => $schoolsQuery->get(),
             ];
             return view('dashboard.representatives.home' ,compact('relations'));
         }else{
-                $school=School::where('id',$request->id)->get();
+                $school=(clone $schoolsQuery)->where('id',$request->id)->get();
                 $relations=[
-                'committees' => Committee::all(),
-                'schools' => School::all(),
+                'committees' => $committeesQuery->get(),
+                'schools' => $schoolsQuery->get(),
             ];
             return view('dashboard.representatives.home' ,compact('relations','school','request'));
         }

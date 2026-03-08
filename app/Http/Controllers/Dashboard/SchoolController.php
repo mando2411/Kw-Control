@@ -6,6 +6,7 @@ use App\Models\School;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\SchoolRequest;
 use App\DataTables\SchoolDataTable;
+use App\Models\Election;
 
 class SchoolController extends Controller
 {
@@ -18,7 +19,11 @@ class SchoolController extends Controller
 
     public function create()
     {
-        return view('dashboard.schools.create');
+        $relations = [
+            'elections' => Election::all(),
+        ];
+
+        return view('dashboard.schools.create', compact('relations'));
     }
 
 
@@ -39,7 +44,11 @@ class SchoolController extends Controller
 
     public function edit(School $school)
     {
-        return view('dashboard.schools.edit', compact('school'));
+        $relations = [
+            'elections' => Election::all(),
+        ];
+
+        return view('dashboard.schools.edit', compact('school', 'relations'));
     }
 
 

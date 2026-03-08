@@ -23,6 +23,16 @@
                     <div class="card-body">
                         <x-dashboard.form.input-text error-key="name" name="name" :value="$school->name" id="name" label-title="Name"/>
 
+                        <label for="type">TYPE </label>
+                        <select name="type" id="type">
+                            <option value="ذكور" @selected($school->type === 'ذكور')>ذكور</option>
+                            <option value="اناث" @selected($school->type === 'اناث')>اناث</option>
+                        </select>
+
+                        <x-dashboard.form.input-select name="election_id" :options="$relations['elections']" track-by="id"
+                            option-lable="name" label-title="Election" :value="$school->election_id"
+                            id="election_id" error-key="election_id" />
+
 
                         <x-dashboard.form.submit-button/>
                     </div>
