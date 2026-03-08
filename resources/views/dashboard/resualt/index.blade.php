@@ -280,83 +280,151 @@
 @endsection
 @push('js')
     <script>
+        var legacyAnimationTimer = null;
+        var legacyAnimationInProgress = false;
+        var legacyAnimationQueued = false;
+
+        function getCandidatesContainer() {
+            return document.querySelector('.row.rtl.pt-5.justify-content-center');
+        }
+
+        function setCandidateVoteInDom(candidateId, votes) {
+            var candidatesContainer = getCandidatesContainer();
+            if (!candidatesContainer) {
+                return false;
+            }
+
+            var card = candidatesContainer.querySelector('[data-candidate-id="' + candidateId + '"]');
+            if (!card) {
+                return false;
+            }
+
+            var voteElement = card.querySelector('.soundNum');
+            if (!voteElement) {
+                return false;
+            }
+
+            var oldVotes = parseInt(voteElement.innerText, 10) || 0;
+            var nextVotes = parseInt(votes, 10) || 0;
+            if (oldVotes === nextVotes) {
+                return false;
+            }
+
+            voteElement.innerText = nextVotes;
+            return true;
+        }
+
+        function scheduleLegacyRankingAnimation() {
+            if (legacyAnimationInProgress) {
+                legacyAnimationQueued = true;
+                return;
+            }
+
+            if (legacyAnimationTimer) {
+                clearTimeout(legacyAnimationTimer);
+                legacyAnimationTimer = null;
+            }
+
+            legacyAnimationTimer = setTimeout(function () {
+                runLegacyRankingAnimation();
+            }, 120);
+        }
+
+        function runLegacyRankingAnimation() {
+            var candidatesContainer = getCandidatesContainer();
+            if (!candidatesContainer) {
+                return;
+            }
+
+            var cards = Array.from(candidatesContainer.children || []);
+            if (cards.length <= 1) {
+                return;
+            }
+
+            var sortedCards = cards.slice().sort(function (a, b) {
+                var votesA = parseInt((a.querySelector('.soundNum') || {}).innerText || '0', 10) || 0;
+                var votesB = parseInt((b.querySelector('.soundNum') || {}).innerText || '0', 10) || 0;
+                return votesB - votesA;
+            });
+
+            var orderChanged = sortedCards.some(function (card, index) {
+                return card !== cards[index];
+            });
+
+            highlightTopCards(sortedCards);
+
+            if (!orderChanged) {
+                sortedCards.forEach(function (card, index) {
+                    var rankElement = card.querySelector('.numLayer .rounded-circle');
+                    if (rankElement) {
+                        rankElement.innerText = index + 1;
+                    }
+                });
+                return;
+            }
+
+            legacyAnimationInProgress = true;
+
+            var firstRects = new Map();
+            cards.forEach(function (card) {
+                firstRects.set(card, card.getBoundingClientRect());
+            });
+
+            sortedCards.forEach(function (card) {
+                candidatesContainer.appendChild(card);
+            });
+
+            sortedCards.forEach(function (card, index) {
+                var first = firstRects.get(card);
+                var last = card.getBoundingClientRect();
+                var rankElement = card.querySelector('.numLayer .rounded-circle');
+
+                if (rankElement) {
+                    rankElement.innerText = index + 1;
+                }
+
+                if (!first || !last) {
+                    return;
+                }
+
+                var dx = first.left - last.left;
+                var dy = first.top - last.top;
+
+                if (dx || dy) {
+                    card.style.transition = 'none';
+                    card.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+
+                    void card.offsetWidth;
+
+                    card.style.transition = 'transform 900ms cubic-bezier(0.2, 0.85, 0.2, 1)';
+                    card.style.transform = 'translate(0, 0)';
+                }
+            });
+
+            setTimeout(function () {
+                sortedCards.forEach(function (card) {
+                    card.style.transition = '';
+                    card.style.transform = '';
+                });
+
+                legacyAnimationInProgress = false;
+
+                if (legacyAnimationQueued) {
+                    legacyAnimationQueued = false;
+                    scheduleLegacyRankingAnimation();
+                }
+            }, 980);
+        }
+
         function updateCandidates(candidate) {
-    console.log("Received candidate data:", candidate);
-
-    const candidatesContainer = document.querySelector('.row.rtl.pt-5.justify-content-center');
-    if (!candidatesContainer) {
-        console.error("Candidates container not found!");
+    if (!candidate || !candidate.id) {
         return;
     }
 
-    let cards = Array.from(candidatesContainer.children);
-    let candidateFound = false;
-
-    // Update the vote count for the specific candidate
-    cards.forEach((card) => {
-        const cardId = parseInt(card.dataset.candidateId, 10);
-        if (cardId === candidate.id) {
-            const voteElement = card.querySelector(".soundNum");
-            if (voteElement) {
-                voteElement.innerText = candidate.votes;
-                candidateFound = true;
-            }
-        }
-    });
-
-    if (!candidateFound) {
-        console.warn("Candidate not found in DOM:", candidate.id);
-        return;
+    var changed = setCandidateVoteInDom(candidate.id, candidate.votes);
+    if (changed) {
+        scheduleLegacyRankingAnimation();
     }
-
-
-    // Get the initial positions of the cards
-    const initialPositions = cards.map((card) => {
-        const rect = card.getBoundingClientRect();
-        return { card, top: rect.top, left: rect.left };
-    });
-
-    // Sort the cards by votes in descending order
-    const sortedCards = cards.slice().sort((a, b) => {
-        const votesA = parseInt(a.querySelector(".soundNum").innerText, 10);
-        const votesB = parseInt(b.querySelector(".soundNum").innerText, 10);
-        return votesB - votesA; // Descending order
-    });
-
-    // Calculate the target positions after sorting
-    const targetPositions = sortedCards.map((card, index) => {
-        const { top, left } = initialPositions[index];
-        return { card, top, left };
-    });
-
-    highlightTopCards(sortedCards);
-
-    // Apply transform to animate each card to its new position
-    initialPositions.forEach((pos, index) => {
-        const targetPos = targetPositions.find((t) => t.card === pos.card);
-        if (targetPos) {
-            const deltaX = targetPos.left - pos.left;
-            const deltaY = targetPos.top - pos.top;
-            pos.card.style.transition = "transform 1.5s linear"; // Change 1.5s to a higher value
-            pos.card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-        }
-    });
-
-    // Reset transforms and reorder DOM after animation completes
-    setTimeout(() => {
-        sortedCards.forEach((card, index) => {
-            card.style.transition = "";
-            card.style.transform = "";
-            const rankElement = card.querySelector(".numLayer .rounded-circle");
-            if (rankElement) {
-                rankElement.innerText = index + 1; // Update the rank
-            }
-        });
-
-        // Reorder the DOM elements to match the visual order
-        candidatesContainer.innerHTML = "";
-        sortedCards.forEach((card) => candidatesContainer.appendChild(card));
-    }, 3000); // Match the transition duration
 }
 
 function highlightTopCards(sortedCards) {
@@ -471,16 +539,24 @@ function highlightTopCards(sortedCards) {
                 return;
             }
 
+            var hasAnyChange = false;
+
             payload.candidates.forEach(function (candidate) {
                 if (!candidate || !candidate.id) {
                     return;
                 }
 
-                updateCandidates({
-                    id: parseInt(candidate.id, 10) || 0,
-                    votes: parseInt(candidate.votes, 10) || 0,
-                });
+                var changed = setCandidateVoteInDom(
+                    parseInt(candidate.id, 10) || 0,
+                    parseInt(candidate.votes, 10) || 0
+                );
+
+                hasAnyChange = hasAnyChange || changed;
             });
+
+            if (hasAnyChange) {
+                scheduleLegacyRankingAnimation();
+            }
         }
 
         function startLegacyResultsFallbackPolling() {
