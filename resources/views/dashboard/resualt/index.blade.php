@@ -384,6 +384,8 @@ function highlightTopCards(sortedCards) {
             'key' => config('broadcasting.connections.pusher.key'),
             'cluster' => config('broadcasting.connections.pusher.options.cluster'),
         ]);
+        var legacyResultsLiveStatsUrl = @json(route('all.results.live-stats'));
+        var legacyResultsElectionId = @json((int) (auth()->user()->election_id ?? 0));
 
         function updateCommittee(committee) {
     let iconElement = $(`[data-committee-id='${committee.id}'] i`); // Select the icon inside
@@ -464,7 +466,50 @@ function highlightTopCards(sortedCards) {
             }
         }
 
+        function syncLegacyResultsFromLiveStats(payload) {
+            if (!payload || payload.success !== true || !Array.isArray(payload.candidates)) {
+                return;
+            }
+
+            payload.candidates.forEach(function (candidate) {
+                if (!candidate || !candidate.id) {
+                    return;
+                }
+
+                updateCandidates({
+                    id: parseInt(candidate.id, 10) || 0,
+                    votes: parseInt(candidate.votes, 10) || 0,
+                });
+            });
+        }
+
+        function startLegacyResultsFallbackPolling() {
+            if (!legacyResultsElectionId || typeof axios === 'undefined') {
+                return;
+            }
+
+            setInterval(function () {
+                if (document.hidden) {
+                    return;
+                }
+
+                axios.get(legacyResultsLiveStatsUrl, {
+                    params: {
+                        election_id: legacyResultsElectionId,
+                    },
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                }).then(function (response) {
+                    syncLegacyResultsFromLiveStats(response.data || {});
+                }).catch(function () {
+                    // Silent fallback polling.
+                });
+            }, 2500);
+        }
+
         subscribeLegacyRealtime();
+        startLegacyResultsFallbackPolling();
 
     </script>
 @endpush

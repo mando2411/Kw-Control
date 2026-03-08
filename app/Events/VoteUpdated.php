@@ -20,12 +20,12 @@ class VoteUpdated implements ShouldBroadcastNow
       $this->message = $message;
   }
 
-  public function broadcastOn()
+    public function broadcastOn(): array
   {
-      return ['votes'];
+      return [new Channel('votes')];
   }
 
-  public function broadcastAs()
+    public function broadcastAs(): string
   {
       return 'my-event';
   }

@@ -19,12 +19,12 @@ class CommitteeUpdate implements ShouldBroadcastNow
         $this->committee = $committee;
     }
   
-    public function broadcastOn()
+    public function broadcastOn(): array
     {
-        return ['committee'];
+        return [new Channel('committee')];
     }
   
-    public function broadcastAs()
+    public function broadcastAs(): string
     {
         return 'event';
     }
