@@ -425,6 +425,8 @@
             var statsGrid = $('#statsGrid');
             var currentSearch = '';
             var inFlightVoters = false;
+            var realtimeChannelName = null;
+            var realtimeFallbackTimer = null;
 
             $.ajaxSetup({
                 headers: {
@@ -532,6 +534,51 @@
                 }).done(function (response) {
                     setStats(response.voter_count, response.attend_count);
                 });
+            }
+
+            function stopRealtimeStats() {
+                if (realtimeChannelName && window.Echo && typeof window.Echo.leave === 'function') {
+                    window.Echo.leave(realtimeChannelName);
+                }
+
+                realtimeChannelName = null;
+
+                if (realtimeFallbackTimer) {
+                    clearInterval(realtimeFallbackTimer);
+                    realtimeFallbackTimer = null;
+                }
+            }
+
+            function startRealtimeStats(committeeId) {
+                stopRealtimeStats();
+
+                if (!committeeId) {
+                    return;
+                }
+
+                if (window.Echo && typeof window.Echo.channel === 'function') {
+                    realtimeChannelName = 'sorting.' + committeeId;
+                    window.Echo.channel(realtimeChannelName).listen('.sorting.realtime.updated', function (payload) {
+                        var eventCommitteeId = parseInt(payload && payload.committee_id ? payload.committee_id : 0, 10) || 0;
+                        var eventType = String((payload && payload.type) ? payload.type : '').toLowerCase();
+
+                        if (eventCommitteeId !== committeeId) {
+                            return;
+                        }
+
+                        if (eventType !== '' && eventType !== 'attendance' && eventType !== 'metrics') {
+                            return;
+                        }
+
+                        fetchCounts(committeeId);
+                    });
+                }
+
+                realtimeFallbackTimer = setInterval(function () {
+                    if (!document.hidden) {
+                        fetchCounts(committeeId);
+                    }
+                }, 3000);
             }
 
             function fetchVoters(committeeId, searchValue) {
@@ -653,6 +700,7 @@
             committeeSelect.on('change', function () {
                 currentSearch = '';
                 searchBox.val('');
+                startRealtimeStats(getCommitteeId());
                 refreshCommitteeData();
             });
 
@@ -678,8 +726,22 @@
                 if (!canChangeCommittee) {
                     committeeSelect.prop('disabled', true);
                 }
+                startRealtimeStats(getCommitteeId());
                 refreshCommitteeData();
             }
+
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    var committeeId = getCommitteeId();
+                    if (committeeId > 0) {
+                        fetchCounts(committeeId);
+                    }
+                }
+            });
+
+            window.addEventListener('beforeunload', function () {
+                stopRealtimeStats();
+            });
         })();
     </script>
 @endpush
