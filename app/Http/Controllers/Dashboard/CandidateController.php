@@ -1071,19 +1071,39 @@ class CandidateController extends Controller
             if ($check_Setting->option_value[0] == 'on') {
                 $show_all_result    = true;
                 $candidate_name     = 'مرشح الفرز العام';
-                //=======================================================================================
-                $candidate_for_result = Setting::where('option_key', 'result_control_candidate')->first();
-                if ($candidate_for_result && $candidate_for_result->option_value != NULL) {
-                    // dd($candidate_for_result->option_value[0]);
-                    $election_id    = $this->fetchElectionFromCandidateId($candidate_for_result->option_value[0]);
-                } else {
-                    $election_id    = $this->fetchElectionFromCandidate($candidate_name);
+
+                // Prefer the authenticated user's election for campaign-isolated results.
+                $currentUser = auth('web')->user();
+                $election_id = (int) ($currentUser?->election_id ?? 0);
+
+                if ($election_id <= 0) {
+                    $candidate_for_result = Setting::where('option_key', 'result_control_candidate')->first();
+                    if ($candidate_for_result && $candidate_for_result->option_value != NULL) {
+                        $election_id = (int) $this->fetchElectionFromCandidateId($candidate_for_result->option_value[0]);
+                    } else {
+                        $election_id = (int) $this->fetchElectionFromCandidate($candidate_name);
+                    }
                 }
-                // dd($election_id);
-                //=======================================================================================
+
+                if ($election_id <= 0) {
+                    abort(404);
+                }
+
                 $candidates     = $this->fetchCondidatesBasedOnElection($election_id, $candidate_name);
-                $committees     = Committee::all();
-                $schools        = School::orderBy('id', 'desc')->get();
+
+                $committeesQuery = Committee::query();
+                if (Schema::hasColumn('committees', 'election_id')) {
+                    $committeesQuery->where('election_id', $election_id);
+                }
+
+                $schoolsQuery = School::query()->orderBy('id', 'desc');
+                if (Schema::hasColumn('schools', 'election_id')) {
+                    $schoolsQuery->where('election_id', $election_id);
+                }
+
+                $committees = $committeesQuery->get();
+                $schools = $schoolsQuery->get();
+
                 return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools'));
             }
         }
