@@ -427,6 +427,7 @@
             var inFlightVoters = false;
             var realtimeChannelName = null;
             var realtimeFallbackTimer = null;
+            var realtimeRefreshTimer = null;
 
             $.ajaxSetup({
                 headers: {
@@ -570,18 +571,21 @@
                             return;
                         }
 
-                        fetchCounts(committeeId);
+                        scheduleRealtimeRefresh(committeeId);
                     });
                 }
 
                 realtimeFallbackTimer = setInterval(function () {
                     if (!document.hidden) {
-                        fetchCounts(committeeId);
+                        refreshRealtimeData(committeeId);
                     }
                 }, 3000);
             }
 
-            function fetchVoters(committeeId, searchValue) {
+            function fetchVoters(committeeId, searchValue, options) {
+                options = options || {};
+                var silent = !!options.silent;
+
                 if (!committeeId) {
                     voterList.html('<tr><td colspan="5" class="att-empty">اختر اللجنة لعرض الناخبين.</td></tr>');
                     return;
@@ -592,7 +596,9 @@
                 }
 
                 inFlightVoters = true;
-                setLoading(true);
+                if (!silent) {
+                    setLoading(true);
+                }
 
                 $.ajax({
                     url: endpointFromTemplate(votersUrlTemplate, committeeId),
@@ -611,9 +617,35 @@
                     }
                     voterList.html('<tr><td colspan="5" class="att-empty">' + escapeHtml(errorMessage) + '</td></tr>');
                 }).always(function () {
-                    setLoading(false);
+                    if (!silent) {
+                        setLoading(false);
+                    }
                     inFlightVoters = false;
                 });
+            }
+
+            function refreshRealtimeData(committeeId) {
+                if (!committeeId) {
+                    return;
+                }
+
+                fetchCounts(committeeId);
+                fetchVoters(committeeId, currentSearch, { silent: true });
+            }
+
+            function scheduleRealtimeRefresh(committeeId) {
+                if (!committeeId) {
+                    return;
+                }
+
+                if (realtimeRefreshTimer) {
+                    clearTimeout(realtimeRefreshTimer);
+                    realtimeRefreshTimer = null;
+                }
+
+                realtimeRefreshTimer = setTimeout(function () {
+                    refreshRealtimeData(committeeId);
+                }, 180);
             }
 
             function refreshCommitteeData() {
@@ -734,12 +766,16 @@
                 if (!document.hidden) {
                     var committeeId = getCommitteeId();
                     if (committeeId > 0) {
-                        fetchCounts(committeeId);
+                        refreshRealtimeData(committeeId);
                     }
                 }
             });
 
             window.addEventListener('beforeunload', function () {
+                if (realtimeRefreshTimer) {
+                    clearTimeout(realtimeRefreshTimer);
+                    realtimeRefreshTimer = null;
+                }
                 stopRealtimeStats();
             });
         })();
