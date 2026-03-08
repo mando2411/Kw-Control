@@ -43,13 +43,18 @@ class VoteService
     //========================================================================
     //update votes using ajax
     public function updateVotes2($committee, $candidate_id, $count_status, $vote_count){
+        $committeeId = (int) $committee;
         //========================================================================
         //confirm that candidate is in the committee
-        $committee = Committee::with(['candidates' => function($query) use ($candidate_id) {
+        $committeeModel = Committee::with(['candidates' => function($query) use ($candidate_id) {
             $query->where('candidate_id', $candidate_id);
-        }])->find($committee);
+        }])->find($committeeId);
+
+        if (!$committeeModel) {
+            return ['error' => 'اللجنة غير موجودة', 'status' => 404];
+        }
         
-        $candidate = $committee->candidates->first();
+        $candidate = $committeeModel->candidates->first();
         
         if (!$candidate) {
             return ['error' => 'تاكد من تواجد المرشح', 'status' => 404];
@@ -76,7 +81,7 @@ class VoteService
         $candidate->save();
         //========================================================================
         $this->dispatchVoteUpdatedSafely($candidate);
-        $this->dispatchSortingRealtimeSafely((int) $committee, 'votes');
+        $this->dispatchSortingRealtimeSafely($committeeId, 'votes');
         //========================================================================
         return ['success' => 'تم التصويت بنجاح', 'status' => 200,'vote_count'=> $newVotes];
     }

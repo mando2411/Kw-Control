@@ -72,6 +72,20 @@ Purpose:
 - File:
   - `app/Http/Controllers/Dashboard/CandidateController.php`
 
+### Hotfix Under Same Tag (`real-time`) - Committee Cast Crash in VoteService
+- Date: 2026-03-08
+- Problem:
+  - `changeVotes` crashed with: `Object of class App\\Models\\Committee could not be converted to int`.
+- Root cause:
+  - In `VoteService@updateVotes2`, variable `$committee` was overwritten from id to Committee model, then casted to int when dispatching realtime event.
+- Fix:
+  - Introduced `$committeeId` as stable integer.
+  - Used `$committeeModel` for Eloquent object.
+  - Dispatch now uses `$committeeId` only.
+  - Added explicit not-found guard for committee model.
+- File:
+  - `app/Services/VoteService.php`
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.
