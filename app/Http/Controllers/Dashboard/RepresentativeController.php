@@ -184,7 +184,11 @@ class RepresentativeController extends Controller
         $selectedSchoolId = (string) $request->input('id', 'all');
         $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
         $hasCommitteeElectionColumn = Schema::hasColumn('committees', 'election_id');
+        $hasUserCreatorColumn = Schema::hasColumn('users', 'creator_id');
         $userElectionId = (int) ($user?->election_id ?? 0);
+
+        $representativeCreatorScope = $this->resolveRepresentativeCreatorScope($user);
+        $shouldScopeRepresentatives = is_array($representativeCreatorScope) && $hasUserCreatorColumn;
 
         $schoolsFilter = static function ($query) use ($hasSchoolElectionColumn, $userElectionId) {
             if ($hasSchoolElectionColumn) {
@@ -206,7 +210,7 @@ class RepresentativeController extends Controller
         $schoolsDataQuery = School::query()
             ->select(['id', 'name', 'type'])
             ->with([
-                'committees' => function ($committeeQuery) use ($user, $committeeElectionFilter, $hasCommitteeElectionColumn) {
+                'committees' => function ($committeeQuery) use ($user, $committeeElectionFilter, $hasCommitteeElectionColumn, $shouldScopeRepresentatives, $representativeCreatorScope) {
                     $committeeQuery->select(['id', 'name', 'type', 'school_id']);
                     if ($hasCommitteeElectionColumn) {
                         $committeeQuery->addSelect('election_id');
@@ -216,7 +220,21 @@ class RepresentativeController extends Controller
                         $committeeElectionFilter($committeeQuery);
                     }
 
-                    $committeeQuery->with(['representatives.user:id,name,phone']);
+                    $committeeQuery->with([
+                        'representatives' => function ($representativeQuery) use ($shouldScopeRepresentatives, $representativeCreatorScope) {
+                            if ($shouldScopeRepresentatives) {
+                                if (empty($representativeCreatorScope)) {
+                                    $representativeQuery->whereRaw('1 = 0');
+                                } else {
+                                    $representativeQuery->whereHas('user', function ($userQuery) use ($representativeCreatorScope) {
+                                        $userQuery->whereIn('creator_id', $representativeCreatorScope);
+                                    });
+                                }
+                            }
+
+                            $representativeQuery->with(['user:id,name,phone,creator_id']);
+                        },
+                    ]);
                 },
             ]);
 
@@ -254,6 +272,57 @@ class RepresentativeController extends Controller
         $schools = $schoolsDataQuery->orderBy('name')->get();
 
         return view('dashboard.representatives.home', compact('relations', 'schools', 'selectedSchoolId'));
+    }
+
+    private function resolveRepresentativeCreatorScope(?User $user): ?array
+    {
+        if (!$user || $user->hasRole('Administrator')) {
+            return null;
+        }
+
+        $viewerId = (int) $user->id;
+        $viewerElectionId = (int) ($user->election_id ?? 0);
+
+        $listLeaderCandidateQuery = \App\Models\Candidate::withoutGlobalScopes()
+            ->select(['id', 'election_id'])
+            ->where('user_id', $viewerId)
+            ->where('candidate_type', 'list_leader');
+
+        if ($viewerElectionId > 0) {
+            $listLeaderCandidateQuery->where('election_id', $viewerElectionId);
+        }
+
+        $listLeaderCandidate = $listLeaderCandidateQuery->latest('id')->first();
+
+        if ($listLeaderCandidate) {
+            $listMembersQuery = \App\Models\Candidate::withoutGlobalScopes()
+                ->where(function ($query) use ($listLeaderCandidate) {
+                    $query->where('id', (int) $listLeaderCandidate->id)
+                        ->orWhere('list_leader_candidate_id', (int) $listLeaderCandidate->id);
+                })
+                ->whereNotNull('user_id');
+
+            if ($viewerElectionId > 0) {
+                $listMembersQuery->where('election_id', $viewerElectionId);
+            }
+
+            return $listMembersQuery
+                ->pluck('user_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        $isCandidateUser = $user->hasRole('مرشح') || \App\Models\Candidate::withoutGlobalScopes()
+            ->where('user_id', $viewerId)
+            ->exists();
+
+        if ($isCandidateUser) {
+            return [$viewerId];
+        }
+
+        return null;
     }
     public function changeRep($id, Request $request){
         $rep = Representative::with('user')->findOrFail($id);
