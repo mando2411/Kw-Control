@@ -17,6 +17,7 @@ use App\Services\VoteService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 use App\DataTables\CandidateDataTable;
 use Illuminate\Support\Facades\Storage;
@@ -1025,6 +1026,7 @@ class CandidateController extends Controller
     public function sorting(Request $request)
     {
         $currentUser = auth()->user();
+        $sortingStatus = $this->resolveCurrentUserSortingStatus($currentUser);
         $hasRepresentativeCandidatePivot = Schema::hasTable('candidate_representative');
         $isScopedSortingUser = $this->shouldScopeSortingCandidates($currentUser);
 
@@ -1138,7 +1140,7 @@ class CandidateController extends Controller
                     });
             }
         }
-        return view('dashboard.sorting.index', compact('committees', 'candidates', 'committee'));
+        return view('dashboard.sorting.index', compact('committees', 'candidates', 'committee', 'sortingStatus'));
     }
     //================================================================================================
     public function allResult()
@@ -1239,6 +1241,14 @@ class CandidateController extends Controller
             $committee     = $request->json('committee');
 
             $currentUser = auth()->user();
+            if ($this->resolveCurrentUserSortingStatus($currentUser) === 0) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'الفرز متوقف لهذا المستخدم حاليا.',
+                ], 403);
+            }
+
             $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
                 $currentUser,
                 (int) $committee > 0 ? (int) $committee : null
@@ -1293,6 +1303,32 @@ class CandidateController extends Controller
                 'data'    => $e->getMessage(),
             ], 500);
         }
+    }
+
+    public function sortingStatus(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'error' => 'يجب تسجيل الدخول أولا.'
+            ], 403);
+        }
+
+        $request->validate([
+            'status' => ['required', 'boolean'],
+        ]);
+
+        $currentStatus = $request->boolean('status') ? 1 : 0;
+        $newStatus = $currentStatus === 1 ? 0 : 1;
+
+        Cache::forever($this->sortingStatusCacheKey((int) $user->id), $newStatus);
+
+        return response()->json([
+            'status' => $newStatus,
+            'message' => $newStatus === 1
+                ? 'تم فتح الفرز لهذا المستخدم بنجاح.'
+                : 'تم إيقاف الفرز لهذا المستخدم بنجاح.',
+        ]);
     }
     //==============================================================
     public function storeFakeCandidate(Request $request, UserRequest $userRequest)
@@ -1696,6 +1732,25 @@ class CandidateController extends Controller
         }
 
         $committee->candidates()->syncWithoutDetaching($candidateIdsToAttach);
+    }
+
+    private function resolveCurrentUserSortingStatus(?User $user): int
+    {
+        if (!$user) {
+            return 1;
+        }
+
+        $cachedStatus = Cache::get($this->sortingStatusCacheKey((int) $user->id));
+        if ($cachedStatus === null) {
+            return 1;
+        }
+
+        return (int) ((int) $cachedStatus === 1 ? 1 : 0);
+    }
+
+    private function sortingStatusCacheKey(int $userId): string
+    {
+        return 'sorting_status_user_' . $userId;
     }
 
 }

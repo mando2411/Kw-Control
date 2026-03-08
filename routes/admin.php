@@ -83,6 +83,7 @@ Route::group(['prefix' => 'dashboard',
     Route::post('rep/{id}/update', [RepresentativeController::class, 'changeRep'])->name('rep.change');
     Route::resource('committees', CommitteeController::class)->except('show');
     Route::get('sorting',[CandidateController::class,'sorting'])->name('sorting');
+    Route::post('sorting/status', [CandidateController::class, 'sortingStatus'])->name('sorting.status');
     Route::get('attending',[RepresentativeController::class,'attending'])->name('attending');
     Route::get('rep-home',[RepresentativeController::class,'home'])->name('rep-home');
     Route::get('results',[CandidateController::class,'result'])->name('results');

@@ -618,9 +618,9 @@
           <span id="sortingStatusText">حالة الفرز: نشط</span>
         </div>
 
-        <form action="{{ route('committee.status', $committee->id) }}" method="POST" id="CommStatus">
+        <form action="{{ route('dashboard.sorting.status') }}" method="POST" id="CommStatus">
           @csrf
-          <input type="hidden" name="status" id="status" value="{{ $committee->status }}">
+          <input type="hidden" name="status" id="status" value="{{ (int) ($sortingStatus ?? 1) }}">
           <button id="toggle-lock-button" type="button" class="btn-lock-control">
             <i id="icon" class="fa-solid fa-unlock"></i>
             <span id="lockButtonText">تبديل حالة الفرز</span>
