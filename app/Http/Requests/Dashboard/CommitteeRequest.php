@@ -4,6 +4,7 @@ namespace App\Http\Requests\Dashboard;
 
 use App\Models\School;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Validator;
 
 class CommitteeRequest extends FormRequest
@@ -55,6 +56,10 @@ class CommitteeRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            if (!Schema::hasColumn('schools', 'election_id')) {
+                return;
+            }
+
             $schoolId = (int) $this->input('school_id');
             $electionId = (int) $this->input('election_id');
 

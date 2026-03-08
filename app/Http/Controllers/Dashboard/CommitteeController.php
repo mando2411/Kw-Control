@@ -8,6 +8,7 @@ use App\Http\Requests\Dashboard\CommitteeRequest;
 use App\DataTables\CommitteeDataTable;
 use App\Models\Election;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use App\Models\School;
 use App\Models\Voter;
 use App\Services\Query\CommitteeGenerator;
@@ -31,9 +32,16 @@ class CommitteeController extends Controller
 
     public function create()
     {
+        $schoolsQuery = School::query()->select(['id', 'name', 'type']);
+        if (Schema::hasColumn('schools', 'election_id')) {
+            $schoolsQuery->addSelect('election_id');
+        } else {
+            $schoolsQuery->selectRaw('NULL as election_id');
+        }
+
         $relations = [
             'elections' => Election::query()->select('id', 'name')->orderBy('name')->get(),
-            'schools' => School::query()->select('id', 'name', 'type', 'election_id')->orderBy('name')->get(),
+            'schools' => $schoolsQuery->orderBy('name')->get(),
         ];
         return view('dashboard.committees.create', compact('relations'));
     }
@@ -56,9 +64,16 @@ class CommitteeController extends Controller
 
     public function edit(Committee $committee)
     {
+        $schoolsQuery = School::query()->select(['id', 'name', 'type']);
+        if (Schema::hasColumn('schools', 'election_id')) {
+            $schoolsQuery->addSelect('election_id');
+        } else {
+            $schoolsQuery->selectRaw('NULL as election_id');
+        }
+
         $relations = [
             'elections' => Election::query()->select('id', 'name')->orderBy('name')->get(),
-            'schools' => School::query()->select('id', 'name', 'type', 'election_id')->orderBy('name')->get(),
+            'schools' => $schoolsQuery->orderBy('name')->get(),
         ];
         return view('dashboard.committees.edit', compact('committee', 'relations'));
     }

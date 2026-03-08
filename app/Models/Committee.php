@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -44,14 +45,17 @@ class Committee extends Model
             }
 
             if (empty($committee->school_id)) {
-                $school = School::query()
-                    ->where('type', $committee->type)
-                    ->where(function ($query) use ($committee) {
-                        $query->where('election_id', $committee->election_id)
-                            ->orWhereNull('election_id');
-                    })
-                    ->orderByRaw('CASE WHEN election_id = ? THEN 0 ELSE 1 END', [(int) $committee->election_id])
-                    ->first();
+                $schoolQuery = School::query()->where('type', $committee->type);
+                if (Schema::hasColumn('schools', 'election_id')) {
+                    $schoolQuery
+                        ->where(function ($query) use ($committee) {
+                            $query->where('election_id', $committee->election_id)
+                                ->orWhereNull('election_id');
+                        })
+                        ->orderByRaw('CASE WHEN election_id = ? THEN 0 ELSE 1 END', [(int) $committee->election_id]);
+                }
+
+                $school = $schoolQuery->first();
 
                 if ($school) {
                     $committee->update([
@@ -70,14 +74,17 @@ class Committee extends Model
                 return;
             }
 
-            $school = School::query()
-                ->where('type', $committee->type)
-                ->where(function ($query) use ($committee) {
-                    $query->where('election_id', $committee->election_id)
-                        ->orWhereNull('election_id');
-                })
-                ->orderByRaw('CASE WHEN election_id = ? THEN 0 ELSE 1 END', [(int) $committee->election_id])
-                ->first();
+            $schoolQuery = School::query()->where('type', $committee->type);
+            if (Schema::hasColumn('schools', 'election_id')) {
+                $schoolQuery
+                    ->where(function ($query) use ($committee) {
+                        $query->where('election_id', $committee->election_id)
+                            ->orWhereNull('election_id');
+                    })
+                    ->orderByRaw('CASE WHEN election_id = ? THEN 0 ELSE 1 END', [(int) $committee->election_id]);
+            }
+
+            $school = $schoolQuery->first();
 
             $committee->school_id = $school?->id;
         });
