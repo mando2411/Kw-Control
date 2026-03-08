@@ -1507,7 +1507,42 @@ class CandidateController extends Controller
             return null;
         }
 
-        $creatorId = (int) ($user->creator_id ?? 0);
+        $isRepresentativeLinked = $user->hasRole('مندوب') || $user->representatives()->exists();
+        $userElectionId = (int) ($user->election_id ?? 0);
+
+        if ($isRepresentativeLinked) {
+            return $this->resolveSortingCandidateUserIdsByCreator(
+                (int) ($user->creator_id ?? 0),
+                $userElectionId
+            );
+        }
+
+        if ($user->hasRole('مرشح')) {
+            $ownedCandidateQuery = Candidate::withoutGlobalScopes()
+                ->where('user_id', (int) $user->id);
+
+            if ($userElectionId > 0) {
+                $ownedCandidateQuery->where('election_id', $userElectionId);
+            }
+
+            $this->applyActualCandidateOnlyScope($ownedCandidateQuery);
+
+            return $ownedCandidateQuery
+                ->pluck('user_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return $this->resolveSortingCandidateUserIdsByCreator(
+            (int) ($user->creator_id ?? 0),
+            $userElectionId
+        );
+    }
+
+    private function resolveSortingCandidateUserIdsByCreator(int $creatorId, int $userElectionId = 0): array
+    {
         if ($creatorId <= 0) {
             return [];
         }
@@ -1515,18 +1550,11 @@ class CandidateController extends Controller
         $creatorCandidateQuery = Candidate::withoutGlobalScopes()
             ->where('user_id', $creatorId);
 
-        $userElectionId = (int) ($user->election_id ?? 0);
         if ($userElectionId > 0) {
             $creatorCandidateQuery->where('election_id', $userElectionId);
         }
 
-        // Do not expose administrative-only list leader candidates in sorting.
-        if (Schema::hasColumn('candidates', 'is_actual_list_candidate')) {
-            $creatorCandidateQuery->where(function (Builder $query) {
-                $query->where('is_actual_list_candidate', true)
-                    ->orWhereNull('is_actual_list_candidate');
-            });
-        }
+        $this->applyActualCandidateOnlyScope($creatorCandidateQuery);
 
         return $creatorCandidateQuery
             ->pluck('user_id')
@@ -1536,9 +1564,26 @@ class CandidateController extends Controller
             ->all();
     }
 
+    private function applyActualCandidateOnlyScope(Builder $candidateQuery): void
+    {
+        // Do not expose administrative-only list leader candidates in sorting.
+        if (!Schema::hasColumn('candidates', 'is_actual_list_candidate')) {
+            return;
+        }
+
+        $candidateQuery->where(function (Builder $query) {
+            $query->where('is_actual_list_candidate', true)
+                ->orWhereNull('is_actual_list_candidate');
+        });
+    }
+
     private function shouldScopeSortingCandidates(?User $user): bool
     {
         if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole('Administrator')) {
             return false;
         }
 
@@ -1547,8 +1592,9 @@ class CandidateController extends Controller
             return true;
         }
 
-        if ($user->hasRole('Administrator') || $user->hasRole('مرشح')) {
-            return false;
+        // Apply same restriction for normal candidates and list-member candidates.
+        if ($user->hasRole('مرشح')) {
+            return true;
         }
 
         return true;
