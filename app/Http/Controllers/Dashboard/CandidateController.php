@@ -1024,10 +1024,13 @@ class CandidateController extends Controller
     //================================================================================================
     public function sorting(Request $request)
     {
-        $representative = auth()->user()->representatives()->with('committee')->first();
+        $currentUser = auth()->user();
+        $representative = $currentUser->representatives()->with('committee')->first();
         if ($representative && $representative->committee_id) {
             $request->merge(['committee' => $representative->committee_id]);
         }
+
+        $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
         $committees = $representative && $representative->committee_id
             ? Committee::where('id', $representative->committee_id)->get()
@@ -1045,7 +1048,15 @@ class CandidateController extends Controller
                 $candidates = $committee->candidates()
                     ->withoutGlobalScopes()
                     ->join('users', 'candidates.user_id', '=', 'users.id')
-                    ->where('candidates.election_id', auth()->user()->election_id)
+                    ->where('candidates.election_id', $currentUser->election_id)
+                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($allowedCandidateUserIds) {
+                        if (empty($allowedCandidateUserIds)) {
+                            $query->whereRaw('1 = 0');
+                            return;
+                        }
+
+                        $query->whereIn('candidates.user_id', $allowedCandidateUserIds);
+                    })
                     ->orderBy('users.name')
                     ->select('candidates.*', 'users.name as user_name')
                     ->get()
@@ -1159,6 +1170,23 @@ class CandidateController extends Controller
             $count_status  = $request->json('count_status');
             $candidate_id  = $request->json('candidate_id');
             $committee     = $request->json('committee');
+
+            $currentUser = auth()->user();
+            $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
+
+            if (is_array($allowedCandidateUserIds)) {
+                $targetCandidateUserId = (int) Candidate::withoutGlobalScopes()
+                    ->where('id', (int) $candidate_id)
+                    ->value('user_id');
+
+                if ($targetCandidateUserId <= 0 || !in_array($targetCandidateUserId, $allowedCandidateUserIds, true)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'لا يمكنك تعديل أصوات مرشح غير مرتبط بك.',
+                    ], 403);
+                }
+            }
 
             $result = $voteService->updateVotes2($committee, $candidate_id, $count_status, $vote_count);
             //==========================================
@@ -1389,6 +1417,39 @@ class CandidateController extends Controller
             'selected_candidate_user_ids' => $selectedCandidateUserIds,
             'contractor_ids' => $contractorIds,
         ];
+    }
+
+    private function resolveSortingAllowedCandidateUserIds(?User $user): ?array
+    {
+        if (!$user) {
+            return null;
+        }
+
+        // Apply this restriction for representative accounts only.
+        $isRepresentativeUser = $user->hasRole('مندوب') || $user->representatives()->exists();
+        if (!$isRepresentativeUser) {
+            return null;
+        }
+
+        $creatorId = (int) ($user->creator_id ?? 0);
+        if ($creatorId <= 0) {
+            return [];
+        }
+
+        $creatorCandidateQuery = Candidate::withoutGlobalScopes()
+            ->where('user_id', $creatorId);
+
+        $userElectionId = (int) ($user->election_id ?? 0);
+        if ($userElectionId > 0) {
+            $creatorCandidateQuery->where('election_id', $userElectionId);
+        }
+
+        return $creatorCandidateQuery
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
 }
