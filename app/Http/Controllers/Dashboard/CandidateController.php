@@ -1010,31 +1010,41 @@ class CandidateController extends Controller
     //================================================================================================
     public function sorting(Request $request)
     {
-        if (auth()->user()->representatives()->exists()) {
-            $request->merge(['committee' => auth()->user()->representatives()->first()->committee->id]);
+        $representative = auth()->user()->representatives()->with('committee')->first();
+        if ($representative && $representative->committee_id) {
+            $request->merge(['committee' => $representative->committee_id]);
         }
-        $committees = Committee::all();
+
+        $committees = $representative && $representative->committee_id
+            ? Committee::where('id', $representative->committee_id)->get()
+            : Committee::all();
+
         $committee = null;
         if (collect($request->all())->isEmpty()) {
             $candidates = null;
         } else {
             $committee = Committee::where('id', $request->committee)->with('candidates.user')->first();
-            $candidates = $committee->candidates()
-                ->withoutGlobalScopes()
-                ->join('users', 'candidates.user_id', '=', 'users.id')
-                ->where('candidates.election_id', auth()->user()->election_id) // Explicit qualification
-                ->orderBy('users.name') // Order by users' names
-                ->select('candidates.*', 'users.name as user_name') // Select the necessary fields
-                ->get()
-                ->map(function ($candidate) {
-                    return [
-                        'id' => $candidate->id,
-                        'name' => $candidate->user_name, // Use the aliased name
-                        'user_id' => $candidate->user_id,
-                        'votes' => $candidate->pivot->votes,
-                        'committee' => $candidate->pivot->committee_id,
-                    ];
-                });
+
+            if (!$committee) {
+                $candidates = null;
+            } else {
+                $candidates = $committee->candidates()
+                    ->withoutGlobalScopes()
+                    ->join('users', 'candidates.user_id', '=', 'users.id')
+                    ->where('candidates.election_id', auth()->user()->election_id)
+                    ->orderBy('users.name')
+                    ->select('candidates.*', 'users.name as user_name')
+                    ->get()
+                    ->map(function ($candidate) {
+                        return [
+                            'id' => $candidate->id,
+                            'name' => $candidate->user_name,
+                            'user_id' => $candidate->user_id,
+                            'votes' => $candidate->pivot->votes,
+                            'committee' => $candidate->pivot->committee_id,
+                        ];
+                    });
+            }
         }
         return view('dashboard.sorting.index', compact('committees', 'candidates', 'committee'));
     }

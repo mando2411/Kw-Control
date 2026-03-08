@@ -131,14 +131,18 @@ class RepresentativeController extends Controller
     public function attending(Request $request){        
         // Check if the user has a representative and assign the committee ID to the request
         if (auth()->user()->representatives()->exists()) {
-            $committee_id= auth()->user()->representatives()->first()->committee->id;
-            // $committees= Committee::find($committee_id);
-            
-            $committees=Committee::select('name', 'id', 'type')->where('id',$committee_id)->get()->map(function ($committee) {
-                $committee->title = "{$committee->name} ({$committee->type}) - {$committee->id}";
-                return $committee;
-            });
-            
+            $committee_id = auth()->user()->representatives()->value('committee_id');
+
+            if ($committee_id) {
+                $committees = Committee::select('name', 'id', 'type')->where('id', $committee_id)->get()->map(function ($committee) {
+                    $committee->title = "{$committee->name} ({$committee->type}) - {$committee->id}";
+                    return $committee;
+                });
+            } else {
+                $committees = collect();
+                session()->flash('message', 'لم يتم ربطك بأي لجنة بعد.');
+                session()->flash('type', 'warning');
+            }
         }else{
             $committees = $this->attendance->getCommittees();
         }

@@ -75,7 +75,11 @@ class UserController extends Controller
         ]);
     }
     public function changePassword(){
-        $user=auth()->user();
+        $user = auth()->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
         return view('auth.change-pass',compact('user'));
 
     }
@@ -86,10 +90,14 @@ class UserController extends Controller
                 'password'=> \Hash::make($request->get('password')),
             ]
         );
-        $rep=$user->representatives()->get();
-        $rep[0]->update([
-            'status'=>1
-        ]);
+
+        $rep = $user->representatives()->first();
+        if ($rep) {
+            $rep->update([
+                'status' => 1
+            ]);
+        }
+
         Auth::logout();
         return redirect()->route('login')->with('success','تم تحديث البيانات بنجاح');
     }

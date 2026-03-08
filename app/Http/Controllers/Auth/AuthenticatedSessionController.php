@@ -109,7 +109,8 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended('/api/documentation');
         }
 
-        if(auth()->user()->representatives()->exists() && auth()->user()->representatives()->get()[0]->status == false ){
+        $representative = auth()->user()->representatives()->first();
+        if ($representative && (bool) $representative->status === false) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,

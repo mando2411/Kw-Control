@@ -135,8 +135,8 @@ Route::get('contract/{token}/support', function ($token) {
     $contractor = \App\Models\Contractor::where('token', $token)->firstOrFail();
     return view('dashboard.contractors.support', compact('contractor'));
 })->name('con-support');
-Route::post('rep/{user}', [UserController::class, 'passUpdate'])->name('rep-user');
-Route::get('change-password', [UserController::class,'changePassword'])->name('change-password');
+Route::post('rep/{user}', [UserController::class, 'passUpdate'])->middleware('auth:web')->name('rep-user');
+Route::get('change-password', [UserController::class,'changePassword'])->middleware('auth:web')->name('change-password');
 Route::get('con/{id}', [ContractorController::class, 'modalData'])->name('contractors.modal-data');
 Route::get('user/{id}', function ($id) {
     $i=App\Models\User::where('id',$id)->first();
