@@ -306,7 +306,7 @@
             <div class="results-hero rtl">
                 <div>
                     <h1 class="results-title">النتائج العامة المباشرة</h1>
-                    <p class="results-subtitle">ترتيب المرشحين يتحدث لحظيا مع انيميشن ناعم عند تبديل المراكز.</p>
+                    <p class="results-subtitle">تابع الآن نتائج الانتخابات مع تحديث لحظي مباشر ودقة عالية.</p>
                 </div>
 
                 <div class="d-flex flex-wrap align-items-center gap-2">
