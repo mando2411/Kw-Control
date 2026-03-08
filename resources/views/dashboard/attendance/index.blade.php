@@ -490,10 +490,11 @@
 
             function actionButtons(voterId, status) {
                 var attended = parseInt(status, 10) === 1;
+                var nextStatus = attended ? 0 : 1;
+                var buttonLabel = attended ? 'إلغاء الحضور' : 'حضر';
+                var buttonClass = attended ? 'att-btn--no' : 'att-btn--yes';
 
-                return ''
-                    + '<button class="att-btn att-btn--yes approve-btn me-1" data-id="' + voterId + '" ' + (attended ? 'disabled' : '') + '>حضر</button>'
-                    + '<button class="att-btn att-btn--no reject-btn" data-id="' + voterId + '" ' + (!attended ? 'disabled' : '') + '>لم يحضر</button>';
+                return '<button class="att-btn ' + buttonClass + ' toggle-attendance-btn" data-id="' + voterId + '" data-next-status="' + nextStatus + '">' + buttonLabel + '</button>';
             }
 
             function escapeHtml(value) {
@@ -674,20 +675,18 @@
             }
 
             function bindActionButtons() {
-                $('.approve-btn').off('click').on('click', function () {
+                $('.toggle-attendance-btn').off('click').on('click', function () {
                     var voterId = parseInt($(this).data('id'), 10) || 0;
+                    var nextStatus = parseInt($(this).data('next-status'), 10) || 0;
                     if (!voterId) {
                         return;
                     }
-                    showConfirmModal('هل أنت متأكد من تسجيل حضور الناخب؟', 1, voterId);
-                });
 
-                $('.reject-btn').off('click').on('click', function () {
-                    var voterId = parseInt($(this).data('id'), 10) || 0;
-                    if (!voterId) {
-                        return;
-                    }
-                    showConfirmModal('هل أنت متأكد من إلغاء حضور الناخب؟', 0, voterId);
+                    var message = nextStatus === 1
+                        ? 'هل أنت متأكد من تسجيل حضور الناخب؟'
+                        : 'هل أنت متأكد من إلغاء حضور الناخب؟';
+
+                    showConfirmModal(message, nextStatus, voterId);
                 });
             }
 
