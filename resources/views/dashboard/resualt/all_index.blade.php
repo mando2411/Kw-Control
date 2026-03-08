@@ -113,10 +113,12 @@
 
         .results-cards-grid {
             margin-top: 1rem;
+            row-gap: 0.72rem;
         }
 
         .result-card-col {
             will-change: transform;
+            width: 100%;
         }
 
         .candidate-rank-card {
@@ -125,11 +127,14 @@
             border: 1px solid #dbe8f8;
             background: linear-gradient(165deg, #ffffff 0%, #f6faff 100%);
             box-shadow: var(--rp-shadow-soft);
-            min-height: 234px;
-            padding: 0.78rem 0.72rem 0.7rem;
-            text-align: center;
+            min-height: 122px;
+            padding: 0.82rem 0.9rem;
+            text-align: right;
             overflow: hidden;
             transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
         }
 
         .candidate-rank-card::after {
@@ -162,18 +167,19 @@
 
         .rank-frame {
             position: absolute;
-            top: 0.7rem;
-            right: 0.7rem;
+            top: 0.62rem;
+            left: 0.62rem;
             border-radius: 999px;
-            padding: 0.22rem 0.48rem;
+            padding: 0.2rem 0.52rem;
             border: 1px solid #cbddf3;
             background: #edf4ff;
             color: #134374;
             font-weight: 800;
-            font-size: 0.77rem;
+            font-size: 0.74rem;
             letter-spacing: 0.01em;
-            min-width: 52px;
+            min-width: 56px;
             text-align: center;
+            z-index: 2;
         }
 
         .candidate-rank-card.is-top-four .rank-frame {
@@ -189,29 +195,45 @@
         }
 
         .candidate-photo {
-            width: 104px;
-            height: 104px;
+            width: 92px;
+            height: 92px;
             border-radius: 50%;
             border: 3px solid #fff;
             box-shadow: 0 8px 18px rgba(17, 38, 61, 0.16);
             object-fit: cover;
             background: #eaf1fb;
-            margin-top: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .candidate-details {
+            min-width: 0;
+            width: 100%;
+            padding-inline-start: 0.28rem;
         }
 
         .candidate-name {
-            margin: 0.62rem 0 0.35rem;
-            font-size: 1rem;
+            margin: 0 0 0.35rem;
+            font-size: 1.04rem;
             font-weight: 800;
             color: #123150;
-            min-height: 2.15rem;
+            min-height: 0;
             line-height: 1.45;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .candidate-votes-line {
             margin: 0;
             color: #4e647f;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .candidate-meta-line {
+            margin: 0.22rem 0 0;
+            color: #607792;
+            font-size: 0.82rem;
             font-weight: 700;
         }
 
@@ -287,16 +309,26 @@
             }
 
             .candidate-rank-card {
-                min-height: 220px;
+                min-height: 112px;
+                padding: 0.68rem 0.74rem;
+                gap: 0.62rem;
             }
 
             .candidate-photo {
-                width: 92px;
-                height: 92px;
+                width: 76px;
+                height: 76px;
             }
 
             .candidate-name {
-                font-size: 0.94rem;
+                font-size: 0.92rem;
+            }
+
+            .candidate-votes-line {
+                font-size: 0.86rem;
+            }
+
+            .candidate-meta-line {
+                font-size: 0.76rem;
             }
         }
     </style>
@@ -436,7 +468,7 @@
 
             <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
                 @foreach ($candidates as $i => $can)
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 result-card-col" data-candidate-id="{{ $can->id }}">
+                    <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">
                         <article class="candidate-rank-card @if($i < 4) is-top-four @elseif($i == 4) is-fifth @endif">
                             <div class="rank-frame">
                                 <span class="rank-label">{{ $i + 1 }}</span>
@@ -444,8 +476,11 @@
 
                             <img src="{{ $can->user->image ?? asset('assets/admin/images/images.png') }}" class="candidate-photo" alt="candidate image" />
 
-                            <h6 class="candidate-name">{{ $can->user->name }}</h6>
-                            <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $can->votes }}</span></p>
+                            <div class="candidate-details">
+                                <h6 class="candidate-name">{{ $can->user->name }}</h6>
+                                <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $can->votes }}</span></p>
+                                <p class="candidate-meta-line">المركز الحالي: <span class="rank-label-inline">{{ $i + 1 }}</span></p>
+                            </div>
                         </article>
                     </div>
                 @endforeach
@@ -486,6 +521,7 @@
                 sortedCols.forEach(function (cardCol, index) {
                     var card = cardCol.querySelector('.candidate-rank-card');
                     var rankLabel = cardCol.querySelector('.rank-label');
+                    var rankLabelInline = cardCol.querySelector('.rank-label-inline');
                     if (!card) {
                         return;
                     }
@@ -495,6 +531,10 @@
 
                     if (rankLabel) {
                         rankLabel.innerText = ordinal(index + 1);
+                    }
+
+                    if (rankLabelInline) {
+                        rankLabelInline.innerText = ordinal(index + 1);
                     }
                 });
             }
