@@ -1233,8 +1233,6 @@ class CandidateController extends Controller
     {
         try {
             Log::info(json_encode($request->all()));
-
-            DB::beginTransaction();
             // Access the data sent from Ajax
             $vote_count    = $request->json('vote_count');
             $count_status  = $request->json('count_status');
@@ -1243,7 +1241,6 @@ class CandidateController extends Controller
 
             $currentUser = auth()->user();
             if ($this->resolveCurrentUserSortingStatus($currentUser) === 0) {
-                DB::rollBack();
                 return response()->json([
                     'success' => false,
                     'message' => 'الفرز متوقف لهذا المستخدم حاليا.',
@@ -1269,7 +1266,6 @@ class CandidateController extends Controller
                     && in_array($targetCandidateUserId, $allowedCandidateUserIds, true);
 
                 if (!$isAllowedByRepresentativeAssignments && !$isAllowedByCreatorCandidate) {
-                    DB::rollBack();
                     return response()->json([
                         'success' => false,
                         'message' => 'لا يمكنك تعديل أصوات هذا المرشح لأنه غير مخصص لك.',
@@ -1280,14 +1276,12 @@ class CandidateController extends Controller
             $result = $voteService->updateVotes2($committee, $candidate_id, $count_status, $vote_count);
             //==========================================
             if (isset($result['error'])) {
-                DB::rollBack();
                 return response()->json([
                     'success'   => false,
                     'message'   => $result['error'],
                     'data'      => $request->all(),
                 ], 500);
             } else {
-                DB::commit();
                 return response()->json([
                     'success'   => true,
                     'message'   => $result['success'],
@@ -1296,8 +1290,14 @@ class CandidateController extends Controller
                 ]);
             }
             //==========================================
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $e) {
+            Log::error('changeVotes failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => collect($e->getTrace())->take(8)->all(),
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطا اثناء التصويت',

@@ -58,6 +58,20 @@ Purpose:
   - `app/Services/VoteService.php`
   - `app/Http/Controllers/Dashboard/VoterController.php`
 
+### Hotfix Under Same Tag (`real-time`) - `changeVotes` Transaction Stabilization
+- Date: 2026-03-08
+- Problem:
+  - Endpoint `/candidates/setVotes` still returned generic 500 (`حدث خطا اثناء التصويت`) although vote updates were being applied.
+- Old behavior:
+  - `CandidateController@changeVotes` used manual `DB::beginTransaction/commit/rollBack` around service call.
+  - Potential transaction-state mismatch could surface as 500 after successful update path.
+- New behavior:
+  - Removed manual transaction controls from `changeVotes`.
+  - Added structured `Log::error(...)` in catch with file/line/trace preview for future diagnostics.
+  - Response keeps backward-compatible Arabic message and includes underlying exception message in `data`.
+- File:
+  - `app/Http/Controllers/Dashboard/CandidateController.php`
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.
@@ -82,6 +96,7 @@ Purpose:
 Optional strict rollback (remove hotfix safety):
 - In `VoteService`, replace safe helper call with direct event dispatch.
 - In `VoterController`, replace safe `try/catch` block with direct event dispatch.
+- In `CandidateController@changeVotes`, restore old manual transaction block if needed.
 
 Rollback success criteria:
 - Sorting page no longer listens to Echo channel.
