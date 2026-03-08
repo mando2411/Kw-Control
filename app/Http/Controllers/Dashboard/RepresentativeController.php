@@ -178,25 +178,29 @@ class RepresentativeController extends Controller
     //     return view('dashboard.attendance.index', compact('committees', 'voters'));
     // }
     //================================================================================================
-    public function attending(Request $request){        
-        // Check if the user has a representative and assign the committee ID to the request
-        if (auth()->user()->representatives()->exists()) {
-            $committee_id = auth()->user()->representatives()->value('committee_id');
+    public function attending(Request $request)
+    {
+        $user = auth()->user();
 
-            if ($committee_id) {
-                $committees = Committee::select('name', 'id', 'type')->where('id', $committee_id)->get()->map(function ($committee) {
-                    $committee->title = "{$committee->name} ({$committee->type}) - {$committee->id}";
-                    return $committee;
-                });
-            } else {
-                $committees = collect();
-                session()->flash('message', 'لم يتم ربطك بأي لجنة بعد.');
-                session()->flash('type', 'warning');
-            }
-        }else{
-            $committees = $this->attendance->getCommittees();
+        [$committees, $fixedCommitteeId] = $this->resolveAttendingCommitteesForUser($user);
+
+        if ($committees->isEmpty()) {
+            session()->flash('message', 'لا توجد لجان متاحة لهذا الحساب حاليا.');
+            session()->flash('type', 'warning');
         }
-        return view('dashboard.attendance.index', compact('committees'));
+
+        $defaultCommitteeId = (int) $request->input('committee', 0);
+        if ($fixedCommitteeId > 0) {
+            $defaultCommitteeId = $fixedCommitteeId;
+        }
+
+        if ($defaultCommitteeId <= 0) {
+            $defaultCommitteeId = (int) ($committees->first()->id ?? 0);
+        }
+
+        $canChangeCommittee = $fixedCommitteeId <= 0;
+
+        return view('dashboard.attendance.index', compact('committees', 'defaultCommitteeId', 'canChangeCommittee'));
     }
     //================================================================================================
     public function home(Request $request){
@@ -477,6 +481,71 @@ class RepresentativeController extends Controller
         return $listMembersQuery
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function resolveAttendingCommitteesForUser(?User $user): array
+    {
+        if (!$user) {
+            return [collect(), 0];
+        }
+
+        $representativeCommitteeIds = $user->representatives()
+            ->whereNotNull('committee_id')
+            ->pluck('committee_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($representativeCommitteeIds->isNotEmpty()) {
+            $committees = Committee::query()
+                ->select(['id', 'name', 'type'])
+                ->whereIn('id', $representativeCommitteeIds->all())
+                ->orderBy('name')
+                ->get();
+
+            return [$committees, (int) ($committees->first()->id ?? 0)];
+        }
+
+        $committeesQuery = Committee::query()->select(['id', 'name', 'type']);
+
+        if (!$user->hasRole('Administrator') && Schema::hasColumn('committees', 'election_id')) {
+            $allowedElectionIds = $this->resolveAttendingElectionIdsForUser($user);
+
+            if (empty($allowedElectionIds)) {
+                return [collect(), 0];
+            }
+
+            $committeesQuery->whereIn('election_id', $allowedElectionIds);
+        }
+
+        return [$committeesQuery->orderBy('name')->get(), 0];
+    }
+
+    private function resolveAttendingElectionIdsForUser(User $user): array
+    {
+        $electionIds = collect();
+
+        $userElectionId = (int) ($user->election_id ?? 0);
+        if ($userElectionId > 0) {
+            $electionIds->push($userElectionId);
+        }
+
+        $candidateElectionIds = Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) $user->id)
+            ->whereNotNull('election_id')
+            ->pluck('election_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->values();
+
+        $electionIds = $electionIds->merge($candidateElectionIds);
+
+        return $electionIds
+            ->filter(fn (int $id) => $id > 0)
             ->unique()
             ->values()
             ->all();

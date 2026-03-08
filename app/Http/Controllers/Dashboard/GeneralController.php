@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Models\Voter;
 use App\Models\Committee;
+use App\Models\Candidate;
 use App\Models\Contractor;
+use App\Models\User;
+use App\Enums\Type;
+use App\Scopes\ElectionScope;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class GeneralController extends Controller
@@ -24,43 +27,99 @@ class GeneralController extends Controller
     }
     //==============================================================
     public function fetchVotersForCommittee($committee_id,Request $request){
-        // return response()->json(['msg'=>'success','data'=>$request->all(),'commitee'=>$committee]);
-        $committee          = Committee::find($committee_id);
-        $election_id        = $committee->election_id;
-        $type               = ($committee->type!='اناث')?'ذكر':'انثي';
-        $search_value       = $request->searchValue;    
-    
-        $voters = Voter::where('type',$type)->whereHas('election', function ($query) use ($election_id) {
-            $query->where('election_id', $election_id);
-        });
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        // if ($search_value != '') {
-        //     Log::info('search value :'.$search_value);
-        //     $voters->where('name', 'like', $search_value . '%'); 
-        // }
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        $voters = $this->search2($voters,$search_value);//apply condition for first letter only
-        //:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-        
-        $voters = $voters->orderBy('id', 'asc')
+        $committee = Committee::withoutGlobalScopes()->find($committee_id);
+        if (!$committee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'اللجنة غير موجودة.',
+                'voters' => [],
+            ], 404);
+        }
+
+        $scope = $this->resolveAttendingScope(auth()->user());
+        if (!$scope['is_admin'] && !in_array((int) $committee->id, $scope['committee_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح بعرض هذه اللجنة.',
+                'voters' => [],
+            ], 403);
+        }
+
+        $searchValue = trim((string) $request->input('searchValue', ''));
+        $voterType = Type::normalize((string) ($committee->type ?? ''));
+        $electionId = (int) ($committee->election_id ?? 0);
+
+        $votersQuery = Voter::withoutGlobalScope(ElectionScope::class)
+            ->where('type', $voterType)
+            ->when($electionId > 0, function ($query) use ($electionId) {
+                $query->whereHas('election', function ($electionQuery) use ($electionId) {
+                    $electionQuery->where('elections.id', $electionId);
+                });
+            });
+
+        if ($searchValue !== '') {
+            $votersQuery = $this->search2($votersQuery, $searchValue);
+        }
+
+        $voters = $votersQuery
+            ->orderBy('name', 'asc')
             ->limit(100)
-            ->get();
-        
-        return response()->json(['voters'=>$voters]);
+            ->get(['id', 'name', 'alsndok', 'status']);
+
+        return response()->json([
+            'success' => true,
+            'voters' => $voters,
+        ]);
     }
     //==============================================================
     public function fetchAttendingCountForCommittee($committee_id){
-        $committee          = Committee::find($committee_id);
-        (auth()->user()->representatives()->exists())?$attend_count=$committee->voters()->where('status', 1)->count():$attend_count=$committee->voters()->where('status', 1)->count();
-        $voter_count=counts($committee->type);
-        
-        return response()->json(['attend_count'=>$attend_count,'voter_count'=>$voter_count]);
+        $committee = Committee::withoutGlobalScopes()->find($committee_id);
+        if (!$committee) {
+            return response()->json([
+                'success' => false,
+                'message' => 'اللجنة غير موجودة.',
+                'attend_count' => 0,
+                'voter_count' => 0,
+            ], 404);
+        }
+
+        $scope = $this->resolveAttendingScope(auth()->user());
+        if (!$scope['is_admin'] && !in_array((int) $committee->id, $scope['committee_ids'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح بعرض هذه اللجنة.',
+                'attend_count' => 0,
+                'voter_count' => 0,
+            ], 403);
+        }
+
+        $voterType = Type::normalize((string) ($committee->type ?? ''));
+        $electionId = (int) ($committee->election_id ?? 0);
+
+        $baseQuery = Voter::withoutGlobalScope(ElectionScope::class)
+            ->where('type', $voterType)
+            ->when($electionId > 0, function ($query) use ($electionId) {
+                $query->whereHas('election', function ($electionQuery) use ($electionId) {
+                    $electionQuery->where('elections.id', $electionId);
+                });
+            });
+
+        $voterCount = (clone $baseQuery)->count();
+
+        $attendCount = (clone $baseQuery)
+            ->where('status', 1)
+            ->where('committee_id', (int) $committee->id)
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'attend_count' => (int) $attendCount,
+            'voter_count' => (int) $voterCount,
+        ]);
     }
     //==============================================================
     public function search2($voters, $search_value) {
         if ($search_value != '') {
-            Log::info('search value: ' . $search_value);
-    
             // Normalized characters mapping
             $normalizedChars = [
                 'أ' => ['أ', 'ا', 'إ', 'آ'],
@@ -87,32 +146,32 @@ class GeneralController extends Controller
             $keywords = explode(' ', trim($search_value));
             $firstWord = $keywords[0]; // First name must match exactly
             $remainingWords = array_slice($keywords, 1); // Other words
-    
-            $voters->where(function ($query) use ($firstWord, $remainingWords, $normalizedChars, $substitutions) {
-                // Generate variations for the first word
-                $firstWordVariations = $this->generateSearchTerms($firstWord, $normalizedChars);
-    
-                // Add word substitutions
-                if (array_key_exists($firstWord, $substitutions)) {
-                    $firstWordVariations = array_merge($firstWordVariations, $substitutions[$firstWord]);
-                }
-    
-                // Ensure first name is EXACT match at the beginning
-                $query->where(function ($subQuery) use ($firstWordVariations) {
-                    foreach ($firstWordVariations as $variation) {
-                        $subQuery->orWhere('name', 'LIKE', "{$variation} %");
+
+            $voters->where(function ($query) use ($search_value, $firstWord, $remainingWords, $normalizedChars, $substitutions) {
+                $query->where(function ($nameQuery) use ($firstWord, $remainingWords, $normalizedChars, $substitutions) {
+                    // Generate variations for the first word
+                    $firstWordVariations = $this->generateSearchTerms($firstWord, $normalizedChars);
+
+                    // Add word substitutions
+                    if (array_key_exists($firstWord, $substitutions)) {
+                        $firstWordVariations = array_merge($firstWordVariations, $substitutions[$firstWord]);
                     }
-                });
-    
-                // If there are additional words, ensure they appear somewhere in the name
-                if (!empty($remainingWords)) {
-                    foreach ($remainingWords as $word) {
-                        $query->where('name', 'LIKE', "%{$word}%");
+
+                    // Ensure first name is EXACT match at the beginning
+                    $nameQuery->where(function ($subQuery) use ($firstWordVariations) {
+                        foreach ($firstWordVariations as $variation) {
+                            $subQuery->orWhere('name', 'LIKE', "{$variation} %");
+                        }
+                    });
+
+                    // If there are additional words, ensure they appear somewhere in the name
+                    if (!empty($remainingWords)) {
+                        foreach ($remainingWords as $word) {
+                            $nameQuery->where('name', 'LIKE', "%{$word}%");
+                        }
                     }
-                }
-            })->orWhere('alsndok', 'like', $search_value . '%');
-    
-            Log::info('Generated search terms: ', $keywords);
+                })->orWhere('alsndok', 'like', $search_value . '%');
+            });
         }
         return $voters;
     }
@@ -142,5 +201,82 @@ class GeneralController extends Controller
     
         return $combinations;
     }
-       //==============================================================
+    //==============================================================
+    private function resolveAttendingScope(?User $user): array
+    {
+        if (!$user) {
+            return [
+                'is_admin' => false,
+                'committee_ids' => [],
+            ];
+        }
+
+        if ($user->hasRole('Administrator')) {
+            return [
+                'is_admin' => true,
+                'committee_ids' => [],
+            ];
+        }
+
+        $representativeCommitteeIds = $user->representatives()
+            ->whereNotNull('committee_id')
+            ->pluck('committee_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($representativeCommitteeIds->isNotEmpty()) {
+            return [
+                'is_admin' => false,
+                'committee_ids' => $representativeCommitteeIds->all(),
+            ];
+        }
+
+        $allowedElectionIds = collect();
+
+        $userElectionId = (int) ($user->election_id ?? 0);
+        if ($userElectionId > 0) {
+            $allowedElectionIds->push($userElectionId);
+        }
+
+        $candidateElectionIds = Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) $user->id)
+            ->whereNotNull('election_id')
+            ->pluck('election_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->values();
+
+        $allowedElectionIds = $allowedElectionIds
+            ->merge($candidateElectionIds)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($allowedElectionIds->isEmpty()) {
+            return [
+                'is_admin' => false,
+                'committee_ids' => [],
+            ];
+        }
+
+        $committeeIds = Committee::withoutGlobalScopes()
+            ->when(
+                \Illuminate\Support\Facades\Schema::hasColumn('committees', 'election_id'),
+                fn ($query) => $query->whereIn('election_id', $allowedElectionIds->all())
+            )
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        return [
+            'is_admin' => false,
+            'committee_ids' => $committeeIds,
+        ];
+    }
+    //==============================================================
 }

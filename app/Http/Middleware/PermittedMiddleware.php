@@ -75,6 +75,10 @@ class PermittedMiddleware
                 $deniedByDefault = false;
             }
 
+            if ($deniedByDefault && (string) $permission === 'attending' && $this->candidateCanAccessAttending()) {
+                $deniedByDefault = false;
+            }
+
             abort_if($deniedByDefault, 403);
         }
 
@@ -150,5 +154,24 @@ class PermittedMiddleware
         }
 
         return $candidateRole->hasPermissionTo($permission);
+    }
+
+    private function candidateCanAccessAttending(): bool
+    {
+        if (!admin()) {
+            return false;
+        }
+
+        if (admin()->hasRole('Administrator')) {
+            return true;
+        }
+
+        if (admin()->hasRole('مرشح') || admin()->hasRole('مرشح رئيس قائمة')) {
+            return true;
+        }
+
+        return Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) admin()->id)
+            ->exists();
     }
 }
