@@ -238,7 +238,7 @@
       $('#confirmMessage').text(message);
       $('#candidateIdInput').val(id);
       $('#statusInput').val(count_status);
-      $('#vote_count').val(0);
+      $('#vote_count').val(1);
       $('#committee').val(committee);
       $('#confirmModal').modal('show');
     });
