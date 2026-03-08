@@ -49,22 +49,41 @@ class GeneralController extends Controller
         }
 
         $searchValue = trim((string) $request->input('searchValue', ''));
-        $voterTypes = $this->resolveCommitteeVoterTypeVariants((string) ($committee->type ?? ''));
-        $electionId = (int) ($committee->election_id ?? 0);
-
-        $votersQuery = Voter::withoutGlobalScope(ElectionScope::class)
-            ->whereIn('type', $voterTypes);
-
-        $this->applyElectionVoterPivotScopeWhenAvailable($votersQuery, $electionId);
-
+        $votersQuery = $this->buildAttendingVotersQuery($committee, true, true);
         if ($searchValue !== '') {
-            $votersQuery = $this->search2($votersQuery, $searchValue);
+            $this->search2($votersQuery, $searchValue);
         }
 
-        $voters = $votersQuery
+        $voters = (clone $votersQuery)
             ->orderBy('name', 'asc')
             ->limit(100)
             ->get(['id', 'name', 'alsndok', 'status']);
+
+        if ($voters->isEmpty()) {
+            // Fallback 1: remove strict type filter (committee type data can be inconsistent between campaigns).
+            $fallbackQuery = $this->buildAttendingVotersQuery($committee, false, true);
+            if ($searchValue !== '') {
+                $this->search2($fallbackQuery, $searchValue);
+            }
+
+            $voters = (clone $fallbackQuery)
+                ->orderBy('name', 'asc')
+                ->limit(100)
+                ->get(['id', 'name', 'alsndok', 'status']);
+        }
+
+        if ($voters->isEmpty()) {
+            // Fallback 2: no election-pivot/type constraints if historical mapping is missing.
+            $lastFallbackQuery = $this->buildAttendingVotersQuery($committee, false, false);
+            if ($searchValue !== '') {
+                $this->search2($lastFallbackQuery, $searchValue);
+            }
+
+            $voters = (clone $lastFallbackQuery)
+                ->orderBy('name', 'asc')
+                ->limit(100)
+                ->get(['id', 'name', 'alsndok', 'status']);
+        }
 
         return response()->json([
             'success' => true,
@@ -93,15 +112,18 @@ class GeneralController extends Controller
             ], 403);
         }
 
-        $voterTypes = $this->resolveCommitteeVoterTypeVariants((string) ($committee->type ?? ''));
-        $electionId = (int) ($committee->election_id ?? 0);
-
-        $baseQuery = Voter::withoutGlobalScope(ElectionScope::class)
-            ->whereIn('type', $voterTypes);
-
-        $this->applyElectionVoterPivotScopeWhenAvailable($baseQuery, $electionId);
-
+        $baseQuery = $this->buildAttendingVotersQuery($committee, true, true);
         $voterCount = (clone $baseQuery)->count();
+
+        if ($voterCount === 0) {
+            $baseQuery = $this->buildAttendingVotersQuery($committee, false, true);
+            $voterCount = (clone $baseQuery)->count();
+        }
+
+        if ($voterCount === 0) {
+            $baseQuery = $this->buildAttendingVotersQuery($committee, false, false);
+            $voterCount = (clone $baseQuery)->count();
+        }
 
         $attendCount = (clone $baseQuery)
             ->where('status', 1)
@@ -238,6 +260,25 @@ class GeneralController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+    //==============================================================
+    private function buildAttendingVotersQuery(Committee $committee, bool $applyTypeFilter = true, bool $applyElectionFilter = true): Builder
+    {
+        $query = Voter::withoutGlobalScope(ElectionScope::class);
+
+        if ($applyTypeFilter) {
+            $voterTypes = $this->resolveCommitteeVoterTypeVariants((string) ($committee->type ?? ''));
+            if (!empty($voterTypes)) {
+                $query->whereIn('type', $voterTypes);
+            }
+        }
+
+        if ($applyElectionFilter) {
+            $electionId = (int) ($committee->election_id ?? 0);
+            $this->applyElectionVoterPivotScopeWhenAvailable($query, $electionId);
+        }
+
+        return $query;
     }
     //==============================================================
     private function applyElectionVoterPivotScopeWhenAvailable(Builder $query, int $electionId): void
