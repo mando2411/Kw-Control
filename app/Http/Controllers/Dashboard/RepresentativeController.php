@@ -15,6 +15,7 @@ use App\Models\Committee;
 use App\Models\Voter;
 use App\Models\School;
 use App\Services\Attendance;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -58,6 +59,12 @@ class RepresentativeController extends Controller
 
             $representativeData = $request->getSanitized();
             $representativeData['user_id'] = $user->id;
+
+            $committeeElectionId = $this->resolveCommitteeElectionId($representativeData['committee_id'] ?? null);
+            if ($committeeElectionId !== null) {
+                $representativeData['election_id'] = $representativeData['election_id'] ?? $committeeElectionId;
+            }
+
             $representativeData['election_id'] = $representativeData['election_id'] ?? $user->election_id;
 
             Representative::create($representativeData);
@@ -152,66 +159,129 @@ class RepresentativeController extends Controller
     //================================================================================================
     public function home(Request $request){
         $user = auth('web')->user();
+        $selectedSchoolId = (string) $request->input('id', 'all');
         $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
         $hasCommitteeElectionColumn = Schema::hasColumn('committees', 'election_id');
+        $userElectionId = (int) ($user?->election_id ?? 0);
 
-        $schoolsQuery = School::query();
-        $committeesQuery = Committee::query();
-
-        if ($user && !$user->hasRole('Administrator')) {
-            $electionId = (int) $user->election_id;
-
+        $schoolsFilter = static function ($query) use ($hasSchoolElectionColumn, $userElectionId) {
             if ($hasSchoolElectionColumn) {
-                $schoolsQuery->where(function ($query) use ($electionId) {
-                    $query->where('election_id', $electionId)
+                $query->where(function ($nested) use ($userElectionId) {
+                    $nested->where('election_id', $userElectionId)
                         ->orWhereNull('election_id');
                 });
             }
+        };
 
-            $schoolsQuery->whereHas('committees');
-
+        $committeeElectionFilter = static function ($query) use ($hasCommitteeElectionColumn, $userElectionId) {
             if ($hasCommitteeElectionColumn) {
-                $committeesQuery->where('election_id', $electionId);
+                $query->where('election_id', $userElectionId);
             }
+        };
+
+        $schoolsDropdownQuery = School::query()->select(['id', 'name', 'type']);
+
+        $schoolsDataQuery = School::query()
+            ->select(['id', 'name', 'type'])
+            ->with([
+                'committees' => function ($committeeQuery) use ($user, $committeeElectionFilter, $hasCommitteeElectionColumn) {
+                    $committeeQuery->select(['id', 'name', 'type', 'school_id']);
+                    if ($hasCommitteeElectionColumn) {
+                        $committeeQuery->addSelect('election_id');
+                    }
+
+                    if ($user && !$user->hasRole('Administrator')) {
+                        $committeeElectionFilter($committeeQuery);
+                    }
+
+                    $committeeQuery->with(['representatives.user:id,name,phone']);
+                },
+            ]);
+
+        $committeesQuery = Committee::query()->select(['id', 'name', 'type', 'school_id']);
+        if ($hasCommitteeElectionColumn) {
+            $committeesQuery->addSelect('election_id');
         }
 
-        if (collect($request->all())->isEmpty() || $request->id=="all") {
-            $relations=[
-                'committees' => $committeesQuery->get(),
-                'schools' => $schoolsQuery->get(),
-            ];
-            return view('dashboard.representatives.home' ,compact('relations'));
-        }else{
-                $school=(clone $schoolsQuery)->where('id',$request->id)->get();
-                $relations=[
-                'committees' => $committeesQuery->get(),
-                'schools' => $schoolsQuery->get(),
-            ];
-            return view('dashboard.representatives.home' ,compact('relations','school','request'));
+        if ($user && !$user->hasRole('Administrator')) {
+            $schoolsFilter($schoolsDropdownQuery);
+            $schoolsFilter($schoolsDataQuery);
+
+            $schoolsDropdownQuery->whereHas('committees', function ($committeeQuery) use ($committeeElectionFilter) {
+                $committeeElectionFilter($committeeQuery);
+            });
+
+            $schoolsDataQuery->whereHas('committees', function ($committeeQuery) use ($committeeElectionFilter) {
+                $committeeElectionFilter($committeeQuery);
+            });
+
+            $committeeElectionFilter($committeesQuery);
         }
+
+        if ($selectedSchoolId !== 'all') {
+            $selectedSchoolNumericId = (int) $selectedSchoolId;
+            $schoolsDataQuery->where('id', $selectedSchoolNumericId);
+            $committeesQuery->where('school_id', $selectedSchoolNumericId);
+        }
+
+        $relations = [
+            'schools' => $schoolsDropdownQuery->orderBy('name')->get(),
+            'committees' => $committeesQuery->orderBy('name')->get(),
+        ];
+
+        $schools = $schoolsDataQuery->orderBy('name')->get();
+
+        return view('dashboard.representatives.home', compact('relations', 'schools', 'selectedSchoolId'));
     }
     public function changeRep($id, Request $request){
-        $rep = Representative::findOrFail($id);
+        $rep = Representative::with('user')->findOrFail($id);
+
+        abort_if(!$rep->user, 422, 'لا يوجد مستخدم مرتبط بهذا المندوب.');
+
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => [
                 'required',
                 'string',
                 'max:15',
-                Rule::unique('users')->ignore($rep->user->id),             ],
-                'committee_id' =>'nullable'
+                Rule::unique('users')->ignore($rep->user->id),
+            ],
+            'committee_id' => 'nullable|integer|exists:committees,id',
         ]);
-        if($validatedData['committee_id'] == null ){
-            unset($validatedData['committee_id']);
+
+        $committeeId = $validatedData['committee_id'] ?? null;
+        if ($committeeId !== null && !admin()->hasRole('Administrator') && Schema::hasColumn('committees', 'election_id')) {
+            $committee = Committee::query()->select('id', 'election_id')->find($committeeId);
+            abort_if($committee && (int) $committee->election_id !== (int) admin()->election_id, 422, 'اللجنة المختارة لا تتبع نفس الحملة الانتخابية.');
         }
-        $rep->user->update($validatedData);
-        $rep->update($validatedData);
+
+        $rep->user->update(Arr::only($validatedData, ['name', 'phone']));
+
+        if($committeeId !== null ) {
+            $rep->update(['committee_id' => $committeeId]);
+        }
+
         return response()->json(
             [
                 'message'=> " تم تعديل بيانات المندوب بنجاح"
 
             ]
         );
+    }
+
+    private function resolveCommitteeElectionId($committeeId): ?int
+    {
+        $committeeId = (int) $committeeId;
+        if ($committeeId <= 0 || !Schema::hasColumn('committees', 'election_id')) {
+            return null;
+        }
+
+        $committee = Committee::query()->select('id', 'election_id')->find($committeeId);
+        if (!$committee || $committee->election_id === null) {
+            return null;
+        }
+
+        return (int) $committee->election_id;
     }
 
 }

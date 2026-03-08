@@ -116,6 +116,7 @@ class Committee extends Model
                     'name' => $user?->name ?? 'مستخدم غير متاح',
                     'phone' => $user?->phone ?? '-',
                     'user_id' => $user?->id,
+                    'committee_id' => $rep->committee_id,
                 ];
             });
 return $users;
