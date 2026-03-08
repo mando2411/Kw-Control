@@ -108,15 +108,21 @@
           $representativeRows = collect();
           foreach ($schools as $school) {
               foreach ($school->committees as $com) {
-                  foreach ($com->users() as $representative) {
+              foreach ($com->representatives as $representativeModel) {
+                $representativeUser = $representativeModel->user;
+                if (!$representativeUser) {
+                  continue;
+                }
+
                       $representativeRows->push([
-                          'id' => $representative['id'],
-                          'name' => $representative['name'],
-                          'phone' => $representative['phone'],
-                          'committee_id' => $representative['committee_id'] ?? $com->id,
+                  'id' => $representativeModel->id,
+                  'name' => $representativeUser->name,
+                  'phone' => $representativeUser->phone,
+                  'committee_id' => $representativeModel->committee_id ?? $com->id,
                           'committee_name' => $com->name,
                           'committee_type' => $com->type,
                           'school_name' => $school->name,
+                  'candidate_ids' => $representativeModel->candidates->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
                       ]);
                   }
               }
@@ -166,6 +172,7 @@
                         data-name="{{ $representative['name'] }}"
                         data-phone="{{ $representative['phone'] }}"
                         data-committee-id="{{ $representative['committee_id'] }}"
+                        data-candidate-ids="{{ implode(',', $representative['candidate_ids'] ?? []) }}"
                       >
                         تعديل
                       </button>
@@ -186,12 +193,12 @@
 
   <div class="modal fade" id="repEditModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
+      <div class="modal-content rep-edit-modal-content">
         <div class="modal-header">
           <h5 class="modal-title">تعديل بيانات المندوب</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" id="repEditModalCloseTop" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body">
+        <div class="modal-body rep-edit-modal-body">
           <input type="hidden" id="rep_edit_id">
           <div class="mb-2">
             <label for="rep_edit_name" class="form-label">الاسم</label>
@@ -210,10 +217,33 @@
               @endforeach
             </select>
           </div>
+
+          @if(($relations['list_candidates'] ?? collect())->isNotEmpty())
+            <div class="rep-edit-candidate-panel mb-2">
+              <div class="rep-edit-candidate-head">
+                <label for="rep_edit_candidate_ids" class="form-label mb-0">المرشح/المرشحون التابع لهم المندوب</label>
+                <span class="rep-edit-candidate-count">المحدد: <strong id="rep_edit_candidate_count">0</strong></span>
+              </div>
+
+              <select id="rep_edit_candidate_ids" class="form-select" multiple>
+                @foreach ($relations['list_candidates'] as $candidateOption)
+                  <option value="{{ $candidateOption->id }}">{{ $candidateOption->user?->name ?? ('مرشح #' . $candidateOption->id) }}</option>
+                @endforeach
+              </select>
+
+              <div class="rep-edit-candidate-actions">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="repEditCandidateSelectAll">تحديد الكل</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="repEditCandidateClearAll">إلغاء الكل</button>
+              </div>
+
+              <div id="rep_edit_candidate_preview" class="rep-edit-candidate-preview mt-2"></div>
+            </div>
+          @endif
+
           <div id="rep_edit_error" class="text-danger small d-none"></div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إغلاق</button>
+          <button type="button" class="btn btn-outline-secondary" id="repEditModalCloseBottom" data-bs-dismiss="modal">إغلاق</button>
           <button type="button" class="btn btn-primary" id="rep_edit_submit">حفظ التعديل</button>
         </div>
       </div>
@@ -459,6 +489,63 @@
       flex-wrap: wrap;
     }
 
+    .rep-edit-modal-content {
+      border: 0;
+      border-radius: 16px;
+      box-shadow: 0 20px 45px rgba(15, 44, 77, 0.22);
+      overflow: hidden;
+    }
+
+    .rep-edit-modal-body {
+      background: linear-gradient(180deg, #fbfdff 0%, #f3f8ff 100%);
+    }
+
+    .rep-edit-candidate-panel {
+      border: 1px solid #d5e3f9;
+      border-radius: 13px;
+      background: #fff;
+      padding: 0.75rem;
+    }
+
+    .rep-edit-candidate-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .rep-edit-candidate-count {
+      background: #ebf2ff;
+      color: #1a4f8f;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      padding: 0.3rem 0.7rem;
+    }
+
+    #rep_edit_candidate_ids {
+      min-height: 138px;
+      border-color: #c7daf6;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .rep-edit-candidate-actions {
+      margin-top: 0.55rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .rep-edit-candidate-preview {
+      min-height: 1.2rem;
+      font-size: 0.9rem;
+      color: #3b5e84;
+      line-height: 1.6;
+    }
+
     @media (max-width: 768px) {
       .rep-home-page {
         font-size: 15px;
@@ -530,6 +617,14 @@
       }
 
       .candidate-selector-actions .btn {
+        width: 100%;
+      }
+
+      .rep-edit-candidate-actions {
+        flex-direction: column;
+      }
+
+      .rep-edit-candidate-actions .btn {
         width: 100%;
       }
     }
@@ -643,29 +738,153 @@
       }
 
       var modalElement = document.getElementById('repEditModal');
-      var editModal = modalElement ? new bootstrap.Modal(modalElement) : null;
+      var editModal = null;
+      if (modalElement && window.bootstrap && bootstrap.Modal) {
+        if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+          editModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        } else {
+          editModal = new bootstrap.Modal(modalElement);
+        }
+      }
 
       var repIdInput = document.getElementById('rep_edit_id');
       var repNameInput = document.getElementById('rep_edit_name');
       var repPhoneInput = document.getElementById('rep_edit_phone');
       var repCommitteeSelect = document.getElementById('rep_edit_committee');
+      var repCandidateSelect = document.getElementById('rep_edit_candidate_ids');
+      var repCandidateCount = document.getElementById('rep_edit_candidate_count');
+      var repCandidatePreview = document.getElementById('rep_edit_candidate_preview');
+      var repCandidateSelectAll = document.getElementById('repEditCandidateSelectAll');
+      var repCandidateClearAll = document.getElementById('repEditCandidateClearAll');
+      var closeModalTopButton = document.getElementById('repEditModalCloseTop');
+      var closeModalBottomButton = document.getElementById('repEditModalCloseBottom');
       var repError = document.getElementById('rep_edit_error');
       var submitEditButton = document.getElementById('rep_edit_submit');
 
+      var parseCandidateIds = function (value) {
+        if (!value) {
+          return [];
+        }
+
+        return String(value)
+          .split(',')
+          .map(function (item) { return item.trim(); })
+          .filter(function (item) { return item.length > 0; });
+      };
+
+      var syncRepCandidateMeta = function () {
+        if (!repCandidateSelect) {
+          return;
+        }
+
+        var selectedOptions = Array.from(repCandidateSelect.selectedOptions || []);
+
+        if (repCandidateCount) {
+          repCandidateCount.textContent = String(selectedOptions.length);
+        }
+
+        if (repCandidatePreview) {
+          if (!selectedOptions.length) {
+            repCandidatePreview.textContent = 'لا يوجد مرشح محدد حاليًا.';
+          } else {
+            repCandidatePreview.textContent = 'المرشحون الحاليون: ' + selectedOptions.map(function (option) {
+              return option.textContent.trim();
+            }).join(' - ');
+          }
+        }
+      };
+
+      var setRepCandidateSelection = function (candidateIds) {
+        if (!repCandidateSelect) {
+          return;
+        }
+
+        var selectedIdMap = {};
+        candidateIds.forEach(function (id) {
+          selectedIdMap[String(id)] = true;
+        });
+
+        Array.from(repCandidateSelect.options).forEach(function (option) {
+          option.selected = !!selectedIdMap[String(option.value)];
+        });
+
+        syncRepCandidateMeta();
+      };
+
+      if (repCandidateSelect) {
+        repCandidateSelect.addEventListener('change', syncRepCandidateMeta);
+        syncRepCandidateMeta();
+      }
+
+      if (repCandidateSelectAll && repCandidateSelect) {
+        repCandidateSelectAll.addEventListener('click', function () {
+          Array.from(repCandidateSelect.options).forEach(function (option) {
+            option.selected = true;
+          });
+          syncRepCandidateMeta();
+        });
+      }
+
+      if (repCandidateClearAll && repCandidateSelect) {
+        repCandidateClearAll.addEventListener('click', function () {
+          Array.from(repCandidateSelect.options).forEach(function (option) {
+            option.selected = false;
+          });
+          syncRepCandidateMeta();
+        });
+      }
+
+      var closeEditModal = function (event) {
+        if (event) {
+          event.preventDefault();
+        }
+
+        if (editModal) {
+          editModal.hide();
+          return;
+        }
+
+        if (!modalElement) {
+          return;
+        }
+
+        modalElement.classList.remove('show');
+        modalElement.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+          backdrop.remove();
+        });
+      };
+
+      if (closeModalTopButton) {
+        closeModalTopButton.addEventListener('click', closeEditModal);
+      }
+
+      if (closeModalBottomButton) {
+        closeModalBottomButton.addEventListener('click', closeEditModal);
+      }
+
       document.querySelectorAll('.js-open-edit-modal').forEach(function (button) {
         button.addEventListener('click', function () {
-          if (!editModal) {
-            return;
-          }
-
           repIdInput.value = this.dataset.repId || '';
           repNameInput.value = this.dataset.name || '';
           repPhoneInput.value = this.dataset.phone || '';
           repCommitteeSelect.value = this.dataset.committeeId || '';
+
+          if (repCandidateSelect) {
+            setRepCandidateSelection(parseCandidateIds(this.dataset.candidateIds || ''));
+          }
+
           repError.classList.add('d-none');
           repError.textContent = '';
 
-          editModal.show();
+          if (editModal) {
+            editModal.show();
+          } else if (modalElement) {
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            document.body.classList.add('modal-open');
+          }
         });
       });
 
@@ -683,6 +902,12 @@
             phone: repPhoneInput.value,
             committee_id: repCommitteeSelect.value || null,
           };
+
+          if (repCandidateSelect) {
+            payload.candidate_ids = Array.from(repCandidateSelect.selectedOptions || []).map(function (option) {
+              return option.value;
+            });
+          }
 
           submitEditButton.disabled = true;
 

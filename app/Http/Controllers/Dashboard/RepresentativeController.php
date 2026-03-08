@@ -268,7 +268,10 @@ class RepresentativeController extends Controller
                                 }
                             }
 
-                            $representativeQuery->with(['user:id,name,phone,creator_id']);
+                            $representativeQuery->with([
+                                'user:id,name,phone,creator_id',
+                                'candidates:id',
+                            ]);
                         },
                     ]);
                 },
@@ -363,7 +366,7 @@ class RepresentativeController extends Controller
         return null;
     }
     public function changeRep($id, Request $request){
-        $rep = Representative::with('user')->findOrFail($id);
+        $rep = Representative::with(['user', 'candidates:id'])->findOrFail($id);
 
         abort_if(!$rep->user, 422, 'لا يوجد مستخدم مرتبط بهذا المندوب.');
 
@@ -376,6 +379,8 @@ class RepresentativeController extends Controller
                 Rule::unique('users')->ignore($rep->user->id),
             ],
             'committee_id' => 'nullable|integer|exists:committees,id',
+            'candidate_ids' => 'nullable|array',
+            'candidate_ids.*' => 'integer|exists:candidates,id',
         ]);
 
         $committeeId = $validatedData['committee_id'] ?? null;
@@ -388,6 +393,24 @@ class RepresentativeController extends Controller
 
         if($committeeId !== null ) {
             $rep->update(['committee_id' => $committeeId]);
+        }
+
+        if (Schema::hasTable('candidate_representative') && $request->has('candidate_ids')) {
+            $selectedCandidateIds = collect((array) $request->input('candidate_ids', []))
+                ->map(fn ($value) => (int) $value)
+                ->filter(fn (int $value) => $value > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            $currentUser = admin();
+            $allowedCandidateIds = $this->resolveListLeaderCandidateIds($currentUser);
+
+            if (!empty($allowedCandidateIds)) {
+                $selectedCandidateIds = array_values(array_intersect($selectedCandidateIds, $allowedCandidateIds));
+            }
+
+            $rep->candidates()->sync($selectedCandidateIds);
         }
 
         return response()->json(
