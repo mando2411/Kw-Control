@@ -231,6 +231,7 @@
 
   .candidates-card {
     margin-top: 1rem;
+    position: relative;
     overflow: hidden;
     animation: spFadeUp 0.55s ease;
   }
@@ -364,16 +365,19 @@
   }
 
   #lock-overlay {
-    position: fixed;
+    position: absolute;
     inset: 0;
     background: rgba(9, 30, 66, 0.78);
     display: none;
-    z-index: 1035;
+    z-index: 12;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+    border-radius: 20px;
+    text-align: center;
+    padding: 1rem;
   }
 
   #lock-overlay .lock-icon,
@@ -388,6 +392,13 @@
 
   #lock-overlay .unlock-icon {
     display: none;
+  }
+
+  #lock-overlay .lock-text {
+    margin-top: 0.85rem;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.95rem;
   }
 
   @media (max-width: 991.98px) {
@@ -542,11 +553,6 @@
 </style>
 
 <div class="sorting-page rtl" dir="rtl">
-  <div id="lock-overlay">
-    <i class="fas fa-lock lock-icon"></i>
-    <i class="fas fa-lock-open unlock-icon"></i>
-  </div>
-
   <div class="container-fluid sorting-shell">
     <div class="sorting-card sorting-hero">
       <div>
@@ -623,6 +629,12 @@
       </div>
 
       <div class="sorting-card candidates-card">
+        <div id="lock-overlay">
+          <i class="fas fa-lock lock-icon"></i>
+          <i class="fas fa-lock-open unlock-icon"></i>
+          <p class="lock-text mb-0">تم إيقاف الفرز لهذه اللجنة حاليا</p>
+        </div>
+
         <div class="candidates-head">
           <h4>قائمة المرشحين داخل اللجنة</h4>
           <span class="sorting-chip">عدد المرشحين: {{ count($candidates) }}</span>
@@ -854,8 +866,8 @@
 
   const toggleButton = document.getElementById("toggle-lock-button");
   const lockOverlay = document.getElementById("lock-overlay");
-  const lockIcon = lockOverlay.querySelector(".lock-icon");
-  const unlockIcon = lockOverlay.querySelector(".unlock-icon");
+  const lockIcon = lockOverlay ? lockOverlay.querySelector(".lock-icon") : null;
+  const unlockIcon = lockOverlay ? lockOverlay.querySelector(".unlock-icon") : null;
   const statusText = document.getElementById('sortingStatusText');
   const lockButtonText = document.getElementById('lockButtonText');
   let icon = $('#icon');
@@ -891,11 +903,13 @@
     icon.addClass("fa-unlock");
     icon.removeClass("fa-lock");
 
-    lockOverlay.style.display = "flex";
-    lockIcon.style.display = "block";
-    lockIcon.style.animation = "lock-animation 1.35s ease-in-out infinite";
-    unlockIcon.style.display = "none";
-    document.body.style.overflow = 'hidden';
+    if (lockOverlay && lockIcon && unlockIcon) {
+      lockOverlay.style.display = "flex";
+      lockIcon.style.display = "block";
+      lockIcon.style.animation = "lock-animation 1.35s ease-in-out infinite";
+      unlockIcon.style.display = "none";
+    }
+
     $('#status').val(1);
     updateLockLabels(true);
   }
@@ -906,17 +920,21 @@
     icon.removeClass("fa-unlock");
     $('#status').val(0);
 
-    lockIcon.style.animation = "none";
-    lockIcon.style.display = "none";
-    unlockIcon.style.display = "block";
-    unlockIcon.style.animation = "unlock-animation 0.8s ease-in-out";
-    document.body.style.overflow = '';
+    if (lockOverlay && lockIcon && unlockIcon) {
+      lockIcon.style.animation = "none";
+      lockIcon.style.display = "none";
+      unlockIcon.style.display = "block";
+      unlockIcon.style.animation = "unlock-animation 0.8s ease-in-out";
+    }
+
     updateLockLabels(false);
 
-    setTimeout(() => {
-      lockOverlay.style.display = "none";
-      unlockIcon.style.animation = "none";
-    }, 800);
+    if (lockOverlay && unlockIcon) {
+      setTimeout(() => {
+        lockOverlay.style.display = "none";
+        unlockIcon.style.animation = "none";
+      }, 800);
+    }
   }
 </script>
 @endpush
