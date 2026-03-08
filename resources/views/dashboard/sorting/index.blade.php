@@ -704,9 +704,10 @@
 <script>
   $(document).ready(function() {
     var liveStatsUrl = @json(route('dashboard.sorting.live-stats'));
-    var realtimeChannel = null;
+    var realtimeChannels = [];
     var fallbackTimer = null;
     var liveStatsInFlight = false;
+    var fallbackIntervalMs = 2000;
 
     // Render modals at body level to avoid clipping by parent containers.
     if ($('#confirmModal').length) {
@@ -827,10 +828,40 @@
       }
 
       if (window.Echo && typeof window.Echo.channel === 'function') {
-        realtimeChannel = window.Echo.channel('sorting.' + committeeId);
-        realtimeChannel.listen('.sorting.realtime.updated', function () {
+        var sortingChannelName = 'sorting.' + committeeId;
+        var sortingChannel = window.Echo.channel(sortingChannelName);
+        sortingChannel.listen('.sorting.realtime.updated', function () {
           fetchLiveStats();
         });
+        realtimeChannels.push(sortingChannelName);
+
+        // Existing VoteUpdated event in backend already broadcasts on "votes".
+        var votesChannelName = 'votes';
+        var votesChannel = window.Echo.channel(votesChannelName);
+        votesChannel.listen('.my-event', function (payload) {
+          var currentCommitteeId = getCurrentCommitteeId();
+          var committees = [];
+
+          if (payload && payload.message && Array.isArray(payload.message.committees)) {
+            committees = payload.message.committees;
+          }
+
+          var touchesCurrentCommittee = committees.some(function (committee) {
+            return parseInt(committee.id, 10) === currentCommitteeId;
+          });
+
+          if (touchesCurrentCommittee) {
+            fetchLiveStats();
+          }
+        });
+        realtimeChannels.push(votesChannelName);
+
+        var committeeChannelName = 'committee';
+        var committeeChannel = window.Echo.channel(committeeChannelName);
+        committeeChannel.listen('.event', function () {
+          fetchLiveStats();
+        });
+        realtimeChannels.push(committeeChannelName);
       }
 
       // Safety net: periodic refresh in case websocket drops silently.
@@ -842,7 +873,7 @@
         if (!document.hidden) {
           fetchLiveStats();
         }
-      }, 15000);
+      }, fallbackIntervalMs);
     }
 
     startSortingRealtime();
@@ -1015,15 +1046,20 @@
     }
 
     window.addEventListener('beforeunload', function() {
-      if (realtimeChannel && window.Echo && typeof window.Echo.leave === 'function') {
-        var committeeId = getCurrentCommitteeId();
-        if (committeeId) {
-          window.Echo.leave('sorting.' + committeeId);
-        }
+      if (window.Echo && typeof window.Echo.leave === 'function') {
+        realtimeChannels.forEach(function (channelName) {
+          window.Echo.leave(channelName);
+        });
       }
 
       if (fallbackTimer) {
         clearInterval(fallbackTimer);
+      }
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) {
+        fetchLiveStats();
       }
     });
   });

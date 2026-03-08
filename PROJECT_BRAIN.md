@@ -86,6 +86,20 @@ Purpose:
 - File:
   - `app/Services/VoteService.php`
 
+### Hotfix Under Same Tag (`real-time`) - Low-Latency Frontend Tuning
+- Date: 2026-03-08
+- Problem:
+  - Users reported updates were still delayed noticeably.
+- Old behavior:
+  - Sorting page listened only to `sorting.{committeeId}` realtime channel.
+  - Fallback polling interval was longer.
+- New behavior:
+  - Sorting page now also listens to existing `votes` channel (`.my-event`) and `committee` channel (`.event`) to trigger immediate refresh.
+  - Fallback polling reduced to `2000ms` to keep UI fast if websocket is unstable/unavailable.
+  - Added `visibilitychange` immediate fetch on tab focus return.
+- File:
+  - `resources/views/dashboard/sorting/index.blade.php`
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.
