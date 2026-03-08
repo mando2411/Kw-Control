@@ -12,15 +12,15 @@
       <div class="card rep-home-shell-card">
         <div class="card-body rep-home-header">
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <h5 class="mb-0">توزيع المندوبين</h5>
+            <h5 class="mb-0 rep-home-title">توزيع المندوبين</h5>
             @if(admin()->can('representatives.create'))
-              <button type="button" id="openQuickAddRepresentativeForm" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#quickAddRepresentativeForm" aria-expanded="false" aria-controls="quickAddRepresentativeForm">
+              <button type="button" id="openQuickAddRepresentativeForm" class="btn btn-primary rep-home-open-btn" data-bs-toggle="collapse" data-bs-target="#quickAddRepresentativeForm" aria-expanded="false" aria-controls="quickAddRepresentativeForm">
                 إضافة مندوب جديد
               </button>
             @endif
           </div>
 
-          <form action="{{ route('dashboard.rep-home') }}" method="get" id="school-form" class="row g-2 align-items-end mt-2">
+          <form action="{{ route('dashboard.rep-home') }}" method="get" id="school-form" class="row g-2 align-items-end mt-2 rep-home-filter-form">
             <div class="col-lg-6 col-md-8">
               <label class="form-label mb-1" for="school">المدرسة</label>
               <select name="id" id="school" class="form-select">
@@ -95,8 +95,8 @@
                   @endif
 
                   <div class="col-12 d-flex gap-2">
-                    <button class="btn btn-success" type="submit">حفظ</button>
-                    <button class="btn btn-outline-secondary" id="quickAddCloseButton" type="button">إغلاق</button>
+                    <button class="btn btn-success rep-home-save-btn" type="submit">حفظ</button>
+                    <button class="btn btn-outline-secondary rep-home-close-btn" id="quickAddCloseButton" type="button">إغلاق</button>
                   </div>
                 </form>
               </div>
@@ -133,7 +133,10 @@
               إجمالي المندوبين المعروضين: <strong>{{ $representativeRows->count() }}</strong>
             </div>
             <div class="rep-home-table-search-wrap">
-              <input type="text" id="repHomeTableSearch" class="form-control" placeholder="ابحث باسم المندوب أو اللجنة أو المدرسة أو الهاتف">
+              <div class="input-group">
+                <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="repHomeTableSearch" class="form-control" placeholder="ابحث باسم المندوب أو اللجنة أو المدرسة أو الهاتف">
+              </div>
             </div>
           </div>
 
@@ -158,7 +161,7 @@
                     <td data-label="الإجراءات">
                       <button
                         type="button"
-                        class="btn btn-sm btn-outline-primary js-open-edit-modal"
+                        class="btn btn-sm btn-outline-primary js-open-edit-modal rep-home-edit-btn"
                         data-rep-id="{{ $representative['id'] }}"
                         data-name="{{ $representative['name'] }}"
                         data-phone="{{ $representative['phone'] }}"
@@ -220,35 +223,106 @@
 
 @push('css')
   <style>
+    .rep-home-page {
+      --rh-font-main: "Cairo", "Tajawal", sans-serif;
+      --rh-text: #133758;
+      --rh-muted: #627995;
+      --rh-primary: #1569c9;
+      --rh-primary-dark: #0f56a5;
+      --rh-soft-bg: #f4f8ff;
+      --rh-border: #d8e5f7;
+      --rh-shadow: 0 26px 52px rgba(12, 36, 64, 0.15);
+
+      font-family: var(--rh-font-main);
+      font-size: 16px;
+      color: var(--rh-text);
+    }
+
+    .rep-home-page .form-label,
+    .rep-home-page .form-select,
+    .rep-home-page .form-control,
+    .rep-home-page .btn,
+    .rep-home-page table {
+      font-size: 1rem;
+    }
+
     .rep-home-shell-card {
       border: 0;
-      border-radius: 18px;
+      border-radius: 22px;
       overflow: hidden;
-      box-shadow: 0 20px 46px rgba(12, 36, 64, 0.12);
+      box-shadow: var(--rh-shadow);
+      background: #fff;
     }
 
     .rep-home-header {
-      border-bottom: 1px solid #e1e8f5;
-      background: linear-gradient(160deg, #f8fbff 0%, #ffffff 100%);
+      border-bottom: 1px solid var(--rh-border);
+      background: linear-gradient(160deg, #f7fbff 0%, #ffffff 100%);
+      padding: 1.25rem;
+    }
+
+    .rep-home-title {
+      font-size: clamp(1.3rem, 2.2vw, 1.62rem);
+      color: #143e65;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+
+    .rep-home-open-btn {
+      border-radius: 12px;
+      min-height: 46px;
+      font-weight: 800;
+      font-size: 1rem;
+      background: linear-gradient(135deg, var(--rh-primary) 0%, #1c7ce1 100%);
+      border: 0;
+      box-shadow: 0 12px 26px rgba(21, 105, 201, 0.24);
+    }
+
+    .rep-home-open-btn:hover {
+      background: linear-gradient(135deg, var(--rh-primary-dark) 0%, #176ec8 100%);
+    }
+
+    .rep-home-filter-form .form-label {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #2a517a;
+    }
+
+    .rep-home-filter-form .form-select {
+      min-height: 47px;
+      border-radius: 12px;
+      border-color: #c9d9ee;
+      font-weight: 700;
+      color: #1d436c;
     }
 
     .rep-home-quick-add {
-      border: 1px solid #dce6f5;
-      border-radius: 12px;
-      background: #f9fcff;
+      border: 1px solid #d4e1f6;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #fcfdff 0%, #f4f8ff 100%);
     }
 
-    .rep-home-table thead th {
-      background: #f3f7ff;
-      color: #20456a;
-      border-bottom: 1px solid #dbe6f4;
+    .rep-home-quick-add .form-label {
       font-weight: 700;
+      color: #2a5079;
+      font-size: 0.95rem;
     }
 
-    .rep-home-table-wrap {
-      border: 1px solid #dbe6f4;
+    .rep-home-quick-add .form-control,
+    .rep-home-quick-add .form-select {
+      min-height: 46px;
       border-radius: 12px;
-      overflow: hidden;
+      border-color: #c8d8ee;
+      font-weight: 700;
+      color: #1b4269;
+    }
+
+    .rep-home-save-btn,
+    .rep-home-close-btn {
+      min-height: 45px;
+      border-radius: 12px;
+      min-width: 120px;
+      font-weight: 800;
+      font-size: 0.98rem;
     }
 
     .rep-home-table-toolbar {
@@ -260,75 +334,92 @@
     }
 
     .rep-home-table-summary {
-      font-weight: 700;
-      color: #1f4b76;
-      background: #eef4ff;
-      padding: 0.45rem 0.75rem;
-      border-radius: 10px;
+      font-weight: 800;
+      color: #1b4a77;
+      background: #edf4ff;
+      padding: 0.58rem 0.9rem;
+      border-radius: 11px;
+      font-size: 0.99rem;
     }
 
     .rep-home-table-search-wrap {
-      width: min(420px, 100%);
+      width: min(450px, 100%);
+    }
+
+    .rep-home-table-search-wrap .input-group-text {
+      border-color: #bfd4ef;
+      background: #eff5ff;
+      color: #45688f;
+      font-size: 1rem;
+      border-radius: 12px 0 0 12px;
     }
 
     .rep-home-table-search-wrap .form-control {
-      border-radius: 10px;
-      border: 1px solid #cbdaf3;
+      border-color: #bfd4ef;
+      min-height: 45px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e466f;
+      border-radius: 0 12px 12px 0;
+    }
+
+    .rep-home-table-search-wrap .form-control:focus {
+      border-color: rgba(21, 105, 201, 0.55);
+      box-shadow: 0 0 0 0.2rem rgba(21, 105, 201, 0.16);
+    }
+
+    .rep-home-table-wrap {
+      border: 1px solid #d7e4f5;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .rep-home-table thead th {
+      background: #f2f7ff;
+      color: #1f4a74;
+      border-bottom: 1px solid #d8e5f7;
+      font-weight: 800;
+      font-size: 1.03rem;
+      letter-spacing: 0.01em;
+      padding-top: 0.9rem;
+      padding-bottom: 0.9rem;
     }
 
     .rep-home-table-row td {
       background: #fff;
-      border-bottom: 1px solid #edf2fb;
+      border-bottom: 1px solid #eaf1fb;
+      padding: 0.86rem 0.65rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #193f67;
     }
 
     .rep-home-table-row:hover td {
-      background: #f8fbff;
+      background: #f6faff;
     }
 
-    @media (max-width: 768px) {
-      .rep-home-table thead {
-        display: none;
-      }
+    .rep-home-edit-btn {
+      min-height: 38px;
+      min-width: 88px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      border-color: #8db4e3;
+      color: #1f5a9a;
+    }
 
-      .rep-home-table,
-      .rep-home-table tbody,
-      .rep-home-table tr,
-      .rep-home-table td {
-        display: block;
-        width: 100%;
-      }
-
-      .rep-home-table-row {
-        margin: 0.55rem;
-        border: 1px solid #e3ebfa;
-        border-radius: 12px;
-        overflow: hidden;
-      }
-
-      .rep-home-table-row td {
-        position: relative;
-        text-align: left;
-        padding: 0.65rem 0.75rem 0.65rem 6.2rem;
-        min-height: 44px;
-      }
-
-      .rep-home-table-row td::before {
-        content: attr(data-label);
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #60708a;
-        font-size: 0.78rem;
-        font-weight: 700;
-      }
+    .rep-home-edit-btn:hover {
+      background: #eaf3ff;
+      border-color: #7ea8da;
+      color: #1a4d84;
     }
 
     .candidate-selector-panel {
       border: 1px solid #d8e5fb;
-      border-radius: 12px;
+      border-radius: 14px;
       background: linear-gradient(180deg, #ffffff 0%, #f4f9ff 100%);
-      padding: 0.85rem;
+      padding: 0.95rem;
     }
 
     .candidate-selector-head {
@@ -344,15 +435,16 @@
       background: #e8f0ff;
       color: #1a4f8f;
       border-radius: 999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 0.25rem 0.65rem;
+      font-size: 0.86rem;
+      font-weight: 800;
+      padding: 0.32rem 0.74rem;
     }
 
     .candidate-selector-input {
-      min-height: 140px;
+      min-height: 150px;
       border-color: #bfd3f4;
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 0.96rem;
     }
 
     .candidate-selector-input option {
@@ -368,6 +460,71 @@
     }
 
     @media (max-width: 768px) {
+      .rep-home-page {
+        font-size: 15px;
+      }
+
+      .rep-home-header {
+        padding: 1rem;
+      }
+
+      .rep-home-title {
+        font-size: 1.2rem;
+      }
+
+      .rep-home-open-btn,
+      .rep-home-save-btn,
+      .rep-home-close-btn {
+        width: 100%;
+      }
+
+      .rep-home-table-toolbar {
+        align-items: stretch;
+      }
+
+      .rep-home-table-summary {
+        text-align: center;
+      }
+
+      .rep-home-table thead {
+        display: none;
+      }
+
+      .rep-home-table,
+      .rep-home-table tbody,
+      .rep-home-table tr,
+      .rep-home-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .rep-home-table-row {
+        margin: 0.55rem;
+        border: 1px solid #e3ebfa;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 9px 18px rgba(16, 45, 76, 0.08);
+      }
+
+      .rep-home-table-row td {
+        position: relative;
+        text-align: left;
+        padding: 0.76rem 0.82rem 0.76rem 6.5rem;
+        min-height: 48px;
+        font-size: 0.98rem;
+      }
+
+      .rep-home-table-row td::before {
+        content: attr(data-label);
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #60708a;
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
       .candidate-selector-actions {
         flex-direction: column;
       }
