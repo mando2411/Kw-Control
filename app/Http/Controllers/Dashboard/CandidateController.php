@@ -1026,7 +1026,7 @@ class CandidateController extends Controller
     {
         $currentUser = auth()->user();
         $hasRepresentativeCandidatePivot = Schema::hasTable('candidate_representative');
-        $isRepresentativeUser = $currentUser->hasRole('مندوب') || $currentUser->representatives()->exists();
+        $isScopedSortingUser = $this->shouldScopeSortingCandidates($currentUser);
 
         $representatives = $currentUser->representatives()
             ->with('committee')
@@ -1038,7 +1038,7 @@ class CandidateController extends Controller
         $requestedCommitteeId = (int) $request->input('committee', 0);
 
         // Representatives do not choose committee manually, so infer a usable one.
-        if ($isRepresentativeUser && $requestedCommitteeId <= 0) {
+        if ($isScopedSortingUser && $requestedCommitteeId <= 0) {
             $requestedCommitteeId = (int) ($representatives->pluck('committee_id')->filter()->first() ?? 0);
             if ($requestedCommitteeId <= 0) {
                 $requestedCommitteeId = $this->resolveSortingDefaultCommitteeId($currentUser);
@@ -1055,9 +1055,9 @@ class CandidateController extends Controller
 
         $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
-        if ($isRepresentativeUser && $representatives->isNotEmpty()) {
+        if ($isScopedSortingUser && $representatives->isNotEmpty()) {
             $committees = Committee::whereIn('id', $representatives->pluck('committee_id')->filter()->unique()->values()->all())->get();
-        } elseif ($isRepresentativeUser) {
+        } elseif ($isScopedSortingUser) {
             $fallbackElectionId = (int) ($currentUser->election_id ?? 0);
             if ($fallbackElectionId <= 0) {
                 $fallbackElectionId = (int) Candidate::withoutGlobalScopes()
@@ -1503,9 +1503,7 @@ class CandidateController extends Controller
             return null;
         }
 
-        // Apply this restriction for representative accounts only.
-        $isRepresentativeUser = $user->hasRole('مندوب') || $user->representatives()->exists();
-        if (!$isRepresentativeUser) {
+        if (!$this->shouldScopeSortingCandidates($user)) {
             return null;
         }
 
@@ -1536,6 +1534,19 @@ class CandidateController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function shouldScopeSortingCandidates(?User $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->hasRole('Administrator') || $user->hasRole('مرشح')) {
+            return false;
+        }
+
+        return true;
     }
 
     private function resolveSortingRepresentativeSelectedCandidateIds(?User $user, ?int $committeeId = null): array
