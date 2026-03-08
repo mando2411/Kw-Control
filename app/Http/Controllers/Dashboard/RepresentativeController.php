@@ -84,21 +84,43 @@ class RepresentativeController extends Controller
 
     public function edit(Representative $representative)
     {
+        $committeesQuery = Committee::query()->select(['id', 'name', 'type']);
+        if (Schema::hasColumn('committees', 'election_id')) {
+            $committeesQuery->addSelect('election_id');
+        } else {
+            $committeesQuery->selectRaw('NULL as election_id');
+        }
+
+        if (auth()->check() && !auth()->user()->hasRole('Administrator') && Schema::hasColumn('committees', 'election_id')) {
+            $committeesQuery->where('election_id', (int) auth()->user()->election_id);
+        }
+
         $relations = [
-            'elections' => Election::all(),
-             'roles'=>Role::all(),
+            'elections' => Election::query()->select('id', 'name')->orderBy('name')->get(),
+            'roles' => Role::all(),
+            'committees' => $committeesQuery->orderBy('name')->get(),
         ];
-        return view('dashboard.representatives.edit', compact('representative','relations'));
+
+        return view('dashboard.representatives.edit', compact('representative', 'relations'));
     }
 
 
     public function update(RepresentativeRequest $request, Representative $representative ,UserRequest $userRequest)
     {
-        $user=$representative->user;
+        $user = $representative->user;
+        abort_if(!$user, 422, 'لا يوجد مستخدم مرتبط بهذا المندوب.');
+
+        $representativeData = $request->getSanitized();
+        $committeeElectionId = $this->resolveCommitteeElectionId($representativeData['committee_id'] ?? null);
+        if ($committeeElectionId !== null) {
+            $representativeData['election_id'] = $committeeElectionId;
+        }
+
         $user->update($userRequest->getSanitized());
-        $user->syncRoles($userRequest->get('roles'));
-        $representative->update($request->getSanitized());
-        session()->flash('message', 'Representative Updated Successfully!');
+        $user->syncRoles(['مندوب']);
+        $representative->update($representativeData);
+
+        session()->flash('message', 'تم تحديث بيانات المندوب بنجاح');
         session()->flash('type', 'success');
         return back();
     }
