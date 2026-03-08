@@ -1099,7 +1099,7 @@ class CandidateController extends Controller
                     $effectiveElectionId
                 );
 
-                $candidates = $committee->candidates()
+                $candidatesQuery = $committee->candidates()
                     ->withoutGlobalScopes()
                     ->join('users', 'candidates.user_id', '=', 'users.id')
                     ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
@@ -1128,7 +1128,11 @@ class CandidateController extends Controller
                         });
                     })
                     ->orderBy('users.name')
-                    ->select('candidates.*', 'users.name as user_name')
+                    ->select('candidates.*', 'users.name as user_name');
+
+                $this->applyActualCandidateOnlyScope($candidatesQuery);
+
+                $candidates = $candidatesQuery
                     ->get()
                     ->map(function ($candidate) {
                         return [
@@ -1208,7 +1212,7 @@ class CandidateController extends Controller
         $committeeIds = $committees->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
         $committeeTypeMap = $committees->mapWithKeys(fn ($committee) => [(int) $committee->id => (string) $committee->type]);
 
-        $candidates = Candidate::withoutGlobalScopes()
+        $candidatesQuery = Candidate::withoutGlobalScopes()
             ->where('election_id', $electionId)
             ->with(['committees' => function ($query) use ($committeeIds) {
                 if (!empty($committeeIds)) {
@@ -1216,7 +1220,12 @@ class CandidateController extends Controller
                 }
                 $query->select('committees.id', 'committees.type');
             }])
-            ->get(['id', 'votes', 'election_id'])
+            ->select(['id', 'votes', 'election_id']);
+
+        $this->applyActualCandidateOnlyScope($candidatesQuery);
+
+        $candidates = $candidatesQuery
+            ->get()
             ->sortByDesc('votes')
             ->values();
 
@@ -1300,14 +1309,17 @@ class CandidateController extends Controller
     //==============================================================
     public function fetchCondidatesBasedOnElection($election_id, $candidate_name = '')
     {
-        $candidates = Candidate::withoutGlobalScopes()
+        $candidatesQuery = Candidate::withoutGlobalScopes()
             ->join('users', 'candidates.user_id', '=', 'users.id')
             ->where('candidates.election_id', $election_id) // Explicit qualification
             // ->where('users.name','!=', $candidate_name) // Explicit qualification
             ->orderBy('votes', 'desc') // Order by votes in descending order
             ->orderBy('users.name') // Order by users' names
-            ->select('candidates.*', 'users.name as user_name') // Select the necessary fields
-            ->get();
+            ->select('candidates.*', 'users.name as user_name'); // Select the necessary fields
+
+        $this->applyActualCandidateOnlyScope($candidatesQuery);
+
+        $candidates = $candidatesQuery->get();
         return $candidates;
     }
     //==============================================================
@@ -1457,7 +1469,7 @@ class CandidateController extends Controller
             $effectiveElectionId = (int) ($committee->election_id ?? 0);
         }
 
-        $visibleCandidates = $committee->candidates()
+        $visibleCandidatesQuery = $committee->candidates()
             ->withoutGlobalScopes()
             ->join('users', 'candidates.user_id', '=', 'users.id')
             ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
@@ -1488,8 +1500,11 @@ class CandidateController extends Controller
             ->when(!empty($requestedCandidateIds), function ($query) use ($requestedCandidateIds) {
                 $query->whereIn('candidates.id', $requestedCandidateIds);
             })
-            ->select('candidates.id', 'candidate_committee.votes')
-            ->get();
+            ->select('candidates.id', 'candidate_committee.votes');
+
+        $this->applyActualCandidateOnlyScope($visibleCandidatesQuery);
+
+        $visibleCandidates = $visibleCandidatesQuery->get();
 
         $candidateVotes = $visibleCandidates
             ->mapWithKeys(fn ($candidate) => [(int) $candidate->id => (int) $candidate->votes]);
@@ -1829,8 +1844,23 @@ class CandidateController extends Controller
             return [];
         }
 
-        return $representatives
+        $candidateIds = $representatives
             ->flatMap(fn ($representative) => $representative->candidates)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($candidateIds->isEmpty()) {
+            return [];
+        }
+
+        $allowedSelectedCandidateQuery = Candidate::withoutGlobalScopes()
+            ->whereIn('id', $candidateIds->all());
+
+        $this->applyActualCandidateOnlyScope($allowedSelectedCandidateQuery);
+
+        return $allowedSelectedCandidateQuery
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->unique()
@@ -1869,7 +1899,7 @@ class CandidateController extends Controller
             return;
         }
 
-        $candidateIdsToAttach = Candidate::withoutGlobalScopes()
+        $candidateIdsToAttachQuery = Candidate::withoutGlobalScopes()
             ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
                 $query->where('election_id', $effectiveElectionId);
             })
@@ -1892,7 +1922,11 @@ class CandidateController extends Controller
                 if (!$hasSelectedCandidateIds && !$hasAllowedCreatorCandidateUsers) {
                     $query->whereRaw('1 = 0');
                 }
-            })
+            });
+
+        $this->applyActualCandidateOnlyScope($candidateIdsToAttachQuery);
+
+        $candidateIdsToAttach = $candidateIdsToAttachQuery
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->filter()
