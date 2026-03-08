@@ -3,21 +3,19 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Queue\SerializesModels;
 
 use Illuminate\Foundation\Events\Dispatchable;
 
-class VoteUpdated implements ShouldBroadcast
+class VoteUpdated implements ShouldBroadcastNow
 {
    
   use Dispatchable, InteractsWithSockets, SerializesModels;
 
-  public $message;
+    public array $message;
 
-  public function __construct($message)
+    public function __construct(array $message)
   {
       $this->message = $message;
   }
