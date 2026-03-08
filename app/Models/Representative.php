@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Representative extends Model
 {
     use HasFactory;
@@ -30,5 +31,11 @@ class Representative extends Model
     public function committee(): BelongsTo
     {
         return $this->belongsTo(Committee::class, 'committee_id');
+    }
+
+    public function candidates(): BelongsToMany
+    {
+        return $this->belongsToMany(Candidate::class, 'candidate_representative', 'representative_id', 'candidate_id')
+            ->withTimestamps();
     }
 }

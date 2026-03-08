@@ -1025,10 +1025,21 @@ class CandidateController extends Controller
     public function sorting(Request $request)
     {
         $currentUser = auth()->user();
-        $representative = $currentUser->representatives()->with('committee')->first();
+        $hasRepresentativeCandidatePivot = Schema::hasTable('candidate_representative');
+
+        $representativeQuery = $currentUser->representatives()->with('committee');
+        if ($hasRepresentativeCandidatePivot) {
+            $representativeQuery->with('candidates:id,user_id,election_id');
+        }
+
+        $representative = $representativeQuery->first();
         if ($representative && $representative->committee_id) {
             $request->merge(['committee' => $representative->committee_id]);
         }
+
+        $selectedCandidateIds = $hasRepresentativeCandidatePivot && $representative
+            ? $representative->candidates->pluck('id')->map(fn ($id) => (int) $id)->unique()->values()->all()
+            : [];
 
         $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
@@ -1049,7 +1060,10 @@ class CandidateController extends Controller
                     ->withoutGlobalScopes()
                     ->join('users', 'candidates.user_id', '=', 'users.id')
                     ->where('candidates.election_id', $currentUser->election_id)
-                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($allowedCandidateUserIds) {
+                    ->when(!empty($selectedCandidateIds), function ($query) use ($selectedCandidateIds) {
+                        $query->whereIn('candidates.id', $selectedCandidateIds);
+                    })
+                    ->when(empty($selectedCandidateIds) && is_array($allowedCandidateUserIds), function ($query) use ($allowedCandidateUserIds) {
                         if (empty($allowedCandidateUserIds)) {
                             $query->whereRaw('1 = 0');
                             return;
@@ -1172,9 +1186,19 @@ class CandidateController extends Controller
             $committee     = $request->json('committee');
 
             $currentUser = auth()->user();
+            $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($currentUser);
+
+            if (!empty($selectedCandidateIds) && !in_array((int) $candidate_id, $selectedCandidateIds, true)) {
+                DB::rollBack();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يمكنك تعديل أصوات مرشح غير محدد لك.',
+                ], 403);
+            }
+
             $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
-            if (is_array($allowedCandidateUserIds)) {
+            if (empty($selectedCandidateIds) && is_array($allowedCandidateUserIds)) {
                 $targetCandidateUserId = (int) Candidate::withoutGlobalScopes()
                     ->where('id', (int) $candidate_id)
                     ->value('user_id');
@@ -1446,6 +1470,29 @@ class CandidateController extends Controller
 
         return $creatorCandidateQuery
             ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function resolveSortingRepresentativeSelectedCandidateIds(?User $user): array
+    {
+        if (!$user) {
+            return [];
+        }
+
+        if (!Schema::hasTable('candidate_representative')) {
+            return [];
+        }
+
+        $representative = $user->representatives()->with('candidates:id')->first();
+        if (!$representative) {
+            return [];
+        }
+
+        return $representative->candidates
+            ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values()

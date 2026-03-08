@@ -14,11 +14,13 @@ use Illuminate\Http\Request;
 use App\Models\Committee;
 use App\Models\Voter;
 use App\Models\School;
+use App\Models\Candidate;
 use App\Services\Attendance;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Eloquent\Builder;
 
 
 
@@ -50,6 +52,7 @@ class RepresentativeController extends Controller
     public function store(RepresentativeRequest $request ,UserRequest $userRequest)
     {
         DB::transaction(function () use ($request, $userRequest) {
+            $currentUser = auth()->user();
             $user = User::create($userRequest->getSanitized());
 
             $representativeRole = Role::where('name', 'مندوب')->first();
@@ -67,7 +70,24 @@ class RepresentativeController extends Controller
 
             $representativeData['election_id'] = $representativeData['election_id'] ?? $user->election_id;
 
-            Representative::create($representativeData);
+            $representative = Representative::create($representativeData);
+
+            $selectedCandidateIds = collect((array) $request->input('candidate_ids', []))
+                ->map(fn ($value) => (int) $value)
+                ->filter(fn (int $value) => $value > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            if (!empty($selectedCandidateIds) && $currentUser && Schema::hasTable('candidate_representative')) {
+                $allowedCandidateIds = $this->resolveListLeaderCandidateIds($currentUser);
+                if (!empty($allowedCandidateIds)) {
+                    $syncCandidateIds = array_values(array_intersect($selectedCandidateIds, $allowedCandidateIds));
+                    if (!empty($syncCandidateIds)) {
+                        $representative->candidates()->sync($syncCandidateIds);
+                    }
+                }
+            }
         });
 
         session()->flash('message', 'تم اضافه مندوب بكلمه سر افتراضيه > (1) ');
@@ -187,6 +207,22 @@ class RepresentativeController extends Controller
         $hasUserCreatorColumn = Schema::hasColumn('users', 'creator_id');
         $userElectionId = (int) ($user?->election_id ?? 0);
 
+        $isListLeaderUser = false;
+        $listLeaderCandidates = collect();
+        if ($user) {
+            $allowedCandidateIds = $this->resolveListLeaderCandidateIds($user);
+            $isListLeaderUser = !empty($allowedCandidateIds);
+
+            if ($isListLeaderUser) {
+                $listLeaderCandidates = Candidate::withoutGlobalScopes()
+                    ->with('user:id,name')
+                    ->whereIn('id', $allowedCandidateIds)
+                    ->orderByRaw('CASE WHEN candidates.user_id = ? THEN 0 ELSE 1 END', [(int) $user->id])
+                    ->orderBy('id')
+                    ->get();
+            }
+        }
+
         $representativeCreatorScope = $this->resolveRepresentativeCreatorScope($user);
         $shouldScopeRepresentatives = is_array($representativeCreatorScope) && $hasUserCreatorColumn;
 
@@ -267,6 +303,8 @@ class RepresentativeController extends Controller
         $relations = [
             'schools' => $schoolsDropdownQuery->orderBy('name')->get(),
             'committees' => $committeesQuery->orderBy('name')->get(),
+            'is_list_leader_user' => $isListLeaderUser,
+            'list_candidates' => $listLeaderCandidates,
         ];
 
         $schools = $schoolsDataQuery->orderBy('name')->get();
@@ -373,6 +411,43 @@ class RepresentativeController extends Controller
         }
 
         return (int) $committee->election_id;
+    }
+
+    private function resolveListLeaderCandidateIds(User $user): array
+    {
+        $viewerId = (int) $user->id;
+        $viewerElectionId = (int) ($user->election_id ?? 0);
+
+        $listLeaderCandidateQuery = Candidate::withoutGlobalScopes()
+            ->select(['id', 'election_id'])
+            ->where('user_id', $viewerId)
+            ->where('candidate_type', 'list_leader');
+
+        if ($viewerElectionId > 0) {
+            $listLeaderCandidateQuery->where('election_id', $viewerElectionId);
+        }
+
+        $listLeaderCandidate = $listLeaderCandidateQuery->latest('id')->first();
+        if (!$listLeaderCandidate) {
+            return [];
+        }
+
+        $listMembersQuery = Candidate::withoutGlobalScopes()
+            ->where(function (Builder $query) use ($listLeaderCandidate) {
+                $query->where('id', (int) $listLeaderCandidate->id)
+                    ->orWhere('list_leader_candidate_id', (int) $listLeaderCandidate->id);
+            });
+
+        if ($viewerElectionId > 0) {
+            $listMembersQuery->where('election_id', $viewerElectionId);
+        }
+
+        return $listMembersQuery
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
 }

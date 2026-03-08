@@ -68,6 +68,20 @@
                     </select>
                   </div>
 
+                  @if(($relations['is_list_leader_user'] ?? false) && ($relations['list_candidates'] ?? collect())->isNotEmpty())
+                    <div class="col-12">
+                      <label class="form-label" for="quick_candidate_ids">المرشحون المسموحون للمندوب</label>
+                      <select name="candidate_ids[]" id="quick_candidate_ids" class="form-select" multiple>
+                        @foreach ($relations['list_candidates'] as $candidateOption)
+                          <option value="{{ $candidateOption->id }}" @selected(in_array((string) $candidateOption->id, array_map('strval', (array) old('candidate_ids', [])), true))>
+                            {{ $candidateOption->user?->name ?? ('مرشح #' . $candidateOption->id) }}
+                          </option>
+                        @endforeach
+                      </select>
+                      <small class="text-muted d-block mt-1">يمكن اختيار أكثر من مرشح، وسيظهر هؤلاء المرشحون فقط للمندوب في شاشة الفرز.</small>
+                    </div>
+                  @endif
+
                   <div class="col-12 d-flex gap-2">
                     <button class="btn btn-success" type="submit">حفظ</button>
                     <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#quickAddRepresentativeForm">إغلاق</button>

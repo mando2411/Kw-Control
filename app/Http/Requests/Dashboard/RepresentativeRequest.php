@@ -42,6 +42,8 @@ class RepresentativeRequest extends FormRequest
             'user_id' => ['nullable'],
             'election_id' => ['nullable'],
             'committee_id' => ['nullable'],
+            'candidate_ids' => ['nullable', 'array'],
+            'candidate_ids.*' => ['integer', 'exists:candidates,id'],
 
         ];
 
