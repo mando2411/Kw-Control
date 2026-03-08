@@ -346,6 +346,7 @@ Route::POST('elec/up',[SettingController::class,'elecUp'])->name('elecUp');
 Route::get('user/contractors/{user_id}', [GeneralController::class,'fetchContractorsForUser'])->name('get-contractors');
 Route::get('subcontractors/{main_id}', [GeneralController::class,'fetchSubContractorsForMain'])->name('get-subcontractors');
 Route::get('all/results',[CandidateController::class,'allResult'])->name('all.results');
+Route::get('all/results/live-stats', [CandidateController::class, 'allResultLiveStats'])->name('all.results.live-stats');
 Route::get('voters/{committee_id}', [GeneralController::class,'fetchVotersForCommittee'])->name('get-voters');
 Route::get('get_attending_counts/{committee_id}', [GeneralController::class,'fetchAttendingCountForCommittee'])->name('get_attending_counts');
 Route::post('candidates/setVotes', [CandidateController::class,'changeVotes'])->name('candidates.setVotes');

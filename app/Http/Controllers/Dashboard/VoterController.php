@@ -223,11 +223,16 @@ class VoterController extends Controller
             ]);
         
             $this->attendance->counting($status);
+            $committeeElectionId = (int) Committee::withoutGlobalScopes()
+                ->where('id', (int) $committee)
+                ->value('election_id');
+
             try {
-                event(new SortingRealtimeUpdated((int) $committee, 'attendance'));
+                event(new SortingRealtimeUpdated((int) $committee, 'attendance', $committeeElectionId));
             } catch (\Throwable $exception) {
                 Log::warning('Sorting realtime attendance broadcast failed', [
                     'committee_id' => (int) $committee,
+                    'election_id' => $committeeElectionId,
                     'error' => $exception->getMessage(),
                 ]);
             }

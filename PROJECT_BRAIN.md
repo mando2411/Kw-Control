@@ -117,6 +117,44 @@ Purpose:
   - `app/Services/VoteService.php`
   - `resources/views/dashboard/sorting/index.blade.php`
 
+### Extension Under Same Tag (`real-time`) - `/all/results` Live Updates
+- Date: 2026-03-08
+- Goal:
+  - Apply same realtime behavior on `https://kw-control.com/all/results` without page reload.
+- Old behavior:
+  - Page used direct Pusher snippet + `votes/my-event` payload.
+  - Only candidate cards were updated directly from event payload.
+  - Committee details modal table totals were not refreshed from a live endpoint.
+- New behavior:
+  - Added election-scoped live endpoint:
+    - `GET all/results/live-stats` (`all.results.live-stats`) returning:
+      - candidate votes
+      - per-committee candidate votes
+      - committee totals
+      - men/women/grand totals
+  - Extended `SortingRealtimeUpdated` event to broadcast on:
+    - `sorting.{committeeId}` (existing)
+    - `results.{electionId}` (new, when election id available)
+  - `/all/results` page now:
+    - listens via Echo on `results.{electionId}` for `.sorting.realtime.updated`
+    - fetches live stats endpoint and updates cards + modal table + totals instantly
+    - has fallback polling every 4 seconds + visibility refresh on tab focus
+  - Attendance vote-status updates now emit election-aware realtime event too.
+- Files:
+  - `app/Events/SortingRealtimeUpdated.php`
+  - `app/Http/Controllers/Dashboard/CandidateController.php`
+  - `app/Http/Controllers/Dashboard/VoterController.php`
+  - `app/Services/VoteService.php`
+  - `routes/admin.php`
+  - `resources/views/dashboard/resualt/all_index.blade.php`
+
+Rollback notes for this extension only:
+1. Remove route `all.results.live-stats` from `routes/admin.php`.
+2. Remove `allResultLiveStats()` from `CandidateController` and stop passing `election_id` to `all_index` view.
+3. Revert `all_index.blade.php` JS to old Pusher votes listener.
+4. Revert `SortingRealtimeUpdated` multi-channel broadcast (remove `results.{electionId}`).
+5. Remove election id parameter from realtime event dispatch in `VoteService` and `VoterController`.
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.

@@ -33,7 +33,7 @@ class VoteService
 
         $candidate->votes = $candidate->committees->sum('pivot.votes');
         $candidate->save();
-        $this->dispatchSortingRealtimeSafely((int) $committeeId, 'votes');
+        $this->dispatchSortingRealtimeSafely((int) $committeeId, 'votes', (int) ($candidate->election_id ?? 0));
 
 
         return ['success' => 'Votes updated successfully.', 'status' => 200];
@@ -78,19 +78,20 @@ class VoteService
         $candidate->votes = $candidate->committees->sum('pivot.votes');
         $candidate->save();
         //========================================================================
-        $this->dispatchSortingRealtimeSafely($committeeId, 'votes');
+        $this->dispatchSortingRealtimeSafely($committeeId, 'votes', (int) ($candidate->election_id ?? 0));
         //========================================================================
         return ['success' => 'تم التصويت بنجاح', 'status' => 200,'vote_count'=> $newVotes];
     }
 
-    private function dispatchSortingRealtimeSafely(int $committeeId, string $type): void
+    private function dispatchSortingRealtimeSafely(int $committeeId, string $type, int $electionId = 0): void
     {
         try {
-            event(new SortingRealtimeUpdated($committeeId, $type));
+            event(new SortingRealtimeUpdated($committeeId, $type, $electionId));
         } catch (\Throwable $exception) {
             Log::warning('Sorting realtime broadcast failed', [
                 'committee_id' => $committeeId,
                 'type' => $type,
+                'election_id' => $electionId,
                 'error' => $exception->getMessage(),
             ]);
         }

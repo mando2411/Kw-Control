@@ -14,16 +14,24 @@ class SortingRealtimeUpdated implements ShouldBroadcastNow
 
     public int $committeeId;
     public string $type;
+    public int $electionId;
 
-    public function __construct(int $committeeId, string $type = 'metrics')
+    public function __construct(int $committeeId, string $type = 'metrics', int $electionId = 0)
     {
         $this->committeeId = $committeeId;
         $this->type = $type;
+        $this->electionId = $electionId;
     }
 
     public function broadcastOn(): array
     {
-        return [new Channel('sorting.' . $this->committeeId)];
+        $channels = [new Channel('sorting.' . $this->committeeId)];
+
+        if ($this->electionId > 0) {
+            $channels[] = new Channel('results.' . $this->electionId);
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
@@ -36,6 +44,7 @@ class SortingRealtimeUpdated implements ShouldBroadcastNow
         return [
             'committee_id' => $this->committeeId,
             'type' => $this->type,
+            'election_id' => $this->electionId,
             'ts' => now()->timestamp,
         ];
     }

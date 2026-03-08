@@ -1185,10 +1185,92 @@ class CandidateController extends Controller
                 $committees = $committeesQuery->get();
                 $schools = $schoolsQuery->get();
 
-                return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools'));
+                return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools', 'election_id'));
             }
         }
         abort(404);
+    }
+    //================================================================================================
+    public function allResultLiveStats(Request $request)
+    {
+        $validated = $request->validate([
+            'election_id' => ['required', 'integer', 'exists:elections,id'],
+        ]);
+
+        $electionId = (int) $validated['election_id'];
+
+        $committees = Committee::query()
+            ->when(Schema::hasColumn('committees', 'election_id'), function ($query) use ($electionId) {
+                $query->where('election_id', $electionId);
+            })
+            ->get(['id', 'type']);
+
+        $committeeIds = $committees->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $committeeTypeMap = $committees->mapWithKeys(fn ($committee) => [(int) $committee->id => (string) $committee->type]);
+
+        $candidates = Candidate::withoutGlobalScopes()
+            ->where('election_id', $electionId)
+            ->with(['committees' => function ($query) use ($committeeIds) {
+                if (!empty($committeeIds)) {
+                    $query->whereIn('committees.id', $committeeIds);
+                }
+                $query->select('committees.id', 'committees.type');
+            }])
+            ->get(['id', 'votes', 'election_id'])
+            ->sortByDesc('votes')
+            ->values();
+
+        $committeeTotals = [];
+        foreach ($committeeIds as $committeeId) {
+            $committeeTotals[$committeeId] = 0;
+        }
+
+        $candidateRows = [];
+        foreach ($candidates as $candidate) {
+            $candidateCommitteeVotes = [];
+            $menTotal = 0;
+            $womenTotal = 0;
+
+            foreach ($candidate->committees as $committee) {
+                $committeeId = (int) $committee->id;
+                $votes = (int) ($committee->pivot->votes ?? 0);
+
+                $candidateCommitteeVotes[$committeeId] = $votes;
+                $committeeTotals[$committeeId] = ($committeeTotals[$committeeId] ?? 0) + $votes;
+
+                if (($committeeTypeMap[$committeeId] ?? '') === \App\Enums\Type::MEN->value) {
+                    $menTotal += $votes;
+                } else {
+                    $womenTotal += $votes;
+                }
+            }
+
+            $candidateRows[] = [
+                'id' => (int) $candidate->id,
+                'votes' => (int) $candidate->votes,
+                'men_total' => $menTotal,
+                'women_total' => $womenTotal,
+                'committee_votes' => $candidateCommitteeVotes,
+            ];
+        }
+
+        $menTotalAll = collect($committeeTotals)
+            ->filter(fn ($votes, $committeeId) => ($committeeTypeMap[(int) $committeeId] ?? '') === \App\Enums\Type::MEN->value)
+            ->sum();
+
+        $womenTotalAll = collect($committeeTotals)
+            ->filter(fn ($votes, $committeeId) => ($committeeTypeMap[(int) $committeeId] ?? '') === \App\Enums\Type::WOMEN->value)
+            ->sum();
+
+        return response()->json([
+            'success' => true,
+            'election_id' => $electionId,
+            'candidates' => $candidateRows,
+            'committee_totals' => $committeeTotals,
+            'men_total_all' => (int) $menTotalAll,
+            'women_total_all' => (int) $womenTotalAll,
+            'grand_total_all' => (int) collect($committeeTotals)->sum(),
+        ]);
     }
     //================================================================================================
     public function fetchElectionFromCandidate($candidate_name)

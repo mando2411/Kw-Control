@@ -14,8 +14,6 @@
             background-color: #fff2bf !important;
         }
     </style>
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-
     <!-- Main Section for User Results -->
     <section class="userResult">
         <div class="container mt-4">
@@ -86,32 +84,32 @@
                                     <tbody>
                                         @foreach ($candidates as $candidate)
                                             @if ($candidate->committees->isNotEmpty())
-                                                <tr>
+                                                <tr data-candidate-row-id="{{ $candidate->id }}">
                                                     <!-- Candidate Name -->
                                                     <td>{{ $candidate->user->name }}</td>
 
                                                     <!-- Total Votes for MEN Committees -->
-                                                    <td class="table-primary">
+                                                    <td class="table-primary candidate-men-total">
                                                         {{ $candidate->committees->where('type', App\Enums\Type::MEN->value)->sum('pivot.votes') }}
                                                     </td>
 
                                                     <!-- Individual Votes for MEN Committees -->
                                                     @foreach ($candidate->committees->where('type', App\Enums\Type::MEN->value) as $committee)
-                                                        <td>{{ $committee->pivot->votes }}</td>
+                                                        <td data-candidate-committee-id="{{ $candidate->id }}" data-committee-id="{{ $committee->id }}">{{ $committee->pivot->votes }}</td>
                                                     @endforeach
 
                                                     <!-- Total Votes for WOMEN Committees -->
-                                                    <td class="table-primary">
+                                                    <td class="table-primary candidate-women-total">
                                                         {{ $candidate->committees->where('type', App\Enums\Type::WOMEN->value)->sum('pivot.votes') }}
                                                     </td>
 
                                                     <!-- Individual Votes for WOMEN Committees -->
                                                     @foreach ($candidate->committees->where('type', App\Enums\Type::WOMEN->value) as $committee)
-                                                        <td>{{ $committee->pivot->votes }}</td>
+                                                        <td data-candidate-committee-id="{{ $candidate->id }}" data-committee-id="{{ $committee->id }}">{{ $committee->pivot->votes }}</td>
                                                     @endforeach
 
                                                     <!-- Candidate's Overall Total Votes -->
-                                                    <td class="table-danger">{{ $candidate->votes }}</td>
+                                                    <td class="table-danger candidate-total-votes">{{ $candidate->votes }}</td>
                                                 </tr>
                                             @endif
                                         @endforeach
@@ -121,7 +119,7 @@
                                             <td>** المجموع **</td>
 
                                             <!-- Total Votes for All MEN Committees -->
-                                            <td class="table-primary">
+                                            <td class="table-primary" id="allResultMenTotalAll">
                                                 {{ $committees->where('type', App\Enums\Type::MEN->value)->flatMap(function ($committee) {
                                                         return $committee->candidates;
                                                     })->sum('pivot.votes') }}
@@ -130,12 +128,12 @@
                                             <!-- Individual Votes for Each MEN Committee -->
                                             @foreach ($committees as $committee)
                                                 @if ($committee->type == App\Enums\Type::MEN->value)
-                                                    <td>{{ $committee->candidates->sum('pivot.votes') }}</td>
+                                                    <td data-total-committee-id="{{ $committee->id }}">{{ $committee->candidates->sum('pivot.votes') }}</td>
                                                 @endif
                                             @endforeach
 
                                             <!-- Total Votes for All WOMEN Committees -->
-                                            <td class="table-primary">
+                                            <td class="table-primary" id="allResultWomenTotalAll">
                                                 {{ $committees->where('type', App\Enums\Type::WOMEN->value)->flatMap(function ($committee) {
                                                         return $committee->candidates;
                                                     })->sum('pivot.votes') }}
@@ -144,12 +142,12 @@
                                             <!-- Individual Votes for Each WOMEN Committee -->
                                             @foreach ($committees as $committee)
                                                 @if ($committee->type == App\Enums\Type::WOMEN->value)
-                                                    <td>{{ $committee->candidates->sum('pivot.votes') }}</td>
+                                                    <td data-total-committee-id="{{ $committee->id }}">{{ $committee->candidates->sum('pivot.votes') }}</td>
                                                 @endif
                                             @endforeach
 
                                             <!-- Grand Total of All Votes -->
-                                            <td class="table-danger">
+                                            <td class="table-danger" id="allResultGrandTotalAll">
                                                 {{ $committees->sum(function ($committee) {
                                                     return $committee->candidates->sum('pivot.votes');
                                                 }) }}
@@ -200,18 +198,183 @@
 @endsection
 @push('js')
     <script>
-        Pusher.logToConsole = true;
-        var pusher = new Pusher('abd70d55894bcd00f5cb', {
-            cluster: 'ap2'
-        });
+        (function () {
+            var electionId = @json((int) ($election_id ?? 0));
+            var liveStatsUrl = @json(route('all.results.live-stats'));
+            var fallbackTimer = null;
+            var realtimeChannelName = null;
+            var inFlight = false;
 
-        var channel = pusher.subscribe('votes');
-        channel.bind('my-event', function(e) {
-            updateCandidates(e.message);
-        });
+            function updateCandidatesGridByVotes() {
+                const candidatesContainer = document.querySelector('.row.rtl.pt-5.justify-content-center');
+                if (!candidatesContainer) {
+                    return;
+                }
+
+                let cards = Array.from(candidatesContainer.children);
+
+                const sortedCards = cards.slice().sort((a, b) => {
+                    const votesA = parseInt((a.querySelector('.soundNum') || {}).innerText || '0', 10);
+                    const votesB = parseInt((b.querySelector('.soundNum') || {}).innerText || '0', 10);
+                    return votesB - votesA;
+                });
+
+                sortedCards.forEach((card, index) => {
+                    const rankElement = card.querySelector('.numLayer .rounded-circle');
+                    if (rankElement) {
+                        rankElement.innerText = index + 1;
+                    }
+                });
+
+                highlightTopCards(sortedCards);
+                candidatesContainer.innerHTML = '';
+                sortedCards.forEach((card) => candidatesContainer.appendChild(card));
+            }
+
+            function applyAllResultsStats(payload) {
+                if (!payload || payload.success !== true || !Array.isArray(payload.candidates)) {
+                    return;
+                }
+
+                payload.candidates.forEach(function (candidate) {
+                    var candidateId = parseInt(candidate.id, 10) || 0;
+                    if (!candidateId) {
+                        return;
+                    }
+
+                    var votes = parseInt(candidate.votes, 10) || 0;
+                    var menTotal = parseInt(candidate.men_total, 10) || 0;
+                    var womenTotal = parseInt(candidate.women_total, 10) || 0;
+
+                    var card = document.querySelector('[data-candidate-id="' + candidateId + '"]');
+                    if (card) {
+                        var soundNum = card.querySelector('.soundNum');
+                        if (soundNum) {
+                            soundNum.innerText = votes;
+                        }
+                    }
+
+                    var row = document.querySelector('tr[data-candidate-row-id="' + candidateId + '"]');
+                    if (row) {
+                        var menCell = row.querySelector('.candidate-men-total');
+                        var womenCell = row.querySelector('.candidate-women-total');
+                        var totalCell = row.querySelector('.candidate-total-votes');
+
+                        if (menCell) menCell.innerText = menTotal;
+                        if (womenCell) womenCell.innerText = womenTotal;
+                        if (totalCell) totalCell.innerText = votes;
+                    }
+
+                    var committeeVotes = candidate.committee_votes || {};
+                    Object.keys(committeeVotes).forEach(function (committeeId) {
+                        var committeeValue = parseInt(committeeVotes[committeeId], 10) || 0;
+                        var selector = '[data-candidate-committee-id="' + candidateId + '"][data-committee-id="' + committeeId + '"]';
+                        var committeeCell = document.querySelector(selector);
+                        if (committeeCell) {
+                            committeeCell.innerText = committeeValue;
+                        }
+                    });
+                });
+
+                var committeeTotals = payload.committee_totals || {};
+                Object.keys(committeeTotals).forEach(function (committeeId) {
+                    var totalValue = parseInt(committeeTotals[committeeId], 10) || 0;
+                    var totalCells = document.querySelectorAll('[data-total-committee-id="' + committeeId + '"]');
+                    totalCells.forEach(function (cell) {
+                        cell.innerText = totalValue;
+                    });
+                });
+
+                var menTotalAll = document.getElementById('allResultMenTotalAll');
+                if (menTotalAll) {
+                    menTotalAll.innerText = parseInt(payload.men_total_all, 10) || 0;
+                }
+
+                var womenTotalAll = document.getElementById('allResultWomenTotalAll');
+                if (womenTotalAll) {
+                    womenTotalAll.innerText = parseInt(payload.women_total_all, 10) || 0;
+                }
+
+                var grandTotalAll = document.getElementById('allResultGrandTotalAll');
+                if (grandTotalAll) {
+                    grandTotalAll.innerText = parseInt(payload.grand_total_all, 10) || 0;
+                }
+
+                updateCandidatesGridByVotes();
+            }
+
+            function fetchAllResultsStats() {
+                if (inFlight || !electionId) {
+                    return;
+                }
+
+                inFlight = true;
+
+                axios.get(liveStatsUrl, {
+                    params: {
+                        election_id: electionId,
+                    },
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                }).then(function (response) {
+                    applyAllResultsStats(response.data || {});
+                }).catch(function () {
+                    // Silent fail for background refresh.
+                }).finally(function () {
+                    inFlight = false;
+                });
+            }
+
+            function startRealtime() {
+                if (!electionId) {
+                    return;
+                }
+
+                fetchAllResultsStats();
+
+                if (window.Echo && typeof window.Echo.channel === 'function') {
+                    realtimeChannelName = 'results.' + electionId;
+                    window.Echo.channel(realtimeChannelName).listen('.sorting.realtime.updated', function () {
+                        fetchAllResultsStats();
+                    });
+                }
+
+                if (fallbackTimer) {
+                    clearInterval(fallbackTimer);
+                }
+
+                fallbackTimer = setInterval(function () {
+                    if (!document.hidden) {
+                        fetchAllResultsStats();
+                    }
+                }, 4000);
+            }
+
+            window.addEventListener('beforeunload', function () {
+                if (realtimeChannelName && window.Echo && typeof window.Echo.leave === 'function') {
+                    window.Echo.leave(realtimeChannelName);
+                }
+
+                if (fallbackTimer) {
+                    clearInterval(fallbackTimer);
+                }
+            });
+
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    fetchAllResultsStats();
+                }
+            });
+
+            startRealtime();
+        })();
 
         function updateCandidates(candidate) {
-            console.log("Received candidate data:", candidate);
+            // Deprecated: kept for backward compatibility if called externally.
+            if (!candidate || !candidate.id) {
+                return;
+            }
         
             const candidatesContainer = document.querySelector('.row.rtl.pt-5.justify-content-center');
             if (!candidatesContainer) {
