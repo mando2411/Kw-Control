@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Enums\Type;
 use App\Scopes\ElectionScope;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
 
@@ -51,12 +53,9 @@ class GeneralController extends Controller
         $electionId = (int) ($committee->election_id ?? 0);
 
         $votersQuery = Voter::withoutGlobalScope(ElectionScope::class)
-            ->whereIn('type', $voterTypes)
-            ->when($electionId > 0, function ($query) use ($electionId) {
-                $query->whereHas('election', function ($electionQuery) use ($electionId) {
-                    $electionQuery->where('elections.id', $electionId);
-                });
-            });
+            ->whereIn('type', $voterTypes);
+
+        $this->applyElectionVoterPivotScopeWhenAvailable($votersQuery, $electionId);
 
         if ($searchValue !== '') {
             $votersQuery = $this->search2($votersQuery, $searchValue);
@@ -98,12 +97,9 @@ class GeneralController extends Controller
         $electionId = (int) ($committee->election_id ?? 0);
 
         $baseQuery = Voter::withoutGlobalScope(ElectionScope::class)
-            ->whereIn('type', $voterTypes)
-            ->when($electionId > 0, function ($query) use ($electionId) {
-                $query->whereHas('election', function ($electionQuery) use ($electionId) {
-                    $electionQuery->where('elections.id', $electionId);
-                });
-            });
+            ->whereIn('type', $voterTypes);
+
+        $this->applyElectionVoterPivotScopeWhenAvailable($baseQuery, $electionId);
 
         $voterCount = (clone $baseQuery)->count();
 
@@ -242,6 +238,26 @@ class GeneralController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+    //==============================================================
+    private function applyElectionVoterPivotScopeWhenAvailable(Builder $query, int $electionId): void
+    {
+        if ($electionId <= 0 || !Schema::hasTable('election_voter')) {
+            return;
+        }
+
+        $hasElectionVoterRows = DB::table('election_voter')
+            ->where('election_id', $electionId)
+            ->exists();
+
+        if (!$hasElectionVoterRows) {
+            // Fallback: avoid zero-results when pivot mapping is not initialized for this election.
+            return;
+        }
+
+        $query->whereHas('election', function ($electionQuery) use ($electionId) {
+            $electionQuery->where('elections.id', $electionId);
+        });
     }
     //==============================================================
     private function resolveAttendingScope(?User $user): array
