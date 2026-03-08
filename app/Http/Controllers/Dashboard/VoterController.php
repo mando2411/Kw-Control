@@ -223,7 +223,14 @@ class VoterController extends Controller
             ]);
         
             $this->attendance->counting($status);
-            event(new SortingRealtimeUpdated((int) $committee, 'attendance'));
+            try {
+                event(new SortingRealtimeUpdated((int) $committee, 'attendance'));
+            } catch (\Throwable $exception) {
+                Log::warning('Sorting realtime attendance broadcast failed', [
+                    'committee_id' => (int) $committee,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
             DB::commit();
             // Your status update logic here
             return response()->json([

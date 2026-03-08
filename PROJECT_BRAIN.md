@@ -43,6 +43,21 @@ Purpose:
   - On `.sorting.realtime.updated`, runs one `live-stats` fetch and updates UI immediately.
   - Added fallback polling every 15 seconds only if Echo is unavailable.
 
+### Hotfix Under Same Tag (`real-time`) - 500 Protection
+- Date: 2026-03-08
+- Problem:
+  - Some environments returned `500` on `/candidates/setVotes` when broadcasting realtime event failed.
+- Old behavior:
+  - `VoteService` and `VoterController` dispatched realtime event directly.
+  - Any broadcast failure could bubble up and break the main action.
+- New behavior:
+  - Realtime dispatch is wrapped in `try/catch`.
+  - Main action (save vote / update attendance) continues successfully.
+  - Failure is logged as warning only.
+- Files:
+  - `app/Services/VoteService.php`
+  - `app/Http/Controllers/Dashboard/VoterController.php`
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.
@@ -59,10 +74,14 @@ Purpose:
    - remove `event(new SortingRealtimeUpdated(...))` in both vote update methods.
 3. Revert `VoterController` attendance dispatch:
    - remove `use App\Events\SortingRealtimeUpdated;`
-   - remove `event(new SortingRealtimeUpdated(...))` after attendance update.
+  - remove safe `try/catch` realtime dispatch block after attendance update.
 4. Revert `sorting/index.blade.php` JS from Echo listener back to 3-second polling block.
 5. Run:
    - `php artisan optimize:clear`
+
+Optional strict rollback (remove hotfix safety):
+- In `VoteService`, replace safe helper call with direct event dispatch.
+- In `VoterController`, replace safe `try/catch` block with direct event dispatch.
 
 Rollback success criteria:
 - Sorting page no longer listens to Echo channel.

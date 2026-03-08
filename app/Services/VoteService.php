@@ -5,6 +5,7 @@ use App\Models\Committee;
 use App\Models\Candidate;
 use App\Events\VoteUpdated;
 use App\Events\SortingRealtimeUpdated;
+use Illuminate\Support\Facades\Log;
 
 
 class VoteService
@@ -34,7 +35,7 @@ class VoteService
         $candidate->votes = $candidate->committees->sum('pivot.votes');
         $candidate->save();
         event(new VoteUpdated($candidate));
-        event(new SortingRealtimeUpdated((int) $committeeId, 'votes'));
+        $this->dispatchSortingRealtimeSafely((int) $committeeId, 'votes');
 
 
         return ['success' => 'Votes updated successfully.', 'status' => 200];
@@ -75,9 +76,22 @@ class VoteService
         $candidate->save();
         //========================================================================
         event(new VoteUpdated($candidate));
-        event(new SortingRealtimeUpdated((int) $committee, 'votes'));
+        $this->dispatchSortingRealtimeSafely((int) $committee, 'votes');
         //========================================================================
         return ['success' => 'تم التصويت بنجاح', 'status' => 200,'vote_count'=> $newVotes];
+    }
+
+    private function dispatchSortingRealtimeSafely(int $committeeId, string $type): void
+    {
+        try {
+            event(new SortingRealtimeUpdated($committeeId, $type));
+        } catch (\Throwable $exception) {
+            Log::warning('Sorting realtime broadcast failed', [
+                'committee_id' => $committeeId,
+                'type' => $type,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
     //========================================================================
 }
