@@ -2,56 +2,344 @@
 
 @section('content')
     <style>
-        .item {
-            position: relative; /* Required for transform */
-            transition: transform 1.5s linear; /* Smooth animation */
+        .results-pro-page {
+            --rp-font-main: "Changa", "Cairo", sans-serif;
+            --rp-ink: #11263d;
+            --rp-muted: #5a6f87;
+            --rp-surface: #ffffff;
+            --rp-border: #d8e5f2;
+            --rp-primary: #006c67;
+            --rp-primary-soft: #d9f3f1;
+            --rp-accent: #d97706;
+            --rp-top: #2f855a;
+            --rp-fifth: #8b5cf6;
+            --rp-shadow: 0 18px 44px rgba(17, 38, 61, 0.14);
+            --rp-shadow-soft: 0 10px 24px rgba(17, 38, 61, 0.1);
+
+            position: relative;
+            min-height: 100%;
+            font-family: var(--rp-font-main);
+            color: var(--rp-ink);
+            padding: 1rem 0 2rem;
+            overflow: hidden;
         }
-        .bg-success {
-            background-color: #afead6 !important;
+
+        .results-pro-page::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(circle at 8% 16%, rgba(0, 108, 103, 0.14), transparent 42%),
+                radial-gradient(circle at 92% 12%, rgba(217, 119, 6, 0.14), transparent 36%),
+                linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
         }
-        
-        .bg-info {
-            background-color: #fff2bf !important;
+
+        .results-shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        .results-hero {
+            border: 1px solid var(--rp-border);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: var(--rp-shadow);
+            padding: 1rem 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .results-title {
+            margin: 0;
+            font-size: clamp(1.12rem, 2.3vw, 1.58rem);
+            font-weight: 800;
+            letter-spacing: 0.01em;
+            color: #153655;
+        }
+
+        .results-subtitle {
+            margin: 0.32rem 0 0;
+            color: var(--rp-muted);
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .results-meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.82rem;
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: #0e4f4b;
+            background: var(--rp-primary-soft);
+        }
+
+        .results-contact {
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fff8d8 0%, #ffefb0 100%);
+            color: #7b5603;
+            font-weight: 700;
+            font-size: 0.86rem;
+            padding: 0.55rem 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .results-open-details {
+            border: 0;
+            min-height: 46px;
+            border-radius: 13px;
+            padding: 0.42rem 1rem;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, var(--rp-primary) 0%, #008b84 100%);
+            box-shadow: 0 11px 23px rgba(0, 108, 103, 0.28);
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .results-open-details:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.97);
+            color: #fff;
+        }
+
+        .results-cards-grid {
+            margin-top: 1rem;
+        }
+
+        .result-card-col {
+            will-change: transform;
+        }
+
+        .candidate-rank-card {
+            position: relative;
+            border-radius: 18px;
+            border: 1px solid #dbe8f8;
+            background: linear-gradient(165deg, #ffffff 0%, #f6faff 100%);
+            box-shadow: var(--rp-shadow-soft);
+            min-height: 234px;
+            padding: 0.78rem 0.72rem 0.7rem;
+            text-align: center;
+            overflow: hidden;
+            transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+        }
+
+        .candidate-rank-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 102% -8%, rgba(0, 108, 103, 0.11), transparent 43%);
+            pointer-events: none;
+        }
+
+        .candidate-rank-card:hover {
+            transform: translateY(-2px);
+            border-color: #bdd8f5;
+            box-shadow: 0 16px 30px rgba(17, 38, 61, 0.14);
+        }
+
+        .candidate-rank-card.is-top-four {
+            border-color: rgba(47, 133, 90, 0.52);
+            background: linear-gradient(160deg, #ffffff 0%, #f1fff7 100%);
+        }
+
+        .candidate-rank-card.is-fifth {
+            border-color: rgba(139, 92, 246, 0.38);
+            background: linear-gradient(160deg, #ffffff 0%, #f7f3ff 100%);
+        }
+
+        .candidate-rank-card.is-moving {
+            box-shadow: 0 18px 42px rgba(0, 108, 103, 0.22);
+        }
+
+        .rank-frame {
+            position: absolute;
+            top: 0.7rem;
+            right: 0.7rem;
+            border-radius: 999px;
+            padding: 0.22rem 0.48rem;
+            border: 1px solid #cbddf3;
+            background: #edf4ff;
+            color: #134374;
+            font-weight: 800;
+            font-size: 0.77rem;
+            letter-spacing: 0.01em;
+            min-width: 52px;
+            text-align: center;
+        }
+
+        .candidate-rank-card.is-top-four .rank-frame {
+            border-color: rgba(47, 133, 90, 0.5);
+            background: rgba(47, 133, 90, 0.12);
+            color: #1f6c47;
+        }
+
+        .candidate-rank-card.is-fifth .rank-frame {
+            border-color: rgba(139, 92, 246, 0.44);
+            background: rgba(139, 92, 246, 0.13);
+            color: #6b38cf;
+        }
+
+        .candidate-photo {
+            width: 104px;
+            height: 104px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 8px 18px rgba(17, 38, 61, 0.16);
+            object-fit: cover;
+            background: #eaf1fb;
+            margin-top: 0.25rem;
+        }
+
+        .candidate-name {
+            margin: 0.62rem 0 0.35rem;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #123150;
+            min-height: 2.15rem;
+            line-height: 1.45;
+        }
+
+        .candidate-votes-line {
+            margin: 0;
+            color: #4e647f;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .soundNum {
+            display: inline-flex;
+            min-width: 56px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 999px;
+            padding: 0.24rem 0.52rem;
+            margin-inline-start: 0.25rem;
+            background: rgba(0, 108, 103, 0.14);
+            color: #005b56;
+            font-size: 0.94rem;
+            font-weight: 900;
+            transition: transform 0.22s ease, background-color 0.22s ease;
+        }
+
+        .soundNum.is-updated {
+            transform: scale(1.08);
+            background: rgba(217, 119, 6, 0.2);
+            color: #8f4b05;
+        }
+
+        .results-modal .modal-content {
+            border: 0;
+            border-radius: 16px;
+            box-shadow: 0 20px 44px rgba(17, 38, 61, 0.2);
+            overflow: hidden;
+        }
+
+        .results-modal .modal-header {
+            border-bottom-color: #dbe8f8;
+            background: linear-gradient(140deg, #f5f9ff 0%, #ffffff 100%);
+        }
+
+        .results-modal .table {
+            margin-bottom: 0;
+            font-size: 0.89rem;
+        }
+
+        .results-modal .table thead th,
+        .results-modal .table thead td {
+            background: #102f4f;
+            color: #fff;
+            font-weight: 800;
+            border-color: #2a4d71;
+            white-space: nowrap;
+            vertical-align: middle;
+            padding: 0.55rem 0.5rem;
+        }
+
+        .results-modal .table tbody td {
+            border-color: #dce8f6;
+            font-weight: 700;
+            color: #1a3d61;
+            padding: 0.46rem;
+            vertical-align: middle;
+        }
+
+        .results-modal .table tbody tr:hover td {
+            background: #f7fbff;
+        }
+
+        @media (max-width: 767.98px) {
+            .results-hero {
+                border-radius: 16px;
+                padding: 0.85rem;
+            }
+
+            .results-open-details {
+                width: 100%;
+            }
+
+            .candidate-rank-card {
+                min-height: 220px;
+            }
+
+            .candidate-photo {
+                width: 92px;
+                height: 92px;
+            }
+
+            .candidate-name {
+                font-size: 0.94rem;
+            }
         }
     </style>
-    <!-- Main Section for User Results -->
-    <section class="userResult">
-        <div class="container mt-4">
-            <div class="rtl">
-                <!-- Button to open the modal for displaying committee details -->
-                <button data-bs-toggle="modal" data-bs-target="#displayData" class="btn btn-secondary w-100 mb-3 fs-5">
-                    عرض تفاصيل اللجان
-                </button>
-                <!-- Header with contact information -->
-                <h5 class="bg-warning py-1 pe-5 rounded-2 d-flex justify-content-center align-items-center">
-                    <span class="fs-5">نظام كنترول الانتخابات</span>
-                    <span class="text-danger p-2 fs-6">
-                        للاستفسار
+
+    <section class="results-pro-page">
+        <div class="container-fluid results-shell">
+            <div class="results-hero rtl">
+                <div>
+                    <h1 class="results-title">النتائج العامة المباشرة</h1>
+                    <p class="results-subtitle">ترتيب المرشحين يتحدث لحظيا مع انيميشن ناعم عند تبديل المراكز.</p>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="results-meta-badge">
+                        <i class="fa-solid fa-signal"></i>
+                        <span>Live Ranking</span>
+                    </span>
+
+                    <span class="results-contact">
                         <i class="fa-brands fa-whatsapp"></i>
                         55150551
                     </span>
-                </h5>
+
+                    <button data-bs-toggle="modal" data-bs-target="#displayData" class="results-open-details">
+                        عرض تفاصيل اللجان
+                    </button>
+                </div>
             </div>
 
-            <!-- Modal to display committee details -->
-            <div class="modal modal-xl rtl" id="displayData" tabindex="-1" aria-labelledby="exampleModalLabel"
-                aria-hidden="true">
+            <div class="modal modal-xl rtl results-modal" id="displayData" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-scrollable">
                     <div class="modal-content">
-                        <!-- Modal Header with Close Button -->
                         <div class="modal-header">
+                            <h6 class="mb-0 fw-bold">تفاصيل أصوات اللجان</h6>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <!-- Modal Body containing a responsive table -->
+
                         <div class="modal-body">
-                            <div class="table-responsive mt-4">
+                            <div class="table-responsive mt-2">
                                 <table class="table table-bordered rtl overflow-hidden rounded-3 text-center">
-                                    <!-- Table Headers -->
-                                    <thead class="table-dark border-0 border-secondary border-bottom border-2">
+                                    <thead class="border-0 border-secondary border-bottom border-2">
                                         <tr>
-                                            <!-- Empty Header Cell -->
                                             <th class="w150"></th>
-                                            <!-- Loop through each school and display school name and type -->
                                             @foreach ($schools as $school)
                                                 <th colspan="{{ $committees->count() / 2 + 1 }}">
                                                     {{ $school->name . ' ' . '(' . $school->type . ')' }}
@@ -59,18 +347,16 @@
                                             @endforeach
                                             <th></th>
                                         </tr>
-                                        <tr class="table-dark">
-                                            <!-- Column Headers for Candidate Information and Total Votes -->
-                                            <td>الأسم</td>
+
+                                        <tr>
+                                            <td>الاسم</td>
                                             <td>مج</td>
-                                            <!-- Display Committees of Type MEN -->
                                             @foreach ($committees as $committee)
                                                 @if ($committee->type == App\Enums\Type::MEN->value)
                                                     <td>{{ $committee->name }}</td>
                                                 @endif
                                             @endforeach
                                             <td>مج</td>
-                                            <!-- Display Committees of Type WOMEN -->
                                             @foreach ($committees as $committee)
                                                 @if ($committee->type == App\Enums\Type::WOMEN->value)
                                                     <td>{{ $committee->name }}</td>
@@ -80,73 +366,60 @@
                                         </tr>
                                     </thead>
 
-                                    <!-- Table Body with Candidate and Vote Information -->
                                     <tbody>
                                         @foreach ($candidates as $candidate)
                                             @if ($candidate->committees->isNotEmpty())
                                                 <tr data-candidate-row-id="{{ $candidate->id }}">
-                                                    <!-- Candidate Name -->
                                                     <td>{{ $candidate->user->name }}</td>
 
-                                                    <!-- Total Votes for MEN Committees -->
                                                     <td class="table-primary candidate-men-total">
                                                         {{ $candidate->committees->where('type', App\Enums\Type::MEN->value)->sum('pivot.votes') }}
                                                     </td>
 
-                                                    <!-- Individual Votes for MEN Committees -->
                                                     @foreach ($candidate->committees->where('type', App\Enums\Type::MEN->value) as $committee)
                                                         <td data-candidate-committee-id="{{ $candidate->id }}" data-committee-id="{{ $committee->id }}">{{ $committee->pivot->votes }}</td>
                                                     @endforeach
 
-                                                    <!-- Total Votes for WOMEN Committees -->
                                                     <td class="table-primary candidate-women-total">
                                                         {{ $candidate->committees->where('type', App\Enums\Type::WOMEN->value)->sum('pivot.votes') }}
                                                     </td>
 
-                                                    <!-- Individual Votes for WOMEN Committees -->
                                                     @foreach ($candidate->committees->where('type', App\Enums\Type::WOMEN->value) as $committee)
                                                         <td data-candidate-committee-id="{{ $candidate->id }}" data-committee-id="{{ $committee->id }}">{{ $committee->pivot->votes }}</td>
                                                     @endforeach
 
-                                                    <!-- Candidate's Overall Total Votes -->
                                                     <td class="table-danger candidate-total-votes">{{ $candidate->votes }}</td>
                                                 </tr>
                                             @endif
                                         @endforeach
 
-                                        <!-- Optional Total Row for All Committees -->
                                         <tr class="table-secondary">
                                             <td>** المجموع **</td>
 
-                                            <!-- Total Votes for All MEN Committees -->
                                             <td class="table-primary" id="allResultMenTotalAll">
                                                 {{ $committees->where('type', App\Enums\Type::MEN->value)->flatMap(function ($committee) {
                                                         return $committee->candidates;
                                                     })->sum('pivot.votes') }}
                                             </td>
 
-                                            <!-- Individual Votes for Each MEN Committee -->
                                             @foreach ($committees as $committee)
                                                 @if ($committee->type == App\Enums\Type::MEN->value)
                                                     <td data-total-committee-id="{{ $committee->id }}">{{ $committee->candidates->sum('pivot.votes') }}</td>
                                                 @endif
                                             @endforeach
 
-                                            <!-- Total Votes for All WOMEN Committees -->
                                             <td class="table-primary" id="allResultWomenTotalAll">
                                                 {{ $committees->where('type', App\Enums\Type::WOMEN->value)->flatMap(function ($committee) {
                                                         return $committee->candidates;
                                                     })->sum('pivot.votes') }}
                                             </td>
 
-                                            <!-- Individual Votes for Each WOMEN Committee -->
                                             @foreach ($committees as $committee)
                                                 @if ($committee->type == App\Enums\Type::WOMEN->value)
                                                     <td data-total-committee-id="{{ $committee->id }}">{{ $committee->candidates->sum('pivot.votes') }}</td>
                                                 @endif
                                             @endforeach
 
-                                            <!-- Grand Total of All Votes -->
                                             <td class="table-danger" id="allResultGrandTotalAll">
                                                 {{ $committees->sum(function ($committee) {
                                                     return $committee->candidates->sum('pivot.votes');
@@ -161,41 +434,26 @@
                 </div>
             </div>
 
-            <div class="row rtl pt-5 justify-content-center">
+            <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
                 @foreach ($candidates as $i => $can)
-                    <div class="col-lg-2 col-md-3 col-sm-3 col-3 m-1 border p-1
-                    @if ($i<4)
-                    bg-success 
-                    @elseif ($i==4)
-                    bg-info
-                    @endif
-                    "
-
-                        data-candidate-id="{{ $can->id }}">
-                        <div class="text-center position-relative">
-                            <!-- Candidate Image -->
-                            <figure class="mb-1">
-                                <img src="{{ $can->user->image ?? asset('assets/admin/images/images.png') }}" class="rounded-circle" alt="user image"
-                                    style="height: 100px; width:100px" />
-                            </figure>
-                            <!-- Candidate Name and Vote Count -->
-                            <figcaption>
-                                <h6 style="color:#000 !important">{{ $can->user->name }}</h6>
-                                <p>الاصوات <span class="soundNum fw-bold">{{ $can->votes }}</span></p>
-                            </figcaption>
-                            <!-- Candidate Position Number -->
-                            <div class="numLayer position-absolute top-0 end-0">
-                                <div class="rounded-circle bg-dark text-white p-2 py-1">{{ $i + 1 }}</div>
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 result-card-col" data-candidate-id="{{ $can->id }}">
+                        <article class="candidate-rank-card @if($i < 4) is-top-four @elseif($i == 4) is-fifth @endif">
+                            <div class="rank-frame">
+                                <span class="rank-label">{{ $i + 1 }}</span>
                             </div>
-                        </div>
+
+                            <img src="{{ $can->user->image ?? asset('assets/admin/images/images.png') }}" class="candidate-photo" alt="candidate image" />
+
+                            <h6 class="candidate-name">{{ $can->user->name }}</h6>
+                            <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $can->votes }}</span></p>
+                        </article>
                     </div>
                 @endforeach
             </div>
-
-
         </div>
     </section>
 @endsection
+
 @push('js')
     <script>
         (function () {
@@ -204,31 +462,120 @@
             var fallbackTimer = null;
             var realtimeChannelName = null;
             var inFlight = false;
+            var cardsGrid = document.getElementById('allResultsCardsGrid');
 
-            function updateCandidatesGridByVotes() {
-                const candidatesContainer = document.querySelector('.row.rtl.pt-5.justify-content-center');
-                if (!candidatesContainer) {
+            function ordinal(rank) {
+                if (rank % 100 >= 11 && rank % 100 <= 13) {
+                    return rank + 'th';
+                }
+
+                switch (rank % 10) {
+                    case 1: return rank + 'st';
+                    case 2: return rank + 'nd';
+                    case 3: return rank + 'rd';
+                    default: return rank + 'th';
+                }
+            }
+
+            function voteFromCardCol(cardCol) {
+                var voteNode = cardCol.querySelector('.soundNum');
+                return parseInt((voteNode ? voteNode.innerText : '0'), 10) || 0;
+            }
+
+            function markRankClasses(sortedCols) {
+                sortedCols.forEach(function (cardCol, index) {
+                    var card = cardCol.querySelector('.candidate-rank-card');
+                    var rankLabel = cardCol.querySelector('.rank-label');
+                    if (!card) {
+                        return;
+                    }
+
+                    card.classList.toggle('is-top-four', index < 4);
+                    card.classList.toggle('is-fifth', index === 4);
+
+                    if (rankLabel) {
+                        rankLabel.innerText = ordinal(index + 1);
+                    }
+                });
+            }
+
+            function animateGridReorder(sortedCols) {
+                if (!cardsGrid) {
                     return;
                 }
 
-                let cards = Array.from(candidatesContainer.children);
-
-                const sortedCards = cards.slice().sort((a, b) => {
-                    const votesA = parseInt((a.querySelector('.soundNum') || {}).innerText || '0', 10);
-                    const votesB = parseInt((b.querySelector('.soundNum') || {}).innerText || '0', 10);
-                    return votesB - votesA;
+                var firstRects = new Map();
+                Array.from(cardsGrid.children).forEach(function (col) {
+                    firstRects.set(col, col.getBoundingClientRect());
                 });
 
-                sortedCards.forEach((card, index) => {
-                    const rankElement = card.querySelector('.numLayer .rounded-circle');
-                    if (rankElement) {
-                        rankElement.innerText = index + 1;
+                sortedCols.forEach(function (col) {
+                    cardsGrid.appendChild(col);
+                });
+
+                sortedCols.forEach(function (col) {
+                    var first = firstRects.get(col);
+                    var last = col.getBoundingClientRect();
+
+                    if (!first || !last) {
+                        return;
+                    }
+
+                    var dx = first.left - last.left;
+                    var dy = first.top - last.top;
+
+                    if (dx || dy) {
+                        col.style.transition = 'none';
+                        col.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+
+                        void col.offsetWidth;
+
+                        col.style.transition = 'transform 760ms cubic-bezier(0.2, 0.85, 0.2, 1)';
+                        col.style.transform = 'translate(0, 0)';
+
+                        var card = col.querySelector('.candidate-rank-card');
+                        if (card) {
+                            card.classList.add('is-moving');
+                            setTimeout(function () {
+                                card.classList.remove('is-moving');
+                            }, 850);
+                        }
                     }
                 });
 
-                highlightTopCards(sortedCards);
-                candidatesContainer.innerHTML = '';
-                sortedCards.forEach((card) => candidatesContainer.appendChild(card));
+                markRankClasses(sortedCols);
+            }
+
+            function updateCandidatesGridByVotes() {
+                if (!cardsGrid) {
+                    return;
+                }
+
+                var currentCols = Array.from(cardsGrid.children);
+                var sortedCols = currentCols.slice().sort(function (a, b) {
+                    return voteFromCardCol(b) - voteFromCardCol(a);
+                });
+
+                var changedOrder = sortedCols.some(function (col, idx) {
+                    return col !== currentCols[idx];
+                });
+
+                if (changedOrder) {
+                    animateGridReorder(sortedCols);
+                } else {
+                    markRankClasses(sortedCols);
+                }
+            }
+
+            function applyUpdatedStyle(node) {
+                if (!node) {
+                    return;
+                }
+
+                node.classList.add('is-updated');
+                setTimeout(function () {
+                    node.classList.remove('is-updated');
+                }, 420);
             }
 
             function applyAllResultsStats(payload) {
@@ -246,11 +593,15 @@
                     var menTotal = parseInt(candidate.men_total, 10) || 0;
                     var womenTotal = parseInt(candidate.women_total, 10) || 0;
 
-                    var card = document.querySelector('[data-candidate-id="' + candidateId + '"]');
-                    if (card) {
-                        var soundNum = card.querySelector('.soundNum');
+                    var cardCol = document.querySelector('[data-candidate-id="' + candidateId + '"]');
+                    if (cardCol) {
+                        var soundNum = cardCol.querySelector('.soundNum');
                         if (soundNum) {
+                            var oldVotes = parseInt(soundNum.innerText, 10) || 0;
                             soundNum.innerText = votes;
+                            if (oldVotes !== votes) {
+                                applyUpdatedStyle(soundNum);
+                            }
                         }
                     }
 
@@ -332,6 +683,7 @@
                 }
 
                 fetchAllResultsStats();
+                updateCandidatesGridByVotes();
 
                 if (window.Echo && typeof window.Echo.channel === 'function') {
                     realtimeChannelName = 'results.' + electionId;
@@ -348,7 +700,7 @@
                     if (!document.hidden) {
                         fetchAllResultsStats();
                     }
-                }, 4000);
+                }, 2500);
             }
 
             window.addEventListener('beforeunload', function () {
@@ -369,104 +721,5 @@
 
             startRealtime();
         })();
-
-        function updateCandidates(candidate) {
-            // Deprecated: kept for backward compatibility if called externally.
-            if (!candidate || !candidate.id) {
-                return;
-            }
-        
-            const candidatesContainer = document.querySelector('.row.rtl.pt-5.justify-content-center');
-            if (!candidatesContainer) {
-                console.error("Candidates container not found!");
-                return;
-            }
-        
-            let cards = Array.from(candidatesContainer.children);
-            let candidateFound = false;
-    
-            // Update the vote count for the specific candidate
-            cards.forEach((card) => {
-                const cardId = parseInt(card.dataset.candidateId, 10);
-                if (cardId === candidate.id) {
-                    const voteElement = card.querySelector(".soundNum");
-                    if (voteElement) {
-                        voteElement.innerText = candidate.votes;
-                        candidateFound = true;
-                    }
-                }
-            });
-
-            if (!candidateFound) {
-                console.warn("Candidate not found in DOM:", candidate.id);
-                return;
-            }
-
-
-            // Get the initial positions of the cards
-            const initialPositions = cards.map((card) => {
-                const rect = card.getBoundingClientRect();
-                return { card, top: rect.top, left: rect.left };
-            });
-        
-            // Sort the cards by votes in descending order
-            const sortedCards = cards.slice().sort((a, b) => {
-                const votesA = parseInt(a.querySelector(".soundNum").innerText, 10);
-                const votesB = parseInt(b.querySelector(".soundNum").innerText, 10);
-                return votesB - votesA; // Descending order
-            });
-        
-            // Calculate the target positions after sorting
-            const targetPositions = sortedCards.map((card, index) => {
-                const { top, left } = initialPositions[index];
-                return { card, top, left };
-            });
-
-            highlightTopCards(sortedCards);
-        
-            // Apply transform to animate each card to its new position
-            initialPositions.forEach((pos, index) => {
-                const targetPos = targetPositions.find((t) => t.card === pos.card);
-                if (targetPos) {
-                    const deltaX = targetPos.left - pos.left;
-                    const deltaY = targetPos.top - pos.top;
-                    pos.card.style.transition = "transform 1.5s linear"; // Change 1.5s to a higher value
-                    pos.card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-                }
-            });
-
-            // Reset transforms and reorder DOM after animation completes
-            setTimeout(() => {
-                sortedCards.forEach((card, index) => {
-                    card.style.transition = "";
-                    card.style.transform = "";
-                    const rankElement = card.querySelector(".numLayer .rounded-circle");
-                    if (rankElement) {
-                        rankElement.innerText = index + 1; // Update the rank
-                    }
-                });
-        
-                // Reorder the DOM elements to match the visual order
-                candidatesContainer.innerHTML = "";
-                sortedCards.forEach((card) => candidatesContainer.appendChild(card));
-            }, 3000); // Match the transition duration
-        }
-
-        function highlightTopCards(sortedCards) {
-            // Remove previous highlights
-            sortedCards.forEach((card) => {
-                card.classList.remove("bg-success", "bg-info");
-            });
-        
-            // Add bg-success to the top 4 cards
-            sortedCards.slice(0, 4).forEach((card) => {
-                card.classList.add("bg-success");
-            });
-        
-            // Add bg-info to the 5th card
-            if (sortedCards[4]) {
-                sortedCards[4].classList.add("bg-info");
-            }
-        }
     </script>
 @endpush

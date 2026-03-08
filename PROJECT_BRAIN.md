@@ -155,6 +155,15 @@ Rollback notes for this extension only:
 4. Revert `SortingRealtimeUpdated` multi-channel broadcast (remove `results.{electionId}`).
 5. Remove election id parameter from realtime event dispatch in `VoteService` and `VoterController`.
 
+### UI Upgrade Under Same Tag (`real-time`) - `/all/results` Pro Max UX
+- Date: 2026-03-08
+- Scope:
+  - Full UI/UX redesign for `all_index` with premium card styling, leaderboard framing (`1st`, `2nd`, ...), and smooth FLIP animation when rank order changes.
+  - Modal details table restyled to match competition-grade dashboard look.
+  - Live updates keep same realtime logic while applying animated visual transitions for rank and vote changes.
+- File:
+  - `resources/views/dashboard/resualt/all_index.blade.php`
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.
