@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Dashboard;
 
+use App\Models\School;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class CommitteeRequest extends FormRequest
 {
@@ -24,9 +26,11 @@ class CommitteeRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [
-"name" => "Name",
-"type" => "Type",
-];
+            'name' => 'اسم اللجنة',
+            'school_id' => 'المدرسة',
+            'election_id' => 'الحملة الانتخابية',
+            'type' => 'النوع',
+        ];
 
         return $attributes;
     }
@@ -39,13 +43,34 @@ class CommitteeRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => ['required'],
-'type' => ['required'],
-'election_id' => ['required'],
-
+            'name' => ['required', 'string', 'max:255'],
+            'school_id' => ['required', 'integer', 'exists:schools,id'],
+            'election_id' => ['required', 'integer', 'exists:elections,id'],
+            'type' => ['nullable', 'string', 'max:50'],
         ];
 
         return $rules;
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $schoolId = (int) $this->input('school_id');
+            $electionId = (int) $this->input('election_id');
+
+            if (!$schoolId || !$electionId) {
+                return;
+            }
+
+            $school = School::query()->select('id', 'election_id')->find($schoolId);
+            if (!$school) {
+                return;
+            }
+
+            if ($school->election_id !== null && (int) $school->election_id !== $electionId) {
+                $validator->errors()->add('school_id', 'المدرسة المختارة لا تتبع الحملة الانتخابية المحددة.');
+            }
+        });
     }
 
     /**
@@ -55,7 +80,13 @@ class CommitteeRequest extends FormRequest
      */
      public function getSanitized(): array
      {
-        $data=$this->validated();
+          $data = $this->validated();
+
+          $school = School::query()->select('id', 'type')->find((int) $data['school_id']);
+          if ($school) {
+                $data['type'] = $school->type;
+          }
+
         return $data;
      }
 }

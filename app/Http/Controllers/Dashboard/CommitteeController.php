@@ -32,9 +32,10 @@ class CommitteeController extends Controller
     public function create()
     {
         $relations = [
-            'elections' => Election::all(),
+            'elections' => Election::query()->select('id', 'name')->orderBy('name')->get(),
+            'schools' => School::query()->select('id', 'name', 'type', 'election_id')->orderBy('name')->get(),
         ];
-        return view('dashboard.committees.create',compact('relations'));
+        return view('dashboard.committees.create', compact('relations'));
     }
 
 
@@ -56,9 +57,10 @@ class CommitteeController extends Controller
     public function edit(Committee $committee)
     {
         $relations = [
-            'elections' => Election::all(),
+            'elections' => Election::query()->select('id', 'name')->orderBy('name')->get(),
+            'schools' => School::query()->select('id', 'name', 'type', 'election_id')->orderBy('name')->get(),
         ];
-        return view('dashboard.committees.edit', compact('committee','relations'));
+        return view('dashboard.committees.edit', compact('committee', 'relations'));
     }
 
 
