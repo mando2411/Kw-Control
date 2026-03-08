@@ -10,6 +10,7 @@ use App\Models\Election;
 use App\Models\Candidate;
 use App\Models\Contractor;
 use App\Models\Committee;
+use App\Models\Voter;
 use App\Traits\ImageTrait;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -1333,6 +1334,92 @@ class CandidateController extends Controller
             'message' => $newStatus === 1
                 ? 'تم فتح الفرز لهذا المستخدم بنجاح.'
                 : 'تم إيقاف الفرز لهذا المستخدم بنجاح.',
+        ]);
+    }
+
+    public function sortingLiveStats(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'error' => 'يجب تسجيل الدخول أولا.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['required', 'integer', 'exists:committees,id'],
+            'candidate_ids' => ['nullable', 'array'],
+            'candidate_ids.*' => ['integer'],
+        ]);
+
+        $committeeId = (int) ($validated['committee'] ?? 0);
+        $committee = Committee::where('id', $committeeId)->first();
+
+        if (!$committee) {
+            return response()->json([
+                'error' => 'اللجنة غير موجودة.'
+            ], 404);
+        }
+
+        $requestedCandidateIds = collect((array) ($validated['candidate_ids'] ?? []))
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($user, $committeeId);
+        $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($user);
+
+        $effectiveElectionId = (int) ($user->election_id ?? 0);
+        if ($effectiveElectionId <= 0 && Schema::hasColumn('committees', 'election_id')) {
+            $effectiveElectionId = (int) ($committee->election_id ?? 0);
+        }
+
+        $visibleCandidates = $committee->candidates()
+            ->withoutGlobalScopes()
+            ->join('users', 'candidates.user_id', '=', 'users.id')
+            ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
+                $query->where('candidates.election_id', $effectiveElectionId);
+            })
+            ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds) {
+                $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds) {
+                    $hasSelectedCandidateIds = !empty($selectedCandidateIds);
+                    $hasAllowedCreatorCandidateUsers = !empty($allowedCandidateUserIds);
+
+                    if ($hasSelectedCandidateIds) {
+                        $scopedQuery->whereIn('candidates.id', $selectedCandidateIds);
+                    }
+
+                    if ($hasAllowedCreatorCandidateUsers) {
+                        if ($hasSelectedCandidateIds) {
+                            $scopedQuery->orWhereIn('candidates.user_id', $allowedCandidateUserIds);
+                        } else {
+                            $scopedQuery->whereIn('candidates.user_id', $allowedCandidateUserIds);
+                        }
+                    }
+
+                    if (!$hasSelectedCandidateIds && !$hasAllowedCreatorCandidateUsers) {
+                        $scopedQuery->whereRaw('1 = 0');
+                    }
+                });
+            })
+            ->when(!empty($requestedCandidateIds), function ($query) use ($requestedCandidateIds) {
+                $query->whereIn('candidates.id', $requestedCandidateIds);
+            })
+            ->select('candidates.id', 'candidate_committee.votes')
+            ->get();
+
+        $candidateVotes = $visibleCandidates
+            ->mapWithKeys(fn ($candidate) => [(int) $candidate->id => (int) $candidate->votes]);
+
+        return response()->json([
+            'success' => true,
+            'committee_id' => $committeeId,
+            'total_attending' => (int) Voter::where('committee_id', $committeeId)->count(),
+            'total_sorting_votes' => (int) $candidateVotes->sum(),
+            'candidate_votes' => $candidateVotes,
+            'sorting_status' => $this->resolveCurrentUserSortingStatus($user),
         ]);
     }
     //==============================================================

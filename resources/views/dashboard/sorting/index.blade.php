@@ -703,6 +703,10 @@
 @push('js')
 <script>
   $(document).ready(function() {
+    var liveStatsUrl = @json(route('dashboard.sorting.live-stats'));
+    var liveStatsTimer = null;
+    var liveStatsInFlight = false;
+
     // Render modals at body level to avoid clipping by parent containers.
     if ($('#confirmModal').length) {
       $('#confirmModal').appendTo('body');
@@ -718,6 +722,116 @@
     }
 
     checkLocked();
+
+    function getCurrentCommitteeId() {
+      if ($('#sorting-select').length && $('#sorting-select').val()) {
+        return parseInt($('#sorting-select').val(), 10) || 0;
+      }
+
+      var rowCommitteeValue = $('.row-committee').first().val();
+      return parseInt(rowCommitteeValue, 10) || 0;
+    }
+
+    function getVisibleCandidateIds() {
+      return $('.row-candidate-id').map(function() {
+        return parseInt($(this).val(), 10) || 0;
+      }).get().filter(function(id) {
+        return id > 0;
+      });
+    }
+
+    function applyLiveStats(data) {
+      if (!data || data.success !== true) {
+        return;
+      }
+
+      if (typeof data.total_attending !== 'undefined') {
+        $('.totalAttending').text(data.total_attending);
+      }
+
+      if (typeof data.total_sorting_votes !== 'undefined') {
+        $('.totalSortingSound').text(data.total_sorting_votes);
+      }
+
+      if (data.candidate_votes) {
+        Object.keys(data.candidate_votes).forEach(function(candidateId) {
+          var selector = '#vote_count_' + candidateId;
+          var $votePill = $(selector);
+          if (!$votePill.length) {
+            return;
+          }
+
+          var newValue = parseInt(data.candidate_votes[candidateId], 10) || 0;
+          var oldValue = parseInt($votePill.text(), 10) || 0;
+          if (newValue !== oldValue) {
+            $votePill.text(newValue);
+            $votePill.addClass('updated');
+            setTimeout(function() {
+              $votePill.removeClass('updated');
+            }, 420);
+          }
+        });
+      }
+
+      if (typeof data.sorting_status !== 'undefined') {
+        $('#status').val(normalizeStatusValue(data.sorting_status));
+        checkLocked();
+      }
+    }
+
+    function fetchLiveStats() {
+      if (liveStatsInFlight) {
+        return;
+      }
+
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        return;
+      }
+
+      var candidateIds = getVisibleCandidateIds();
+      if (!candidateIds.length) {
+        return;
+      }
+
+      liveStatsInFlight = true;
+
+      axios.get(liveStatsUrl, {
+        params: {
+          committee: committeeId,
+          candidate_ids: candidateIds,
+        },
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then(function(response) {
+        applyLiveStats(response.data || {});
+      }).catch(function() {
+        // Silent fail to avoid noisy toast every few seconds.
+      }).finally(function() {
+        liveStatsInFlight = false;
+      });
+    }
+
+    function startLiveStatsPolling() {
+      if (!$('#candidates_table').length) {
+        return;
+      }
+
+      fetchLiveStats();
+
+      if (liveStatsTimer) {
+        clearInterval(liveStatsTimer);
+      }
+
+      liveStatsTimer = setInterval(function() {
+        if (!document.hidden) {
+          fetchLiveStats();
+        }
+      }, 3000);
+    }
+
+    startLiveStatsPolling();
 
     $('.sortBtn').on('click', function(event) {
       event.preventDefault();
@@ -879,6 +993,12 @@
         $(this).toggle(matchEntire);
       });
     }
+
+    window.addEventListener('beforeunload', function() {
+      if (liveStatsTimer) {
+        clearInterval(liveStatsTimer);
+      }
+    });
   });
 
   const toggleButton = document.getElementById("toggle-lock-button");

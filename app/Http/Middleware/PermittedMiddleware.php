@@ -53,6 +53,7 @@ class PermittedMiddleware
                 ->remove('dashboard.')
                 ->replace('statement.search-modern', 'statement.search')
                 ->replace('sorting.status', 'sorting')
+                ->replace('sorting.live-stats', 'sorting')
                 ->replace('committee.status', 'committees.update-status')
                 ->replace('import-voters-data', 'import-voters')
                 ->replace('store', 'create')
