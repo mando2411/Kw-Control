@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\SchoolRequest;
 use App\DataTables\SchoolDataTable;
 use App\Models\Election;
+use Illuminate\Support\Facades\Schema;
 
 class SchoolController extends Controller
 {
@@ -19,11 +20,15 @@ class SchoolController extends Controller
 
     public function create()
     {
+        $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
+
         $relations = [
-            'elections' => Election::all(),
+            'elections' => $hasSchoolElectionColumn
+                ? Election::query()->select('id', 'name')->orderBy('name')->get()
+                : collect(),
         ];
 
-        return view('dashboard.schools.create', compact('relations'));
+        return view('dashboard.schools.create', compact('relations', 'hasSchoolElectionColumn'));
     }
 
 
@@ -44,11 +49,15 @@ class SchoolController extends Controller
 
     public function edit(School $school)
     {
+        $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
+
         $relations = [
-            'elections' => Election::all(),
+            'elections' => $hasSchoolElectionColumn
+                ? Election::query()->select('id', 'name')->orderBy('name')->get()
+                : collect(),
         ];
 
-        return view('dashboard.schools.edit', compact('school', 'relations'));
+        return view('dashboard.schools.edit', compact('school', 'relations', 'hasSchoolElectionColumn'));
     }
 
 

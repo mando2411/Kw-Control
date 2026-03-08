@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Dashboard;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class SchoolRequest extends FormRequest
@@ -25,9 +26,9 @@ class SchoolRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [
-            "name" => "Name",
-            "type" => "Type",
-            "election_id" => "Election",
+            'name' => 'اسم المدرسة',
+            'type' => 'النوع',
+            'election_id' => 'الحملة الانتخابية',
         ];
 
         return $attributes;
@@ -41,17 +42,23 @@ class SchoolRequest extends FormRequest
     public function rules(): array
     {
         $schoolId = $this->route('school')?->id;
+        $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
+
+        $typeUniqueRule = Rule::unique('schools', 'type')->ignore($schoolId);
+        if ($hasSchoolElectionColumn) {
+            $typeUniqueRule->where(fn ($query) => $query->where('election_id', $this->input('election_id')));
+        }
 
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'type' => [
                 'required',
                 'in:ذكور,اناث',
-                Rule::unique('schools', 'type')
-                    ->where(fn ($query) => $query->where('election_id', $this->input('election_id')))
-                    ->ignore($schoolId),
+                $typeUniqueRule,
             ],
-            'election_id' => ['required', 'exists:elections,id'],
+            'election_id' => $hasSchoolElectionColumn
+                ? ['required', 'integer', 'exists:elections,id']
+                : ['nullable'],
 
         ];
 
@@ -65,6 +72,12 @@ class SchoolRequest extends FormRequest
      */
      public function getSanitized(): array
      {
-          return $this->validated();
+        $data = $this->validated();
+
+        if (!Schema::hasColumn('schools', 'election_id')) {
+            unset($data['election_id']);
+        }
+
+        return $data;
      }
 }
