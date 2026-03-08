@@ -1,4 +1,12 @@
 <style>
+    .sorting-modal {
+        z-index: 1085;
+    }
+
+    .modal-backdrop.show {
+        z-index: 1080;
+    }
+
     .sorting-modal .modal-content {
         border: 0;
         border-radius: 18px;

@@ -691,6 +691,14 @@
 @push('js')
 <script>
   $(document).ready(function() {
+    // Render modals at body level to avoid clipping by parent containers.
+    if ($('#confirmModal').length) {
+      $('#confirmModal').appendTo('body');
+    }
+    if ($('#successModal').length) {
+      $('#successModal').appendTo('body');
+    }
+
     if ($('#sorting-select').length) {
       $('#sorting-select').on('change', function() {
         $('#sorting-form').submit();
