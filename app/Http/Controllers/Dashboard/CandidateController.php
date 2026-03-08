@@ -1788,8 +1788,12 @@ class CandidateController extends Controller
             ->all();
     }
 
-    private function applyActualCandidateOnlyScope(Builder $candidateQuery): void
+    private function applyActualCandidateOnlyScope($candidateQuery): void
     {
+        if (!is_object($candidateQuery) || !method_exists($candidateQuery, 'where')) {
+            return;
+        }
+
         // Do not expose administrative-only list leader candidates in sorting.
         if (!Schema::hasColumn('candidates', 'is_actual_list_candidate')) {
             return;
