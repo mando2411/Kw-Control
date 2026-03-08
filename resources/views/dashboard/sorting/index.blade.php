@@ -924,8 +924,14 @@
           }
           sucessMessageInModel(data.message);
         },
-        error: function() {
-          errorMessageInModel('حدث خطأ أثناء تحديث الأصوات.');
+        error: function(xhr) {
+          var backendMessage = null;
+
+          if (xhr && xhr.responseJSON) {
+            backendMessage = xhr.responseJSON.message || xhr.responseJSON.error || null;
+          }
+
+          errorMessageInModel(backendMessage || 'حدث خطأ أثناء تحديث الأصوات.');
         }
       });
     }
