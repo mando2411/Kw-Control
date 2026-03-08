@@ -109,11 +109,13 @@ class Committee extends Model
     }
     public function users(){
             $users = $this->representatives->map(function ($rep) {
+                $user = $rep->user;
+
                 return [
                     'id' => $rep->id,
-                    'name' => $rep->user->name,
-                    'phone' => $rep->user->phone,
-                    'user_id' => $rep->user->id,
+                    'name' => $user?->name ?? 'مستخدم غير متاح',
+                    'phone' => $user?->phone ?? '-',
+                    'user_id' => $user?->id,
                 ];
             });
 return $users;

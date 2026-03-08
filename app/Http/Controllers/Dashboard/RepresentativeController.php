@@ -16,6 +16,7 @@ use App\Models\Voter;
 use App\Models\School;
 use App\Services\Attendance;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 
@@ -151,6 +152,8 @@ class RepresentativeController extends Controller
     //================================================================================================
     public function home(Request $request){
         $user = auth('web')->user();
+        $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
+        $hasCommitteeElectionColumn = Schema::hasColumn('committees', 'election_id');
 
         $schoolsQuery = School::query();
         $committeesQuery = Committee::query();
@@ -158,14 +161,18 @@ class RepresentativeController extends Controller
         if ($user && !$user->hasRole('Administrator')) {
             $electionId = (int) $user->election_id;
 
-            $schoolsQuery
-                ->where(function ($query) use ($electionId) {
+            if ($hasSchoolElectionColumn) {
+                $schoolsQuery->where(function ($query) use ($electionId) {
                     $query->where('election_id', $electionId)
                         ->orWhereNull('election_id');
-                })
-                ->whereHas('committees');
+                });
+            }
 
-            $committeesQuery->where('election_id', $electionId);
+            $schoolsQuery->whereHas('committees');
+
+            if ($hasCommitteeElectionColumn) {
+                $committeesQuery->where('election_id', $electionId);
+            }
         }
 
         if (collect($request->all())->isEmpty() || $request->id=="all") {

@@ -194,7 +194,7 @@
                                     </td>
                                     <td class="text-end">
                                         @foreach ($com->representatives as $rep)
-                                            <p>- {{ $rep->user->name }}</p>
+                                            <p>- {{ $rep->user?->name ?? 'مستخدم غير متاح' }}</p>
                                         @endforeach
                                     </td>
                                 </tr>

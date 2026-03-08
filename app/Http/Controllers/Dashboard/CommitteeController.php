@@ -133,6 +133,7 @@ class CommitteeController extends Controller
     {
         $user = auth('web')->user();
         $schoolId = (string) $request->input('id', 'all');
+        $hasSchoolElectionColumn = Schema::hasColumn('schools', 'election_id');
 
         $dropdownQuery = School::query()->select('id', 'name', 'type');
         $schoolsQuery = School::query()->with([
@@ -144,17 +145,19 @@ class CommitteeController extends Controller
         if ($user && !$user->hasRole('Administrator')) {
             $electionId = (int) $user->election_id;
 
-            $dropdownQuery
-                ->where(function ($query) use ($electionId) {
+            if ($hasSchoolElectionColumn) {
+                $dropdownQuery->where(function ($query) use ($electionId) {
                     $query->where('election_id', $electionId)
                         ->orWhereNull('election_id');
-                })
-                ->whereHas('committees');
+                });
 
-            $schoolsQuery->where(function ($query) use ($electionId) {
-                $query->where('election_id', $electionId)
-                    ->orWhereNull('election_id');
-            });
+                $schoolsQuery->where(function ($query) use ($electionId) {
+                    $query->where('election_id', $electionId)
+                        ->orWhereNull('election_id');
+                });
+            }
+
+            $dropdownQuery->whereHas('committees');
         }
 
         $relations = [
