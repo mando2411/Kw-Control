@@ -100,6 +100,23 @@ Purpose:
 - File:
   - `resources/views/dashboard/sorting/index.blade.php`
 
+### Hotfix Under Same Tag (`real-time`) - Log Noise Reduction
+- Date: 2026-03-08
+- Problem:
+  - Laravel log received many INFO lines per vote action (request payload + `my-event` broadcast payload).
+- Old behavior:
+  - `CandidateController@changeVotes` wrote per-request `Log::info(...)`.
+  - `VoteService` dispatched `VoteUpdated` (`my-event` on `votes`) in addition to `sorting.realtime.updated`.
+  - Sorting frontend listened to both channels.
+- New behavior:
+  - Removed per-request info logging from `changeVotes`.
+  - Removed `VoteUpdated` dispatch from `VoteService` (kept `sorting.realtime.updated`).
+  - Removed `votes` channel listener from sorting frontend.
+- Files:
+  - `app/Http/Controllers/Dashboard/CandidateController.php`
+  - `app/Services/VoteService.php`
+  - `resources/views/dashboard/sorting/index.blade.php`
+
 ### Related Support Already In Place
 - File: `app/Http/Controllers/Dashboard/CandidateController.php`
   - `sortingLiveStats()` endpoint returns latest votes/totals/status.

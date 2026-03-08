@@ -835,27 +835,6 @@
         });
         realtimeChannels.push(sortingChannelName);
 
-        // Existing VoteUpdated event in backend already broadcasts on "votes".
-        var votesChannelName = 'votes';
-        var votesChannel = window.Echo.channel(votesChannelName);
-        votesChannel.listen('.my-event', function (payload) {
-          var currentCommitteeId = getCurrentCommitteeId();
-          var committees = [];
-
-          if (payload && payload.message && Array.isArray(payload.message.committees)) {
-            committees = payload.message.committees;
-          }
-
-          var touchesCurrentCommittee = committees.some(function (committee) {
-            return parseInt(committee.id, 10) === currentCommitteeId;
-          });
-
-          if (touchesCurrentCommittee) {
-            fetchLiveStats();
-          }
-        });
-        realtimeChannels.push(votesChannelName);
-
         var committeeChannelName = 'committee';
         var committeeChannel = window.Echo.channel(committeeChannelName);
         committeeChannel.listen('.event', function () {

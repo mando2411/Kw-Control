@@ -1232,7 +1232,6 @@ class CandidateController extends Controller
     public function changeVotes(Request $request, VoteService $voteService)
     {
         try {
-            Log::info(json_encode($request->all()));
             // Access the data sent from Ajax
             $vote_count    = $request->json('vote_count');
             $count_status  = $request->json('count_status');
