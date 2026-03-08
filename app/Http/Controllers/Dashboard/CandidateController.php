@@ -1060,16 +1060,27 @@ class CandidateController extends Controller
                     ->withoutGlobalScopes()
                     ->join('users', 'candidates.user_id', '=', 'users.id')
                     ->where('candidates.election_id', $currentUser->election_id)
-                    ->when(!empty($selectedCandidateIds), function ($query) use ($selectedCandidateIds) {
-                        $query->whereIn('candidates.id', $selectedCandidateIds);
-                    })
-                    ->when(empty($selectedCandidateIds) && is_array($allowedCandidateUserIds), function ($query) use ($allowedCandidateUserIds) {
-                        if (empty($allowedCandidateUserIds)) {
-                            $query->whereRaw('1 = 0');
-                            return;
-                        }
+                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds) {
+                        $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds) {
+                            $hasSelectedCandidateIds = !empty($selectedCandidateIds);
+                            $hasAllowedCreatorCandidateUsers = !empty($allowedCandidateUserIds);
 
-                        $query->whereIn('candidates.user_id', $allowedCandidateUserIds);
+                            if ($hasSelectedCandidateIds) {
+                                $scopedQuery->whereIn('candidates.id', $selectedCandidateIds);
+                            }
+
+                            if ($hasAllowedCreatorCandidateUsers) {
+                                if ($hasSelectedCandidateIds) {
+                                    $scopedQuery->orWhereIn('candidates.user_id', $allowedCandidateUserIds);
+                                } else {
+                                    $scopedQuery->whereIn('candidates.user_id', $allowedCandidateUserIds);
+                                }
+                            }
+
+                            if (!$hasSelectedCandidateIds && !$hasAllowedCreatorCandidateUsers) {
+                                $scopedQuery->whereRaw('1 = 0');
+                            }
+                        });
                     })
                     ->orderBy('users.name')
                     ->select('candidates.*', 'users.name as user_name')
@@ -1187,27 +1198,25 @@ class CandidateController extends Controller
 
             $currentUser = auth()->user();
             $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($currentUser);
-
-            if (!empty($selectedCandidateIds) && !in_array((int) $candidate_id, $selectedCandidateIds, true)) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'لا يمكنك تعديل أصوات مرشح غير محدد لك.',
-                ], 403);
-            }
-
             $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
-            if (empty($selectedCandidateIds) && is_array($allowedCandidateUserIds)) {
+            if (is_array($allowedCandidateUserIds)) {
                 $targetCandidateUserId = (int) Candidate::withoutGlobalScopes()
                     ->where('id', (int) $candidate_id)
                     ->value('user_id');
 
-                if ($targetCandidateUserId <= 0 || !in_array($targetCandidateUserId, $allowedCandidateUserIds, true)) {
+                $isAllowedByRepresentativeAssignments = !empty($selectedCandidateIds)
+                    && in_array((int) $candidate_id, $selectedCandidateIds, true);
+
+                $isAllowedByCreatorCandidate = !empty($allowedCandidateUserIds)
+                    && $targetCandidateUserId > 0
+                    && in_array($targetCandidateUserId, $allowedCandidateUserIds, true);
+
+                if (!$isAllowedByRepresentativeAssignments && !$isAllowedByCreatorCandidate) {
                     DB::rollBack();
                     return response()->json([
                         'success' => false,
-                        'message' => 'لا يمكنك تعديل أصوات مرشح غير مرتبط بك.',
+                        'message' => 'لا يمكنك تعديل أصوات هذا المرشح لأنه غير مخصص لك.',
                     ], 403);
                 }
             }
