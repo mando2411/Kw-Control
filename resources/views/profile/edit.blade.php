@@ -132,6 +132,8 @@
 </style>
 
 <section id="profile-settings-app" class="container-fluid py-2">
+    <x-dashboard.partials.message-alert />
+
     <div class="row">
         <div class="col-12">
             <h3 class="pf-page-title">تحرير الملف الشخصي</h3>

@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -109,8 +110,9 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended('/api/documentation');
         }
 
-        $representative = auth()->user()->representatives()->first();
-        if ($representative && (bool) $representative->status === false) {
+        if ($this->shouldRedirectRepresentativeToProfileForPasswordReset()) {
+            $warningMessage = 'يرجى تغيير كلمة السر الافتراضية وهي "1" قبل متابعة استخدام النظام.';
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
@@ -118,11 +120,15 @@ class AuthenticatedSessionController extends Controller
                         'name' => auth()->user()->name,
                         'image' => auth()->user()->image,
                     ],
-                    'redirect' => route('change-password'),
+                    'message' => $warningMessage,
+                    'redirect' => route('profile.edit'),
                 ]);
             }
 
-            return redirect()->route('change-password');
+            session()->flash('message', $warningMessage);
+            session()->flash('type', 'warning');
+
+            return redirect()->route('profile.edit');
         }
 
         if ($request->expectsJson()) {
@@ -187,5 +193,20 @@ class AuthenticatedSessionController extends Controller
             unset($_COOKIE['token']);
             setcookie('token', '', time() - 3600, '/');
         }
+    }
+
+    private function shouldRedirectRepresentativeToProfileForPasswordReset(): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+
+        $isRepresentative = $user->hasRole('مندوب') || $user->representatives()->exists();
+        if (!$isRepresentative) {
+            return false;
+        }
+
+        return Hash::check('1', (string) $user->password);
     }
 }

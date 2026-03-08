@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Representative;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +25,12 @@ class PasswordController extends Controller
         $user->update([
             'password' => Hash::make($validated['password']),
         ]);
-        return back()->with('status', 'تم التعديل بنجاح');
+
+        Representative::query()
+            ->where('user_id', (int) $user->id)
+            ->update(['status' => 1]);
+
+        return back()->with('status', 'password-updated');
     }
     
 }
