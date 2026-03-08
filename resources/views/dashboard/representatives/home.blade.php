@@ -104,71 +104,78 @@
           @endif
         </div>
 
-        <div class="card-body table-responsive">
-          <table class="table align-middle text-center rep-home-table">
-            <thead>
-              <tr>
-                <th>اللجنة</th>
-                <th>المندوب</th>
-                <th>الهاتف</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse ($schools as $school)
-                <tr class="table-group-row">
-                  <td colspan="4" class="text-end fw-semibold">
-                    {{ $school->name }}
-                  </td>
-                </tr>
+        @php
+          $representativeRows = collect();
+          foreach ($schools as $school) {
+              foreach ($school->committees as $com) {
+                  foreach ($com->users() as $representative) {
+                      $representativeRows->push([
+                          'id' => $representative['id'],
+                          'name' => $representative['name'],
+                          'phone' => $representative['phone'],
+                          'committee_id' => $representative['committee_id'] ?? $com->id,
+                          'committee_name' => $com->name,
+                          'committee_type' => $com->type,
+                          'school_name' => $school->name,
+                      ]);
+                  }
+              }
+          }
 
-                @if($school->committees->isEmpty())
-                  <tr>
-                    <td colspan="4" class="text-muted">لا توجد لجان في هذه المدرسة.</td>
-                  </tr>
-                  @continue
-                @endif
+          $representativeRows = $representativeRows
+              ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+              ->values();
+        @endphp
 
-                @foreach ($school->committees as $com)
-                  @php
-                    $committeeUsers = $com->users();
-                  @endphp
+        <div class="card-body">
+          <div class="rep-home-table-toolbar mb-3">
+            <div class="rep-home-table-summary">
+              إجمالي المندوبين المعروضين: <strong>{{ $representativeRows->count() }}</strong>
+            </div>
+            <div class="rep-home-table-search-wrap">
+              <input type="text" id="repHomeTableSearch" class="form-control" placeholder="ابحث باسم المندوب أو اللجنة أو المدرسة أو الهاتف">
+            </div>
+          </div>
 
-                  @if($committeeUsers->isEmpty())
-                    <tr>
-                      <td>{{ $com->name }} ({{ $com->type }})</td>
-                      <td colspan="3" class="text-muted">لا يوجد مندوبون في هذه اللجنة.</td>
-                    </tr>
-                    @continue
-                  @endif
-
-                  @foreach ($committeeUsers as $representative)
-                    <tr>
-                      <td>{{ $com->name }} ({{ $com->type }})</td>
-                      <td>{{ $representative['name'] }}</td>
-                      <td>{{ $representative['phone'] }}</td>
-                      <td>
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-outline-primary js-open-edit-modal"
-                          data-rep-id="{{ $representative['id'] }}"
-                          data-name="{{ $representative['name'] }}"
-                          data-phone="{{ $representative['phone'] }}"
-                          data-committee-id="{{ $representative['committee_id'] ?? $com->id }}"
-                        >
-                          تعديل
-                        </button>
-                      </td>
-                    </tr>
-                  @endforeach
-                @endforeach
-              @empty
+          <div class="table-responsive rep-home-table-wrap">
+            <table class="table align-middle text-center rep-home-table" id="repHomeRepresentativesTable">
+              <thead>
                 <tr>
-                  <td colspan="4" class="text-muted">لا توجد مدارس متاحة للعرض.</td>
+                  <th>المندوب</th>
+                  <th>اللجنة</th>
+                  <th>المدرسة</th>
+                  <th>الهاتف</th>
+                  <th>الإجراءات</th>
                 </tr>
-              @endforelse
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @forelse ($representativeRows as $representative)
+                  <tr class="rep-home-table-row">
+                    <td data-label="المندوب" class="fw-semibold">{{ $representative['name'] }}</td>
+                    <td data-label="اللجنة">{{ $representative['committee_name'] }} ({{ $representative['committee_type'] }})</td>
+                    <td data-label="المدرسة">{{ $representative['school_name'] }}</td>
+                    <td data-label="الهاتف" dir="ltr">{{ $representative['phone'] }}</td>
+                    <td data-label="الإجراءات">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary js-open-edit-modal"
+                        data-rep-id="{{ $representative['id'] }}"
+                        data-name="{{ $representative['name'] }}"
+                        data-phone="{{ $representative['phone'] }}"
+                        data-committee-id="{{ $representative['committee_id'] }}"
+                      >
+                        تعديل
+                      </button>
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="5" class="text-muted py-4">لا يوجد مندوبون مطابقون للمدرسة المختارة.</td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -238,9 +245,83 @@
       font-weight: 700;
     }
 
-    .rep-home-table .table-group-row td {
-      background: #eef4ff;
+    .rep-home-table-wrap {
+      border: 1px solid #dbe6f4;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .rep-home-table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .rep-home-table-summary {
+      font-weight: 700;
       color: #1f4b76;
+      background: #eef4ff;
+      padding: 0.45rem 0.75rem;
+      border-radius: 10px;
+    }
+
+    .rep-home-table-search-wrap {
+      width: min(420px, 100%);
+    }
+
+    .rep-home-table-search-wrap .form-control {
+      border-radius: 10px;
+      border: 1px solid #cbdaf3;
+    }
+
+    .rep-home-table-row td {
+      background: #fff;
+      border-bottom: 1px solid #edf2fb;
+    }
+
+    .rep-home-table-row:hover td {
+      background: #f8fbff;
+    }
+
+    @media (max-width: 768px) {
+      .rep-home-table thead {
+        display: none;
+      }
+
+      .rep-home-table,
+      .rep-home-table tbody,
+      .rep-home-table tr,
+      .rep-home-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .rep-home-table-row {
+        margin: 0.55rem;
+        border: 1px solid #e3ebfa;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .rep-home-table-row td {
+        position: relative;
+        text-align: left;
+        padding: 0.65rem 0.75rem 0.65rem 6.2rem;
+        min-height: 44px;
+      }
+
+      .rep-home-table-row td::before {
+        content: attr(data-label);
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #60708a;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
     }
 
     .candidate-selector-panel {
@@ -311,6 +392,8 @@
       var quickCandidateCount = document.getElementById('quick_candidate_count');
       var quickCandidateSelectAll = document.getElementById('quick_candidate_select_all');
       var quickCandidateClearAll = document.getElementById('quick_candidate_clear_all');
+      var repHomeTableSearch = document.getElementById('repHomeTableSearch');
+      var repHomeTableRows = Array.from(document.querySelectorAll('#repHomeRepresentativesTable tbody tr.rep-home-table-row'));
 
       var quickAddCollapse = null;
       if (quickAddFormElement && window.bootstrap && bootstrap.Collapse) {
@@ -387,6 +470,18 @@
             option.selected = false;
           });
           syncQuickCandidateCount();
+        });
+      }
+
+      if (repHomeTableSearch && repHomeTableRows.length) {
+        repHomeTableSearch.addEventListener('input', function () {
+          var keyword = (this.value || '').toLowerCase().trim();
+
+          repHomeTableRows.forEach(function (row) {
+            var rowText = (row.textContent || '').toLowerCase();
+            var shouldShow = keyword === '' || rowText.indexOf(keyword) !== -1;
+            row.style.display = shouldShow ? '' : 'none';
+          });
         });
       }
 
