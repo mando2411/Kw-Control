@@ -1026,26 +1026,53 @@ class CandidateController extends Controller
     {
         $currentUser = auth()->user();
         $hasRepresentativeCandidatePivot = Schema::hasTable('candidate_representative');
+        $isRepresentativeUser = $currentUser->hasRole('مندوب') || $currentUser->representatives()->exists();
 
-        $representativeQuery = $currentUser->representatives()->with('committee');
-        if ($hasRepresentativeCandidatePivot) {
-            $representativeQuery->with('candidates:id,user_id,election_id');
+        $representatives = $currentUser->representatives()
+            ->with('committee')
+            ->when($hasRepresentativeCandidatePivot, function ($query) {
+                $query->with('candidates:id,user_id,election_id');
+            })
+            ->get();
+
+        $requestedCommitteeId = (int) $request->input('committee', 0);
+
+        // Representatives do not choose committee manually, so infer a usable one.
+        if ($isRepresentativeUser && $requestedCommitteeId <= 0) {
+            $requestedCommitteeId = (int) ($representatives->pluck('committee_id')->filter()->first() ?? 0);
+            if ($requestedCommitteeId <= 0) {
+                $requestedCommitteeId = $this->resolveSortingDefaultCommitteeId($currentUser);
+            }
+            if ($requestedCommitteeId > 0) {
+                $request->merge(['committee' => $requestedCommitteeId]);
+            }
         }
 
-        $representative = $representativeQuery->first();
-        if ($representative && $representative->committee_id) {
-            $request->merge(['committee' => $representative->committee_id]);
-        }
-
-        $selectedCandidateIds = $hasRepresentativeCandidatePivot && $representative
-            ? $representative->candidates->pluck('id')->map(fn ($id) => (int) $id)->unique()->values()->all()
-            : [];
+        $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
+            $currentUser,
+            $requestedCommitteeId > 0 ? $requestedCommitteeId : null
+        );
 
         $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
-        $committees = $representative && $representative->committee_id
-            ? Committee::where('id', $representative->committee_id)->get()
-            : Committee::all();
+        if ($isRepresentativeUser && $representatives->isNotEmpty()) {
+            $committees = Committee::whereIn('id', $representatives->pluck('committee_id')->filter()->unique()->values()->all())->get();
+        } elseif ($isRepresentativeUser) {
+            $fallbackElectionId = (int) ($currentUser->election_id ?? 0);
+            if ($fallbackElectionId <= 0) {
+                $fallbackElectionId = (int) Candidate::withoutGlobalScopes()
+                    ->where('user_id', (int) ($currentUser->creator_id ?? 0))
+                    ->value('election_id');
+            }
+
+            $committees = Committee::query()
+                ->when($fallbackElectionId > 0 && Schema::hasColumn('committees', 'election_id'), function ($query) use ($fallbackElectionId) {
+                    $query->where('election_id', $fallbackElectionId);
+                })
+                ->get();
+        } else {
+            $committees = Committee::all();
+        }
 
         $committee = null;
         if (collect($request->all())->isEmpty()) {
@@ -1056,10 +1083,25 @@ class CandidateController extends Controller
             if (!$committee) {
                 $candidates = null;
             } else {
+                $effectiveElectionId = (int) ($currentUser->election_id ?? 0);
+                if ($effectiveElectionId <= 0 && Schema::hasColumn('committees', 'election_id')) {
+                    $effectiveElectionId = (int) ($committee->election_id ?? 0);
+                }
+
+                // Heal missing committee-candidate mapping for representative-visible candidates.
+                $this->ensureSortingCommitteeCandidateMapping(
+                    $committee,
+                    $selectedCandidateIds,
+                    $allowedCandidateUserIds,
+                    $effectiveElectionId
+                );
+
                 $candidates = $committee->candidates()
                     ->withoutGlobalScopes()
                     ->join('users', 'candidates.user_id', '=', 'users.id')
-                    ->where('candidates.election_id', $currentUser->election_id)
+                    ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
+                        $query->where('candidates.election_id', $effectiveElectionId);
+                    })
                     ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds) {
                         $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds) {
                             $hasSelectedCandidateIds = !empty($selectedCandidateIds);
@@ -1197,7 +1239,10 @@ class CandidateController extends Controller
             $committee     = $request->json('committee');
 
             $currentUser = auth()->user();
-            $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($currentUser);
+            $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
+                $currentUser,
+                (int) $committee > 0 ? (int) $committee : null
+            );
             $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
 
             if (is_array($allowedCandidateUserIds)) {
@@ -1493,7 +1538,7 @@ class CandidateController extends Controller
             ->all();
     }
 
-    private function resolveSortingRepresentativeSelectedCandidateIds(?User $user): array
+    private function resolveSortingRepresentativeSelectedCandidateIds(?User $user, ?int $committeeId = null): array
     {
         if (!$user) {
             return [];
@@ -1503,17 +1548,92 @@ class CandidateController extends Controller
             return [];
         }
 
-        $representative = $user->representatives()->with('candidates:id')->first();
-        if (!$representative) {
+        $representativesQuery = $user->representatives()->with('candidates:id');
+        if (!empty($committeeId) && $committeeId > 0) {
+            $representativesQuery->where('committee_id', (int) $committeeId);
+        }
+
+        $representatives = $representativesQuery->get();
+        if ($representatives->isEmpty()) {
             return [];
         }
 
-        return $representative->candidates
+        return $representatives
+            ->flatMap(fn ($representative) => $representative->candidates)
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function resolveSortingDefaultCommitteeId(?User $user): int
+    {
+        if (!$user) {
+            return 0;
+        }
+
+        $electionId = (int) ($user->election_id ?? 0);
+        if ($electionId <= 0) {
+            $electionId = (int) Candidate::withoutGlobalScopes()
+                ->where('user_id', (int) ($user->creator_id ?? 0))
+                ->value('election_id');
+        }
+
+        $committeeQuery = Committee::query();
+        if ($electionId > 0 && Schema::hasColumn('committees', 'election_id')) {
+            $committeeQuery->where('election_id', $electionId);
+        }
+
+        return (int) ($committeeQuery->orderBy('id')->value('id') ?? 0);
+    }
+
+    private function ensureSortingCommitteeCandidateMapping(
+        Committee $committee,
+        array $selectedCandidateIds,
+        ?array $allowedCandidateUserIds,
+        int $effectiveElectionId
+    ): void {
+        if (!Schema::hasTable('candidate_committee')) {
+            return;
+        }
+
+        $candidateIdsToAttach = Candidate::withoutGlobalScopes()
+            ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
+                $query->where('election_id', $effectiveElectionId);
+            })
+            ->where(function (Builder $query) use ($selectedCandidateIds, $allowedCandidateUserIds) {
+                $hasSelectedCandidateIds = !empty($selectedCandidateIds);
+                $hasAllowedCreatorCandidateUsers = is_array($allowedCandidateUserIds) && !empty($allowedCandidateUserIds);
+
+                if ($hasSelectedCandidateIds) {
+                    $query->whereIn('id', $selectedCandidateIds);
+                }
+
+                if ($hasAllowedCreatorCandidateUsers) {
+                    if ($hasSelectedCandidateIds) {
+                        $query->orWhereIn('user_id', $allowedCandidateUserIds);
+                    } else {
+                        $query->whereIn('user_id', $allowedCandidateUserIds);
+                    }
+                }
+
+                if (!$hasSelectedCandidateIds && !$hasAllowedCreatorCandidateUsers) {
+                    $query->whereRaw('1 = 0');
+                }
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($candidateIdsToAttach)) {
+            return;
+        }
+
+        $committee->candidates()->syncWithoutDetaching($candidateIdsToAttach);
     }
 
 }
