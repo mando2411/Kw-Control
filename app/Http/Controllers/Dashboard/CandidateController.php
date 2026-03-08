@@ -690,48 +690,62 @@ class CandidateController extends Controller
             }
         }
 
-        $userData = $userRequest->getSanitized();
-        if ($currentListLeaderCandidate) {
-            $userData['election_id'] = $currentListLeaderCandidate->election_id;
-        }
+        try {
+            $candidate = DB::transaction(function () use ($request, $userRequest, $currentListLeaderCandidate) {
+                $userData = $userRequest->getSanitized();
+                if ($currentListLeaderCandidate) {
+                    $userData['election_id'] = $currentListLeaderCandidate->election_id;
+                }
 
-        $user = User::create($userData);
+                $user = User::create($userData);
 
-        $candidateData = $request->getSanitized();
-        $candidateData['user_id'] = $user->id;
-        $candidateData['candidate_type'] = (string) ($candidateData['candidate_type'] ?? 'candidate');
-        $candidateData['is_actual_list_candidate'] = (bool) ($candidateData['is_actual_list_candidate'] ?? true);
+                $candidateData = $request->getSanitized();
+                $candidateData['user_id'] = $user->id;
+                $candidateData['candidate_type'] = (string) ($candidateData['candidate_type'] ?? 'candidate');
+                $candidateData['is_actual_list_candidate'] = (bool) ($candidateData['is_actual_list_candidate'] ?? true);
 
-        if ($currentListLeaderCandidate) {
-            $candidateData['candidate_type'] = 'candidate';
-            $candidateData['list_leader_candidate_id'] = $currentListLeaderCandidate->id;
-            $candidateData['list_name'] = (string) ($currentListLeaderCandidate->list_name ?? '');
-            $candidateData['list_logo'] = (string) ($currentListLeaderCandidate->list_logo ?? '');
-            $candidateData['election_id'] = $currentListLeaderCandidate->election_id;
-            $candidateData['list_candidates_count'] = null;
-        } elseif ((string) $candidateData['candidate_type'] !== 'list_leader') {
-            $candidateData['list_candidates_count'] = null;
-            $candidateData['list_name'] = null;
-            $candidateData['list_logo'] = null;
-            $candidateData['list_leader_candidate_id'] = null;
-        }
+                if ($currentListLeaderCandidate) {
+                    $candidateData['candidate_type'] = 'candidate';
+                    $candidateData['list_leader_candidate_id'] = $currentListLeaderCandidate->id;
+                    $candidateData['list_name'] = (string) ($currentListLeaderCandidate->list_name ?? '');
+                    $candidateData['list_logo'] = (string) ($currentListLeaderCandidate->list_logo ?? '');
+                    $candidateData['election_id'] = $currentListLeaderCandidate->election_id;
+                    $candidateData['list_candidates_count'] = null;
+                } elseif ((string) $candidateData['candidate_type'] !== 'list_leader') {
+                    $candidateData['list_candidates_count'] = null;
+                    $candidateData['list_name'] = null;
+                    $candidateData['list_logo'] = null;
+                    $candidateData['list_leader_candidate_id'] = null;
+                }
 
-        $candidate = Candidate::create($candidateData);
+                $candidate = Candidate::create($candidateData);
 
-        $assignedRoles = ['مرشح'];
-        if ($candidate->isListLeader()) {
-            $assignedRoles[] = 'مرشح رئيس قائمة';
-        }
+                $assignedRoles = ['مرشح'];
+                if ($candidate->isListLeader()) {
+                    $assignedRoles[] = 'مرشح رئيس قائمة';
+                }
 
-        foreach ($assignedRoles as $roleName) {
-            Role::findOrCreate($roleName, 'web');
-        }
+                foreach ($assignedRoles as $roleName) {
+                    Role::findOrCreate($roleName, 'web');
+                }
 
-        $user->syncRoles($assignedRoles);
+                $user->syncRoles($assignedRoles);
 
-        if ($candidate->election) {
-            $committees = $candidate->election->committees->pluck('id')->toArray();
-            $candidate->committees()->sync($committees);
+                if ($candidate->election) {
+                    $committees = $candidate->election->committees->pluck('id')->toArray();
+                    $candidate->committees()->sync($committees);
+                }
+
+                return $candidate;
+            });
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'candidate' => 'تعذر حفظ المرشح. يرجى مراجعة البيانات والمحاولة مرة أخرى.',
+                ]);
         }
 
         session()->flash('message', 'Candidate Created Successfully!');
@@ -1203,10 +1217,22 @@ class CandidateController extends Controller
             return null;
         }
 
-        return Candidate::withoutGlobalScopes()
+        $candidate = Candidate::withoutGlobalScopes()
             ->where('user_id', auth()->id())
             ->where('candidate_type', 'list_leader')
             ->first();
+
+        if ($candidate && auth()->user()) {
+            $currentElectionId = (int) (auth()->user()->election_id ?? 0);
+            $leaderElectionId = (int) ($candidate->election_id ?? 0);
+
+            if ($leaderElectionId > 0 && $currentElectionId !== $leaderElectionId) {
+                auth()->user()->forceFill(['election_id' => $leaderElectionId])->save();
+                auth()->user()->setAttribute('election_id', $leaderElectionId);
+            }
+        }
+
+        return $candidate;
     }
 
     private function applyListLeaderVisibilityScope(Builder $query, ?Candidate $listLeaderCandidate): Builder
