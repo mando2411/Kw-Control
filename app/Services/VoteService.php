@@ -4,6 +4,7 @@ namespace App\Services;
 use App\Models\Committee;
 use App\Models\Candidate;
 use App\Events\VoteUpdated;
+use App\Events\SortingRealtimeUpdated;
 
 
 class VoteService
@@ -33,6 +34,7 @@ class VoteService
         $candidate->votes = $candidate->committees->sum('pivot.votes');
         $candidate->save();
         event(new VoteUpdated($candidate));
+        event(new SortingRealtimeUpdated((int) $committeeId, 'votes'));
 
 
         return ['success' => 'Votes updated successfully.', 'status' => 200];
@@ -73,6 +75,7 @@ class VoteService
         $candidate->save();
         //========================================================================
         event(new VoteUpdated($candidate));
+        event(new SortingRealtimeUpdated((int) $committee, 'votes'));
         //========================================================================
         return ['success' => 'تم التصويت بنجاح', 'status' => 200,'vote_count'=> $newVotes];
     }

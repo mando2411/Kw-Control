@@ -17,6 +17,7 @@ use App\Services\VoterService;
 use Illuminate\Http\Request;
 use App\Imports\VotersImport;
 use App\Jobs\ProcessVotersImportJob;
+use App\Events\SortingRealtimeUpdated;
 use App\DataTables\VoterDataTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -222,6 +223,7 @@ class VoterController extends Controller
             ]);
         
             $this->attendance->counting($status);
+            event(new SortingRealtimeUpdated((int) $committee, 'attendance'));
             DB::commit();
             // Your status update logic here
             return response()->json([

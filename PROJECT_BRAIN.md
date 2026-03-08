@@ -19,6 +19,57 @@ Scope of this update: Full project re-scan (web + API + mobile + APK distributio
 
 ---
 
+## Change Tag: real-time (2026-03-08)
+
+Purpose:
+- Make `/dashboard/sorting` update numbers instantly (event-driven) when another user changes votes/attendance, without waiting for 3-second polling.
+
+### Old Version (Before `real-time`)
+- File: `resources/views/dashboard/sorting/index.blade.php`
+- Behavior:
+  - Client polled `dashboard.sorting.live-stats` every 3 seconds.
+  - UI updates were near-real-time but not instant.
+
+### New Version (After `real-time`)
+- File: `app/Events/SortingRealtimeUpdated.php`
+  - Added new broadcast event on channel `sorting.{committeeId}` with alias `.sorting.realtime.updated`.
+- File: `app/Services/VoteService.php`
+  - After successful vote updates, dispatches `SortingRealtimeUpdated(committeeId, 'votes')`.
+- File: `app/Http/Controllers/Dashboard/VoterController.php`
+  - After successful attendance status change, dispatches `SortingRealtimeUpdated(committeeId, 'attendance')`.
+- File: `resources/views/dashboard/sorting/index.blade.php`
+  - Removed 3-second polling loop.
+  - Subscribes to Echo channel `sorting.{committeeId}`.
+  - On `.sorting.realtime.updated`, runs one `live-stats` fetch and updates UI immediately.
+  - Added fallback polling every 15 seconds only if Echo is unavailable.
+
+### Related Support Already In Place
+- File: `app/Http/Controllers/Dashboard/CandidateController.php`
+  - `sortingLiveStats()` endpoint returns latest votes/totals/status.
+- File: `routes/admin.php`
+  - Route `dashboard.sorting.live-stats`.
+- File: `app/Http/Middleware/PermittedMiddleware.php`
+  - Permission mapping `sorting.live-stats -> sorting`.
+
+### Rollback Plan (if user says: "راجع عن تحديث real-time")
+1. Delete file:
+   - `app/Events/SortingRealtimeUpdated.php`
+2. Revert `VoteService` event dispatch lines:
+   - remove `use App\Events\SortingRealtimeUpdated;`
+   - remove `event(new SortingRealtimeUpdated(...))` in both vote update methods.
+3. Revert `VoterController` attendance dispatch:
+   - remove `use App\Events\SortingRealtimeUpdated;`
+   - remove `event(new SortingRealtimeUpdated(...))` after attendance update.
+4. Revert `sorting/index.blade.php` JS from Echo listener back to 3-second polling block.
+5. Run:
+   - `php artisan optimize:clear`
+
+Rollback success criteria:
+- Sorting page no longer listens to Echo channel.
+- Numbers refresh again via fixed polling interval.
+
+---
+
 ## Repository Inventory (verified)
 
 ### Core Backend / Web

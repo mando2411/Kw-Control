@@ -704,7 +704,8 @@
 <script>
   $(document).ready(function() {
     var liveStatsUrl = @json(route('dashboard.sorting.live-stats'));
-    var liveStatsTimer = null;
+    var realtimeChannel = null;
+    var fallbackTimer = null;
     var liveStatsInFlight = false;
 
     // Render modals at body level to avoid clipping by parent containers.
@@ -813,25 +814,38 @@
       });
     }
 
-    function startLiveStatsPolling() {
+    function startSortingRealtime() {
       if (!$('#candidates_table').length) {
         return;
       }
 
       fetchLiveStats();
 
-      if (liveStatsTimer) {
-        clearInterval(liveStatsTimer);
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        return;
       }
 
-      liveStatsTimer = setInterval(function() {
+      if (window.Echo && typeof window.Echo.channel === 'function') {
+        realtimeChannel = window.Echo.channel('sorting.' + committeeId);
+        realtimeChannel.listen('.sorting.realtime.updated', function () {
+          fetchLiveStats();
+        });
+      }
+
+      // Safety net: periodic refresh in case websocket drops silently.
+      if (fallbackTimer) {
+        clearInterval(fallbackTimer);
+      }
+
+      fallbackTimer = setInterval(function() {
         if (!document.hidden) {
           fetchLiveStats();
         }
-      }, 3000);
+      }, 15000);
     }
 
-    startLiveStatsPolling();
+    startSortingRealtime();
 
     $('.sortBtn').on('click', function(event) {
       event.preventDefault();
@@ -995,8 +1009,15 @@
     }
 
     window.addEventListener('beforeunload', function() {
-      if (liveStatsTimer) {
-        clearInterval(liveStatsTimer);
+      if (realtimeChannel && window.Echo && typeof window.Echo.leave === 'function') {
+        var committeeId = getCurrentCommitteeId();
+        if (committeeId) {
+          window.Echo.leave('sorting.' + committeeId);
+        }
+      }
+
+      if (fallbackTimer) {
+        clearInterval(fallbackTimer);
       }
     });
   });
