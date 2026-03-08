@@ -1477,6 +1477,14 @@ class CandidateController extends Controller
             $creatorCandidateQuery->where('election_id', $userElectionId);
         }
 
+        // Do not expose administrative-only list leader candidates in sorting.
+        if (Schema::hasColumn('candidates', 'is_actual_list_candidate')) {
+            $creatorCandidateQuery->where(function (Builder $query) {
+                $query->where('is_actual_list_candidate', true)
+                    ->orWhereNull('is_actual_list_candidate');
+            });
+        }
+
         return $creatorCandidateQuery
             ->pluck('user_id')
             ->map(fn ($id) => (int) $id)
