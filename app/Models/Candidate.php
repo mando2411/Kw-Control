@@ -81,8 +81,15 @@ class Candidate extends Model
            parent::boot();
 
            static::created(function ($candidate) {
-               $committees = Committee::all();
-               $candidate->committees()->attach($committees);
+               // Keep candidate-committee mapping scoped to candidate election.
+               $committeeIds = Committee::withoutGlobalScopes()
+                   ->where('election_id', $candidate->election_id)
+                   ->pluck('id')
+                   ->toArray();
+
+               if (!empty($committeeIds)) {
+                   $candidate->committees()->syncWithoutDetaching($committeeIds);
+               }
            });
            static::deleting(function ($candidate) {
                // Detach committees

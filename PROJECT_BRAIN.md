@@ -728,4 +728,169 @@ When the next deploy is done, append a short release entry including:
 - Build signature constant
 - Main UI/API deltas
 - Route or controller files touched
-ششش
+
+---
+
+## Committees Deep Review (2026-03-07)
+
+مراجعة كود قسم اللجان تمت من المصدر مباشرة (Routes + Controller + Request + Model + Views + DataTable + Services + Events + Migrations + Permissions) مع ربط المسارات ببعضها.
+
+### Scope الملفات التي تمت مراجعتها
+
+- `app/Http/Controllers/Dashboard/CommitteeController.php`
+- `app/Http/Controllers/Dashboard/GeneralController.php`
+- `app/Http/Requests/Dashboard/CommitteeRequest.php`
+- `app/Models/Committee.php`
+- `app/Models/Candidate.php`
+- `app/Models/Voter.php`
+- `app/Scopes/ElectionScope.php`
+- `app/DataTables/CommitteeDataTable.php`
+- `app/Services/Query/CommitteeGenerator.php`
+- `app/Events/CommitteeUpdate.php`
+- `app/Observers/CommitteeObserver.php`
+- `resources/views/dashboard/committees/create.blade.php`
+- `resources/views/dashboard/committees/edit.blade.php`
+- `resources/views/dashboard/committees/index.blade.php`
+- `resources/views/dashboard/committees/multi.blade.php`
+- `resources/views/dashboard/committees/committee.blade.php`
+- `resources/views/dashboard/committees/action.blade.php`
+- `resources/views/layouts/dashboard/sidebar.blade.php`
+- `resources/views/components/dashboard/partials/table-card-header.blade.php`
+- `resources/views/dashboard/sorting/index.blade.php`
+- `resources/views/dashboard/resualt/index.blade.php`
+- `routes/admin.php`
+- `database/migrations/2024_06_10_104328_create_committees_table.php`
+- `database/migrations/2024_06_24_105049_add_column_to_voters_table.php`
+- `database/migrations/2024_10_01_140504_add_column_to_commitees_table.php`
+- `database/migrations/2025_01_04_044919_add_column_to_committees_table.php`
+- `database/migrations/2024_06_10_110606_create_committee_candidates_table.php`
+- `database/seeders/Permissions/CommitteePermissionSeeder.php`
+
+### نموذج البيانات والعلاقات
+
+- جدول `committees`:
+  - أساسي: `id`, `name`, `type`, `timestamps`
+  - لاحق: `school_id` (nullable FK), `election_id` (nullable FK), `status` (boolean default true)
+- Pivot: `candidate_committee`:
+  - `candidate_id`, `committee_id`, `votes` (default 0)
+- العلاقات:
+  - Committee -> voters (`hasMany`)
+  - Committee -> representatives (`hasMany`)
+  - Committee -> school (`belongsTo`)
+  - Committee -> election (`belongsTo`)
+  - Committee <-> candidates (`belongsToMany` with `pivot.votes`)
+
+### تدفق الإضافة (Create) مترابطًا
+
+#### 1) إضافة لجنة واحدة
+
+- المسار: `dashboard.committees.create` ثم `dashboard.committees.store`
+- الفورم في `create.blade.php` يرسل: `name`, `type`, `election_id`
+- التحقق في `CommitteeRequest`:
+  - `name` مطلوب
+  - `type` مطلوب
+  - `election_id` مطلوب
+- الحفظ في `CommitteeController@store` عبر `Committee::create($request->getSanitized())`
+- بعد الإنشاء مباشرة، `Committee::boot()` (حدث `created`) ينفذ:
+  - جلب مرشحي نفس الانتخاب `candidate.election_id = committee.election_id`
+  - ربط المرشحين المطابقين فقط مع اللجنة في pivot
+  - محاولة تعيين المدرسة تلقائيًا حسب `type`
+
+#### 2) إضافة متعددة (Bulk)
+
+- المسار: `dashboard.committees.generate` (فورم) -> `dashboard.committees.multi` (تنفيذ)
+- التحقق داخل `CommitteeController@multi`:
+  - `men` و `women` أعداد صحيحة >= 1
+  - `election_id` مطلوب
+- التنفيذ عبر `CommitteeGenerator::createRecords()`:
+  - ينشئ لجان الرجال `Type::MEN->value`
+  - ينشئ لجان النساء `Type::WOMEN->value`
+  - كل إنشاء يمر بنفس side effects (attach candidates + assign school)
+
+### تدفق التعديل (Edit/Update)
+
+- المسار: `dashboard.committees.edit` -> `dashboard.committees.update`
+- `edit.blade.php` يسمح تعديل `name`, `type`, `election_id`
+- `CommitteeController@update` ينفذ `update($sanitized)` فقط
+- مهم: منطق `created` في الموديل لا يُعاد تشغيله عند update
+  - تغيير `type` لا يعيد ضبط `school_id` تلقائيًا
+  - لا توجد إعادة ربط/تنظيف تلقائي لعلاقات المرشحين عند التعديل
+
+### تدفق المراجعة (Review) كاملًا
+
+#### 1) صفحة القائمة الأساسية
+
+- المسار: `dashboard.committees.index`
+- العرض عبر `CommitteeDataTable`
+- الأعمدة: `id`, `name`, `type`, `created_at`, `action`
+- `action.blade.php` يقدم أزرار التعديل والحذف
+- إنشاء زر الإضافة يأتي من `table-card-header.blade.php` ويعتمد على صلاحية `committees.create`
+
+#### 2) صفحة المراجعة التشغيلية (Committee Home)
+
+- المسار: `dashboard.committee.home`
+- الكنترولر يجهز مدارس مع لجان: `School::with('committees')->get()`
+- العرض في `committee.blade.php`:
+  - فلتر المدرسة (all/مدرسة محددة)
+  - إحصاءات الحضور/الباقي
+  - جدول تفصيلي لكل لجنة
+  - أسماء المندوبين لكل لجنة
+  - روابط تقارير `dashboard.statement.show`
+
+#### 3) قفل/فتح اللجنة (status)
+
+- المسار: `committee.status` (`POST committee/status/{id}`)
+- `CommitteeController@status` يحدّث `status` ثم يطلق `CommitteeUpdate`
+- الحدث `CommitteeUpdate` يعمل broadcast على قناة `committee` باسم `event`
+- الاستهلاك في الواجهة موجود في `dashboard/resualt/index.blade.php` (Pusher channel `committee`)
+- نموذج التبديل موجود في `dashboard/sorting/index.blade.php`
+
+### الربط مع الأقسام الأخرى
+
+- اللجان <-> المرشحين:
+  - ربط ثنائي الاتجاه من `Committee` و `Candidate`
+  - من تاريخ `2026-03-08`: الربط التلقائي عند `created` أصبح **مقيدًا بنفس `election_id`** في الموديلين، وهذا يجعل السلوك متوافقًا مع منطق `list_leader` وعزل القوائم انتخابيًا.
+- اللجان <-> الناخبين:
+  - `committee_id` على الناخب
+  - إحصاءات الحضور تعتمد على `status`
+  - جلب ناخبين لجنة عبر `GeneralController@fetchVotersForCommittee`
+- اللجان <-> المدارس:
+  - تعيين آلي للمدرسة عند الإنشاء فقط
+- اللجان <-> الانتخابات:
+  - علاقة `belongsTo` + Global Scope (`ElectionScope`)
+- اللجان <-> النتائج المباشرة:
+  - تغيير حالة اللجنة يبث حدثًا حيًا يغيّر الأيقونات في شاشة النتائج
+
+### صلاحيات قسم اللجان (المطبق فعليًا)
+
+- Seeder يضيف: `committees.list`, `committees.create`, `committees.edit`, `committees.delete`, `committees.restore`, `committee.home`, `committees.multi`, `committees.generate`, `committees.update-status`
+- تم توحيد `committee.status` مع permission mapping إلى `committees.update-status` داخل `PermittedMiddleware`.
+- صلاحية `committees.multi` موجودة كاسم permission رغم أن route الفعلي مرتبط بالاسم `dashboard.committees.multi` ويُستخدم من شاشة الإنشاء المتعدد
+
+### Compatibility Alignment مع قسم List Leader (2026-03-08)
+
+- تم توحيد منطق ربط `candidate_committee` ليكون داخل نفس الانتخاب فقط:
+  - `Committee::created` يربط مرشحي نفس `committee.election_id` فقط.
+  - `Candidate::created` يربط لجان نفس `candidate.election_id` فقط.
+- تم إزالة debug log الخاص بجلب المرشحين من مسار إنشاء اللجنة.
+- تم تحصين `CommitteeController@status`:
+  - فحص auth.
+  - فحص صلاحية (`committees.update-status` مع fallback `committees.edit` للتوافق الخلفي).
+  - معالجة حالة `committee` غير موجودة بـ `404` بدل null crash.
+- route `committee.status` أصبح يتطلب `auth:web`.
+
+### مراجعة المخاطر والملاحظات الحرجة
+
+1. `edit.blade.php` يستخدم input نصي لـ`type` بدل select مضبوط (يسمح بقيم غير قياسية بسهولة).
+2. `CommitteeRequest` لا يتحقق من enum ثابت للنوع (`in:ذكور,اناث`) ولا من وجود `election_id` كـ FK (`exists:elections,id`).
+3. `CommitteeObserver` موجود لكنه فارغ وغير مُسجّل في `AppServiceProvider` (dead code حاليًا).
+4. `committee.blade.php` ينفذ عدادات كثيرة داخل Blade loops على علاقات (`$com->voters`) مما يسبب N+1 واستهلاك أعلى عند كبر البيانات.
+5. عدادات أعلى صفحة المراجعة (`App\Models\Voter::where(...)`) غير مقيدة بالمدرسة المختارة ولا بالانتخاب الحالي في نفس الشاشة، فتظهر أرقام إجمالية عامة.
+6. `ElectionScope` يستخدم `where('election_id', auth()->user()->election_id)` داخل علاقة `election`، بينما جدول `elections` الطبيعي يعتمد `id`، وهذا موضع يحتاج تدقيق فوري.
+7. في `GeneralController@fetchVotersForCommittee` لا يوجد check إذا كانت اللجنة غير موجودة قبل استخدام خصائصها.
+
+### ملاحظات تشغيلية سريعة
+
+- أي تعديل في صلاحيات اللجان أو ربطها بالـsidebar يحتاج بعدها `php artisan optimize:clear`.
+- قبل الإنتاج يفضل توحيد تمثيل النوع (ذكور/اناث مقابل ذكر/انثى) ضمن enum وvalidation وواجهات الإدخال.
+- يوصى بنقل حسابات الإحصاءات الثقيلة من Blade إلى Queries محسنة (`withCount`/aggregates) لتقليل زمن الصفحة.

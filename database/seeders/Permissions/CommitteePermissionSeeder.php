@@ -10,7 +10,7 @@ class CommitteePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $permissions = ['committees.list', 'committees.create', 'committees.edit', 'committees.delete', 'committees.restore','committee.home','committees.multi','committees.generate','candidates.index','candidates.list','attending-admin'];
+        $permissions = ['committees.list', 'committees.create', 'committees.edit', 'committees.delete', 'committees.restore','committee.home','committees.multi','committees.generate','committees.update-status','candidates.index','candidates.list','attending-admin'];
         $permissions_db = [];
         foreach ($permissions as $permission) {
             $permissions_db[] = Permission::updateOrCreate([

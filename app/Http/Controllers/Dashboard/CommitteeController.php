@@ -116,17 +116,28 @@ class CommitteeController extends Controller
     }
 
     public function status(Request $request,$id){
-        $committee=Committee::find($id);
-        if($committee){
-            $committee->update([
-                'status'=>$request->status
-            ]);
-            event(new CommitteeUpdate($committee));
+        $user = auth('web')->user();
+        abort_if(!$user, 403);
 
+        // Keep backward compatibility for existing roles while introducing dedicated status permission.
+        $canUpdateStatus = $user->can('committees.update-status') || $user->can('committees.edit');
+        abort_if(!$canUpdateStatus, 403);
+
+        $committee=Committee::find($id);
+        if(!$committee){
+            return response()->json([
+                'message' => 'Committee Not Found'
+            ], 404);
         }
+
+        $committee->update([
+            'status'=>(bool) $request->status
+        ]);
+        event(new CommitteeUpdate($committee));
+
         return  response()->json(
             [
-                'status'=>$committee->status
+                'status'=>(bool) $committee->status
             ]
         );
     }

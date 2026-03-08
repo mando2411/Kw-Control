@@ -33,13 +33,14 @@ class Committee extends Model
 
         static::created(function ($committee) {
 
-            $candidateIds = Candidate::pluck('id')->toArray();
-
-            // Debug line
-            \Log::info('Candidate IDs:', $candidateIds);
+            // Keep committee-candidate mapping within the same election context.
+            $candidateIds = Candidate::withoutGlobalScopes()
+                ->where('election_id', $committee->election_id)
+                ->pluck('id')
+                ->toArray();
 
             if (!empty($candidateIds)) {
-                $committee->candidates()->attach($candidateIds);
+                $committee->candidates()->syncWithoutDetaching($candidateIds);
             }
 
             $school=School::where('type',$committee->type)->first();

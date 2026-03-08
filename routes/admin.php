@@ -126,7 +126,7 @@ Route::group([
 Route::get('dashboard/contract/{token}/profile',[ContractorController::class,'profile'])->name('dashboard.con-profile');
 
 Route::post('/keep-alive', [UserController::class, 'keepAlive'])->middleware('auth');
-Route::post('committee/status/{id}',[CommitteeController::class,'status'])->name('committee.status');
+Route::post('committee/status/{id}',[CommitteeController::class,'status'])->middleware('auth:web')->name('committee.status');
 Route::post('ass/{id}',[ContractorController::class,'ass'])->name('ass');
 Route::post('delete/mad',[ContractorController::class,'delete_mad'])->name('delete_mad');
 Route::get('contract/{token}/profile',[ContractorController::class,'profile'])->name('con-profile');
