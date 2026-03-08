@@ -820,7 +820,14 @@
           checkLocked();
         }, 800);
       }).catch(error => {
-        toastr.error(error.response.data.error ?? '{{ __('main.unexpected - error ') }}');
+        var backendError = null;
+        if (error.response && error.response.data) {
+          backendError = error.response.data.error || error.response.data.message || null;
+          if (!backendError && error.response.data.errors) {
+            backendError = Object.values(error.response.data.errors).flat().join(' ');
+          }
+        }
+        toastr.error(backendError || 'حدث خطأ غير متوقع أثناء تغيير حالة الفرز.');
       });
     });
 

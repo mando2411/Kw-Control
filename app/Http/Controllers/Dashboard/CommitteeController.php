@@ -204,16 +204,31 @@ class CommitteeController extends Controller
 
     public function status(Request $request,$id){
         $user = auth('web')->user();
-        abort_if(!$user, 403);
+        if (!$user) {
+            return response()->json([
+                'error' => 'يجب تسجيل الدخول أولا.'
+            ], 403);
+        }
 
-        // Keep backward compatibility for existing roles while introducing dedicated status permission.
-        $canUpdateStatus = $user->can('committees.update-status') || $user->can('committees.edit');
-        abort_if(!$canUpdateStatus, 403);
+        // Keep backward compatibility and allow existing sorting operators to use the toggle.
+        $canUpdateStatus = $user->can('committees.update-status')
+            || $user->can('committees.edit')
+            || $user->can('sorting');
+
+        if (!$canUpdateStatus) {
+            return response()->json([
+                'error' => 'ليس لديك صلاحية تعديل حالة الفرز.'
+            ], 403);
+        }
+
+        $request->validate([
+            'status' => ['required', 'boolean'],
+        ]);
 
         $committee=Committee::find($id);
         if(!$committee){
             return response()->json([
-                'message' => 'Committee Not Found'
+                'error' => 'اللجنة غير موجودة.'
             ], 404);
         }
 
@@ -224,7 +239,8 @@ class CommitteeController extends Controller
 
         return  response()->json(
             [
-                'status'=>(bool) $committee->status
+                'status'=>(bool) $committee->status,
+                'message' => 'تم تحديث حالة الفرز بنجاح.'
             ]
         );
     }
