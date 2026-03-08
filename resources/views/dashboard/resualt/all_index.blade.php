@@ -137,6 +137,30 @@
             gap: 0.9rem;
         }
 
+        .candidate-rank-card > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .candidate-rank-card::before {
+            content: "";
+            position: absolute;
+            top: -58%;
+            left: -45%;
+            width: 34%;
+            height: 220%;
+            background: linear-gradient(110deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.06) 36%,
+                    rgba(255, 248, 214, 0.74) 50%,
+                    rgba(255, 255, 255, 0.08) 64%,
+                    rgba(255, 255, 255, 0) 100%);
+            transform: translateX(-160%) skewX(-18deg);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
         .candidate-rank-card::after {
             content: "";
             position: absolute;
@@ -155,6 +179,11 @@
             border-color: rgba(196, 144, 9, 0.66);
             background: linear-gradient(160deg, #fff8db 0%, #ffe9a7 100%);
             box-shadow: 0 14px 34px rgba(168, 120, 8, 0.26);
+        }
+
+        .candidate-rank-card.rank-gold::before {
+            opacity: 0.82;
+            animation: goldCardShimmer 3.6s ease-in-out infinite;
         }
 
         .candidate-rank-card.rank-silver {
@@ -198,6 +227,16 @@
             min-width: 56px;
             text-align: center;
             z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.24rem;
+        }
+
+        .rank-medal-icon {
+            display: none;
+            font-size: 0.72rem;
+            line-height: 1;
         }
 
         .candidate-rank-card.rank-gold .rank-frame {
@@ -207,6 +246,12 @@
             box-shadow: 0 7px 14px rgba(177, 127, 2, 0.28);
         }
 
+        .candidate-rank-card.rank-gold .rank-medal-icon {
+            display: inline-flex;
+            color: #7a4e00;
+            text-shadow: 0 1px 0 rgba(255, 239, 188, 0.7);
+        }
+
         .candidate-rank-card.rank-silver .rank-frame {
             border-color: #8e9cac;
             background: linear-gradient(135deg, #f4f7fb 0%, #bcc8d6 100%);
@@ -214,11 +259,21 @@
             box-shadow: 0 7px 14px rgba(99, 117, 138, 0.24);
         }
 
+        .candidate-rank-card.rank-silver .rank-medal-icon {
+            display: inline-flex;
+            color: #566578;
+        }
+
         .candidate-rank-card.rank-bronze .rank-frame {
             border-color: #a46134;
             background: linear-gradient(135deg, #fdd8bb 0%, #cf8352 100%);
             color: #5d2f12;
             box-shadow: 0 7px 14px rgba(164, 97, 52, 0.26);
+        }
+
+        .candidate-rank-card.rank-bronze .rank-medal-icon {
+            display: inline-flex;
+            color: #6c3718;
         }
 
         .candidate-rank-card.rank-elite-4 .rank-frame {
@@ -368,6 +423,20 @@
 
             .candidate-meta-line {
                 font-size: 0.76rem;
+            }
+        }
+
+        @keyframes goldCardShimmer {
+            0% {
+                transform: translateX(-160%) skewX(-18deg);
+            }
+
+            54% {
+                transform: translateX(370%) skewX(-18deg);
+            }
+
+            100% {
+                transform: translateX(370%) skewX(-18deg);
             }
         }
     </style>
@@ -521,6 +590,7 @@
                     <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">
                         <article class="candidate-rank-card {{ $rankClass }}">
                             <div class="rank-frame">
+                                <i class="fa-solid fa-medal rank-medal-icon" aria-hidden="true"></i>
                                 <span class="rank-label">{{ $i + 1 }}</span>
                             </div>
 
