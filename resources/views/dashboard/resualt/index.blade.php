@@ -280,16 +280,6 @@
 @endsection
 @push('js')
     <script>
-        Pusher.logToConsole = true;
-        var pusher = new Pusher('abd70d55894bcd00f5cb', {
-            cluster: 'ap2'
-        });
-
-        var channel = pusher.subscribe('votes');
-        channel.bind('my-event', function(e) {
-            updateCandidates(e.message);
-        });
-
         function updateCandidates(candidate) {
     console.log("Received candidate data:", candidate);
 
@@ -390,15 +380,11 @@ function highlightTopCards(sortedCards) {
     </script>
 
     <script>
-           Pusher.logToConsole = true;
-        var pusher = new Pusher('abd70d55894bcd00f5cb', {
-            cluster: 'ap2'
-        });
+        var legacyRealtimeConfig = @json([
+            'key' => config('broadcasting.connections.pusher.key'),
+            'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+        ]);
 
-        var channel = pusher.subscribe('committee');
-        channel.bind('event', function(e) {
-            updateCommittee(e.committee)
-        });
         function updateCommittee(committee) {
     let iconElement = $(`[data-committee-id='${committee.id}'] i`); // Select the icon inside
 
@@ -421,6 +407,64 @@ function highlightTopCards(sortedCards) {
         iconElement.removeClass('flip-icon');
     }, 600); // Full duration of the animation
 }
+
+        function handleLegacyVoteEvent(payload) {
+            var candidate = payload && payload.message ? payload.message : payload;
+            if (!candidate || !candidate.id) {
+                return;
+            }
+
+            updateCandidates(candidate);
+        }
+
+        function handleLegacyCommitteeEvent(payload) {
+            var committee = payload && payload.committee ? payload.committee : payload;
+            if (!committee || !committee.id) {
+                return;
+            }
+
+            updateCommittee(committee);
+        }
+
+        function subscribeLegacyRealtime() {
+            // Prefer Echo so this page follows the same runtime used by newer realtime pages.
+            if (window.Echo && typeof window.Echo.channel === 'function') {
+                window.Echo.channel('votes').listen('.my-event', function (payload) {
+                    handleLegacyVoteEvent(payload || {});
+                });
+
+                window.Echo.channel('committee').listen('.event', function (payload) {
+                    handleLegacyCommitteeEvent(payload || {});
+                });
+
+                return;
+            }
+
+            var key = String((legacyRealtimeConfig && legacyRealtimeConfig.key) || '');
+            if (!key || typeof Pusher === 'undefined') {
+                return;
+            }
+
+            try {
+                Pusher.logToConsole = true;
+                var pusherClient = new Pusher(key, {
+                    cluster: (legacyRealtimeConfig && legacyRealtimeConfig.cluster) || 'mt1',
+                    forceTLS: true,
+                });
+
+                pusherClient.subscribe('votes').bind('my-event', function (payload) {
+                    handleLegacyVoteEvent(payload || {});
+                });
+
+                pusherClient.subscribe('committee').bind('event', function (payload) {
+                    handleLegacyCommitteeEvent(payload || {});
+                });
+            } catch (error) {
+                console.error('Legacy realtime subscription failed:', error);
+            }
+        }
+
+        subscribeLegacyRealtime();
 
     </script>
 @endpush
