@@ -1542,6 +1542,11 @@ class CandidateController extends Controller
             return false;
         }
 
+        // Representative linkage must always take precedence over other roles.
+        if ($user->hasRole('مندوب') || $user->representatives()->exists()) {
+            return true;
+        }
+
         if ($user->hasRole('Administrator') || $user->hasRole('مرشح')) {
             return false;
         }
