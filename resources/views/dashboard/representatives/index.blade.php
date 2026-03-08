@@ -37,10 +37,7 @@
                         </div>
 
                         <div class="card-body order-datatable overflow-x-auto representatives-table-wrap">
-                            <div class="alert alert-light border mb-3 representatives-hint" role="status">
-                                <strong>ملاحظة:</strong>
-                                تم إخفاء المعرف، ويعرض الجدول فقط البيانات الأساسية الواضحة للمندوبين.
-                            </div>
+                            <!-- Representative table intentionally shows only business fields (ID hidden by design). -->
                             <div>
                                 {!! $dataTable->table(['class' => 'display align-middle w-100']) !!}
                             </div>
@@ -115,12 +112,6 @@
 
         .representatives-table-wrap {
             background: #ffffff;
-        }
-
-        .representatives-hint {
-            border-radius: 12px;
-            color: #2f4b67;
-            background-color: #f8fbff;
         }
 
         .representatives-page .dataTables_wrapper .dataTables_filter {
