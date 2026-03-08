@@ -835,7 +835,14 @@
 
       $btn.prop('disabled', true);
 
-      axios.post($form.attr('action'), $form.serialize()).then((res) => {
+      axios.post($form.attr('action'), {
+        _token: $('meta[name="csrf-token"]').attr('content'),
+        status: normalizeStatusValue($('#status').val()),
+      }, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).then((res) => {
         var normalizedStatus = normalizeStatusValue(res.data.status);
         $('#status').val(normalizedStatus);
         checkLocked();

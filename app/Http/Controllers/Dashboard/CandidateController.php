@@ -1314,14 +1314,19 @@ class CandidateController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'status' => ['required', 'boolean'],
-        ]);
-
-        $currentStatus = $request->boolean('status') ? 1 : 0;
+        $currentStatus = $this->resolveCurrentUserSortingStatus($user);
         $newStatus = $currentStatus === 1 ? 0 : 1;
 
-        Cache::forever($this->sortingStatusCacheKey((int) $user->id), $newStatus);
+        try {
+            Cache::forever($this->sortingStatusCacheKey((int) $user->id), $newStatus);
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to persist sorting status in cache', [
+                'user_id' => (int) $user->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            session()->put($this->sortingStatusSessionKey((int) $user->id), $newStatus);
+        }
 
         return response()->json([
             'status' => $newStatus,
@@ -1740,7 +1745,13 @@ class CandidateController extends Controller
             return 1;
         }
 
-        $cachedStatus = Cache::get($this->sortingStatusCacheKey((int) $user->id));
+        $cachedStatus = null;
+        try {
+            $cachedStatus = Cache::get($this->sortingStatusCacheKey((int) $user->id));
+        } catch (\Throwable $exception) {
+            $cachedStatus = session()->get($this->sortingStatusSessionKey((int) $user->id));
+        }
+
         if ($cachedStatus === null) {
             return 1;
         }
@@ -1751,6 +1762,11 @@ class CandidateController extends Controller
     private function sortingStatusCacheKey(int $userId): string
     {
         return 'sorting_status_user_' . $userId;
+    }
+
+    private function sortingStatusSessionKey(int $userId): string
+    {
+        return 'sorting_status_user_fallback_' . $userId;
     }
 
 }
