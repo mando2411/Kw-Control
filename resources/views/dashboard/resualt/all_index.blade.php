@@ -124,8 +124,8 @@
         .candidate-rank-card {
             position: relative;
             border-radius: 18px;
-            border: 1px solid #dbe8f8;
-            background: linear-gradient(165deg, #ffffff 0%, #f6faff 100%);
+            border: 1px solid #ecd9a4;
+            background: linear-gradient(165deg, #fffdf6 0%, #fff7e2 100%);
             box-shadow: var(--rp-shadow-soft);
             min-height: 122px;
             padding: 0.82rem 0.9rem;
@@ -141,7 +141,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 102% -8%, rgba(0, 108, 103, 0.11), transparent 43%);
+            background: radial-gradient(circle at 102% -8%, rgba(217, 119, 6, 0.15), transparent 43%);
             pointer-events: none;
         }
 
@@ -151,14 +151,32 @@
             box-shadow: 0 16px 30px rgba(17, 38, 61, 0.14);
         }
 
-        .candidate-rank-card.is-top-four {
-            border-color: rgba(47, 133, 90, 0.52);
-            background: linear-gradient(160deg, #ffffff 0%, #f1fff7 100%);
+        .candidate-rank-card.rank-gold {
+            border-color: rgba(196, 144, 9, 0.66);
+            background: linear-gradient(160deg, #fff8db 0%, #ffe9a7 100%);
+            box-shadow: 0 14px 34px rgba(168, 120, 8, 0.26);
         }
 
-        .candidate-rank-card.is-fifth {
-            border-color: rgba(139, 92, 246, 0.38);
-            background: linear-gradient(160deg, #ffffff 0%, #f7f3ff 100%);
+        .candidate-rank-card.rank-silver {
+            border-color: rgba(126, 141, 158, 0.6);
+            background: linear-gradient(160deg, #f9fbfd 0%, #e6edf6 100%);
+            box-shadow: 0 14px 30px rgba(89, 105, 124, 0.18);
+        }
+
+        .candidate-rank-card.rank-bronze {
+            border-color: rgba(176, 109, 63, 0.62);
+            background: linear-gradient(160deg, #fff2e7 0%, #f7d3b8 100%);
+            box-shadow: 0 14px 30px rgba(150, 92, 53, 0.19);
+        }
+
+        .candidate-rank-card.rank-elite-4 {
+            border-color: rgba(27, 109, 96, 0.44);
+            background: linear-gradient(160deg, #ffffff 0%, #e5f8f5 100%);
+        }
+
+        .candidate-rank-card.rank-elite-5 {
+            border-color: rgba(95, 73, 198, 0.42);
+            background: linear-gradient(160deg, #ffffff 0%, #efe8ff 100%);
         }
 
         .candidate-rank-card.is-moving {
@@ -182,16 +200,37 @@
             z-index: 2;
         }
 
-        .candidate-rank-card.is-top-four .rank-frame {
-            border-color: rgba(47, 133, 90, 0.5);
-            background: rgba(47, 133, 90, 0.12);
-            color: #1f6c47;
+        .candidate-rank-card.rank-gold .rank-frame {
+            border-color: #b17f02;
+            background: linear-gradient(135deg, #ffe79a 0%, #e5b944 100%);
+            color: #5e3f00;
+            box-shadow: 0 7px 14px rgba(177, 127, 2, 0.28);
         }
 
-        .candidate-rank-card.is-fifth .rank-frame {
-            border-color: rgba(139, 92, 246, 0.44);
-            background: rgba(139, 92, 246, 0.13);
-            color: #6b38cf;
+        .candidate-rank-card.rank-silver .rank-frame {
+            border-color: #8e9cac;
+            background: linear-gradient(135deg, #f4f7fb 0%, #bcc8d6 100%);
+            color: #425467;
+            box-shadow: 0 7px 14px rgba(99, 117, 138, 0.24);
+        }
+
+        .candidate-rank-card.rank-bronze .rank-frame {
+            border-color: #a46134;
+            background: linear-gradient(135deg, #fdd8bb 0%, #cf8352 100%);
+            color: #5d2f12;
+            box-shadow: 0 7px 14px rgba(164, 97, 52, 0.26);
+        }
+
+        .candidate-rank-card.rank-elite-4 .rank-frame {
+            border-color: rgba(27, 109, 96, 0.44);
+            background: rgba(27, 109, 96, 0.14);
+            color: #12584e;
+        }
+
+        .candidate-rank-card.rank-elite-5 .rank-frame {
+            border-color: rgba(95, 73, 198, 0.44);
+            background: rgba(95, 73, 198, 0.14);
+            color: #432ea8;
         }
 
         .candidate-photo {
@@ -468,8 +507,19 @@
 
             <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
                 @foreach ($candidates as $i => $can)
+                    @php
+                        $rankClass = $i === 0
+                            ? 'rank-gold'
+                            : ($i === 1
+                                ? 'rank-silver'
+                                : ($i === 2
+                                    ? 'rank-bronze'
+                                    : ($i === 3
+                                        ? 'rank-elite-4'
+                                        : ($i === 4 ? 'rank-elite-5' : ''))));
+                    @endphp
                     <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">
-                        <article class="candidate-rank-card @if($i < 4) is-top-four @elseif($i == 4) is-fifth @endif">
+                        <article class="candidate-rank-card {{ $rankClass }}">
                             <div class="rank-frame">
                                 <span class="rank-label">{{ $i + 1 }}</span>
                             </div>
@@ -518,6 +568,8 @@
             }
 
             function markRankClasses(sortedCols) {
+                var rankClasses = ['rank-gold', 'rank-silver', 'rank-bronze', 'rank-elite-4', 'rank-elite-5'];
+
                 sortedCols.forEach(function (cardCol, index) {
                     var card = cardCol.querySelector('.candidate-rank-card');
                     var rankLabel = cardCol.querySelector('.rank-label');
@@ -526,8 +578,13 @@
                         return;
                     }
 
-                    card.classList.toggle('is-top-four', index < 4);
-                    card.classList.toggle('is-fifth', index === 4);
+                    rankClasses.forEach(function (className) {
+                        card.classList.remove(className);
+                    });
+
+                    if (index < rankClasses.length) {
+                        card.classList.add(rankClasses[index]);
+                    }
 
                     if (rankLabel) {
                         rankLabel.innerText = ordinal(index + 1);
