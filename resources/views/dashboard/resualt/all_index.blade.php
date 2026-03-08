@@ -176,14 +176,28 @@
         }
 
         .candidate-rank-card.rank-gold {
-            border-color: rgba(196, 144, 9, 0.66);
-            background: linear-gradient(160deg, #fff8db 0%, #ffe9a7 100%);
-            box-shadow: 0 14px 34px rgba(168, 120, 8, 0.26);
+            border-color: #b98912;
+            background: linear-gradient(145deg,
+                    #fff8d2 0%,
+                    #f8dc86 20%,
+                    #d8aa32 46%,
+                    #f1ca5d 70%,
+                    #fff0bb 100%);
+            box-shadow:
+                0 16px 36px rgba(141, 97, 7, 0.34),
+                inset 0 1px 0 rgba(255, 249, 223, 0.95),
+                inset 0 -1px 0 rgba(152, 103, 9, 0.25);
         }
 
         .candidate-rank-card.rank-gold::before {
             opacity: 0.82;
             animation: goldCardShimmer 3.6s ease-in-out infinite;
+        }
+
+        .candidate-rank-card.rank-gold::after {
+            background:
+                radial-gradient(circle at 100% -12%, rgba(255, 240, 185, 0.58), transparent 44%),
+                radial-gradient(circle at -8% 110%, rgba(173, 119, 6, 0.18), transparent 42%);
         }
 
         .candidate-rank-card.rank-silver {
@@ -240,16 +254,32 @@
         }
 
         .candidate-rank-card.rank-gold .rank-frame {
-            border-color: #b17f02;
-            background: linear-gradient(135deg, #ffe79a 0%, #e5b944 100%);
-            color: #5e3f00;
-            box-shadow: 0 7px 14px rgba(177, 127, 2, 0.28);
+            border-color: #9d6d00;
+            background: linear-gradient(135deg,
+                    #fff3bf 0%,
+                    #f2cf66 34%,
+                    #ca960f 72%,
+                    #ffe08d 100%);
+            color: #4f2f00;
+            box-shadow:
+                0 8px 16px rgba(143, 98, 7, 0.34),
+                inset 0 1px 0 rgba(255, 247, 215, 0.95);
         }
 
         .candidate-rank-card.rank-gold .rank-medal-icon {
             display: inline-flex;
-            color: #7a4e00;
-            text-shadow: 0 1px 0 rgba(255, 239, 188, 0.7);
+            color: #684000;
+            text-shadow: 0 1px 0 rgba(255, 241, 189, 0.82);
+        }
+
+        .candidate-rank-card.rank-gold .candidate-name {
+            color: #5f3a00;
+            text-shadow: 0 1px 0 rgba(255, 245, 204, 0.7);
+        }
+
+        .candidate-rank-card.rank-gold .soundNum {
+            background: rgba(179, 120, 3, 0.18);
+            color: #6b3f00;
         }
 
         .candidate-rank-card.rank-silver .rank-frame {
