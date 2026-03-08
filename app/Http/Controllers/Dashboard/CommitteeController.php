@@ -89,20 +89,31 @@ class CommitteeController extends Controller
 
     public function generate(){
 
-        $relations=[
-            'elections'=>Election::select('id','name')->get()
+        $relations = [
+            'elections' => Election::query()->select('id', 'name')->orderBy('name')->get(),
         ];
 
-        return view('dashboard.committees.multi',compact('relations'));
+        return view('dashboard.committees.multi', compact('relations'));
     }
 
     public function multi(Request $request)
     {
         $validateData = $request->validate([
-            'men' => ['required','integer','min:1'],
-            'women' => ['required','integer','min:1'],
-            'election_id' => ['required']
+            'men' => ['required', 'integer', 'min:1'],
+            'women' => ['required', 'integer', 'min:1'],
+            'election_id' => ['required', 'integer', 'exists:elections,id'],
+        ], [
+            'men.required' => 'يرجى إدخال عدد لجان الذكور.',
+            'men.integer' => 'عدد لجان الذكور يجب أن يكون رقمًا صحيحًا.',
+            'men.min' => 'عدد لجان الذكور يجب أن يكون 1 على الأقل.',
+            'women.required' => 'يرجى إدخال عدد لجان الإناث.',
+            'women.integer' => 'عدد لجان الإناث يجب أن يكون رقمًا صحيحًا.',
+            'women.min' => 'عدد لجان الإناث يجب أن يكون 1 على الأقل.',
+            'election_id.required' => 'يرجى اختيار الحملة الانتخابية.',
+            'election_id.integer' => 'قيمة الحملة الانتخابية غير صحيحة.',
+            'election_id.exists' => 'الحملة الانتخابية المختارة غير موجودة.',
         ]);
+
         // Generate Multi Committees Using Enums
         $message = $this->generator->createRecords($validateData);
 
