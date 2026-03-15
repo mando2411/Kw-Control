@@ -342,8 +342,8 @@
 
         .candidate-main-block {
             min-width: 0;
-            flex: 1 1 auto;
-            max-width: none;
+            flex: 0 1 auto;
+            max-width: 62%;
         }
 
         .candidate-side-stats {
