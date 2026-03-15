@@ -854,8 +854,8 @@
             }
 
             .results-cards-grid[data-view-mode="compact"] .result-card-col {
-                flex: 0 0 50%;
-                max-width: 50%;
+                flex: 0 0 33.3333%;
+                max-width: 33.3333%;
             }
         }
 
