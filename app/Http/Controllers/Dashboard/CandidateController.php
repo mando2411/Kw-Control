@@ -1029,24 +1029,35 @@ class CandidateController extends Controller
         abort_if(!auth()->check() || !auth()->user()->can('candidates.list'), 403);
 
         $selectedElectionId = (int) $request->input('election_id', 0);
+        $hasSortingOrderColumn = Schema::hasColumn('candidates', 'sorting_order');
         $elections = Election::query()->orderByDesc('id')->get(['id', 'name']);
         $candidates = collect();
 
         if ($selectedElectionId > 0) {
-            $candidates = Candidate::withoutGlobalScopes()
+            $candidatesQuery = Candidate::withoutGlobalScopes()
                 ->join('users', 'candidates.user_id', '=', 'users.id')
-                ->where('candidates.election_id', $selectedElectionId)
-                ->orderByRaw('CASE WHEN candidates.sorting_order IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('candidates.sorting_order')
-                ->orderBy('users.name')
-                ->get([
-                    'candidates.id',
-                    'candidates.candidate_type',
-                    'candidates.list_leader_candidate_id',
-                    'candidates.list_name',
-                    'candidates.sorting_order',
-                    'users.name as user_name',
-                ])
+                ->where('candidates.election_id', $selectedElectionId);
+
+            if ($hasSortingOrderColumn) {
+                $candidatesQuery
+                    ->orderByRaw('CASE WHEN candidates.sorting_order IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('candidates.sorting_order');
+            }
+            $candidatesQuery->orderBy('users.name');
+
+            $selectColumns = [
+                'candidates.id',
+                'candidates.candidate_type',
+                'candidates.list_leader_candidate_id',
+                'candidates.list_name',
+                'users.name as user_name',
+            ];
+            if ($hasSortingOrderColumn) {
+                $selectColumns[] = 'candidates.sorting_order';
+            }
+
+            $candidates = $candidatesQuery
+                ->get($selectColumns)
                 ->map(function ($candidate) {
                     $candidateType = (string) ($candidate->candidate_type ?? 'candidate');
                     $typeLabel = 'مستقل';
@@ -1080,6 +1091,7 @@ class CandidateController extends Controller
     public function candidateOrderingUpdate(Request $request)
     {
         abort_if(!auth()->check() || !auth()->user()->can('candidates.edit'), 403);
+        abort_unless(Schema::hasColumn('candidates', 'sorting_order'), 422, 'حقل ترتيب المرشحين غير متوفر. يرجى تنفيذ التحديثات.');
 
         $validated = $request->validate([
             'election_id' => ['required', 'integer', 'exists:elections,id'],
@@ -1116,6 +1128,7 @@ class CandidateController extends Controller
     public function sorting(Request $request)
     {
         $currentUser = auth()->user();
+        $hasSortingOrderColumn = Schema::hasColumn('candidates', 'sorting_order');
         $sortingStatus = $this->resolveCurrentUserSortingStatus($currentUser);
         $hasRepresentativeCandidatePivot = Schema::hasTable('candidate_representative');
         $isScopedSortingUser = $this->shouldScopeSortingCandidates($currentUser);
@@ -1250,10 +1263,14 @@ class CandidateController extends Controller
                         });
                     })
                     ->orderByRaw("CASE WHEN candidates.candidate_type = 'list_leader' THEN 1 ELSE 0 END")
-                    ->orderByRaw("CASE WHEN candidates.sorting_order IS NULL THEN 1 ELSE 0 END")
-                    ->orderBy('candidates.sorting_order')
                     ->orderBy('users.name')
                     ->select('candidates.*', 'users.name as user_name');
+
+                if ($hasSortingOrderColumn) {
+                    $candidatesQuery
+                        ->orderByRaw("CASE WHEN candidates.sorting_order IS NULL THEN 1 ELSE 0 END")
+                        ->orderBy('candidates.sorting_order');
+                }
 
                 $this->applySortingCandidateVisibilityScope($candidatesQuery, $effectiveElectionId);
 
