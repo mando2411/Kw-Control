@@ -165,6 +165,7 @@
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(135, 156, 183, 0.2);
             box-shadow: none;
+            overflow: visible;
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card::before,
