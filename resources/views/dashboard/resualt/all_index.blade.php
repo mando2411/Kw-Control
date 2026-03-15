@@ -335,6 +335,28 @@
             padding-inline-start: 0.28rem;
         }
 
+        .candidate-main-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem;
+        }
+
+        .candidate-main-block {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .candidate-side-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.16rem;
+            text-align: center;
+            flex: 0 0 auto;
+        }
+
         .candidate-name {
             margin: 0 0 0.35rem;
             font-size: 1.04rem;
@@ -350,19 +372,19 @@
         .candidate-votes-line {
             margin: 0;
             color: #4e647f;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             font-weight: 700;
         }
 
         .candidate-list-votes-line {
             margin: 0.18rem 0 0;
             color: #5f6f84;
-            font-size: 0.86rem;
+            font-size: 0.82rem;
             font-weight: 700;
         }
 
         .candidate-total-with-list-line {
-            margin: 0.18rem 0 0;
+            margin: 0.12rem 0 0;
             color: #354b63;
             font-size: 0.88rem;
             font-weight: 800;
@@ -483,11 +505,15 @@
             }
 
             .candidate-votes-line {
-                font-size: 0.86rem;
+                font-size: 0.8rem;
             }
 
-            .candidate-meta-line {
-                font-size: 0.76rem;
+            .candidate-list-votes-line {
+                font-size: 0.78rem;
+            }
+
+            .candidate-main-row {
+                gap: 0.42rem;
             }
         }
 
@@ -672,10 +698,16 @@
                             <img src="{{ $can->user->image ?? asset('assets/admin/images/images.png') }}" class="candidate-photo" alt="candidate image" />
 
                             <div class="candidate-details">
-                                <h6 class="candidate-name">{{ $can->user->name }}</h6>
-                                <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
-                                <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
-                                <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
+                                <div class="candidate-main-row">
+                                    <div class="candidate-main-block">
+                                        <h6 class="candidate-name">{{ $can->user->name }}</h6>
+                                        <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
+                                    </div>
+                                    <div class="candidate-side-stats">
+                                        <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
+                                        <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
+                                    </div>
+                                </div>
                             </div>
                         </article>
                     </div>
