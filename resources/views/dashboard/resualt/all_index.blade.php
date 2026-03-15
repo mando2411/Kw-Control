@@ -655,7 +655,6 @@
                                 <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
                                 <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
                                 <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
-                                <p class="candidate-meta-line">المركز الحالي: <span class="rank-label-inline">{{ $i + 1 }}</span></p>
                             </div>
                         </article>
                     </div>
@@ -699,7 +698,6 @@
                 sortedCols.forEach(function (cardCol, index) {
                     var card = cardCol.querySelector('.candidate-rank-card');
                     var rankLabel = cardCol.querySelector('.rank-label');
-                    var rankLabelInline = cardCol.querySelector('.rank-label-inline');
                     if (!card) {
                         return;
                     }
@@ -716,9 +714,6 @@
                         rankLabel.innerText = ordinal(index + 1);
                     }
 
-                    if (rankLabelInline) {
-                        rankLabelInline.innerText = ordinal(index + 1);
-                    }
                 });
             }
 
