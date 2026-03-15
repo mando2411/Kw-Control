@@ -806,6 +806,25 @@
                 transform: translateX(370%) skewX(-18deg);
             }
         }
+
+        @media (max-width: 991px) {
+            body.results-auto-chrome-hidden .dashboard-topbar-mobile {
+                transform: translateY(calc(-100% - 14px));
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            body.results-auto-chrome-hidden .dashboard-mobilebar {
+                transform: translateY(calc(100% + 14px));
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .dashboard-topbar-mobile,
+            .dashboard-mobilebar {
+                transition: transform 0.26s ease, opacity 0.22s ease;
+            }
+        }
     </style>
 
     <section class="results-pro-page">
@@ -1360,6 +1379,101 @@
             }
 
             startRealtime();
+        })();
+    </script>
+    <script>
+        (function () {
+            var page = document.querySelector('.results-pro-page');
+            if (!page || !document.body) {
+                return;
+            }
+
+            var root = document.documentElement;
+            var body = document.body;
+            var mobileMedia = window.matchMedia ? window.matchMedia('(max-width: 991px)') : null;
+            var idleTimer = null;
+            var hiddenClass = 'results-auto-chrome-hidden';
+            var topGap = 12;
+            var bottomGap = 12;
+
+            function isMobile() {
+                return !!(mobileMedia && mobileMedia.matches);
+            }
+
+            function setVisibleOffsets() {
+                var topBar = document.querySelector('.dashboard-topbar-mobile');
+                var bottomBar = document.querySelector('.dashboard-mobilebar');
+
+                if (topBar) {
+                    var topRect = topBar.getBoundingClientRect();
+                    root.style.setProperty('--dashboard-topbar-offset', Math.ceil(topRect.bottom + topGap) + 'px');
+                }
+
+                if (bottomBar) {
+                    var bottomRect = bottomBar.getBoundingClientRect();
+                    var bottomOffset = Math.ceil((window.innerHeight - bottomRect.top) + bottomGap);
+                    root.style.setProperty('--dashboard-mobilebar-offset', bottomOffset + 'px');
+                }
+            }
+
+            function showChrome() {
+                body.classList.remove(hiddenClass);
+                setVisibleOffsets();
+            }
+
+            function hideChrome() {
+                body.classList.add(hiddenClass);
+                root.style.setProperty('--dashboard-topbar-offset', '12px');
+                root.style.setProperty('--dashboard-mobilebar-offset', '16px');
+            }
+
+            function clearIdleTimer() {
+                if (!idleTimer) {
+                    return;
+                }
+                clearTimeout(idleTimer);
+                idleTimer = null;
+            }
+
+            function queueAutoHide() {
+                clearIdleTimer();
+                if (!isMobile()) {
+                    return;
+                }
+                idleTimer = setTimeout(function () {
+                    hideChrome();
+                }, 3000);
+            }
+
+            function handleActivity() {
+                if (!isMobile()) {
+                    showChrome();
+                    return;
+                }
+                showChrome();
+                queueAutoHide();
+            }
+
+            function handleResize() {
+                if (!isMobile()) {
+                    clearIdleTimer();
+                    body.classList.remove(hiddenClass);
+                    setVisibleOffsets();
+                    return;
+                }
+                handleActivity();
+            }
+
+            window.addEventListener('scroll', handleActivity, { passive: true });
+            window.addEventListener('touchmove', handleActivity, { passive: true });
+            window.addEventListener('resize', handleResize);
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) {
+                    handleResize();
+                }
+            });
+
+            handleResize();
         })();
     </script>
 @endpush
