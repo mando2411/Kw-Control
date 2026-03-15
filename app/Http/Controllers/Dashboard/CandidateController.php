@@ -1024,6 +1024,95 @@ class CandidateController extends Controller
         return response()->json(['success' => $result['success']]);
     }
     //================================================================================================
+    public function candidateOrdering(Request $request)
+    {
+        abort_if(!auth()->check() || !auth()->user()->hasRole('Administrator'), 403);
+
+        $selectedElectionId = (int) $request->input('election_id', 0);
+        $elections = Election::query()->orderByDesc('id')->get(['id', 'name']);
+        $candidates = collect();
+
+        if ($selectedElectionId > 0) {
+            $candidates = Candidate::withoutGlobalScopes()
+                ->join('users', 'candidates.user_id', '=', 'users.id')
+                ->where('candidates.election_id', $selectedElectionId)
+                ->orderByRaw('CASE WHEN candidates.sorting_order IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('candidates.sorting_order')
+                ->orderBy('users.name')
+                ->get([
+                    'candidates.id',
+                    'candidates.candidate_type',
+                    'candidates.list_leader_candidate_id',
+                    'candidates.list_name',
+                    'candidates.sorting_order',
+                    'users.name as user_name',
+                ])
+                ->map(function ($candidate) {
+                    $candidateType = (string) ($candidate->candidate_type ?? 'candidate');
+                    $typeLabel = 'مستقل';
+                    if ($candidateType === 'list_leader') {
+                        $typeLabel = 'رئيس قائمة';
+                    } elseif ((int) ($candidate->list_leader_candidate_id ?? 0) > 0) {
+                        $typeLabel = 'عضو قائمة';
+                    }
+
+                    $displayName = (string) ($candidate->user_name ?? '');
+                    if ($candidateType === 'list_leader') {
+                        $listName = trim((string) ($candidate->list_name ?? ''));
+                        if ($listName !== '') {
+                            $displayName = 'القائمة: ' . $listName;
+                        }
+                    }
+
+                    return [
+                        'id' => (int) $candidate->id,
+                        'name' => $displayName,
+                        'type_label' => $typeLabel,
+                        'sorting_order' => $candidate->sorting_order !== null ? (int) $candidate->sorting_order : null,
+                    ];
+                })
+                ->values();
+        }
+
+        return view('dashboard.candidates.ordering', compact('elections', 'selectedElectionId', 'candidates'));
+    }
+    //================================================================================================
+    public function candidateOrderingUpdate(Request $request)
+    {
+        abort_if(!auth()->check() || !auth()->user()->hasRole('Administrator'), 403);
+
+        $validated = $request->validate([
+            'election_id' => ['required', 'integer', 'exists:elections,id'],
+            'orders' => ['nullable', 'array'],
+            'orders.*' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $electionId = (int) $validated['election_id'];
+        $orders = (array) ($validated['orders'] ?? []);
+
+        $candidateIds = Candidate::withoutGlobalScopes()
+            ->where('election_id', $electionId)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        DB::transaction(function () use ($candidateIds, $orders, $electionId) {
+            foreach ($candidateIds as $candidateId) {
+                $orderValue = $orders[$candidateId] ?? null;
+                $orderValue = ($orderValue === '' || $orderValue === null) ? null : (int) $orderValue;
+
+                Candidate::withoutGlobalScopes()
+                    ->where('id', $candidateId)
+                    ->where('election_id', $electionId)
+                    ->update(['sorting_order' => $orderValue]);
+            }
+        });
+
+        return redirect()
+            ->route('dashboard.candidates.ordering', ['election_id' => $electionId])
+            ->with('success', 'تم حفظ ترتيب المرشحين بنجاح.');
+    }
+    //================================================================================================
     public function sorting(Request $request)
     {
         $currentUser = auth()->user();
@@ -1161,6 +1250,8 @@ class CandidateController extends Controller
                         });
                     })
                     ->orderByRaw("CASE WHEN candidates.candidate_type = 'list_leader' THEN 1 ELSE 0 END")
+                    ->orderByRaw("CASE WHEN candidates.sorting_order IS NULL THEN 1 ELSE 0 END")
+                    ->orderBy('candidates.sorting_order')
                     ->orderBy('users.name')
                     ->select('candidates.*', 'users.name as user_name');
 
@@ -1201,6 +1292,7 @@ class CandidateController extends Controller
                             'is_list' => $isListLeader,
                             'candidate_group' => $candidateGroup,
                             'list_group_id' => $listGroupId,
+                            'sorting_order' => $candidate->sorting_order !== null ? (int) $candidate->sorting_order : null,
                         ];
                     });
             }

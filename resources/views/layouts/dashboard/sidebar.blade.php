@@ -89,6 +89,11 @@
         'link' => route('dashboard.elections.create'),
         'permissions' => ['elections.create'],
     ],
+    [
+        'title' => 'ترتيب المرشحين',
+        'link' => route('dashboard.candidates.ordering'),
+        'permissions' => ['elections.list'],
+    ],
 ]" />
 
 

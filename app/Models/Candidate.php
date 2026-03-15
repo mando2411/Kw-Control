@@ -23,6 +23,7 @@ class Candidate extends Model
         'list_logo',
         'is_actual_list_candidate',
         'list_leader_candidate_id',
+        'sorting_order',
         'is_stopped',
         'stopped_by_candidate_id',
         'stopped_at',
@@ -30,6 +31,7 @@ class Candidate extends Model
 
     protected $casts = [
         'is_actual_list_candidate' => 'boolean',
+        'sorting_order' => 'integer',
         'is_stopped' => 'boolean',
         'stopped_at' => 'datetime',
     ];

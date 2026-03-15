@@ -932,7 +932,7 @@
             <tbody class="text-center">
               @foreach ($regularCandidates as $index => $can)
                 <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}" data-is-list="{{ !empty($can['is_list']) ? 1 : 0 }}" data-list-group-id="{{ (int) ($can['list_group_id'] ?? 0) }}" data-origin-table="candidates" data-origin-order="{{ $index }}">
-                  <td data-label="الترتيب">{{ $index + 1 }}</td>
+                  <td data-label="الترتيب">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
                       <i class="fa-solid fa-plus"></i>
@@ -942,7 +942,7 @@
                   <td class="candidate-name fullName" data-label="المرشح" data-candidate-name="{{ $can['name'] }}">
                     <span class="candidate-name-desktop">{{ $can['name'] }}</span>
                     <div class="candidate-mobile-line">
-                      <span class="candidate-mobile-rank">{{ $index + 1 }}</span>
+                      <span class="candidate-mobile-rank">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</span>
                       <span class="candidate-mobile-name">{{ $can['name'] }}</span>
                       <span id="mobile_vote_count_{{ $can['id'] }}" class="vote-pill mobile-vote-pill">{{ $can['votes'] }}</span>
                     </div>
@@ -996,7 +996,7 @@
               <tbody class="text-center">
                 @foreach ($listCandidates as $index => $can)
                   <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}" data-is-list="1" data-list-group-id="{{ (int) ($can['list_group_id'] ?? $can['id']) }}" data-origin-table="lists" data-origin-order="{{ $index }}">
-                    <td data-label="الترتيب">{{ $index + 1 }}</td>
+                    <td data-label="الترتيب">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
                         <i class="fa-solid fa-plus"></i>
@@ -1006,7 +1006,7 @@
                     <td class="candidate-name fullName" data-label="القائمة" data-candidate-name="{{ $can['name'] }}">
                       <span class="candidate-name-desktop">{{ $can['name'] }}</span>
                       <div class="candidate-mobile-line">
-                        <span class="candidate-mobile-rank">{{ $index + 1 }}</span>
+                        <span class="candidate-mobile-rank">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</span>
                         <span class="candidate-mobile-name">{{ $can['name'] }}</span>
                         <span id="mobile_vote_count_{{ $can['id'] }}" class="vote-pill mobile-vote-pill">{{ $can['votes'] }}</span>
                       </div>

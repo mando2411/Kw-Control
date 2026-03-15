@@ -54,6 +54,8 @@ Route::group(['prefix' => 'dashboard',
     Route::post('contractor/main', [ContractorController::class,'contractor'])->name('con-main');
     Route::resource('representatives', RepresentativeController::class)->except('show');
     Route::resource('candidates', CandidateController::class)->except('show');
+    Route::get('candidates-ordering', [CandidateController::class, 'candidateOrdering'])->name('candidates.ordering');
+    Route::post('candidates-ordering', [CandidateController::class, 'candidateOrderingUpdate'])->name('candidates.ordering.update');
     Route::post('candidates/{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])->name('candidates.toggle-status');
     Route::get('list-management/voters', [CandidateController::class, 'listManagementVoters'])->name('candidates.list-management.voters');
     Route::get('list-management/voters/{voter}/details', [CandidateController::class, 'listManagementVoterDetails'])->name('candidates.list-management.voters.details');
