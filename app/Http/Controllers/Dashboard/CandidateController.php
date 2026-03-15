@@ -1289,6 +1289,19 @@ class CandidateController extends Controller
             ->sortByDesc('votes')
             ->values();
 
+        $listVoteTotals = [];
+        foreach ($candidates as $candidateForListTotal) {
+            $candidateTypeForListTotal = (string) ($candidateForListTotal->candidate_type ?? '');
+            $listGroupIdForListTotal = $candidateTypeForListTotal === 'list_leader'
+                ? (int) $candidateForListTotal->id
+                : (int) ($candidateForListTotal->list_leader_candidate_id ?? 0);
+
+            if ($listGroupIdForListTotal > 0) {
+                $listVoteTotals[$listGroupIdForListTotal] = ($listVoteTotals[$listGroupIdForListTotal] ?? 0)
+                    + (int) ($candidateForListTotal->votes ?? 0);
+            }
+        }
+
         $committeeTotals = [];
         foreach ($committeeIds as $committeeId) {
             $committeeTotals[$committeeId] = 0;
@@ -1299,6 +1312,10 @@ class CandidateController extends Controller
             $candidateCommitteeVotes = [];
             $menTotal = 0;
             $womenTotal = 0;
+            $candidateType = (string) ($candidate->candidate_type ?? '');
+            $listGroupId = $candidateType === 'list_leader'
+                ? (int) $candidate->id
+                : (int) ($candidate->list_leader_candidate_id ?? 0);
 
             foreach ($candidate->committees as $committee) {
                 $committeeId = (int) $committee->id;
@@ -1320,6 +1337,7 @@ class CandidateController extends Controller
                 'men_total' => $menTotal,
                 'women_total' => $womenTotal,
                 'committee_votes' => $candidateCommitteeVotes,
+                'list_total_votes' => $listGroupId > 0 ? (int) ($listVoteTotals[$listGroupId] ?? 0) : null,
             ];
         }
 

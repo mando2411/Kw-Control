@@ -354,6 +354,13 @@
             font-weight: 700;
         }
 
+        .candidate-list-votes-line {
+            margin: 0.18rem 0 0;
+            color: #5f6f84;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
         .candidate-meta-line {
             margin: 0.22rem 0 0;
             color: #607792;
@@ -605,6 +612,20 @@
             </div>
 
             <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
+                @php
+                    $listVoteTotals = collect($candidates)->reduce(function ($carry, $candidate) {
+                        $candidateType = (string) ($candidate->candidate_type ?? '');
+                        $listGroupId = $candidateType === 'list_leader'
+                            ? (int) $candidate->id
+                            : (int) ($candidate->list_leader_candidate_id ?? 0);
+
+                        if ($listGroupId > 0) {
+                            $carry[$listGroupId] = ($carry[$listGroupId] ?? 0) + (int) ($candidate->votes ?? 0);
+                        }
+
+                        return $carry;
+                    }, []);
+                @endphp
                 @foreach ($candidates as $i => $can)
                     @php
                         $rankClass = $i === 0
@@ -616,6 +637,11 @@
                                     : ($i === 3
                                         ? 'rank-elite-4'
                                         : ($i === 4 ? 'rank-elite-5' : ''))));
+                        $candidateType = (string) ($can->candidate_type ?? '');
+                        $listGroupId = $candidateType === 'list_leader'
+                            ? (int) $can->id
+                            : (int) ($can->list_leader_candidate_id ?? 0);
+                        $listTotalVotes = $listGroupId > 0 ? (int) ($listVoteTotals[$listGroupId] ?? 0) : null;
                     @endphp
                     <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">
                         <article class="candidate-rank-card {{ $rankClass }}">
@@ -629,6 +655,7 @@
                             <div class="candidate-details">
                                 <h6 class="candidate-name">{{ $can->user->name }}</h6>
                                 <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $can->votes }}</span></p>
+                                <p class="candidate-list-votes-line">أصوات القائمة <span class="listVotesNum">{{ $listTotalVotes ?? '-' }}</span></p>
                                 <p class="candidate-meta-line">المركز الحالي: <span class="rank-label-inline">{{ $i + 1 }}</span></p>
                             </div>
                         </article>
@@ -789,6 +816,7 @@
                     var votes = parseInt(candidate.votes, 10) || 0;
                     var menTotal = parseInt(candidate.men_total, 10) || 0;
                     var womenTotal = parseInt(candidate.women_total, 10) || 0;
+                    var listTotalVotes = candidate.list_total_votes;
 
                     var cardCol = document.querySelector('[data-candidate-id="' + candidateId + '"]');
                     if (cardCol) {
@@ -799,6 +827,11 @@
                             if (oldVotes !== votes) {
                                 applyUpdatedStyle(soundNum);
                             }
+                        }
+
+                        var listVotesNum = cardCol.querySelector('.listVotesNum');
+                        if (listVotesNum) {
+                            listVotesNum.innerText = listTotalVotes === null ? '-' : (parseInt(listTotalVotes, 10) || 0);
                         }
                     }
 
