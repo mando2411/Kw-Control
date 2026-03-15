@@ -158,7 +158,11 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.4rem;
-    margin-bottom: 0.6rem;
+  }
+
+  .quick-category-card {
+    margin-top: 0.85rem;
+    padding: 0.75rem 0.8rem;
   }
 
   .quick-category-btn {
@@ -866,13 +870,15 @@
         </form>
       </div>
 
-      <div class="mobile-quick-access" id="mobileQuickAccess">
+      <div class="sorting-card quick-category-card">
         <div class="quick-category-filter" id="quickCategoryFilter">
           <button type="button" class="quick-category-btn" data-category="my_list">قائمتى</button>
           <button type="button" class="quick-category-btn" data-category="other_lists">القوائم الأخرى</button>
           <button type="button" class="quick-category-btn" data-category="independent">المستقلين</button>
         </div>
+      </div>
 
+      <div class="mobile-quick-access" id="mobileQuickAccess">
         <div class="recent-candidates mb-2">
           <p class="mobile-quick-title mb-1">آخر مرشحين تم التعامل معهم</p>
           <div class="recent-candidates-chips" id="recentCandidatesChips"></div>
