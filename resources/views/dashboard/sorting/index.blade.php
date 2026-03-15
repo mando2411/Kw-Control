@@ -1371,10 +1371,8 @@
     }
 
     function sucessMessageInModel(msg) {
-      $('#successMessage').text(msg);
-      $('#successModal .modal-header').removeClass('bg-danger').addClass('bg-success');
-      $('#successModal .fa-check-circle').removeClass('text-danger').addClass('text-success');
-      $('#successModal').modal('show');
+      $('#successModal').modal('hide');
+      toastr.success(msg || 'تم التصويت بنجاح');
     }
 
     $('#toggle-lock-button').on('click', function(e) {
