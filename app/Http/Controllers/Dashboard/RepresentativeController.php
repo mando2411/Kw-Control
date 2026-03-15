@@ -466,11 +466,14 @@ class RepresentativeController extends Controller
                     ->orWhere('list_leader_candidate_id', (int) $listLeaderCandidate->id);
             });
 
-        // Hide administrative-only list candidates from representative candidate selector.
+        // Keep list entity visible, while still hiding non-actual list members.
         if ($hasActualCandidateColumn) {
             $listMembersQuery->where(function (Builder $query) {
-                $query->where('is_actual_list_candidate', true)
-                    ->orWhereNull('is_actual_list_candidate');
+                $query->where('candidate_type', 'list_leader')
+                    ->orWhere(function (Builder $actualQuery) {
+                        $actualQuery->where('is_actual_list_candidate', true)
+                            ->orWhereNull('is_actual_list_candidate');
+                    });
             });
         }
 

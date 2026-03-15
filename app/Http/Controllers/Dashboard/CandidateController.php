@@ -1051,12 +1051,18 @@ class CandidateController extends Controller
             }
         }
 
-        $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
+        $sortingScopeElectionId = $this->resolveSortingScopeElectionId(
             $currentUser,
             $requestedCommitteeId > 0 ? $requestedCommitteeId : null
         );
 
-        $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
+        $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
+            $currentUser,
+            $requestedCommitteeId > 0 ? $requestedCommitteeId : null,
+            $sortingScopeElectionId
+        );
+
+        $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser, $sortingScopeElectionId);
 
         if ($isScopedSortingUser && $representatives->isNotEmpty()) {
             $committees = Committee::whereIn('id', $representatives->pluck('committee_id')->filter()->unique()->values()->all())->get();
@@ -1086,7 +1092,7 @@ class CandidateController extends Controller
             if (!$committee) {
                 $candidates = null;
             } else {
-                $effectiveElectionId = (int) ($currentUser->election_id ?? 0);
+                $effectiveElectionId = $sortingScopeElectionId;
                 if ($effectiveElectionId <= 0 && Schema::hasColumn('committees', 'election_id')) {
                     $effectiveElectionId = (int) ($committee->election_id ?? 0);
                 }
@@ -1130,14 +1136,22 @@ class CandidateController extends Controller
                     ->orderBy('users.name')
                     ->select('candidates.*', 'users.name as user_name');
 
-                $this->applyActualCandidateOnlyScope($candidatesQuery);
+                $this->applySortingCandidateVisibilityScope($candidatesQuery, $effectiveElectionId);
 
                 $candidates = $candidatesQuery
                     ->get()
                     ->map(function ($candidate) {
+                        $displayName = (string) ($candidate->user_name ?? '');
+                        if ((string) ($candidate->candidate_type ?? '') === 'list_leader') {
+                            $listName = trim((string) ($candidate->list_name ?? ''));
+                            $displayName = $listName !== ''
+                                ? 'القائمة: ' . $listName
+                                : 'القائمة';
+                        }
+
                         return [
                             'id' => $candidate->id,
-                            'name' => $candidate->user_name,
+                            'name' => $displayName,
                             'user_id' => $candidate->user_id,
                             'votes' => $candidate->pivot->votes,
                             'committee' => $candidate->pivot->committee_id,
@@ -1340,11 +1354,17 @@ class CandidateController extends Controller
                 ], 403);
             }
 
-            $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
+            $sortingScopeElectionId = $this->resolveSortingScopeElectionId(
                 $currentUser,
                 (int) $committee > 0 ? (int) $committee : null
             );
-            $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser);
+
+            $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds(
+                $currentUser,
+                (int) $committee > 0 ? (int) $committee : null,
+                $sortingScopeElectionId
+            );
+            $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser, $sortingScopeElectionId);
 
             if (is_array($allowedCandidateUserIds)) {
                 $targetCandidateUserId = (int) Candidate::withoutGlobalScopes()
@@ -1461,10 +1481,12 @@ class CandidateController extends Controller
             ->values()
             ->all();
 
-        $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($user, $committeeId);
-        $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($user);
+        $sortingScopeElectionId = $this->resolveSortingScopeElectionId($user, $committeeId);
 
-        $effectiveElectionId = (int) ($user->election_id ?? 0);
+        $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($user, $committeeId, $sortingScopeElectionId);
+        $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($user, $sortingScopeElectionId);
+
+        $effectiveElectionId = $sortingScopeElectionId;
         if ($effectiveElectionId <= 0 && Schema::hasColumn('committees', 'election_id')) {
             $effectiveElectionId = (int) ($committee->election_id ?? 0);
         }
@@ -1502,7 +1524,7 @@ class CandidateController extends Controller
             })
             ->select('candidates.id', 'candidate_committee.votes');
 
-        $this->applyActualCandidateOnlyScope($visibleCandidatesQuery);
+        $this->applySortingCandidateVisibilityScope($visibleCandidatesQuery, $effectiveElectionId);
 
         $visibleCandidates = $visibleCandidatesQuery->get();
 
@@ -1721,7 +1743,7 @@ class CandidateController extends Controller
         ];
     }
 
-    private function resolveSortingAllowedCandidateUserIds(?User $user): ?array
+    private function resolveSortingAllowedCandidateUserIds(?User $user, int $sortingScopeElectionId = 0): ?array
     {
         if (!$user) {
             return null;
@@ -1732,7 +1754,9 @@ class CandidateController extends Controller
         }
 
         $isRepresentativeLinked = $user->hasRole('مندوب') || $user->representatives()->exists();
-        $userElectionId = (int) ($user->election_id ?? 0);
+        $userElectionId = $sortingScopeElectionId > 0
+            ? $sortingScopeElectionId
+            : (int) ($user->election_id ?? 0);
 
         if ($isRepresentativeLinked) {
             return $this->resolveSortingCandidateUserIdsByCreator(
@@ -1749,7 +1773,7 @@ class CandidateController extends Controller
                 $ownedCandidateQuery->where('election_id', $userElectionId);
             }
 
-            $this->applyActualCandidateOnlyScope($ownedCandidateQuery);
+            $this->applySortingCandidateVisibilityScope($ownedCandidateQuery, $userElectionId);
 
             return $ownedCandidateQuery
                 ->pluck('user_id')
@@ -1778,14 +1802,69 @@ class CandidateController extends Controller
             $creatorCandidateQuery->where('election_id', $userElectionId);
         }
 
-        $this->applyActualCandidateOnlyScope($creatorCandidateQuery);
+        $this->applySortingCandidateVisibilityScope($creatorCandidateQuery, $userElectionId);
 
-        return $creatorCandidateQuery
+        $resolvedUserIds = $creatorCandidateQuery
             ->pluck('user_id')
             ->map(fn ($id) => (int) $id)
             ->unique()
             ->values()
             ->all();
+
+        if ($userElectionId > 0 && $this->campaignUsesListSystem($userElectionId)) {
+            $ownerCandidate = Candidate::withoutGlobalScopes()
+                ->select(['id', 'candidate_type', 'list_leader_candidate_id'])
+                ->where('user_id', $creatorId)
+                ->where('election_id', $userElectionId)
+                ->first();
+
+            if ($ownerCandidate && (int) ($ownerCandidate->list_leader_candidate_id ?? 0) > 0) {
+                $listLeaderUserId = (int) Candidate::withoutGlobalScopes()
+                    ->where('id', (int) $ownerCandidate->list_leader_candidate_id)
+                    ->value('user_id');
+
+                if ($listLeaderUserId > 0) {
+                    $resolvedUserIds[] = $listLeaderUserId;
+                }
+            }
+        }
+
+        return collect($resolvedUserIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function applySortingCandidateVisibilityScope($candidateQuery, int $electionId = 0): void
+    {
+        if (!is_object($candidateQuery) || !method_exists($candidateQuery, 'where')) {
+            return;
+        }
+
+        if (!Schema::hasColumn('candidates', 'is_actual_list_candidate')) {
+            return;
+        }
+
+        $listCampaign = $electionId > 0 && $this->campaignUsesListSystem($electionId);
+
+        if (!$listCampaign) {
+            $candidateQuery->where(function (Builder $query) {
+                $query->where('is_actual_list_candidate', true)
+                    ->orWhereNull('is_actual_list_candidate');
+            });
+
+            return;
+        }
+
+        $candidateQuery->where(function (Builder $query) {
+            $query->where('candidate_type', 'list_leader')
+                ->orWhere(function (Builder $actualCandidatesQuery) {
+                    $actualCandidatesQuery->where('is_actual_list_candidate', true)
+                        ->orWhereNull('is_actual_list_candidate');
+                });
+        });
     }
 
     private function applyActualCandidateOnlyScope($candidateQuery): void
@@ -1828,7 +1907,7 @@ class CandidateController extends Controller
         return true;
     }
 
-    private function resolveSortingRepresentativeSelectedCandidateIds(?User $user, ?int $committeeId = null): array
+    private function resolveSortingRepresentativeSelectedCandidateIds(?User $user, ?int $committeeId = null, int $sortingScopeElectionId = 0): array
     {
         if (!$user) {
             return [];
@@ -1862,7 +1941,7 @@ class CandidateController extends Controller
         $allowedSelectedCandidateQuery = Candidate::withoutGlobalScopes()
             ->whereIn('id', $candidateIds->all());
 
-        $this->applyActualCandidateOnlyScope($allowedSelectedCandidateQuery);
+        $this->applySortingCandidateVisibilityScope($allowedSelectedCandidateQuery, $sortingScopeElectionId);
 
         return $allowedSelectedCandidateQuery
             ->pluck('id')
@@ -1870,6 +1949,56 @@ class CandidateController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function resolveSortingScopeElectionId(?User $user, ?int $committeeId = null): int
+    {
+        if ($committeeId && $committeeId > 0 && Schema::hasColumn('committees', 'election_id')) {
+            $committeeElectionId = (int) Committee::query()
+                ->where('id', (int) $committeeId)
+                ->value('election_id');
+
+            if ($committeeElectionId > 0) {
+                return $committeeElectionId;
+            }
+        }
+
+        $userElectionId = (int) ($user?->election_id ?? 0);
+        if ($userElectionId > 0) {
+            return $userElectionId;
+        }
+
+        $creatorElectionId = (int) Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) ($user?->creator_id ?? 0))
+            ->value('election_id');
+
+        if ($creatorElectionId > 0) {
+            return $creatorElectionId;
+        }
+
+        return (int) Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) ($user?->id ?? 0))
+            ->value('election_id');
+    }
+
+    private function campaignUsesListSystem(int $electionId): bool
+    {
+        static $listCampaignCache = [];
+
+        if ($electionId <= 0) {
+            return false;
+        }
+
+        if (array_key_exists($electionId, $listCampaignCache)) {
+            return $listCampaignCache[$electionId];
+        }
+
+        $listCampaignCache[$electionId] = Candidate::withoutGlobalScopes()
+            ->where('election_id', $electionId)
+            ->where('candidate_type', 'list_leader')
+            ->exists();
+
+        return $listCampaignCache[$electionId];
     }
 
     private function resolveSortingDefaultCommitteeId(?User $user): int
@@ -1928,7 +2057,7 @@ class CandidateController extends Controller
                 }
             });
 
-        $this->applyActualCandidateOnlyScope($candidateIdsToAttachQuery);
+        $this->applySortingCandidateVisibilityScope($candidateIdsToAttachQuery, $effectiveElectionId);
 
         $candidateIdsToAttach = $candidateIdsToAttachQuery
             ->pluck('id')
