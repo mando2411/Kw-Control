@@ -1026,7 +1026,7 @@ class CandidateController extends Controller
     //================================================================================================
     public function candidateOrdering(Request $request)
     {
-        abort_if(!auth()->check() || !auth()->user()->hasRole('Administrator'), 403);
+        abort_if(!auth()->check() || !auth()->user()->can('candidates.list'), 403);
 
         $selectedElectionId = (int) $request->input('election_id', 0);
         $elections = Election::query()->orderByDesc('id')->get(['id', 'name']);
@@ -1079,7 +1079,7 @@ class CandidateController extends Controller
     //================================================================================================
     public function candidateOrderingUpdate(Request $request)
     {
-        abort_if(!auth()->check() || !auth()->user()->hasRole('Administrator'), 403);
+        abort_if(!auth()->check() || !auth()->user()->can('candidates.edit'), 403);
 
         $validated = $request->validate([
             'election_id' => ['required', 'integer', 'exists:elections,id'],
