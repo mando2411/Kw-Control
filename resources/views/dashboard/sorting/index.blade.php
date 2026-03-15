@@ -841,7 +841,6 @@
       </div>
 
       <div class="mobile-quick-access" id="mobileQuickAccess">
-        <p class="mobile-quick-title mb-2">وصول سريع</p>
         <div class="recent-candidates mb-2">
           <p class="mobile-quick-title mb-1">آخر مرشحين تم التعامل معهم</p>
           <div class="recent-candidates-chips" id="recentCandidatesChips"></div>
