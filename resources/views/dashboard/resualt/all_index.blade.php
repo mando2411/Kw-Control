@@ -322,6 +322,22 @@
             width: 100%;
         }
 
+        .stats-frame {
+            position: absolute;
+            top: 0.62rem;
+            right: 0.62rem;
+            border-radius: 12px;
+            padding: 0.28rem 0.38rem;
+            border: 1px solid #cbddf3;
+            background: #edf4ff;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 64px;
+        }
+
         .rank-stat-chip {
             display: inline-flex;
             align-items: center;
@@ -706,6 +722,13 @@
                 padding: 0.2rem 0.28rem;
             }
 
+            .results-cards-grid[data-view-mode="grid"] .stats-frame {
+                top: 0.36rem;
+                right: 0.36rem;
+                min-width: 54px;
+                padding: 0.2rem 0.28rem;
+            }
+
             .results-cards-grid[data-view-mode="grid"] .rank-stat-chip {
                 font-size: 0.62rem;
                 padding: 0.12rem 0.22rem;
@@ -962,6 +985,8 @@
                             <div class="rank-frame">
                                 <i class="fa-solid fa-medal rank-medal-icon" aria-hidden="true"></i>
                                 <span class="rank-label">{{ $i + 1 }}</span>
+                            </div>
+                            <div class="stats-frame">
                                 <div class="rank-stat-stack">
                                     <span class="rank-stat-chip">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></span>
                                     <span class="rank-stat-chip">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></span>
