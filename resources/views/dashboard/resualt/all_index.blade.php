@@ -152,17 +152,18 @@
         .results-cards-grid[data-view-mode="compact"] .result-card-col {
             flex: 0 0 50%;
             max-width: 50%;
+            padding: 0.14rem;
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card {
             min-height: 132px;
             padding: 0.42rem 0.3rem 0.38rem;
-            border-radius: 0;
+            border-radius: 12px;
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: transparent;
-            border-color: transparent;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(135, 156, 183, 0.2);
             box-shadow: none;
         }
 
