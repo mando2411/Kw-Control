@@ -789,29 +789,9 @@
           </select>
         </form>
       @endif
-
-      <div class="sorting-field">
-        <label class="sorting-label" for="searchBox">بحث باسم المرشح</label>
-        <div class="search-wrap">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input type="text" placeholder="اكتب اسم المرشح" class="sorting-input" name="candidateName" id="searchBox" value="">
-        </div>
-      </div>
     </div>
 
     @if ($candidates)
-      <div class="mobile-quick-access" id="mobileQuickAccess">
-        <p class="mobile-quick-title mb-2">وصول سريع</p>
-        <div class="recent-candidates mb-2">
-          <p class="mobile-quick-title mb-1">آخر مرشحين تم التعامل معهم</p>
-          <div class="recent-candidates-chips" id="recentCandidatesChips"></div>
-        </div>
-        <div class="quick-letters">
-          <p class="mobile-quick-title mb-1">اختصار بالحرف</p>
-          <div class="quick-letter-filter" id="quickLetterFilter"></div>
-        </div>
-      </div>
-
       <div class="committee-stats">
         <div class="stat-item">
           <p class="stat-title">اسم اللجنة</p>
@@ -845,6 +825,28 @@
             <span id="lockButtonText">تبديل حالة الفرز</span>
           </button>
         </form>
+      </div>
+
+      <div class="mobile-quick-access" id="mobileQuickAccess">
+        <p class="mobile-quick-title mb-2">وصول سريع</p>
+        <div class="recent-candidates mb-2">
+          <p class="mobile-quick-title mb-1">آخر مرشحين تم التعامل معهم</p>
+          <div class="recent-candidates-chips" id="recentCandidatesChips"></div>
+        </div>
+        <div class="quick-letters">
+          <p class="mobile-quick-title mb-1">اختصار بالحرف</p>
+          <div class="quick-letter-filter" id="quickLetterFilter"></div>
+        </div>
+      </div>
+
+      <div class="sorting-card sorting-toolbar">
+        <div class="sorting-field">
+          <label class="sorting-label" for="searchBox">بحث باسم المرشح</label>
+          <div class="search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="اكتب اسم المرشح" class="sorting-input" name="candidateName" id="searchBox" value="">
+          </div>
+        </div>
       </div>
 
       <div class="sorting-card candidates-card">
