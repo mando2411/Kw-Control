@@ -361,6 +361,13 @@
             font-weight: 700;
         }
 
+        .candidate-total-with-list-line {
+            margin: 0.18rem 0 0;
+            color: #354b63;
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
         .candidate-meta-line {
             margin: 0.22rem 0 0;
             color: #607792;
@@ -632,6 +639,7 @@
                             : (int) ($can->list_leader_candidate_id ?? 0);
                         $listTotalVotes = (int) ($listGroupId > 0 ? ($listLeaderVoteTotals[$listGroupId] ?? 0) : 0);
                         $candidateVotes = (int) $can->committees->sum('pivot.votes');
+                        $totalWithListVotes = (int) ($candidateVotes + $listTotalVotes);
                     @endphp
                     <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">
                         <article class="candidate-rank-card {{ $rankClass }}">
@@ -646,6 +654,7 @@
                                 <h6 class="candidate-name">{{ $can->user->name }}</h6>
                                 <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $candidateVotes }}</span></p>
                                 <p class="candidate-list-votes-line">أصوات القائمة <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
+                                <p class="candidate-total-with-list-line">مجموع الأصوات <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
                                 <p class="candidate-meta-line">المركز الحالي: <span class="rank-label-inline">{{ $i + 1 }}</span></p>
                             </div>
                         </article>
@@ -807,6 +816,7 @@
                     var menTotal = parseInt(candidate.men_total, 10) || 0;
                     var womenTotal = parseInt(candidate.women_total, 10) || 0;
                     var listTotalVotes = candidate.list_total_votes;
+                    var totalWithListVotes = parseInt(candidate.total_with_list_votes, 10) || 0;
 
                     var cardCol = document.querySelector('[data-candidate-id="' + candidateId + '"]');
                     if (cardCol) {
@@ -822,6 +832,11 @@
                         var listVotesNum = cardCol.querySelector('.listVotesNum');
                         if (listVotesNum) {
                             listVotesNum.innerText = parseInt(listTotalVotes, 10) || 0;
+                        }
+
+                        var totalWithListNum = cardCol.querySelector('.totalWithListNum');
+                        if (totalWithListNum) {
+                            totalWithListNum.innerText = totalWithListVotes;
                         }
                     }
 

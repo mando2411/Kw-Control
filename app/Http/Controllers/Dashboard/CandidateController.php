@@ -1363,6 +1363,7 @@ class CandidateController extends Controller
         $candidateRows = collect($candidateRows)->map(function (array $candidateRow) use ($listLeaderVoteTotals) {
             $listGroupId = (int) ($candidateRow['list_group_id'] ?? 0);
             $candidateRow['list_total_votes'] = (int) ($listGroupId > 0 ? ($listLeaderVoteTotals[$listGroupId] ?? 0) : 0);
+            $candidateRow['total_with_list_votes'] = (int) (($candidateRow['votes'] ?? 0) + ($candidateRow['list_total_votes'] ?? 0));
             unset($candidateRow['list_group_id']);
 
             return $candidateRow;
