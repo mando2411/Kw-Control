@@ -520,8 +520,18 @@
     }
 
     .sorting-hero {
-      flex-direction: column;
-      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sorting-subtitle {
+      display: none;
+    }
+
+    .sorting-title {
+      font-size: 1.02rem;
+      line-height: 1.4;
     }
 
     .sorting-chip {
