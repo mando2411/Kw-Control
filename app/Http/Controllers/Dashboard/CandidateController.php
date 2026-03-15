@@ -1113,6 +1113,12 @@ class CandidateController extends Controller
                 if ($effectiveElectionId <= 0 && Schema::hasColumn('committees', 'election_id')) {
                     $effectiveElectionId = (int) ($committee->election_id ?? 0);
                 }
+                $includeElectionListsForRepresentative = $isScopedSortingUser
+                    && ($currentUser->hasRole('مندوب') || $currentUser->representatives()->exists())
+                    && $effectiveElectionId > 0
+                    && $this->campaignUsesListSystem($effectiveElectionId)
+                    && Schema::hasColumn('candidates', 'candidate_type')
+                    && Schema::hasColumn('candidates', 'list_leader_candidate_id');
 
                 // Heal missing committee-candidate mapping for representative-visible candidates.
                 $this->ensureSortingCommitteeCandidateMapping(
@@ -1128,8 +1134,8 @@ class CandidateController extends Controller
                     ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
                         $query->where('candidates.election_id', $effectiveElectionId);
                     })
-                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds) {
-                        $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds) {
+                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionListsForRepresentative) {
+                        $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionListsForRepresentative) {
                             $hasSelectedCandidateIds = !empty($selectedCandidateIds);
                             $hasAllowedCreatorCandidateUsers = !empty($allowedCandidateUserIds);
 
@@ -1147,6 +1153,13 @@ class CandidateController extends Controller
 
                             if (!$hasSelectedCandidateIds && !$hasAllowedCreatorCandidateUsers) {
                                 $scopedQuery->whereRaw('1 = 0');
+                            }
+
+                            if ($includeElectionListsForRepresentative) {
+                                $scopedQuery->orWhere(function (Builder $listScopedQuery) {
+                                    $listScopedQuery->where('candidates.candidate_type', 'list_leader')
+                                        ->orWhereNotNull('candidates.list_leader_candidate_id');
+                                });
                             }
                         });
                     })
