@@ -690,6 +690,7 @@
                 flex-direction: column;
                 align-items: stretch;
                 text-align: center;
+                overflow: visible;
             }
 
             .results-cards-grid[data-view-mode="grid"] .candidate-photo {
@@ -735,7 +736,7 @@
             .results-cards-grid[data-view-mode="grid"] .candidate-total-with-list-line {
                 position: absolute;
                 left: 50%;
-                bottom: 0.38rem;
+                bottom: -0.62rem;
                 transform: translateX(-50%);
                 justify-content: center;
                 font-size: 0.72rem;
@@ -750,8 +751,10 @@
             .results-cards-grid[data-view-mode="grid"] .totalWithListNum {
                 min-width: 46px;
                 font-size: 0.92rem;
-                padding: 0.2rem 0.46rem;
-                box-shadow: 0 8px 16px rgba(63, 83, 186, 0.24);
+                padding: 0.24rem 0.7rem;
+                border-radius: 10px 10px 14px 14px;
+                border: 1px solid rgba(63, 83, 186, 0.32);
+                box-shadow: 0 10px 16px rgba(63, 83, 186, 0.2);
             }
 
             .results-cards-grid[data-view-mode="compact"] .result-card-col {
