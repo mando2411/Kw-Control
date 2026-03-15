@@ -785,8 +785,8 @@
       </div>
     </div>
 
-    <div class="sorting-card sorting-toolbar sorting-toolbar--committee">
-      @if (auth()->user()->hasRole('Administrator') || auth()->user()->hasRole('مرشح'))
+    @if (auth()->user()->hasRole('Administrator') || auth()->user()->hasRole('مرشح'))
+      <div class="sorting-card sorting-toolbar sorting-toolbar--committee">
         <form action="{{ route('dashboard.sorting') }}" method="get" id="sorting-form" class="sorting-field">
           @csrf
           <label class="sorting-label" for="sorting-select">اختيار اللجنة</label>
@@ -801,8 +801,8 @@
             @endforeach
           </select>
         </form>
-      @endif
-    </div>
+      </div>
+    @endif
 
     @if ($candidates)
       <div class="committee-stats">
