@@ -1067,42 +1067,19 @@ class CandidateController extends Controller
             ->select('id', 'candidate_type', 'list_leader_candidate_id')
             ->where('user_id', (int) $currentUser->id)
             ->first();
+        if (!$currentUserCandidate && (int) ($currentUser->creator_id ?? 0) > 0) {
+            $currentUserCandidate = Candidate::withoutGlobalScopes()
+                ->select('id', 'candidate_type', 'list_leader_candidate_id')
+                ->where('user_id', (int) $currentUser->creator_id)
+                ->first();
+        }
         $myListLeaderCandidateId = 0;
         if ($currentUserCandidate) {
             $myListLeaderCandidateId = (string) ($currentUserCandidate->candidate_type ?? '') === 'list_leader'
                 ? (int) $currentUserCandidate->id
                 : (int) ($currentUserCandidate->list_leader_candidate_id ?? 0);
         }
-        $mySelectedCandidateIds = collect($selectedCandidateIds ?? [])
-            ->map(fn($id) => (int) $id)
-            ->filter(fn($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->all();
-        $myListLeaderCandidateIds = [];
-        if ($myListLeaderCandidateId > 0) {
-            $myListLeaderCandidateIds[] = $myListLeaderCandidateId;
-        }
-        if (!empty($mySelectedCandidateIds)) {
-            $selectedCandidates = Candidate::withoutGlobalScopes()
-                ->select('id', 'candidate_type', 'list_leader_candidate_id')
-                ->whereIn('id', $mySelectedCandidateIds)
-                ->get();
-
-            foreach ($selectedCandidates as $selectedCandidate) {
-                $selectedType = (string) ($selectedCandidate->candidate_type ?? '');
-                if ($selectedType === 'list_leader') {
-                    $myListLeaderCandidateIds[] = (int) $selectedCandidate->id;
-                    continue;
-                }
-
-                $selectedLeaderId = (int) ($selectedCandidate->list_leader_candidate_id ?? 0);
-                if ($selectedLeaderId > 0) {
-                    $myListLeaderCandidateIds[] = $selectedLeaderId;
-                }
-            }
-        }
-        $myListLeaderCandidateIds = array_values(array_unique(array_filter($myListLeaderCandidateIds, fn($id) => (int) $id > 0)));
+        $myListLeaderCandidateIds = $myListLeaderCandidateId > 0 ? [$myListLeaderCandidateId] : [];
 
         if ($isScopedSortingUser && $representatives->isNotEmpty()) {
             $committees = Committee::whereIn('id', $representatives->pluck('committee_id')->filter()->unique()->values()->all())->get();
@@ -1181,7 +1158,7 @@ class CandidateController extends Controller
 
                 $candidates = $candidatesQuery
                     ->get()
-                    ->map(function ($candidate) use ($mySelectedCandidateIds, $myListLeaderCandidateIds) {
+                    ->map(function ($candidate) use ($myListLeaderCandidateIds) {
                         $displayName = (string) ($candidate->user_name ?? '');
                         $candidateType = (string) ($candidate->candidate_type ?? '');
                         if ($candidateType === 'list_leader') {
@@ -1196,11 +1173,10 @@ class CandidateController extends Controller
                         $isListLeader = $candidateType === 'list_leader';
                         $isListMember = $listLeaderCandidateId > 0;
                         $listGroupId = $isListLeader ? $candidateId : $listLeaderCandidateId;
-                        $isInMySelection = in_array($candidateId, $mySelectedCandidateIds, true);
                         $belongsToMyList = in_array($candidateId, $myListLeaderCandidateIds, true)
                             || ($listLeaderCandidateId > 0 && in_array($listLeaderCandidateId, $myListLeaderCandidateIds, true));
                         $candidateGroup = 'independent';
-                        if ($isInMySelection || $belongsToMyList) {
+                        if ($belongsToMyList) {
                             $candidateGroup = 'my_list';
                         } elseif ($isListLeader || $isListMember) {
                             $candidateGroup = 'other_lists';
