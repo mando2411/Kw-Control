@@ -154,6 +154,32 @@
     padding-bottom: 0.2rem;
   }
 
+  .quick-category-filter {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .quick-category-btn {
+    border: 1px solid #d7e2ee;
+    background: #fff;
+    color: #243b53;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.76rem;
+    padding: 0.42rem 0.25rem;
+    text-align: center;
+    transition: all 0.18s ease;
+  }
+
+  .quick-category-btn.active {
+    background: linear-gradient(135deg, rgba(15, 118, 110, 0.14) 0%, rgba(21, 158, 144, 0.16) 100%);
+    border-color: rgba(15, 118, 110, 0.38);
+    color: #0b5f58;
+    box-shadow: 0 8px 14px rgba(15, 118, 110, 0.12);
+  }
+
   .quick-letter-btn,
   .recent-candidate-chip {
     border: 1px solid #d7e2ee;
@@ -841,6 +867,12 @@
       </div>
 
       <div class="mobile-quick-access" id="mobileQuickAccess">
+        <div class="quick-category-filter" id="quickCategoryFilter">
+          <button type="button" class="quick-category-btn" data-category="my_list">قائمتى</button>
+          <button type="button" class="quick-category-btn" data-category="other_lists">القوائم الأخرى</button>
+          <button type="button" class="quick-category-btn" data-category="independent">المستقلين</button>
+        </div>
+
         <div class="recent-candidates mb-2">
           <p class="mobile-quick-title mb-1">آخر مرشحين تم التعامل معهم</p>
           <div class="recent-candidates-chips" id="recentCandidatesChips"></div>
@@ -893,7 +925,7 @@
 
             <tbody class="text-center">
               @foreach ($regularCandidates as $index => $can)
-                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}">
+                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}">
                   <td data-label="الترتيب">{{ $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -956,7 +988,7 @@
 
               <tbody class="text-center">
                 @foreach ($listCandidates as $index => $can)
-                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}">
+                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}">
                     <td data-label="الترتيب">{{ $index + 1 }}</td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -1019,6 +1051,7 @@
     var liveStatsInFlight = false;
     var fallbackIntervalMs = 2000;
     var activeQuickLetter = '';
+    var activeCategory = 'all';
     var recentCandidateIds = [];
     var maxRecentCandidates = 8;
 
@@ -1297,6 +1330,25 @@
       searchTable();
     });
 
+    $(document).on('click', '.quick-category-btn', function() {
+      var $button = $(this);
+      var selectedCategory = String($button.data('category') || '');
+      if (!selectedCategory) {
+        return;
+      }
+
+      if (activeCategory === selectedCategory) {
+        activeCategory = 'all';
+        $('.quick-category-btn').removeClass('active');
+      } else {
+        activeCategory = selectedCategory;
+        $('.quick-category-btn').removeClass('active');
+        $button.addClass('active');
+      }
+
+      searchTable();
+    });
+
     $(document).on('click', '.recent-candidate-chip', function() {
       var candidateId = parseInt($(this).data('candidate-id'), 10) || 0;
       if (!candidateId) {
@@ -1473,12 +1525,14 @@
       $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
         let rowText = getCandidateNameFromRow($(this)).toLowerCase();
         let rowFirstLetter = getCandidateFirstLetter(rowText);
+        let rowCategory = String($(this).data('candidate-group') || 'independent');
         let matchEntire = entireValue === '';
         let matchLetter = activeQuickLetter === '' || rowFirstLetter === activeQuickLetter;
+        let matchCategory = activeCategory === 'all' || rowCategory === activeCategory;
         if (entireValue !== '') {
           matchEntire = rowText.indexOf(entireValue) > -1;
         }
-        $(this).toggle(matchEntire && matchLetter);
+        $(this).toggle(matchEntire && matchLetter && matchCategory);
       });
     }
 

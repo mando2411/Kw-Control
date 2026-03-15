@@ -1063,6 +1063,16 @@ class CandidateController extends Controller
         );
 
         $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser, $sortingScopeElectionId);
+        $currentUserCandidate = Candidate::withoutGlobalScopes()
+            ->select('id', 'candidate_type', 'list_leader_candidate_id')
+            ->where('user_id', (int) $currentUser->id)
+            ->first();
+        $myListLeaderCandidateId = 0;
+        if ($currentUserCandidate) {
+            $myListLeaderCandidateId = (string) ($currentUserCandidate->candidate_type ?? '') === 'list_leader'
+                ? (int) $currentUserCandidate->id
+                : (int) ($currentUserCandidate->list_leader_candidate_id ?? 0);
+        }
 
         if ($isScopedSortingUser && $representatives->isNotEmpty()) {
             $committees = Committee::whereIn('id', $representatives->pluck('committee_id')->filter()->unique()->values()->all())->get();
@@ -1141,13 +1151,28 @@ class CandidateController extends Controller
 
                 $candidates = $candidatesQuery
                     ->get()
-                    ->map(function ($candidate) {
+                    ->map(function ($candidate) use ($myListLeaderCandidateId) {
                         $displayName = (string) ($candidate->user_name ?? '');
-                        if ((string) ($candidate->candidate_type ?? '') === 'list_leader') {
+                        $candidateType = (string) ($candidate->candidate_type ?? '');
+                        if ($candidateType === 'list_leader') {
                             $listName = trim((string) ($candidate->list_name ?? ''));
                             $displayName = $listName !== ''
                                 ? 'القائمة: ' . $listName
                                 : 'القائمة';
+                        }
+
+                        $listLeaderCandidateId = (int) ($candidate->list_leader_candidate_id ?? 0);
+                        $isListLeader = $candidateType === 'list_leader';
+                        $isListMember = $listLeaderCandidateId > 0;
+                        $candidateGroup = 'independent';
+                        if ($isListLeader || $isListMember) {
+                            $candidateGroup = (
+                                $myListLeaderCandidateId > 0
+                                && (
+                                    (int) $candidate->id === $myListLeaderCandidateId
+                                    || $listLeaderCandidateId === $myListLeaderCandidateId
+                                )
+                            ) ? 'my_list' : 'other_lists';
                         }
 
                         return [
@@ -1156,7 +1181,8 @@ class CandidateController extends Controller
                             'user_id' => $candidate->user_id,
                             'votes' => $candidate->pivot->votes,
                             'committee' => $candidate->pivot->committee_id,
-                            'is_list' => (string) ($candidate->candidate_type ?? '') === 'list_leader',
+                            'is_list' => $isListLeader,
+                            'candidate_group' => $candidateGroup,
                         ];
                     });
             }
