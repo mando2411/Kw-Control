@@ -288,6 +288,11 @@
     box-shadow: 0 12px 22px rgba(16, 42, 67, 0.12);
   }
 
+  #candidates_table tbody tr.candidate-row-list {
+    background: linear-gradient(135deg, #fff8eb 0%, #fff2d8 100%);
+    box-shadow: 0 8px 16px rgba(158, 99, 0, 0.14);
+  }
+
   #candidates_table tbody td {
     border: 0;
     vertical-align: middle;
@@ -300,6 +305,19 @@
   .candidate-name {
     color: #102a43;
     font-weight: 800;
+  }
+
+  .list-pill {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-start: 0.4rem;
+    padding: 0.14rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(158, 99, 0, 0.14);
+    color: #7a4b00;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
   .vote-pill {
@@ -655,7 +673,7 @@
 
             <tbody class="text-center">
               @foreach ($candidates as $index => $can)
-                <tr style="--row-index: {{ $index }};">
+                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};">
                   <td data-label="الترتيب">{{ $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -663,7 +681,12 @@
                       <span>إضافة</span>
                     </button>
                   </td>
-                  <td class="candidate-name fullName" data-label="المرشح">{{ $can['name'] }}</td>
+                  <td class="candidate-name fullName" data-label="المرشح">
+                    {{ $can['name'] }}
+                    @if (!empty($can['is_list']))
+                      <span class="list-pill">قائمة</span>
+                    @endif
+                  </td>
                   <td data-label="إزالة">
                     <button class="action-btn action-minus minusBtn sortBtn" data-message="{{ 'تأكيد حذف صوت من المرشح (' . $can['name'] . ')' }}">
                       <i class="fa-solid fa-minus"></i>

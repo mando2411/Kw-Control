@@ -1133,6 +1133,7 @@ class CandidateController extends Controller
                             }
                         });
                     })
+                    ->orderByRaw("CASE WHEN candidates.candidate_type = 'list_leader' THEN 1 ELSE 0 END")
                     ->orderBy('users.name')
                     ->select('candidates.*', 'users.name as user_name');
 
@@ -1155,6 +1156,7 @@ class CandidateController extends Controller
                             'user_id' => $candidate->user_id,
                             'votes' => $candidate->pivot->votes,
                             'committee' => $candidate->pivot->committee_id,
+                            'is_list' => (string) ($candidate->candidate_type ?? '') === 'list_leader',
                         ];
                     });
             }
