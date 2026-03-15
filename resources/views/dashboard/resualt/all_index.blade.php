@@ -230,21 +230,56 @@
             position: absolute;
             top: 0.62rem;
             left: 0.62rem;
-            border-radius: 999px;
-            padding: 0.2rem 0.52rem;
+            border-radius: 12px;
+            padding: 0.28rem 0.4rem;
             border: 1px solid #cbddf3;
             background: #edf4ff;
             color: #134374;
             font-weight: 800;
             font-size: 0.74rem;
             letter-spacing: 0.01em;
-            min-width: 56px;
+            min-width: 64px;
             text-align: center;
             z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.22rem;
+        }
+
+        .rank-stat-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.14rem;
+            width: 100%;
+        }
+
+        .rank-stat-chip {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.24rem;
+            gap: 0.16rem;
+            border-radius: 999px;
+            padding: 0.14rem 0.32rem;
+            font-size: 0.66rem;
+            font-weight: 900;
+            line-height: 1;
+            background: rgba(255, 255, 255, 0.7);
+            color: #123b64;
+            white-space: nowrap;
+        }
+
+        .rank-stat-chip .soundNum,
+        .rank-stat-chip .listVotesNum {
+            min-width: 0;
+            margin-inline-start: 0;
+            padding: 0;
+            border-radius: 0;
+            background: transparent !important;
+            color: inherit !important;
+            font-size: 0.72rem;
+            font-weight: 900;
         }
 
         .rank-medal-icon {
@@ -748,6 +783,10 @@
                             <div class="rank-frame">
                                 <i class="fa-solid fa-medal rank-medal-icon" aria-hidden="true"></i>
                                 <span class="rank-label">{{ $i + 1 }}</span>
+                                <div class="rank-stat-stack">
+                                    <span class="rank-stat-chip">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></span>
+                                    <span class="rank-stat-chip">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></span>
+                                </div>
                             </div>
 
                             <img src="{{ $can->user->image ?? asset('assets/admin/images/images.png') }}" class="candidate-photo" alt="candidate image" />
@@ -756,10 +795,6 @@
                                 <div class="candidate-main-block">
                                     <h6 class="candidate-name">{{ $can->user->name }}</h6>
                                     <p class="candidate-total-with-list-line"><span class="metric-label metric-label-total">م.أ</span> <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
-                                </div>
-                                <div class="candidate-side-stats">
-                                    <p class="candidate-votes-line"><span class="metric-label metric-label-votes">أ.ف</span> <span class="soundNum">{{ $candidateVotes }}</span></p>
-                                    <p class="candidate-list-votes-line"><span class="metric-label metric-label-list">أ.ق</span> <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
                                 </div>
                             </div>
                         </article>
