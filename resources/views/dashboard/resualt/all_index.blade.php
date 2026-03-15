@@ -368,6 +368,21 @@
             font-weight: 800;
         }
 
+        .totalWithListNum {
+            display: inline-flex;
+            min-width: 56px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 999px;
+            padding: 0.24rem 0.52rem;
+            margin-inline-start: 0.25rem;
+            background: rgba(63, 83, 186, 0.14);
+            color: #3345a0;
+            font-size: 0.94rem;
+            font-weight: 900;
+            transition: transform 0.22s ease, background-color 0.22s ease;
+        }
+
         .candidate-meta-line {
             margin: 0.22rem 0 0;
             color: #607792;
@@ -393,6 +408,12 @@
         .soundNum.is-updated {
             transform: scale(1.08);
             background: rgba(217, 119, 6, 0.2);
+            color: #8f4b05;
+        }
+
+        .totalWithListNum.is-updated {
+            transform: scale(1.1);
+            background: rgba(217, 119, 6, 0.22);
             color: #8f4b05;
         }
 
@@ -817,11 +838,7 @@
                     if (cardCol) {
                         var soundNum = cardCol.querySelector('.soundNum');
                         if (soundNum) {
-                            var oldVotes = parseInt(soundNum.innerText, 10) || 0;
                             soundNum.innerText = votes;
-                            if (oldVotes !== votes) {
-                                applyUpdatedStyle(soundNum);
-                            }
                         }
 
                         var listVotesNum = cardCol.querySelector('.listVotesNum');
@@ -831,7 +848,11 @@
 
                         var totalWithListNum = cardCol.querySelector('.totalWithListNum');
                         if (totalWithListNum) {
+                            var oldTotalWithListVotes = parseInt(totalWithListNum.innerText, 10) || 0;
                             totalWithListNum.innerText = totalWithListVotes;
+                            if (oldTotalWithListVotes !== totalWithListVotes) {
+                                applyUpdatedStyle(totalWithListNum);
+                            }
                         }
                     }
 
