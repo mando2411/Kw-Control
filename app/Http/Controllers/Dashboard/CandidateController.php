@@ -1289,19 +1289,6 @@ class CandidateController extends Controller
             ->sortByDesc('votes')
             ->values();
 
-        $listVoteTotals = [];
-        foreach ($candidates as $candidateForListTotal) {
-            $candidateTypeForListTotal = (string) ($candidateForListTotal->candidate_type ?? '');
-            $listGroupIdForListTotal = $candidateTypeForListTotal === 'list_leader'
-                ? (int) $candidateForListTotal->id
-                : (int) ($candidateForListTotal->list_leader_candidate_id ?? 0);
-
-            if ($listGroupIdForListTotal > 0) {
-                $listVoteTotals[$listGroupIdForListTotal] = ($listVoteTotals[$listGroupIdForListTotal] ?? 0)
-                    + (int) ($candidateForListTotal->votes ?? 0);
-            }
-        }
-
         $committeeTotals = [];
         foreach ($committeeIds as $committeeId) {
             $committeeTotals[$committeeId] = 0;
@@ -1331,15 +1318,33 @@ class CandidateController extends Controller
                 }
             }
 
+            $candidateVotesTotal = (int) ($menTotal + $womenTotal);
+
             $candidateRows[] = [
                 'id' => (int) $candidate->id,
-                'votes' => (int) $candidate->votes,
+                'votes' => $candidateVotesTotal,
                 'men_total' => $menTotal,
                 'women_total' => $womenTotal,
                 'committee_votes' => $candidateCommitteeVotes,
-                'list_total_votes' => (int) ($listGroupId > 0 ? ($listVoteTotals[$listGroupId] ?? 0) : 0),
+                'list_group_id' => $listGroupId,
             ];
         }
+
+        $listVoteTotals = [];
+        foreach ($candidateRows as $candidateRow) {
+            $listGroupId = (int) ($candidateRow['list_group_id'] ?? 0);
+            if ($listGroupId > 0) {
+                $listVoteTotals[$listGroupId] = (int) (($listVoteTotals[$listGroupId] ?? 0) + (int) ($candidateRow['votes'] ?? 0));
+            }
+        }
+
+        $candidateRows = collect($candidateRows)->map(function (array $candidateRow) use ($listVoteTotals) {
+            $listGroupId = (int) ($candidateRow['list_group_id'] ?? 0);
+            $candidateRow['list_total_votes'] = (int) ($listGroupId > 0 ? ($listVoteTotals[$listGroupId] ?? 0) : 0);
+            unset($candidateRow['list_group_id']);
+
+            return $candidateRow;
+        })->values()->all();
 
         $menTotalAll = collect($committeeTotals)
             ->filter(fn ($votes, $committeeId) => ($committeeTypeMap[(int) $committeeId] ?? '') === \App\Enums\Type::MEN->value)
