@@ -1265,7 +1265,24 @@ class CandidateController extends Controller
                     })
                     ->all();
 
-                return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools', 'election_id', 'listLeaderVoteTotals'));
+                $listLeaderResults = Candidate::withoutGlobalScopes()
+                    ->join('users', 'candidates.user_id', '=', 'users.id')
+                    ->where('candidates.election_id', $election_id)
+                    ->where('candidates.candidate_type', 'list_leader')
+                    ->orderBy('users.name')
+                    ->get(['candidates.id', 'users.name as user_name'])
+                    ->map(function ($candidate) use ($listLeaderVoteTotals) {
+                        $candidateId = (int) ($candidate->id ?? 0);
+                        return [
+                            'id' => $candidateId,
+                            'name' => (string) ($candidate->user_name ?? ''),
+                            'votes' => (int) ($listLeaderVoteTotals[$candidateId] ?? 0),
+                        ];
+                    })
+                    ->sortByDesc('votes')
+                    ->values();
+
+                return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools', 'election_id', 'listLeaderVoteTotals', 'listLeaderResults'));
             }
         }
         abort(404);
@@ -1381,6 +1398,7 @@ class CandidateController extends Controller
             'success' => true,
             'election_id' => $electionId,
             'candidates' => $candidateRows,
+            'list_leader_votes' => $listLeaderVoteTotals,
             'committee_totals' => $committeeTotals,
             'men_total_all' => (int) $menTotalAll,
             'women_total_all' => (int) $womenTotalAll,

@@ -1273,19 +1273,7 @@
             </div>
 
             @php
-                $sortedListLeaders = $candidates
-                    ->filter(function ($candidate) {
-                        return (string) ($candidate->candidate_type ?? '') === 'list_leader';
-                    })
-                    ->map(function ($candidate) {
-                        return [
-                            'id' => (int) $candidate->id,
-                            'name' => (string) ($candidate->user->name ?? ''),
-                            'votes' => (int) $candidate->committees->sum('pivot.votes'),
-                        ];
-                    })
-                    ->sortByDesc('votes')
-                    ->values();
+                $sortedListLeaders = collect($listLeaderResults ?? [])->values();
             @endphp
             @if ($sortedListLeaders->isNotEmpty())
                 <div class="results-lists-wrap rtl">
@@ -1595,6 +1583,27 @@
                             committeeCell.innerText = committeeValue;
                         }
                     });
+                });
+
+                var listLeaderVotes = payload.list_leader_votes || {};
+                Object.keys(listLeaderVotes).forEach(function (listLeaderId) {
+                    if (!listsGrid) {
+                        return;
+                    }
+                    var listCard = listsGrid.querySelector('[data-list-result-id="' + listLeaderId + '"]');
+                    if (!listCard) {
+                        return;
+                    }
+                    var listVotesNode = listCard.querySelector('.list-votes-num');
+                    if (!listVotesNode) {
+                        return;
+                    }
+                    var freshVotes = parseInt(listLeaderVotes[listLeaderId], 10) || 0;
+                    var oldVotes = parseInt(listVotesNode.innerText, 10) || 0;
+                    listVotesNode.innerText = freshVotes;
+                    if (oldVotes !== freshVotes) {
+                        applyUpdatedStyle(listVotesNode);
+                    }
                 });
 
                 var committeeTotals = payload.committee_totals || {};
