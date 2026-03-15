@@ -156,16 +156,19 @@
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card {
             min-height: 132px;
-            padding: 0.5rem 0.45rem 0.46rem;
-            border-radius: 16px;
+            padding: 0.42rem 0.3rem 0.38rem;
+            border-radius: 0;
             justify-content: center;
             align-items: center;
             text-align: center;
-            background: linear-gradient(168deg, #fffdf8 0%, #fff3d8 100%);
-            border-color: #e5c874;
-            box-shadow:
-                0 10px 22px rgba(116, 86, 22, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.92);
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card::before,
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card::after {
+            display: none;
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-photo {
