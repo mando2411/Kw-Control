@@ -407,10 +407,12 @@
     background: rgba(15, 118, 110, 0.12);
     color: var(--sp-primary-dark);
     font-weight: 800;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+    transform-origin: center;
   }
 
   .vote-pill.updated {
-    animation: spPulseQuick 0.42s ease;
+    animation: spVotePop 0.52s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .action-btn {
@@ -695,6 +697,29 @@
     }
     100% {
       transform: scale(1);
+    }
+  }
+
+  @keyframes spVotePop {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(15, 118, 110, 0);
+      filter: brightness(1);
+    }
+    28% {
+      transform: scale(1.16);
+      box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.2);
+      filter: brightness(1.06);
+    }
+    65% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+      filter: brightness(0.99);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(15, 118, 110, 0);
+      filter: brightness(1);
     }
   }
 
