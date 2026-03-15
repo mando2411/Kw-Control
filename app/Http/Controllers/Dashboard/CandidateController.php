@@ -1113,7 +1113,7 @@ class CandidateController extends Controller
                 if ($effectiveElectionId <= 0 && Schema::hasColumn('committees', 'election_id')) {
                     $effectiveElectionId = (int) ($committee->election_id ?? 0);
                 }
-                $includeElectionListsForRepresentative = $isScopedSortingUser
+                $includeElectionWideForRepresentative = $isScopedSortingUser
                     && ($currentUser->hasRole('مندوب') || $currentUser->representatives()->exists())
                     && $effectiveElectionId > 0
                     && $this->campaignUsesListSystem($effectiveElectionId)
@@ -1134,8 +1134,8 @@ class CandidateController extends Controller
                     ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
                         $query->where('candidates.election_id', $effectiveElectionId);
                     })
-                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionListsForRepresentative) {
-                        $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionListsForRepresentative) {
+                    ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionWideForRepresentative) {
+                        $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionWideForRepresentative) {
                             $hasSelectedCandidateIds = !empty($selectedCandidateIds);
                             $hasAllowedCreatorCandidateUsers = !empty($allowedCandidateUserIds);
 
@@ -1155,11 +1155,8 @@ class CandidateController extends Controller
                                 $scopedQuery->whereRaw('1 = 0');
                             }
 
-                            if ($includeElectionListsForRepresentative) {
-                                $scopedQuery->orWhere(function (Builder $listScopedQuery) {
-                                    $listScopedQuery->where('candidates.candidate_type', 'list_leader')
-                                        ->orWhereNotNull('candidates.list_leader_candidate_id');
-                                });
+                            if ($includeElectionWideForRepresentative) {
+                                $scopedQuery->orWhereRaw('1 = 1');
                             }
                         });
                     })
@@ -1414,7 +1411,7 @@ class CandidateController extends Controller
                 $sortingScopeElectionId
             );
             $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($currentUser, $sortingScopeElectionId);
-            $includeElectionListsForRepresentative = $this->shouldScopeSortingCandidates($currentUser)
+            $includeElectionWideForRepresentative = $this->shouldScopeSortingCandidates($currentUser)
                 && ($currentUser->hasRole('مندوب') || $currentUser->representatives()->exists())
                 && $sortingScopeElectionId > 0
                 && $this->campaignUsesListSystem($sortingScopeElectionId)
@@ -1435,18 +1432,19 @@ class CandidateController extends Controller
                     && $targetCandidateUserId > 0
                     && in_array($targetCandidateUserId, $allowedCandidateUserIds, true);
 
-                $isAllowedByElectionLists = false;
-                if ($includeElectionListsForRepresentative && $targetCandidate) {
+                $isAllowedByElectionScope = false;
+                if ($includeElectionWideForRepresentative && $targetCandidate) {
                     $targetElectionId = (int) ($targetCandidate->election_id ?? 0);
-                    $targetCandidateType = (string) ($targetCandidate->candidate_type ?? '');
-                    $targetListLeaderId = (int) ($targetCandidate->list_leader_candidate_id ?? 0);
-                    $isListCampaignCandidate = $targetCandidateType === 'list_leader' || $targetListLeaderId > 0;
-                    $isAllowedByElectionLists = $targetElectionId > 0
-                        && $targetElectionId === (int) $sortingScopeElectionId
-                        && $isListCampaignCandidate;
+                    if ($targetElectionId > 0 && $targetElectionId === (int) $sortingScopeElectionId) {
+                        $targetCandidateScopeQuery = Candidate::withoutGlobalScopes()
+                            ->where('id', (int) $candidate_id)
+                            ->where('election_id', (int) $sortingScopeElectionId);
+                        $this->applySortingCandidateVisibilityScope($targetCandidateScopeQuery, (int) $sortingScopeElectionId);
+                        $isAllowedByElectionScope = $targetCandidateScopeQuery->exists();
+                    }
                 }
 
-                if (!$isAllowedByRepresentativeAssignments && !$isAllowedByCreatorCandidate && !$isAllowedByElectionLists) {
+                if (!$isAllowedByRepresentativeAssignments && !$isAllowedByCreatorCandidate && !$isAllowedByElectionScope) {
                     return response()->json([
                         'success' => false,
                         'message' => 'لا يمكنك تعديل أصوات هذا المرشح لأنه غير مخصص لك.',
@@ -1553,7 +1551,7 @@ class CandidateController extends Controller
 
         $selectedCandidateIds = $this->resolveSortingRepresentativeSelectedCandidateIds($user, $committeeId, $sortingScopeElectionId);
         $allowedCandidateUserIds = $this->resolveSortingAllowedCandidateUserIds($user, $sortingScopeElectionId);
-        $includeElectionListsForRepresentative = $this->shouldScopeSortingCandidates($user)
+        $includeElectionWideForRepresentative = $this->shouldScopeSortingCandidates($user)
             && ($user->hasRole('مندوب') || $user->representatives()->exists())
             && $sortingScopeElectionId > 0
             && $this->campaignUsesListSystem($sortingScopeElectionId)
@@ -1571,8 +1569,8 @@ class CandidateController extends Controller
             ->when($effectiveElectionId > 0, function ($query) use ($effectiveElectionId) {
                 $query->where('candidates.election_id', $effectiveElectionId);
             })
-            ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionListsForRepresentative) {
-                $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionListsForRepresentative) {
+            ->when(is_array($allowedCandidateUserIds), function ($query) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionWideForRepresentative) {
+                $query->where(function (Builder $scopedQuery) use ($selectedCandidateIds, $allowedCandidateUserIds, $includeElectionWideForRepresentative) {
                     $hasSelectedCandidateIds = !empty($selectedCandidateIds);
                     $hasAllowedCreatorCandidateUsers = !empty($allowedCandidateUserIds);
 
@@ -1592,11 +1590,8 @@ class CandidateController extends Controller
                         $scopedQuery->whereRaw('1 = 0');
                     }
 
-                    if ($includeElectionListsForRepresentative) {
-                        $scopedQuery->orWhere(function (Builder $listScopedQuery) {
-                            $listScopedQuery->where('candidates.candidate_type', 'list_leader')
-                                ->orWhereNotNull('candidates.list_leader_candidate_id');
-                        });
+                    if ($includeElectionWideForRepresentative) {
+                        $scopedQuery->orWhereRaw('1 = 1');
                     }
                 });
             })
