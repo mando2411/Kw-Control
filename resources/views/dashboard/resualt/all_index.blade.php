@@ -678,6 +678,77 @@
                 max-width: 50%;
             }
 
+            .results-cards-grid[data-view-mode="grid"] {
+                row-gap: 0.56rem;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .candidate-rank-card {
+                min-height: 188px;
+                padding: 0.52rem;
+                border-radius: 12px;
+                gap: 0.42rem;
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .candidate-photo {
+                width: 58px;
+                height: 58px;
+                margin: 0 auto;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .rank-frame {
+                top: 0.36rem;
+                left: 0.36rem;
+                min-width: 54px;
+                padding: 0.2rem 0.28rem;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .rank-stat-chip {
+                font-size: 0.62rem;
+                padding: 0.12rem 0.22rem;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .candidate-details {
+                width: 100%;
+                justify-content: center;
+                padding-inline-start: 0;
+                gap: 0.2rem;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .candidate-main-block {
+                max-width: 100%;
+                flex: 1 1 auto;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .candidate-name {
+                font-size: 0.8rem;
+                line-height: 1.35;
+                white-space: normal;
+                overflow: visible;
+                text-overflow: clip;
+                margin-bottom: 0.16rem;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .candidate-total-with-list-line {
+                justify-content: center;
+                font-size: 0.72rem;
+                margin-top: 0;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .metric-label-total {
+                min-width: 1.55rem;
+                height: 1.12rem;
+                font-size: 0.58rem;
+            }
+
+            .results-cards-grid[data-view-mode="grid"] .totalWithListNum {
+                min-width: 34px;
+                font-size: 0.7rem;
+                padding: 0.14rem 0.28rem;
+            }
+
             .results-cards-grid[data-view-mode="compact"] .result-card-col {
                 flex: 0 0 100%;
                 max-width: 100%;
