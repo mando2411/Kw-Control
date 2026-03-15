@@ -1195,6 +1195,7 @@ class CandidateController extends Controller
                         $candidateId = (int) $candidate->id;
                         $isListLeader = $candidateType === 'list_leader';
                         $isListMember = $listLeaderCandidateId > 0;
+                        $listGroupId = $isListLeader ? $candidateId : $listLeaderCandidateId;
                         $isInMySelection = in_array($candidateId, $mySelectedCandidateIds, true);
                         $belongsToMyList = in_array($candidateId, $myListLeaderCandidateIds, true)
                             || ($listLeaderCandidateId > 0 && in_array($listLeaderCandidateId, $myListLeaderCandidateIds, true));
@@ -1213,6 +1214,7 @@ class CandidateController extends Controller
                             'committee' => $candidate->pivot->committee_id,
                             'is_list' => $isListLeader,
                             'candidate_group' => $candidateGroup,
+                            'list_group_id' => $listGroupId,
                         ];
                     });
             }

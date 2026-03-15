@@ -925,7 +925,7 @@
 
             <tbody class="text-center">
               @foreach ($regularCandidates as $index => $can)
-                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}" data-is-list="{{ !empty($can['is_list']) ? 1 : 0 }}">
+                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}" data-is-list="{{ !empty($can['is_list']) ? 1 : 0 }}" data-list-group-id="{{ (int) ($can['list_group_id'] ?? 0) }}" data-origin-table="candidates" data-origin-order="{{ $index }}">
                   <td data-label="الترتيب">{{ $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -968,6 +968,7 @@
         </div>
 
         @if ($listCandidates->isNotEmpty())
+          <div id="listsSection">
           <div class="candidates-head mt-2">
             <h4>فرز القوائم</h4>
             <span class="sorting-chip">عدد القوائم: {{ $listCandidates->count() }}</span>
@@ -988,7 +989,7 @@
 
               <tbody class="text-center">
                 @foreach ($listCandidates as $index => $can)
-                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}" data-is-list="1">
+                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}" data-is-list="1" data-list-group-id="{{ (int) ($can['list_group_id'] ?? $can['id']) }}" data-origin-table="lists" data-origin-order="{{ $index }}">
                     <td data-label="الترتيب">{{ $index + 1 }}</td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -1026,6 +1027,7 @@
                 @endforeach
               </tbody>
             </table>
+          </div>
           </div>
         @endif
       </div>
@@ -1181,6 +1183,68 @@
       }, 650);
     }
 
+    function sortRowsByOrigin($tbody) {
+      var rows = $tbody.find('tr').get();
+      rows.sort(function(a, b) {
+        var aOrder = parseInt($(a).data('origin-order'), 10) || 0;
+        var bOrder = parseInt($(b).data('origin-order'), 10) || 0;
+        return aOrder - bOrder;
+      });
+      $tbody.append(rows);
+    }
+
+    function restoreRowsToOriginTable() {
+      $('tr[data-origin-table]').each(function() {
+        var $row = $(this);
+        var originTable = String($row.data('origin-table') || '');
+        if (originTable === 'lists') {
+          $('#lists_table tbody').append($row);
+        } else {
+          $('#candidates_table tbody').append($row);
+        }
+      });
+
+      sortRowsByOrigin($('#candidates_table tbody'));
+      sortRowsByOrigin($('#lists_table tbody'));
+    }
+
+    function applyOtherListsOrder() {
+      var $candidatesBody = $('#candidates_table tbody');
+      var rows = $candidatesBody.find('tr').get();
+      rows.sort(function(a, b) {
+        var $a = $(a);
+        var $b = $(b);
+        var aGroup = parseInt($a.data('list-group-id'), 10) || 0;
+        var bGroup = parseInt($b.data('list-group-id'), 10) || 0;
+        if (aGroup !== bGroup) {
+          return aGroup - bGroup;
+        }
+
+        var aIsList = String($a.data('is-list') || '0') === '1';
+        var bIsList = String($b.data('is-list') || '0') === '1';
+        if (aIsList !== bIsList) {
+          return aIsList ? 1 : -1;
+        }
+
+        return getCandidateNameFromRow($a).localeCompare(getCandidateNameFromRow($b), 'ar');
+      });
+
+      $candidatesBody.append(rows);
+    }
+
+    function applyCategoryLayoutMode() {
+      restoreRowsToOriginTable();
+      $('#listsSection').show();
+
+      if (activeCategory !== 'other_lists') {
+        return;
+      }
+
+      $('#lists_table tbody tr').appendTo('#candidates_table tbody');
+      applyOtherListsOrder();
+      $('#listsSection').hide();
+    }
+
     function getCurrentCommitteeId() {
       if ($('#sorting-select').length && $('#sorting-select').val()) {
         return parseInt($('#sorting-select').val(), 10) || 0;
@@ -1322,6 +1386,7 @@
     startSortingRealtime();
     buildQuickLetterFilter();
     renderRecentCandidates();
+    applyCategoryLayoutMode();
 
     $(document).on('click', '.quick-letter-btn', function() {
       $('.quick-letter-btn').removeClass('active');
@@ -1346,6 +1411,7 @@
         $button.addClass('active');
       }
 
+      applyCategoryLayoutMode();
       searchTable();
     });
 
@@ -1521,6 +1587,7 @@
     });
 
     function searchTable() {
+      applyCategoryLayoutMode();
       let entireValue = $('#searchBox').val().toLowerCase();
       $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
         let rowText = getCandidateNameFromRow($(this)).toLowerCase();
