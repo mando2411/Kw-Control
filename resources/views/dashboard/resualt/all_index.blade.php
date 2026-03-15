@@ -134,6 +134,84 @@
             row-gap: 0.72rem;
         }
 
+        .results-lists-wrap {
+            margin-top: 1.15rem;
+            border: 1px solid #d7e3f0;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.88);
+            box-shadow: 0 10px 24px rgba(17, 38, 61, 0.08);
+            padding: 0.78rem;
+        }
+
+        .results-lists-title {
+            margin: 0 0 0.6rem;
+            font-size: 0.98rem;
+            font-weight: 900;
+            color: #153655;
+        }
+
+        .results-lists-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+
+        .list-result-card {
+            border: 1px solid #d7e3f0;
+            border-radius: 12px;
+            background: linear-gradient(160deg, #ffffff 0%, #f5f9ff 100%);
+            padding: 0.5rem 0.62rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .list-rank-badge {
+            min-width: 42px;
+            height: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.74rem;
+            font-weight: 900;
+            color: #134374;
+            background: #edf4ff;
+            border: 1px solid #cbddf3;
+        }
+
+        .list-result-name {
+            margin: 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #123150;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-votes-num {
+            min-width: 54px;
+            border-radius: 999px;
+            padding: 0.2rem 0.48rem;
+            text-align: center;
+            font-size: 0.86rem;
+            font-weight: 900;
+            color: #3345a0;
+            background: rgba(63, 83, 186, 0.14);
+            border: 1px solid rgba(63, 83, 186, 0.26);
+            transition: transform 0.22s ease, background-color 0.22s ease;
+        }
+
+        .list-votes-num.is-updated {
+            transform: scale(1.08);
+            background: rgba(217, 119, 6, 0.18);
+            color: #8f4b05;
+        }
+
         .result-card-col {
             will-change: transform;
             width: 100%;
@@ -898,12 +976,53 @@
                 flex: 0 0 33.3333%;
                 max-width: 33.3333%;
             }
+
+            .results-lists-wrap {
+                padding: 0.6rem;
+                border-radius: 12px;
+            }
+
+            .results-lists-title {
+                font-size: 0.9rem;
+            }
+
+            .list-result-card {
+                padding: 0.44rem 0.5rem;
+                border-radius: 10px;
+            }
+
+            .list-rank-badge {
+                min-width: 38px;
+                height: 25px;
+                font-size: 0.7rem;
+            }
+
+            .list-result-name {
+                font-size: 0.82rem;
+            }
+
+            .list-votes-num {
+                min-width: 48px;
+                font-size: 0.8rem;
+            }
         }
 
         @media (min-width: 1200px) {
             .results-cards-grid[data-view-mode="grid"] .result-card-col {
                 flex: 0 0 33.3333%;
                 max-width: 33.3333%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .results-lists-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .results-lists-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
@@ -1152,6 +1271,36 @@
                     </div>
                 @endforeach
             </div>
+
+            @php
+                $sortedListLeaders = $candidates
+                    ->filter(function ($candidate) {
+                        return (string) ($candidate->candidate_type ?? '') === 'list_leader';
+                    })
+                    ->map(function ($candidate) {
+                        return [
+                            'id' => (int) $candidate->id,
+                            'name' => (string) ($candidate->user->name ?? ''),
+                            'votes' => (int) $candidate->committees->sum('pivot.votes'),
+                        ];
+                    })
+                    ->sortByDesc('votes')
+                    ->values();
+            @endphp
+            @if ($sortedListLeaders->isNotEmpty())
+                <div class="results-lists-wrap rtl">
+                    <h5 class="results-lists-title">النتائج العامة للقوائم</h5>
+                    <div class="results-lists-grid" id="allResultsListsGrid">
+                        @foreach ($sortedListLeaders as $index => $listLeader)
+                            <article class="list-result-card" data-list-result-id="{{ $listLeader['id'] }}">
+                                <span class="list-rank-badge">{{ $index + 1 }}</span>
+                                <h6 class="list-result-name">{{ $listLeader['name'] }}</h6>
+                                <span class="list-votes-num">{{ $listLeader['votes'] }}</span>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
     </section>
 @endsection
@@ -1165,6 +1314,7 @@
             var realtimeChannelName = null;
             var inFlight = false;
             var cardsGrid = document.getElementById('allResultsCardsGrid');
+            var listsGrid = document.getElementById('allResultsListsGrid');
             var viewSwitchBtn = document.getElementById('resultsViewSwitchBtn');
             var viewModeStorageKey = 'all_results_view_mode';
             var viewModes = [
@@ -1337,6 +1487,30 @@
                 }
             }
 
+            function listVotesFromCard(card) {
+                var voteNode = card.querySelector('.list-votes-num');
+                return parseInt((voteNode ? voteNode.innerText : '0'), 10) || 0;
+            }
+
+            function updateListsGridByVotes() {
+                if (!listsGrid) {
+                    return;
+                }
+
+                var currentCards = Array.from(listsGrid.children);
+                var sortedCards = currentCards.slice().sort(function (a, b) {
+                    return listVotesFromCard(b) - listVotesFromCard(a);
+                });
+
+                sortedCards.forEach(function (card, idx) {
+                    listsGrid.appendChild(card);
+                    var rankBadge = card.querySelector('.list-rank-badge');
+                    if (rankBadge) {
+                        rankBadge.innerText = (idx + 1);
+                    }
+                });
+            }
+
             function applyUpdatedStyle(node) {
                 if (!node) {
                     return;
@@ -1383,6 +1557,20 @@
                             totalWithListNum.innerText = totalWithListVotes;
                             if (oldTotalWithListVotes !== totalWithListVotes) {
                                 applyUpdatedStyle(totalWithListNum);
+                            }
+                        }
+                    }
+
+                    if (listsGrid) {
+                        var listCard = listsGrid.querySelector('[data-list-result-id="' + candidateId + '"]');
+                        if (listCard) {
+                            var listVotesNode = listCard.querySelector('.list-votes-num');
+                            if (listVotesNode) {
+                                var oldListVotes = parseInt(listVotesNode.innerText, 10) || 0;
+                                listVotesNode.innerText = votes;
+                                if (oldListVotes !== votes) {
+                                    applyUpdatedStyle(listVotesNode);
+                                }
                             }
                         }
                     }
@@ -1434,6 +1622,7 @@
                 }
 
                 updateCandidatesGridByVotes();
+                updateListsGridByVotes();
             }
 
             function fetchAllResultsStats() {
