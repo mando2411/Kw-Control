@@ -641,7 +641,7 @@
                         $listGroupId = $candidateType === 'list_leader'
                             ? (int) $can->id
                             : (int) ($can->list_leader_candidate_id ?? 0);
-                        $listTotalVotes = $listGroupId > 0 ? (int) ($listVoteTotals[$listGroupId] ?? 0) : null;
+                        $listTotalVotes = (int) ($listGroupId > 0 ? ($listVoteTotals[$listGroupId] ?? 0) : 0);
                     @endphp
                     <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">
                         <article class="candidate-rank-card {{ $rankClass }}">
@@ -655,7 +655,7 @@
                             <div class="candidate-details">
                                 <h6 class="candidate-name">{{ $can->user->name }}</h6>
                                 <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $can->votes }}</span></p>
-                                <p class="candidate-list-votes-line">أصوات القائمة <span class="listVotesNum">{{ $listTotalVotes ?? '-' }}</span></p>
+                                <p class="candidate-list-votes-line">أصوات القائمة <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
                                 <p class="candidate-meta-line">المركز الحالي: <span class="rank-label-inline">{{ $i + 1 }}</span></p>
                             </div>
                         </article>
@@ -831,7 +831,7 @@
 
                         var listVotesNum = cardCol.querySelector('.listVotesNum');
                         if (listVotesNum) {
-                            listVotesNum.innerText = listTotalVotes === null ? '-' : (parseInt(listTotalVotes, 10) || 0);
+                            listVotesNum.innerText = parseInt(listTotalVotes, 10) || 0;
                         }
                     }
 

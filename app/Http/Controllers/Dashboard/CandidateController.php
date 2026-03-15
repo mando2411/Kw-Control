@@ -1280,7 +1280,7 @@ class CandidateController extends Controller
                 }
                 $query->select('committees.id', 'committees.type');
             }])
-            ->select(['id', 'votes', 'election_id']);
+            ->select(['id', 'votes', 'election_id', 'candidate_type', 'list_leader_candidate_id']);
 
         $this->applyActualCandidateOnlyScope($candidatesQuery);
 
@@ -1337,7 +1337,7 @@ class CandidateController extends Controller
                 'men_total' => $menTotal,
                 'women_total' => $womenTotal,
                 'committee_votes' => $candidateCommitteeVotes,
-                'list_total_votes' => $listGroupId > 0 ? (int) ($listVoteTotals[$listGroupId] ?? 0) : null,
+                'list_total_votes' => (int) ($listGroupId > 0 ? ($listVoteTotals[$listGroupId] ?? 0) : 0),
             ];
         }
 
