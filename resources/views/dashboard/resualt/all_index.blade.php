@@ -673,7 +673,11 @@
                 gap: 0.42rem;
             }
 
-            .results-cards-grid[data-view-mode="grid"] .result-card-col,
+            .results-cards-grid[data-view-mode="grid"] .result-card-col {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+
             .results-cards-grid[data-view-mode="compact"] .result-card-col {
                 flex: 0 0 100%;
                 max-width: 100%;
