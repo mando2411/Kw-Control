@@ -338,13 +338,14 @@
         .candidate-main-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.7rem;
+            justify-content: center;
+            gap: 0.85rem;
         }
 
         .candidate-main-block {
             min-width: 0;
-            flex: 1 1 auto;
+            flex: 0 1 auto;
+            max-width: 66%;
         }
 
         .candidate-side-stats {
