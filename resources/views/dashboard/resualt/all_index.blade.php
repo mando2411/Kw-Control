@@ -683,10 +683,10 @@
             }
 
             .results-cards-grid[data-view-mode="grid"] .candidate-rank-card {
-                min-height: 188px;
-                padding: 0.52rem;
+                min-height: 160px;
+                padding: 0.48rem 0.48rem 2.05rem;
                 border-radius: 12px;
-                gap: 0.42rem;
+                gap: 0.32rem;
                 flex-direction: column;
                 align-items: stretch;
                 text-align: center;
@@ -712,41 +712,46 @@
 
             .results-cards-grid[data-view-mode="grid"] .candidate-details {
                 width: 100%;
+                display: block;
                 justify-content: center;
                 padding-inline-start: 0;
-                gap: 0.2rem;
+                gap: 0;
             }
 
             .results-cards-grid[data-view-mode="grid"] .candidate-main-block {
                 max-width: 100%;
-                flex: 1 1 auto;
+                flex: none;
             }
 
             .results-cards-grid[data-view-mode="grid"] .candidate-name {
-                font-size: 0.8rem;
+                font-size: 0.92rem;
                 line-height: 1.35;
                 white-space: normal;
                 overflow: visible;
                 text-overflow: clip;
-                margin-bottom: 0.16rem;
+                margin-bottom: 0.05rem;
             }
 
             .results-cards-grid[data-view-mode="grid"] .candidate-total-with-list-line {
+                position: absolute;
+                left: 50%;
+                bottom: 0.38rem;
+                transform: translateX(-50%);
                 justify-content: center;
                 font-size: 0.72rem;
-                margin-top: 0;
+                margin: 0;
+                z-index: 3;
             }
 
             .results-cards-grid[data-view-mode="grid"] .metric-label-total {
-                min-width: 1.55rem;
-                height: 1.12rem;
-                font-size: 0.58rem;
+                display: none;
             }
 
             .results-cards-grid[data-view-mode="grid"] .totalWithListNum {
-                min-width: 34px;
-                font-size: 0.7rem;
-                padding: 0.14rem 0.28rem;
+                min-width: 46px;
+                font-size: 0.92rem;
+                padding: 0.2rem 0.46rem;
+                box-shadow: 0 8px 16px rgba(63, 83, 186, 0.24);
             }
 
             .results-cards-grid[data-view-mode="compact"] .result-card-col {
