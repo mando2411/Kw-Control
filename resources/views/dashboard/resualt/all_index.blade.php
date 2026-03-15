@@ -331,12 +331,13 @@
 
         .candidate-details {
             min-width: 0;
-            width: 100%;
+            width: auto;
+            flex: 1 1 auto;
             padding-inline-start: 0.28rem;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 0.85rem;
+            justify-content: flex-start;
+            gap: 0.7rem;
         }
 
         .candidate-main-block {
@@ -353,6 +354,7 @@
             gap: 0.16rem;
             text-align: center;
             flex: 0 0 auto;
+            margin-inline-start: 0.2rem;
         }
 
         .candidate-name {
