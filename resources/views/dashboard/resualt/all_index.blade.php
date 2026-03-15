@@ -758,8 +758,20 @@
             <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
                 @php
                     $listLeaderVoteTotals = is_array($listLeaderVoteTotals ?? null) ? $listLeaderVoteTotals : [];
+                    $sortedCandidates = $candidates
+                        ->sortByDesc(function ($candidate) use ($listLeaderVoteTotals) {
+                            $candidateType = (string) ($candidate->candidate_type ?? '');
+                            $listGroupId = $candidateType === 'list_leader'
+                                ? (int) $candidate->id
+                                : (int) ($candidate->list_leader_candidate_id ?? 0);
+                            $listTotalVotes = (int) ($listGroupId > 0 ? ($listLeaderVoteTotals[$listGroupId] ?? 0) : 0);
+                            $candidateVotes = (int) $candidate->committees->sum('pivot.votes');
+
+                            return $candidateVotes + $listTotalVotes;
+                        })
+                        ->values();
                 @endphp
-                @foreach ($candidates as $i => $can)
+                @foreach ($sortedCandidates as $i => $can)
                     @php
                         $rankClass = $i === 0
                             ? 'rank-gold'
@@ -829,7 +841,7 @@
             }
 
             function voteFromCardCol(cardCol) {
-                var voteNode = cardCol.querySelector('.soundNum');
+                var voteNode = cardCol.querySelector('.totalWithListNum');
                 return parseInt((voteNode ? voteNode.innerText : '0'), 10) || 0;
             }
 
