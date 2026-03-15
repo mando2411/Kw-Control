@@ -793,6 +793,14 @@
             }
         }
 
+        @media (min-width: 768px) {
+            .results-cards-grid[data-view-mode="grid"] .stats-frame {
+                left: 0.62rem;
+                right: auto;
+                top: 3.1rem;
+            }
+        }
+
         @keyframes goldCardShimmer {
             0% {
                 transform: translateX(-160%) skewX(-18deg);
