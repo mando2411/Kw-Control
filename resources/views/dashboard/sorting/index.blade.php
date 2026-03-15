@@ -550,8 +550,8 @@
 
     #candidates_table tbody tr,
     #lists_table tbody tr {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: flex;
+      flex-wrap: wrap;
       gap: 0.2rem;
       margin-bottom: 0.7rem;
       padding: 0.55rem 0.6rem;
@@ -578,7 +578,8 @@
 
     #candidates_table tbody td:nth-child(3),
     #lists_table tbody td:nth-child(3) {
-      grid-column: 1 / -1;
+      order: 1;
+      flex: 0 0 100%;
       text-align: right;
       padding-bottom: 0.2rem;
     }
@@ -589,7 +590,10 @@
     #lists_table tbody td:nth-child(2),
     #lists_table tbody td:nth-child(4),
     #lists_table tbody td:nth-child(6) {
+      order: 2;
       display: flex;
+      flex: 1 1 calc(33.333% - 0.14rem);
+      min-width: 0;
     }
 
     .candidate-name-desktop {
