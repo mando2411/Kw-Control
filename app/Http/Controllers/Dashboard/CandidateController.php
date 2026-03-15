@@ -1248,8 +1248,24 @@ class CandidateController extends Controller
 
                 $committees = $committeesQuery->get();
                 $schools = $schoolsQuery->get();
+                $committeeIds = $committees->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
 
-                return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools', 'election_id'));
+                $listLeaderVoteTotals = Candidate::withoutGlobalScopes()
+                    ->where('election_id', $election_id)
+                    ->where('candidate_type', 'list_leader')
+                    ->with(['committees' => function ($query) use ($committeeIds) {
+                        if (!empty($committeeIds)) {
+                            $query->whereIn('committees.id', $committeeIds);
+                        }
+                        $query->select('committees.id');
+                    }])
+                    ->get(['id'])
+                    ->mapWithKeys(function ($candidate) {
+                        return [(int) $candidate->id => (int) $candidate->committees->sum('pivot.votes')];
+                    })
+                    ->all();
+
+                return view('dashboard.resualt.all_index', compact('candidates', 'committees', 'schools', 'election_id', 'listLeaderVoteTotals'));
             }
         }
         abort(404);
@@ -1295,7 +1311,6 @@ class CandidateController extends Controller
         }
 
         $candidateRows = [];
-        $listLeaderVoteTotals = [];
         foreach ($candidates as $candidate) {
             $candidateCommitteeVotes = [];
             $menTotal = 0;
@@ -1320,10 +1335,6 @@ class CandidateController extends Controller
             }
 
             $candidateVotesTotal = (int) ($menTotal + $womenTotal);
-            if ($candidateType === 'list_leader') {
-                $listLeaderVoteTotals[(int) $candidate->id] = $candidateVotesTotal;
-            }
-
             $candidateRows[] = [
                 'id' => (int) $candidate->id,
                 'votes' => $candidateVotesTotal,
@@ -1333,6 +1344,21 @@ class CandidateController extends Controller
                 'list_group_id' => $listGroupId,
             ];
         }
+
+        $listLeaderVoteTotals = Candidate::withoutGlobalScopes()
+            ->where('election_id', $electionId)
+            ->where('candidate_type', 'list_leader')
+            ->with(['committees' => function ($query) use ($committeeIds) {
+                if (!empty($committeeIds)) {
+                    $query->whereIn('committees.id', $committeeIds);
+                }
+                $query->select('committees.id');
+            }])
+            ->get(['id'])
+            ->mapWithKeys(function ($candidate) {
+                return [(int) $candidate->id => (int) $candidate->committees->sum('pivot.votes')];
+            })
+            ->all();
 
         $candidateRows = collect($candidateRows)->map(function (array $candidateRow) use ($listLeaderVoteTotals) {
             $listGroupId = (int) ($candidateRow['list_group_id'] ?? 0);

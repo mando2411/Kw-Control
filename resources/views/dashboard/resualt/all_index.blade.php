@@ -613,14 +613,7 @@
 
             <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
                 @php
-                    $listLeaderVoteTotals = collect($candidates)->reduce(function ($carry, $candidate) {
-                        $candidateType = (string) ($candidate->candidate_type ?? '');
-                        if ($candidateType === 'list_leader') {
-                            $carry[(int) $candidate->id] = (int) $candidate->committees->sum('pivot.votes');
-                        }
-
-                        return $carry;
-                    }, []);
+                    $listLeaderVoteTotals = is_array($listLeaderVoteTotals ?? null) ? $listLeaderVoteTotals : [];
                 @endphp
                 @foreach ($candidates as $i => $can)
                     @php
