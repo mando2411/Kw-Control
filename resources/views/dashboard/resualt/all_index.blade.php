@@ -150,42 +150,112 @@
         }
 
         .results-cards-grid[data-view-mode="compact"] .result-card-col {
-            flex: 0 0 100%;
-            max-width: 100%;
+            flex: 0 0 50%;
+            max-width: 50%;
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card {
-            min-height: 96px;
-            padding: 0.56rem 0.66rem;
-            border-radius: 14px;
-            gap: 0.56rem;
+            min-height: 132px;
+            padding: 0.5rem 0.45rem 0.46rem;
+            border-radius: 16px;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(168deg, #fffdf8 0%, #fff3d8 100%);
+            border-color: #e5c874;
+            box-shadow:
+                0 10px 22px rgba(116, 86, 22, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.92);
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-photo {
-            width: 68px;
-            height: 68px;
+            width: 72px;
+            height: 72px;
+            border: 3px solid #fff8e2;
+            box-shadow:
+                0 14px 22px rgba(17, 38, 61, 0.24),
+                0 3px 0 rgba(255, 255, 255, 0.94) inset;
+            transform: perspective(650px) rotateX(10deg) translateZ(8px);
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .rank-frame {
+            top: -0.38rem;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 56px;
+            padding: 0.14rem 0.34rem;
+            border-radius: 999px;
+            z-index: 4;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .stats-frame {
+            display: none;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-details {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0.3rem;
+            width: 100%;
+            justify-content: center;
+            padding-inline-start: 0;
+            z-index: 3;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-main-block {
+            max-width: calc(100% - 0.45rem);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.24rem;
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-name {
-            font-size: 0.94rem;
-            margin-bottom: 0.2rem;
+            margin: 0;
+            max-width: 100%;
+            padding: 0.14rem 0.56rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(188, 151, 56, 0.36);
+            font-size: 0.78rem;
+            font-weight: 900;
+            line-height: 1.2;
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-total-with-list-line {
-            font-size: 0.82rem;
-            margin-top: 0.04rem;
+            margin: 0;
+            padding: 0;
+            gap: 0;
         }
 
         .results-cards-grid[data-view-mode="compact"] .metric-label-total {
-            min-width: 1.9rem;
-            height: 1.35rem;
-            font-size: 0.68rem;
+            display: none;
         }
 
         .results-cards-grid[data-view-mode="compact"] .totalWithListNum {
-            min-width: 48px;
-            font-size: 0.82rem;
-            padding: 0.2rem 0.42rem;
+            min-width: 42px;
+            margin-inline-start: 0;
+            padding: 0.18rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 900;
+            background: rgba(63, 83, 186, 0.2);
+            border: 1px solid rgba(63, 83, 186, 0.36);
+        }
+
+        @media (min-width: 992px) {
+            .results-cards-grid[data-view-mode="compact"] .result-card-col {
+                flex: 0 0 25%;
+                max-width: 25%;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .results-cards-grid[data-view-mode="compact"] .result-card-col {
+                flex: 0 0 20%;
+                max-width: 20%;
+            }
         }
 
         .candidate-rank-card {
@@ -781,8 +851,8 @@
             }
 
             .results-cards-grid[data-view-mode="compact"] .result-card-col {
-                flex: 0 0 100%;
-                max-width: 100%;
+                flex: 0 0 50%;
+                max-width: 50%;
             }
         }
 
