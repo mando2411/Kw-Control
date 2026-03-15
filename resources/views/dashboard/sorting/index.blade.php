@@ -552,7 +552,7 @@
     #lists_table tbody tr {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.42rem;
+      gap: 0.2rem;
       margin-bottom: 0.7rem;
       padding: 0.55rem 0.6rem;
     }
@@ -580,7 +580,16 @@
     #lists_table tbody td:nth-child(3) {
       grid-column: 1 / -1;
       text-align: right;
-      padding-bottom: 0.1rem;
+      padding-bottom: 0.2rem;
+    }
+
+    #candidates_table tbody td:nth-child(2),
+    #candidates_table tbody td:nth-child(4),
+    #candidates_table tbody td:nth-child(6),
+    #lists_table tbody td:nth-child(2),
+    #lists_table tbody td:nth-child(4),
+    #lists_table tbody td:nth-child(6) {
+      display: flex;
     }
 
     .candidate-name-desktop {
@@ -605,6 +614,8 @@
       padding: 0.35rem 0.25rem;
       min-height: 36px;
       font-size: 0.76rem;
+      width: 100%;
+      border-radius: 9px;
     }
 
     .action-btn i {
