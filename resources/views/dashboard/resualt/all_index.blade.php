@@ -193,24 +193,42 @@
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-gold .rank-frame {
-            background: linear-gradient(135deg, #ffe698 0%, #d79f17 100%);
-            border-color: #a77500;
-            color: #4e2f00;
-            box-shadow: 0 8px 16px rgba(167, 117, 0, 0.38);
+            background: linear-gradient(135deg, #ffe698 0%, #d79f17 100%) !important;
+            border-color: #a77500 !important;
+            color: #4e2f00 !important;
+            box-shadow: 0 8px 16px rgba(167, 117, 0, 0.38) !important;
+            transform: translateX(-50%) scale(1.05);
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-silver .rank-frame {
-            background: linear-gradient(135deg, #f6fbff 0%, #b7c5d5 100%);
-            border-color: #7b8a9b;
-            color: #2f3b49;
-            box-shadow: 0 8px 16px rgba(92, 106, 123, 0.3);
+            background: linear-gradient(135deg, #f6fbff 0%, #b7c5d5 100%) !important;
+            border-color: #7b8a9b !important;
+            color: #2f3b49 !important;
+            box-shadow: 0 8px 16px rgba(92, 106, 123, 0.3) !important;
+            transform: translateX(-50%) scale(1.03);
         }
 
         .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-bronze .rank-frame {
-            background: linear-gradient(135deg, #ffd9c3 0%, #c97a48 100%);
-            border-color: #995126;
-            color: #51250f;
-            box-shadow: 0 8px 16px rgba(153, 81, 38, 0.32);
+            background: linear-gradient(135deg, #ffd9c3 0%, #c97a48 100%) !important;
+            border-color: #995126 !important;
+            color: #51250f !important;
+            box-shadow: 0 8px 16px rgba(153, 81, 38, 0.32) !important;
+            transform: translateX(-50%) scale(1.02);
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-gold .candidate-photo {
+            border-color: #ffe7a8;
+            box-shadow: 0 16px 24px rgba(130, 95, 20, 0.34), 0 3px 0 rgba(255, 255, 255, 0.94) inset;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-silver .candidate-photo {
+            border-color: #e6edf5;
+            box-shadow: 0 14px 22px rgba(92, 106, 123, 0.28), 0 3px 0 rgba(255, 255, 255, 0.94) inset;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-bronze .candidate-photo {
+            border-color: #ffd9c3;
+            box-shadow: 0 14px 22px rgba(153, 81, 38, 0.28), 0 3px 0 rgba(255, 255, 255, 0.94) inset;
         }
 
         .results-cards-grid[data-view-mode="compact"] .stats-frame {
