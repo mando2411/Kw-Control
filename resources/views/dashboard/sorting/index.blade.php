@@ -142,6 +142,45 @@
     padding-left: 2.2rem;
   }
 
+  .mobile-quick-access {
+    display: none;
+  }
+
+  .quick-letter-filter,
+  .recent-candidates-chips {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+  }
+
+  .quick-letter-btn,
+  .recent-candidate-chip {
+    border: 1px solid #d7e2ee;
+    background: #fff;
+    color: #243b53;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.78rem;
+    padding: 0.28rem 0.72rem;
+    white-space: nowrap;
+  }
+
+  .quick-letter-btn.active {
+    background: rgba(15, 118, 110, 0.12);
+    border-color: rgba(15, 118, 110, 0.34);
+    color: var(--sp-primary-dark);
+  }
+
+  .recent-candidate-chip {
+    background: #f8fcff;
+  }
+
+  .quick-target {
+    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.32) !important;
+    animation: spPulseQuick 0.4s ease;
+  }
+
   .committee-stats {
     margin-top: 1rem;
     display: grid;
@@ -436,6 +475,12 @@
   }
 
   @media (max-width: 767.98px) {
+    .sorting-toolbar {
+      position: sticky;
+      top: 0.4rem;
+      z-index: 25;
+    }
+
     .sorting-page {
       padding-top: 0.7rem;
     }
@@ -452,6 +497,23 @@
     .committee-stats {
       grid-template-columns: 1fr;
       gap: 0.6rem;
+    }
+
+    .mobile-quick-access {
+      display: block;
+      margin-top: 0.8rem;
+      padding: 0.8rem 0.85rem;
+      border-radius: 14px;
+      border: 1px solid #d7e2ee;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 16px rgba(16, 42, 67, 0.09);
+    }
+
+    .mobile-quick-title {
+      margin: 0 0 0.45rem;
+      color: #486581;
+      font-size: 0.8rem;
+      font-weight: 800;
     }
 
     #candidates_table thead,
@@ -625,6 +687,18 @@
     </div>
 
     @if ($candidates)
+      <div class="mobile-quick-access" id="mobileQuickAccess">
+        <p class="mobile-quick-title mb-2">وصول سريع</p>
+        <div class="recent-candidates mb-2">
+          <p class="mobile-quick-title mb-1">آخر مرشحين تم التعامل معهم</p>
+          <div class="recent-candidates-chips" id="recentCandidatesChips"></div>
+        </div>
+        <div class="quick-letters">
+          <p class="mobile-quick-title mb-1">اختصار بالحرف</p>
+          <div class="quick-letter-filter" id="quickLetterFilter"></div>
+        </div>
+      </div>
+
       <div class="committee-stats">
         <div class="stat-item">
           <p class="stat-title">اسم اللجنة</p>
@@ -692,7 +766,7 @@
 
             <tbody class="text-center">
               @foreach ($regularCandidates as $index => $can)
-                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};">
+                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}">
                   <td data-label="الترتيب">{{ $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -700,7 +774,7 @@
                       <span>إضافة</span>
                     </button>
                   </td>
-                  <td class="candidate-name fullName" data-label="المرشح">
+                  <td class="candidate-name fullName" data-label="المرشح" data-candidate-name="{{ $can['name'] }}">
                     {{ $can['name'] }}
                     @if (!empty($can['is_list']))
                       <span class="list-pill">قائمة</span>
@@ -750,7 +824,7 @@
 
               <tbody class="text-center">
                 @foreach ($listCandidates as $index => $can)
-                  <tr class="candidate-row-list" style="--row-index: {{ $index }};">
+                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}">
                     <td data-label="الترتيب">{{ $index + 1 }}</td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -758,7 +832,7 @@
                         <span>إضافة</span>
                       </button>
                     </td>
-                    <td class="candidate-name fullName" data-label="القائمة">
+                    <td class="candidate-name fullName" data-label="القائمة" data-candidate-name="{{ $can['name'] }}">
                       {{ $can['name'] }}
                       <span class="list-pill">قائمة</span>
                     </td>
@@ -807,6 +881,9 @@
     var fallbackTimer = null;
     var liveStatsInFlight = false;
     var fallbackIntervalMs = 2000;
+    var activeQuickLetter = '';
+    var recentCandidateIds = [];
+    var maxRecentCandidates = 8;
 
     // Render modals at body level to avoid clipping by parent containers.
     if ($('#confirmModal').length) {
@@ -823,6 +900,116 @@
     }
 
     checkLocked();
+
+    function normalizeCandidateName(name) {
+      return String(name || '')
+        .replace(/^القائمة:\s*/i, '')
+        .trim();
+    }
+
+    function getCandidateNameFromRow($row) {
+      var $nameCell = $row.find('.fullName').first();
+      return normalizeCandidateName($nameCell.data('candidate-name') || $nameCell.text());
+    }
+
+    function getCandidateFirstLetter(name) {
+      var normalized = normalizeCandidateName(name);
+      return normalized ? normalized.charAt(0) : '';
+    }
+
+    function getRowByCandidateId(candidateId) {
+      var numericId = parseInt(candidateId, 10) || 0;
+      if (!numericId) {
+        return $();
+      }
+
+      return $('tr[data-candidate-id="' + numericId + '"]').first();
+    }
+
+    function renderRecentCandidates() {
+      var $container = $('#recentCandidatesChips');
+      if (!$container.length) {
+        return;
+      }
+
+      if (!recentCandidateIds.length) {
+        $container.html('<span class="text-muted small">لا يوجد بعد</span>');
+        return;
+      }
+
+      var html = recentCandidateIds.map(function(candidateId) {
+        var $row = getRowByCandidateId(candidateId);
+        if (!$row.length) {
+          return '';
+        }
+
+        var candidateName = getCandidateNameFromRow($row);
+        return '<button type="button" class="recent-candidate-chip" data-candidate-id="' + candidateId + '">' + candidateName + '</button>';
+      }).join('');
+
+      $container.html(html);
+    }
+
+    function trackRecentCandidate(candidateId) {
+      var numericId = parseInt(candidateId, 10) || 0;
+      if (!numericId) {
+        return;
+      }
+
+      recentCandidateIds = recentCandidateIds.filter(function(id) {
+        return id !== numericId;
+      });
+      recentCandidateIds.unshift(numericId);
+
+      if (recentCandidateIds.length > maxRecentCandidates) {
+        recentCandidateIds = recentCandidateIds.slice(0, maxRecentCandidates);
+      }
+
+      renderRecentCandidates();
+    }
+
+    function buildQuickLetterFilter() {
+      var $container = $('#quickLetterFilter');
+      if (!$container.length) {
+        return;
+      }
+
+      var letters = [];
+      $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
+        var candidateName = getCandidateNameFromRow($(this));
+        var letter = getCandidateFirstLetter(candidateName);
+        if (letter) {
+          letters.push(letter);
+        }
+      });
+
+      letters = Array.from(new Set(letters)).sort(function(a, b) {
+        return a.localeCompare(b, 'ar');
+      });
+
+      var html = '<button type="button" class="quick-letter-btn active" data-letter="">الكل</button>';
+      letters.forEach(function(letter) {
+        html += '<button type="button" class="quick-letter-btn" data-letter="' + letter + '">' + letter + '</button>';
+      });
+
+      $container.html(html);
+    }
+
+    function focusCandidateRow(candidateId) {
+      var $row = getRowByCandidateId(candidateId);
+      if (!$row.length) {
+        return;
+      }
+
+      $row[0].scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+      $row.addClass('quick-target');
+      setTimeout(function() {
+        $row.removeClass('quick-target');
+      }, 650);
+    }
 
     function getCurrentCommitteeId() {
       if ($('#sorting-select').length && $('#sorting-select').val()) {
@@ -955,6 +1142,23 @@
     }
 
     startSortingRealtime();
+    buildQuickLetterFilter();
+    renderRecentCandidates();
+
+    $(document).on('click', '.quick-letter-btn', function() {
+      $('.quick-letter-btn').removeClass('active');
+      $(this).addClass('active');
+      activeQuickLetter = String($(this).data('letter') || '');
+      searchTable();
+    });
+
+    $(document).on('click', '.recent-candidate-chip', function() {
+      var candidateId = parseInt($(this).data('candidate-id'), 10) || 0;
+      if (!candidateId) {
+        return;
+      }
+      focusCandidateRow(candidateId);
+    });
 
     $('.sortBtn').on('click', function(event) {
       event.preventDefault();
@@ -973,6 +1177,7 @@
 
       var currentVotes = parseInt($('#vote_count_' + id).text(), 10) || 0;
       var defaultVotes = count_status === 'set' ? currentVotes : 1;
+      trackRecentCandidate(id);
 
       $('#confirmMessage').text(message);
       $('#candidateIdInput').val(id);
@@ -1031,6 +1236,7 @@
 
             refreshTotalSortingVotes();
           }
+          trackRecentCandidate(candidate_id);
           sucessMessageInModel(data.message);
         },
         error: function(xhr) {
@@ -1114,12 +1320,14 @@
     function searchTable() {
       let entireValue = $('#searchBox').val().toLowerCase();
       $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
-        let rowText = $(this).text().toLowerCase();
+        let rowText = getCandidateNameFromRow($(this)).toLowerCase();
+        let rowFirstLetter = getCandidateFirstLetter(rowText);
         let matchEntire = entireValue === '';
+        let matchLetter = activeQuickLetter === '' || rowFirstLetter === activeQuickLetter;
         if (entireValue !== '') {
           matchEntire = rowText.indexOf(entireValue) > -1;
         }
-        $(this).toggle(matchEntire);
+        $(this).toggle(matchEntire && matchLetter);
       });
     }
 
