@@ -374,9 +374,14 @@
   }
 
   .mobile-vote-pill {
-    min-width: 48px;
-    padding: 0.2rem 0.58rem;
+    min-width: 52px;
+    padding: 0.22rem 0.62rem;
     font-size: 0.82rem;
+    font-weight: 900;
+    color: #fff;
+    background: linear-gradient(135deg, #0f766e 0%, #159e90 100%);
+    border: 1px solid #0b5f58;
+    box-shadow: 0 6px 12px rgba(15, 118, 110, 0.28);
   }
 
   .list-pill {
@@ -605,10 +610,14 @@
       align-items: center;
       gap: 0.38rem;
       flex-wrap: wrap;
+      position: relative;
+      width: 100%;
+      min-height: 30px;
+      padding-left: 3.45rem;
     }
 
     .candidate-mobile-name {
-      font-size: 0.91rem;
+      font-size: 1.03rem;
       font-weight: 800;
       color: #102a43;
     }
@@ -620,6 +629,13 @@
       font-size: 0.76rem;
       width: 100%;
       border-radius: 9px;
+    }
+
+    .mobile-vote-pill {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
     }
 
     .action-btn i {
