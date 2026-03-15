@@ -351,10 +351,14 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0.16rem;
+            gap: 0.26rem;
             text-align: center;
             flex: 0 0 auto;
             margin-inline-start: 0.2rem;
+            padding: 0.38rem 0.46rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.56);
+            border: 1px solid rgba(150, 169, 192, 0.24);
         }
 
         .candidate-name {
@@ -374,13 +378,19 @@
             color: #4e647f;
             font-size: 0.88rem;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.26rem;
         }
 
         .candidate-list-votes-line {
-            margin: 0.18rem 0 0;
+            margin: 0;
             color: #5f6f84;
             font-size: 0.82rem;
             font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.26rem;
         }
 
         .candidate-total-with-list-line {
@@ -388,6 +398,36 @@
             color: #354b63;
             font-size: 0.88rem;
             font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.26rem;
+        }
+
+        .metric-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2.1rem;
+            height: 1.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+        }
+
+        .metric-label-total {
+            background: rgba(63, 83, 186, 0.13);
+            color: #3345a0;
+        }
+
+        .metric-label-votes {
+            background: rgba(0, 108, 103, 0.12);
+            color: #005b56;
+        }
+
+        .metric-label-list {
+            background: rgba(135, 96, 13, 0.14);
+            color: #7a4b00;
         }
 
         .totalWithListNum {
@@ -423,6 +463,21 @@
             background: rgba(0, 108, 103, 0.14);
             color: #005b56;
             font-size: 0.94rem;
+            font-weight: 900;
+            transition: transform 0.22s ease, background-color 0.22s ease;
+        }
+
+        .listVotesNum {
+            display: inline-flex;
+            min-width: 56px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 999px;
+            padding: 0.24rem 0.52rem;
+            margin-inline-start: 0.25rem;
+            background: rgba(135, 96, 13, 0.12);
+            color: #7a4b00;
+            font-size: 0.92rem;
             font-weight: 900;
             transition: transform 0.22s ease, background-color 0.22s ease;
         }
@@ -700,11 +755,11 @@
                             <div class="candidate-details">
                                 <div class="candidate-main-block">
                                     <h6 class="candidate-name">{{ $can->user->name }}</h6>
-                                    <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
+                                    <p class="candidate-total-with-list-line"><span class="metric-label metric-label-total">م.أ</span> <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
                                 </div>
                                 <div class="candidate-side-stats">
-                                    <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
-                                    <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
+                                    <p class="candidate-votes-line"><span class="metric-label metric-label-votes">أ.ف</span> <span class="soundNum">{{ $candidateVotes }}</span></p>
+                                    <p class="candidate-list-votes-line"><span class="metric-label metric-label-list">أ.ق</span> <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
                                 </div>
                             </div>
                         </article>
