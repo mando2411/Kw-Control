@@ -613,15 +613,10 @@
 
             <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
                 @php
-                    $listVoteTotals = collect($candidates)->reduce(function ($carry, $candidate) {
+                    $listLeaderVoteTotals = collect($candidates)->reduce(function ($carry, $candidate) {
                         $candidateType = (string) ($candidate->candidate_type ?? '');
-                        $listGroupId = $candidateType === 'list_leader'
-                            ? (int) $candidate->id
-                            : (int) ($candidate->list_leader_candidate_id ?? 0);
-                        $candidateVotesTotal = (int) $candidate->committees->sum('pivot.votes');
-
-                        if ($listGroupId > 0) {
-                            $carry[$listGroupId] = ($carry[$listGroupId] ?? 0) + $candidateVotesTotal;
+                        if ($candidateType === 'list_leader') {
+                            $carry[(int) $candidate->id] = (int) $candidate->committees->sum('pivot.votes');
                         }
 
                         return $carry;
@@ -642,7 +637,7 @@
                         $listGroupId = $candidateType === 'list_leader'
                             ? (int) $can->id
                             : (int) ($can->list_leader_candidate_id ?? 0);
-                        $listTotalVotes = (int) ($listGroupId > 0 ? ($listVoteTotals[$listGroupId] ?? 0) : 0);
+                        $listTotalVotes = (int) ($listGroupId > 0 ? ($listLeaderVoteTotals[$listGroupId] ?? 0) : 0);
                         $candidateVotes = (int) $can->committees->sum('pivot.votes');
                     @endphp
                     <div class="col-12 result-card-col" data-candidate-id="{{ $can->id }}">

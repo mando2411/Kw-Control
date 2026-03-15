@@ -1295,6 +1295,7 @@ class CandidateController extends Controller
         }
 
         $candidateRows = [];
+        $listLeaderVoteTotals = [];
         foreach ($candidates as $candidate) {
             $candidateCommitteeVotes = [];
             $menTotal = 0;
@@ -1319,6 +1320,9 @@ class CandidateController extends Controller
             }
 
             $candidateVotesTotal = (int) ($menTotal + $womenTotal);
+            if ($candidateType === 'list_leader') {
+                $listLeaderVoteTotals[(int) $candidate->id] = $candidateVotesTotal;
+            }
 
             $candidateRows[] = [
                 'id' => (int) $candidate->id,
@@ -1330,17 +1334,9 @@ class CandidateController extends Controller
             ];
         }
 
-        $listVoteTotals = [];
-        foreach ($candidateRows as $candidateRow) {
+        $candidateRows = collect($candidateRows)->map(function (array $candidateRow) use ($listLeaderVoteTotals) {
             $listGroupId = (int) ($candidateRow['list_group_id'] ?? 0);
-            if ($listGroupId > 0) {
-                $listVoteTotals[$listGroupId] = (int) (($listVoteTotals[$listGroupId] ?? 0) + (int) ($candidateRow['votes'] ?? 0));
-            }
-        }
-
-        $candidateRows = collect($candidateRows)->map(function (array $candidateRow) use ($listVoteTotals) {
-            $listGroupId = (int) ($candidateRow['list_group_id'] ?? 0);
-            $candidateRow['list_total_votes'] = (int) ($listGroupId > 0 ? ($listVoteTotals[$listGroupId] ?? 0) : 0);
+            $candidateRow['list_total_votes'] = (int) ($listGroupId > 0 ? ($listLeaderVoteTotals[$listGroupId] ?? 0) : 0);
             unset($candidateRow['list_group_id']);
 
             return $candidateRow;
