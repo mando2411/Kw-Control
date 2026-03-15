@@ -352,6 +352,33 @@
     font-weight: 800;
   }
 
+  .candidate-name-desktop {
+    display: inline;
+  }
+
+  .candidate-mobile-line {
+    display: none;
+  }
+
+  .candidate-mobile-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #eef4fb;
+    color: #334e68;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .mobile-vote-pill {
+    min-width: 48px;
+    padding: 0.2rem 0.58rem;
+    font-size: 0.82rem;
+  }
+
   .list-pill {
     display: inline-flex;
     align-items: center;
@@ -521,47 +548,67 @@
       display: none;
     }
 
-    #candidates_table,
-    #candidates_table tbody,
-    #candidates_table tr,
-    #candidates_table td,
-    #lists_table,
-    #lists_table tbody,
-    #lists_table tr,
-    #lists_table td {
-      display: block;
-      width: 100%;
-    }
-
     #candidates_table tbody tr,
     #lists_table tbody tr {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.42rem;
       margin-bottom: 0.7rem;
       padding: 0.55rem 0.6rem;
     }
 
     #candidates_table tbody td,
     #lists_table tbody td {
-      position: relative;
-      text-align: left;
-      padding: 0.5rem 0.5rem 0.5rem 6.35rem;
-      min-height: 40px;
+      padding: 0;
+      min-height: 0;
+      text-align: center;
     }
 
     #candidates_table tbody td::before,
     #lists_table tbody td::before {
-      content: attr(data-label);
-      position: absolute;
-      right: 0.5rem;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.73rem;
-      color: #627d98;
+      display: none;
+    }
+
+    #candidates_table tbody td:nth-child(1),
+    #candidates_table tbody td:nth-child(5),
+    #lists_table tbody td:nth-child(1),
+    #lists_table tbody td:nth-child(5) {
+      display: none;
+    }
+
+    #candidates_table tbody td:nth-child(3),
+    #lists_table tbody td:nth-child(3) {
+      grid-column: 1 / -1;
+      text-align: right;
+      padding-bottom: 0.1rem;
+    }
+
+    .candidate-name-desktop {
+      display: none;
+    }
+
+    .candidate-mobile-line {
+      display: flex;
+      align-items: center;
+      gap: 0.38rem;
+      flex-wrap: wrap;
+    }
+
+    .candidate-mobile-name {
+      font-size: 0.91rem;
       font-weight: 800;
+      color: #102a43;
     }
 
     .action-btn {
-      justify-content: flex-start;
-      padding-right: 0.7rem;
+      justify-content: center;
+      padding: 0.35rem 0.25rem;
+      min-height: 36px;
+      font-size: 0.76rem;
+    }
+
+    .action-btn i {
+      font-size: 0.72rem;
     }
 
     .sorting-control-row {
@@ -775,7 +822,12 @@
                     </button>
                   </td>
                   <td class="candidate-name fullName" data-label="المرشح" data-candidate-name="{{ $can['name'] }}">
-                    {{ $can['name'] }}
+                    <span class="candidate-name-desktop">{{ $can['name'] }}</span>
+                    <div class="candidate-mobile-line">
+                      <span class="candidate-mobile-rank">{{ $index + 1 }}</span>
+                      <span class="candidate-mobile-name">{{ $can['name'] }}</span>
+                      <span id="mobile_vote_count_{{ $can['id'] }}" class="vote-pill mobile-vote-pill">{{ $can['votes'] }}</span>
+                    </div>
                     @if (!empty($can['is_list']))
                       <span class="list-pill">قائمة</span>
                     @endif
@@ -833,7 +885,12 @@
                       </button>
                     </td>
                     <td class="candidate-name fullName" data-label="القائمة" data-candidate-name="{{ $can['name'] }}">
-                      {{ $can['name'] }}
+                      <span class="candidate-name-desktop">{{ $can['name'] }}</span>
+                      <div class="candidate-mobile-line">
+                        <span class="candidate-mobile-rank">{{ $index + 1 }}</span>
+                        <span class="candidate-mobile-name">{{ $can['name'] }}</span>
+                        <span id="mobile_vote_count_{{ $can['id'] }}" class="vote-pill mobile-vote-pill">{{ $can['votes'] }}</span>
+                      </div>
                       <span class="list-pill">قائمة</span>
                     </td>
                     <td data-label="إزالة">
@@ -1045,6 +1102,7 @@
         Object.keys(data.candidate_votes).forEach(function(candidateId) {
           var selector = '#vote_count_' + candidateId;
           var $votePill = $(selector);
+          var $mobileVotePill = $('#mobile_vote_count_' + candidateId);
           if (!$votePill.length) {
             return;
           }
@@ -1054,8 +1112,15 @@
           if (newValue !== oldValue) {
             $votePill.text(newValue);
             $votePill.addClass('updated');
+            if ($mobileVotePill.length) {
+              $mobileVotePill.text(newValue);
+              $mobileVotePill.addClass('updated');
+            }
             setTimeout(function() {
               $votePill.removeClass('updated');
+              if ($mobileVotePill.length) {
+                $mobileVotePill.removeClass('updated');
+              }
             }, 420);
           }
         });
@@ -1228,10 +1293,18 @@
         success: function(data) {
           if ((data.vote_count) || (data.vote_count === 0)) {
             var $votePill = $('#vote_count_' + candidate_id);
+            var $mobileVotePill = $('#mobile_vote_count_' + candidate_id);
             $votePill.text(data.vote_count);
             $votePill.addClass('updated');
+            if ($mobileVotePill.length) {
+              $mobileVotePill.text(data.vote_count);
+              $mobileVotePill.addClass('updated');
+            }
             setTimeout(function() {
               $votePill.removeClass('updated');
+              if ($mobileVotePill.length) {
+                $mobileVotePill.removeClass('updated');
+              }
             }, 420);
 
             refreshTotalSortingVotes();
