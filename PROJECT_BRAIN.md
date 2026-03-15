@@ -1113,3 +1113,4 @@ When the next deploy is done, append a short release entry including:
 
 1. `SchoolObserver` لا يزال فارغًا وغير مستخدم (يمكن حذفه أو استغلاله لقواعد domain).
 2. ما زال اختيار المدرسة في نموذج اللجنة تلقائيًا (based on type+election) وليس اختيارًا يدويًا صريحًا من الفورم؛ إذا مطلوب دقة تشغيلية أعلى، يفضل إضافة `school_id` مباشرة في create/edit اللجنة.
+ش
