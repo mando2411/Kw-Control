@@ -652,9 +652,9 @@
 
                             <div class="candidate-details">
                                 <h6 class="candidate-name">{{ $can->user->name }}</h6>
-                                <p class="candidate-votes-line">الأصوات <span class="soundNum">{{ $candidateVotes }}</span></p>
-                                <p class="candidate-list-votes-line">أصوات القائمة <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
-                                <p class="candidate-total-with-list-line">مجموع الأصوات <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
+                                <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
+                                <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
+                                <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
                                 <p class="candidate-meta-line">المركز الحالي: <span class="rank-label-inline">{{ $i + 1 }}</span></p>
                             </div>
                         </article>
