@@ -509,6 +509,19 @@
   }
 
   @media (max-width: 767.98px) {
+    .sorting-shell {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sorting-hero { order: 1; }
+    .sorting-control-row { order: 2; }
+    .sorting-toolbar--committee { order: 3; }
+    .committee-stats { order: 4; }
+    .mobile-quick-access { order: 5; }
+    .sorting-toolbar--search { order: 6; }
+    .candidates-card { order: 7; }
+
     .sorting-toolbar {
       position: sticky;
       top: 0.4rem;
@@ -772,7 +785,7 @@
       </div>
     </div>
 
-    <div class="sorting-card sorting-toolbar">
+    <div class="sorting-card sorting-toolbar sorting-toolbar--committee">
       @if (auth()->user()->hasRole('Administrator') || auth()->user()->hasRole('مرشح'))
         <form action="{{ route('dashboard.sorting') }}" method="get" id="sorting-form" class="sorting-field">
           @csrf
@@ -839,7 +852,7 @@
         </div>
       </div>
 
-      <div class="sorting-card sorting-toolbar">
+      <div class="sorting-card sorting-toolbar sorting-toolbar--search">
         <div class="sorting-field">
           <label class="sorting-label" for="searchBox">بحث باسم المرشح</label>
           <div class="search-wrap">
