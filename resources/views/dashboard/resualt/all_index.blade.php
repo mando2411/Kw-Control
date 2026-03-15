@@ -111,6 +111,24 @@
             color: #fff;
         }
 
+        .results-view-switch-btn {
+            border: 1px solid #c6d7ea;
+            min-height: 46px;
+            border-radius: 13px;
+            padding: 0.42rem 0.9rem;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #16406a;
+            background: linear-gradient(135deg, #f7fbff 0%, #e9f2ff 100%);
+            box-shadow: 0 8px 16px rgba(17, 38, 61, 0.1);
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .results-view-switch-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.98);
+        }
+
         .results-cards-grid {
             margin-top: 1rem;
             row-gap: 0.72rem;
@@ -119,6 +137,55 @@
         .result-card-col {
             will-change: transform;
             width: 100%;
+        }
+
+        .results-cards-grid[data-view-mode="long"] .result-card-col {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .results-cards-grid[data-view-mode="grid"] .result-card-col {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .result-card-col {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card {
+            min-height: 96px;
+            padding: 0.56rem 0.66rem;
+            border-radius: 14px;
+            gap: 0.56rem;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-photo {
+            width: 68px;
+            height: 68px;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-name {
+            font-size: 0.94rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-total-with-list-line {
+            font-size: 0.82rem;
+            margin-top: 0.04rem;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .metric-label-total {
+            min-width: 1.9rem;
+            height: 1.35rem;
+            font-size: 0.68rem;
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .totalWithListNum {
+            min-width: 48px;
+            font-size: 0.82rem;
+            padding: 0.2rem 0.42rem;
         }
 
         .candidate-rank-card {
@@ -605,6 +672,19 @@
             .candidate-details {
                 gap: 0.42rem;
             }
+
+            .results-cards-grid[data-view-mode="grid"] .result-card-col,
+            .results-cards-grid[data-view-mode="compact"] .result-card-col {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .results-cards-grid[data-view-mode="grid"] .result-card-col {
+                flex: 0 0 33.3333%;
+                max-width: 33.3333%;
+            }
         }
 
         @keyframes goldCardShimmer {
@@ -640,6 +720,10 @@
                         <i class="fa-brands fa-whatsapp"></i>
                         55150551
                     </span>
+
+                    <button type="button" id="resultsViewSwitchBtn" class="results-view-switch-btn">
+                        طريقة العرض: العرض الطولى
+                    </button>
 
                     <button data-bs-toggle="modal" data-bs-target="#displayData" class="results-open-details">
                         عرض تفاصيل اللجان
@@ -755,7 +839,7 @@
                 </div>
             </div>
 
-            <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid">
+            <div class="row rtl justify-content-center results-cards-grid" id="allResultsCardsGrid" data-view-mode="long">
                 @php
                     $listLeaderVoteTotals = is_array($listLeaderVoteTotals ?? null) ? $listLeaderVoteTotals : [];
                     $sortedCandidates = $candidates
@@ -826,6 +910,13 @@
             var realtimeChannelName = null;
             var inFlight = false;
             var cardsGrid = document.getElementById('allResultsCardsGrid');
+            var viewSwitchBtn = document.getElementById('resultsViewSwitchBtn');
+            var viewModeStorageKey = 'all_results_view_mode';
+            var viewModes = [
+                { key: 'long', label: 'العرض الطولى' },
+                { key: 'grid', label: 'العرض الشبكى' },
+                { key: 'compact', label: 'العرض المختصر' }
+            ];
 
             function ordinal(rank) {
                 if (rank % 100 >= 11 && rank % 100 <= 13) {
@@ -838,6 +929,59 @@
                     case 3: return rank + 'rd';
                     default: return rank + 'th';
                 }
+            }
+
+            function isValidViewMode(mode) {
+                return viewModes.some(function (viewMode) {
+                    return viewMode.key === mode;
+                });
+            }
+
+            function getViewModeLabel(mode) {
+                var selectedMode = viewModes.find(function (viewMode) {
+                    return viewMode.key === mode;
+                });
+                return selectedMode ? selectedMode.label : 'العرض الطولى';
+            }
+
+            function applyViewMode(mode) {
+                if (!cardsGrid) {
+                    return;
+                }
+
+                var safeMode = isValidViewMode(mode) ? mode : 'long';
+                cardsGrid.setAttribute('data-view-mode', safeMode);
+                if (viewSwitchBtn) {
+                    viewSwitchBtn.innerText = 'طريقة العرض: ' + getViewModeLabel(safeMode);
+                }
+                try {
+                    localStorage.setItem(viewModeStorageKey, safeMode);
+                } catch (e) {
+                    // ignore storage issues
+                }
+            }
+
+            function loadInitialViewMode() {
+                var storedMode = 'long';
+                try {
+                    storedMode = localStorage.getItem(viewModeStorageKey) || 'long';
+                } catch (e) {
+                    storedMode = 'long';
+                }
+                applyViewMode(storedMode);
+            }
+
+            function cycleViewMode() {
+                if (!cardsGrid) {
+                    return;
+                }
+
+                var currentMode = cardsGrid.getAttribute('data-view-mode') || 'long';
+                var currentIndex = viewModes.findIndex(function (viewMode) {
+                    return viewMode.key === currentMode;
+                });
+                var nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % viewModes.length;
+                applyViewMode(viewModes[nextIndex].key);
             }
 
             function voteFromCardCol(cardCol) {
@@ -1101,6 +1245,11 @@
                     fetchAllResultsStats();
                 }
             });
+
+            loadInitialViewMode();
+            if (viewSwitchBtn) {
+                viewSwitchBtn.addEventListener('click', cycleViewMode);
+            }
 
             startRealtime();
         })();
