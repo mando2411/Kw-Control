@@ -1526,13 +1526,9 @@
         let rowText = getCandidateNameFromRow($(this)).toLowerCase();
         let rowFirstLetter = getCandidateFirstLetter(rowText);
         let rowCategory = String($(this).data('candidate-group') || 'independent');
-        let rowIsList = String($(this).data('is-list') || '0') === '1';
         let matchEntire = entireValue === '';
         let matchLetter = activeQuickLetter === '' || rowFirstLetter === activeQuickLetter;
         let matchCategory = activeCategory === 'all' || rowCategory === activeCategory;
-        if (activeCategory === 'my_list' && rowIsList) {
-          matchCategory = false;
-        }
         if (entireValue !== '') {
           matchEntire = rowText.indexOf(entireValue) > -1;
         }
