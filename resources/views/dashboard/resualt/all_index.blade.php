@@ -915,12 +915,10 @@
             }
         }
 
-        @media (min-width: 992px) {
-            .results-cards-grid[data-view-mode="long"] .stats-frame {
-                left: 0.62rem;
-                right: auto;
-                top: 3.1rem;
-            }
+        .results-cards-grid[data-view-mode="long"] .stats-frame {
+            left: 0.62rem;
+            right: auto;
+            top: 3.1rem;
         }
 
         @keyframes goldCardShimmer {
