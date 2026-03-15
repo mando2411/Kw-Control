@@ -794,7 +794,7 @@
                             <div class="candidate-details">
                                 <div class="candidate-main-block">
                                     <h6 class="candidate-name">{{ $can->user->name }}</h6>
-                                    <p class="candidate-total-with-list-line"><span class="metric-label metric-label-total">م.أ</span> <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
+                                    <p class="candidate-total-with-list-line"><span class="metric-label metric-label-total">مجموع الأصوات</span> <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
                                 </div>
                             </div>
                         </article>
