@@ -333,19 +333,16 @@
             min-width: 0;
             width: 100%;
             padding-inline-start: 0.28rem;
-        }
-
-        .candidate-main-row {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             gap: 0.85rem;
         }
 
         .candidate-main-block {
             min-width: 0;
-            flex: 0 1 auto;
-            max-width: 66%;
+            flex: 1 1 auto;
+            max-width: none;
         }
 
         .candidate-side-stats {
@@ -513,7 +510,7 @@
                 font-size: 0.78rem;
             }
 
-            .candidate-main-row {
+            .candidate-details {
                 gap: 0.42rem;
             }
         }
@@ -699,15 +696,13 @@
                             <img src="{{ $can->user->image ?? asset('assets/admin/images/images.png') }}" class="candidate-photo" alt="candidate image" />
 
                             <div class="candidate-details">
-                                <div class="candidate-main-row">
-                                    <div class="candidate-main-block">
-                                        <h6 class="candidate-name">{{ $can->user->name }}</h6>
-                                        <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
-                                    </div>
-                                    <div class="candidate-side-stats">
-                                        <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
-                                        <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
-                                    </div>
+                                <div class="candidate-main-block">
+                                    <h6 class="candidate-name">{{ $can->user->name }}</h6>
+                                    <p class="candidate-total-with-list-line">م.أ <span class="totalWithListNum">{{ $totalWithListVotes }}</span></p>
+                                </div>
+                                <div class="candidate-side-stats">
+                                    <p class="candidate-votes-line">أ.ف <span class="soundNum">{{ $candidateVotes }}</span></p>
+                                    <p class="candidate-list-votes-line">أ.ق <span class="listVotesNum">{{ $listTotalVotes }}</span></p>
                                 </div>
                             </div>
                         </article>
