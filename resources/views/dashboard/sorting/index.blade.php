@@ -257,13 +257,15 @@
     padding: 0 0.6rem 0.7rem;
   }
 
-  #candidates_table {
+  #candidates_table,
+  #lists_table {
     margin-bottom: 0;
     border-collapse: separate;
     border-spacing: 0 0.56rem;
   }
 
-  #candidates_table thead th {
+  #candidates_table thead th,
+  #lists_table thead th {
     border: 0;
     color: #486581;
     font-size: 0.78rem;
@@ -274,7 +276,8 @@
     padding: 0.45rem;
   }
 
-  #candidates_table tbody tr {
+  #candidates_table tbody tr,
+  #lists_table tbody tr {
     background: #fff;
     border-radius: 14px;
     box-shadow: 0 8px 16px rgba(16, 42, 67, 0.08);
@@ -283,17 +286,20 @@
     animation-delay: calc(var(--row-index, 0) * 40ms);
   }
 
-  #candidates_table tbody tr:hover {
+  #candidates_table tbody tr:hover,
+  #lists_table tbody tr:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 22px rgba(16, 42, 67, 0.12);
   }
 
-  #candidates_table tbody tr.candidate-row-list {
+  #candidates_table tbody tr.candidate-row-list,
+  #lists_table tbody tr.candidate-row-list {
     background: linear-gradient(135deg, #fff8eb 0%, #fff2d8 100%);
     box-shadow: 0 8px 16px rgba(158, 99, 0, 0.14);
   }
 
-  #candidates_table tbody td {
+  #candidates_table tbody td,
+  #lists_table tbody td {
     border: 0;
     vertical-align: middle;
     padding: 0.72rem 0.45rem;
@@ -448,31 +454,39 @@
       gap: 0.6rem;
     }
 
-    #candidates_table thead {
+    #candidates_table thead,
+    #lists_table thead {
       display: none;
     }
 
     #candidates_table,
     #candidates_table tbody,
     #candidates_table tr,
-    #candidates_table td {
+    #candidates_table td,
+    #lists_table,
+    #lists_table tbody,
+    #lists_table tr,
+    #lists_table td {
       display: block;
       width: 100%;
     }
 
-    #candidates_table tbody tr {
+    #candidates_table tbody tr,
+    #lists_table tbody tr {
       margin-bottom: 0.7rem;
       padding: 0.55rem 0.6rem;
     }
 
-    #candidates_table tbody td {
+    #candidates_table tbody td,
+    #lists_table tbody td {
       position: relative;
       text-align: left;
       padding: 0.5rem 0.5rem 0.5rem 6.35rem;
       min-height: 40px;
     }
 
-    #candidates_table tbody td::before {
+    #candidates_table tbody td::before,
+    #lists_table tbody td::before {
       content: attr(data-label);
       position: absolute;
       right: 0.5rem;
@@ -658,6 +672,11 @@
           <span class="sorting-chip">عدد المرشحين: {{ count($candidates) }}</span>
         </div>
 
+        @php
+          $regularCandidates = collect($candidates)->filter(fn($candidate) => empty($candidate['is_list']))->values();
+          $listCandidates = collect($candidates)->filter(fn($candidate) => !empty($candidate['is_list']))->values();
+        @endphp
+
         <div class="table-wrap table-responsive">
           <table class="table rtl" id="candidates_table">
             <thead class="text-center">
@@ -672,7 +691,7 @@
             </thead>
 
             <tbody class="text-center">
-              @foreach ($candidates as $index => $can)
+              @foreach ($regularCandidates as $index => $can)
                 <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};">
                   <td data-label="الترتيب">{{ $index + 1 }}</td>
                   <td data-label="إضافة">
@@ -709,6 +728,63 @@
             </tbody>
           </table>
         </div>
+
+        @if ($listCandidates->isNotEmpty())
+          <div class="candidates-head mt-2">
+            <h4>فرز القوائم</h4>
+            <span class="sorting-chip">عدد القوائم: {{ $listCandidates->count() }}</span>
+          </div>
+
+          <div class="table-wrap table-responsive">
+            <table class="table rtl" id="lists_table">
+              <thead class="text-center">
+                <tr>
+                  <th>الترتيب</th>
+                  <th>إضافة</th>
+                  <th>القائمة</th>
+                  <th>إزالة</th>
+                  <th>الأصوات</th>
+                  <th>تحديد</th>
+                </tr>
+              </thead>
+
+              <tbody class="text-center">
+                @foreach ($listCandidates as $index => $can)
+                  <tr class="candidate-row-list" style="--row-index: {{ $index }};">
+                    <td data-label="الترتيب">{{ $index + 1 }}</td>
+                    <td data-label="إضافة">
+                      <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>إضافة</span>
+                      </button>
+                    </td>
+                    <td class="candidate-name fullName" data-label="القائمة">
+                      {{ $can['name'] }}
+                      <span class="list-pill">قائمة</span>
+                    </td>
+                    <td data-label="إزالة">
+                      <button class="action-btn action-minus minusBtn sortBtn" data-message="{{ 'تأكيد حذف صوت من المرشح (' . $can['name'] . ')' }}">
+                        <i class="fa-solid fa-minus"></i>
+                        <span>إزالة</span>
+                      </button>
+                    </td>
+                    <td data-label="الأصوات">
+                      <span id="vote_count_{{ $can['id'] }}" class="vote-pill">{{ $can['votes'] }}</span>
+                    </td>
+                    <td data-label="تحديد">
+                      <button class="action-btn action-set setBtn sortBtn" data-message="{{ 'تأكيد تحديد عدد الأصوات للمرشح (' . $can['name'] . ')' }}">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>تحديد</span>
+                      </button>
+                      <input type="hidden" class="row-committee" value="{{ $can['committee'] }}">
+                      <input type="hidden" class="row-candidate-id" value="{{ $can['id'] }}">
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        @endif
       </div>
 
       @include('dashboard.sorting.model_pop_up')
@@ -839,7 +915,7 @@
     }
 
     function startSortingRealtime() {
-      if (!$('#candidates_table').length) {
+      if (!$('.row-candidate-id').length) {
         return;
       }
 
@@ -1037,7 +1113,7 @@
 
     function searchTable() {
       let entireValue = $('#searchBox').val().toLowerCase();
-      $('#candidates_table tbody tr').each(function() {
+      $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
         let rowText = $(this).text().toLowerCase();
         let matchEntire = entireValue === '';
         if (entireValue !== '') {
