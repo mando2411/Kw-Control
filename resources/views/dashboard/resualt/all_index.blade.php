@@ -192,6 +192,27 @@
             z-index: 4;
         }
 
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-gold .rank-frame {
+            background: linear-gradient(135deg, #ffe698 0%, #d79f17 100%);
+            border-color: #a77500;
+            color: #4e2f00;
+            box-shadow: 0 8px 16px rgba(167, 117, 0, 0.38);
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-silver .rank-frame {
+            background: linear-gradient(135deg, #f6fbff 0%, #b7c5d5 100%);
+            border-color: #7b8a9b;
+            color: #2f3b49;
+            box-shadow: 0 8px 16px rgba(92, 106, 123, 0.3);
+        }
+
+        .results-cards-grid[data-view-mode="compact"] .candidate-rank-card.rank-bronze .rank-frame {
+            background: linear-gradient(135deg, #ffd9c3 0%, #c97a48 100%);
+            border-color: #995126;
+            color: #51250f;
+            box-shadow: 0 8px 16px rgba(153, 81, 38, 0.32);
+        }
+
         .results-cards-grid[data-view-mode="compact"] .stats-frame {
             display: none;
         }
