@@ -925,7 +925,7 @@
 
             <tbody class="text-center">
               @foreach ($regularCandidates as $index => $can)
-                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}">
+                <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}" data-is-list="{{ !empty($can['is_list']) ? 1 : 0 }}">
                   <td data-label="الترتيب">{{ $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -988,7 +988,7 @@
 
               <tbody class="text-center">
                 @foreach ($listCandidates as $index => $can)
-                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}">
+                  <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}" data-is-list="1">
                     <td data-label="الترتيب">{{ $index + 1 }}</td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -1526,9 +1526,13 @@
         let rowText = getCandidateNameFromRow($(this)).toLowerCase();
         let rowFirstLetter = getCandidateFirstLetter(rowText);
         let rowCategory = String($(this).data('candidate-group') || 'independent');
+        let rowIsList = String($(this).data('is-list') || '0') === '1';
         let matchEntire = entireValue === '';
         let matchLetter = activeQuickLetter === '' || rowFirstLetter === activeQuickLetter;
         let matchCategory = activeCategory === 'all' || rowCategory === activeCategory;
+        if (activeCategory === 'my_list' && rowIsList) {
+          matchCategory = false;
+        }
         if (entireValue !== '') {
           matchEntire = rowText.indexOf(entireValue) > -1;
         }
