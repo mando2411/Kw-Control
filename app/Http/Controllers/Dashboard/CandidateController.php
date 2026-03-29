@@ -1926,6 +1926,13 @@ class CandidateController extends Controller
             return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
         }
 
+        if (!$this->sortingPaperTablesReady()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ميزة تتبع الأوراق غير مفعلة بعد. يرجى تنفيذ التحديثات (migrate).',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'committee' => ['required', 'integer', 'exists:committees,id'],
         ]);
@@ -1953,6 +1960,13 @@ class CandidateController extends Controller
             return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
         }
 
+        if (!$this->sortingPaperTablesReady()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ميزة تتبع الأوراق غير مفعلة بعد. يرجى تنفيذ التحديثات (migrate).',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'committee' => ['required', 'integer', 'exists:committees,id'],
         ]);
@@ -1960,28 +1974,41 @@ class CandidateController extends Controller
         $committeeId = (int) $validated['committee'];
         $electionId = $this->resolveSortingNamedPresetElectionId($user, $committeeId);
 
-        $paper = DB::transaction(function () use ($committeeId, $electionId, $user) {
-            $latestPaperNumber = (int) (DB::table('sorting_papers')
-                ->where('committee_id', $committeeId)
-                ->lockForUpdate()
-                ->max('paper_number') ?? 0);
+        try {
+            $paper = DB::transaction(function () use ($committeeId, $electionId, $user) {
+                $latestPaperNumber = (int) (DB::table('sorting_papers')
+                    ->where('committee_id', $committeeId)
+                    ->lockForUpdate()
+                    ->max('paper_number') ?? 0);
 
-            $nextPaperNumber = $latestPaperNumber + 1;
+                $nextPaperNumber = $latestPaperNumber + 1;
 
-            $paperId = DB::table('sorting_papers')->insertGetId([
-                'election_id' => $electionId > 0 ? $electionId : null,
+                $paperId = DB::table('sorting_papers')->insertGetId([
+                    'election_id' => $electionId > 0 ? $electionId : null,
+                    'committee_id' => $committeeId,
+                    'paper_number' => $nextPaperNumber,
+                    'started_by_user_id' => (int) $user->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                return [
+                    'id' => (int) $paperId,
+                    'number' => (int) $nextPaperNumber,
+                ];
+            });
+        } catch (\Throwable $exception) {
+            Log::error('sortingNextPaper failed', [
                 'committee_id' => $committeeId,
-                'paper_number' => $nextPaperNumber,
-                'started_by_user_id' => (int) $user->id,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'user_id' => (int) $user->id,
+                'error' => $exception->getMessage(),
             ]);
 
-            return [
-                'id' => (int) $paperId,
-                'number' => (int) $nextPaperNumber,
-            ];
-        });
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر بدء الورقة الآن. تحقق من تحديثات قاعدة البيانات.',
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
@@ -1995,6 +2022,13 @@ class CandidateController extends Controller
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        if (!$this->sortingPaperTablesReady()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ميزة تتبع الأوراق غير مفعلة بعد. يرجى تنفيذ التحديثات (migrate).',
+            ], 422);
         }
 
         $validated = $request->validate([
@@ -2053,6 +2087,14 @@ class CandidateController extends Controller
         $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        if (!$this->sortingPaperTablesReady()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ميزة تتبع الأوراق غير مفعلة بعد. يرجى تنفيذ التحديثات (migrate).',
+                'papers' => [],
+            ], 422);
         }
 
         $validated = $request->validate([
@@ -2765,6 +2807,12 @@ class CandidateController extends Controller
             ->all();
 
         return $presets;
+    }
+
+    private function sortingPaperTablesReady(): bool
+    {
+        return Schema::hasTable('sorting_papers')
+            && Schema::hasTable('sorting_paper_events');
     }
 
 }
