@@ -256,6 +256,80 @@
     flex-wrap: wrap;
   }
 
+  .bulk-vote-card {
+    margin-top: 0.9rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #d7e2ee;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #f7fbff 100%);
+  }
+
+  .bulk-vote-row {
+    display: grid;
+    grid-template-columns: minmax(130px, 180px) minmax(140px, 170px) minmax(160px, 220px) minmax(120px, 150px) minmax(100px, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .bulk-vote-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #334e68;
+    font-size: 0.84rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .bulk-vote-meta strong {
+    color: #0f766e;
+  }
+
+  .btn-bulk-vote,
+  .btn-clear-selection {
+    border: 0;
+    border-radius: 11px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.83rem;
+    font-weight: 800;
+    transition: transform 0.16s ease, filter 0.16s ease;
+  }
+
+  .btn-bulk-vote {
+    color: #fff;
+    background: linear-gradient(135deg, #1f9d66 0%, #26b26f 100%);
+  }
+
+  .btn-bulk-vote:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    filter: grayscale(0.2);
+  }
+
+  .btn-clear-selection {
+    color: #fff;
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  }
+
+  .select-candidate-checkbox,
+  .select-all-candidates {
+    width: 18px;
+    height: 18px;
+    accent-color: #0f766e;
+    cursor: pointer;
+  }
+
+  .select-col {
+    width: 44px;
+  }
+
+  tr.row-selected {
+    outline: 2px solid rgba(15, 118, 110, 0.25);
+  }
+
   .sorting-status {
     display: inline-flex;
     align-items: center;
@@ -533,6 +607,10 @@
       grid-template-columns: 1fr;
     }
 
+    .bulk-vote-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .committee-stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -630,30 +708,38 @@
     }
 
     #candidates_table tbody td:nth-child(1),
-    #candidates_table tbody td:nth-child(5),
+    #candidates_table tbody td:nth-child(2),
+    #candidates_table tbody td:nth-child(6),
     #lists_table tbody td:nth-child(1),
-    #lists_table tbody td:nth-child(5) {
+    #lists_table tbody td:nth-child(2),
+    #lists_table tbody td:nth-child(6) {
       display: none;
     }
 
-    #candidates_table tbody td:nth-child(3),
-    #lists_table tbody td:nth-child(3) {
+    #candidates_table tbody td:nth-child(4),
+    #lists_table tbody td:nth-child(4) {
       order: 1;
       flex: 0 0 100%;
       text-align: right;
       padding-bottom: 0.2rem;
     }
 
-    #candidates_table tbody td:nth-child(2),
-    #candidates_table tbody td:nth-child(4),
-    #candidates_table tbody td:nth-child(6),
-    #lists_table tbody td:nth-child(2),
-    #lists_table tbody td:nth-child(4),
-    #lists_table tbody td:nth-child(6) {
+    #candidates_table tbody td:nth-child(1),
+    #candidates_table tbody td:nth-child(3),
+    #candidates_table tbody td:nth-child(5),
+    #candidates_table tbody td:nth-child(7),
+    #lists_table tbody td:nth-child(1),
+    #lists_table tbody td:nth-child(3),
+    #lists_table tbody td:nth-child(5),
+    #lists_table tbody td:nth-child(7) {
       order: 2;
       display: flex;
-      flex: 1 1 calc(33.333% - 0.14rem);
+      flex: 1 1 calc(25% - 0.14rem);
       min-width: 0;
+    }
+
+    .bulk-vote-row {
+      grid-template-columns: 1fr;
     }
 
     .candidate-name-desktop {
@@ -920,6 +1006,9 @@
           <table class="table rtl" id="candidates_table">
             <thead class="text-center">
               <tr>
+                <th class="select-col">
+                  <input type="checkbox" class="select-all-candidates" data-target-table="candidates_table" title="تحديد الكل">
+                </th>
                 <th>الترتيب</th>
                 <th>إضافة</th>
                 <th>المرشح</th>
@@ -932,6 +1021,9 @@
             <tbody class="text-center">
               @foreach ($regularCandidates as $index => $can)
                 <tr class="{{ !empty($can['is_list']) ? 'candidate-row-list' : '' }}" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'independent' }}" data-is-list="{{ !empty($can['is_list']) ? 1 : 0 }}" data-list-group-id="{{ (int) ($can['list_group_id'] ?? 0) }}" data-origin-table="candidates" data-origin-order="{{ $index }}">
+                  <td data-label="تحديد">
+                    <input type="checkbox" class="select-candidate-checkbox" value="{{ $can['id'] }}">
+                  </td>
                   <td data-label="الترتيب">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -984,6 +1076,9 @@
             <table class="table rtl" id="lists_table">
               <thead class="text-center">
                 <tr>
+                  <th class="select-col">
+                    <input type="checkbox" class="select-all-candidates" data-target-table="lists_table" title="تحديد الكل">
+                  </th>
                   <th>الترتيب</th>
                   <th>إضافة</th>
                   <th>القائمة</th>
@@ -996,6 +1091,9 @@
               <tbody class="text-center">
                 @foreach ($listCandidates as $index => $can)
                   <tr class="candidate-row-list" style="--row-index: {{ $index }};" data-candidate-id="{{ $can['id'] }}" data-candidate-group="{{ $can['candidate_group'] ?? 'other_lists' }}" data-is-list="1" data-list-group-id="{{ (int) ($can['list_group_id'] ?? $can['id']) }}" data-origin-table="lists" data-origin-order="{{ $index }}">
+                    <td data-label="تحديد">
+                      <input type="checkbox" class="select-candidate-checkbox" value="{{ $can['id'] }}">
+                    </td>
                     <td data-label="الترتيب">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
@@ -1038,6 +1136,32 @@
         @endif
       </div>
 
+      <div class="sorting-card bulk-vote-card">
+        <div class="bulk-vote-row">
+          <input type="number" min="0" class="sorting-input" id="bulkVoteValue" placeholder="عدد الأصوات">
+
+          <select id="bulkVoteAction" class="sorting-select">
+            <option value="increment">إضافة</option>
+            <option value="decrement">إزالة</option>
+            <option value="set">تحديد</option>
+          </select>
+
+          <button type="button" id="bulkVoteButton" class="btn-bulk-vote" disabled>
+            <i class="fa-solid fa-bolt"></i>
+            <span>تنفيذ التصويت المجمع</span>
+          </button>
+
+          <button type="button" id="clearSelectionButton" class="btn-clear-selection">
+            <i class="fa-solid fa-eraser"></i>
+            <span>مسح التحديد</span>
+          </button>
+
+          <div class="bulk-vote-meta">
+            عدد المحددين: <strong id="selectedCandidatesCount">0</strong>
+          </div>
+        </div>
+      </div>
+
       @include('dashboard.sorting.model_pop_up')
     @else
       <div class="sorting-card empty-state">
@@ -1062,6 +1186,7 @@
     var activeCategory = 'all';
     var recentCandidateIds = [];
     var maxRecentCandidates = 8;
+    var bulkVoteInFlight = false;
 
     // Render modals at body level to avoid clipping by parent containers.
     if ($('#confirmModal').length) {
@@ -1268,6 +1393,86 @@
       });
     }
 
+    function selectedRows() {
+      return $('.select-candidate-checkbox:checked').closest('tr');
+    }
+
+    function updateSelectionState() {
+      var selectedCount = selectedRows().length;
+      $('#selectedCandidatesCount').text(selectedCount);
+      $('#bulkVoteButton').prop('disabled', selectedCount === 0 || bulkVoteInFlight);
+
+      $('tr').removeClass('row-selected');
+      $('.select-candidate-checkbox:checked').closest('tr').addClass('row-selected');
+
+      $('.select-all-candidates').each(function() {
+        var $master = $(this);
+        var targetTable = String($master.data('target-table') || '');
+        if (!targetTable) {
+          return;
+        }
+
+        var $tableRows = $('#' + targetTable + ' tbody tr');
+        var totalRows = $tableRows.length;
+        if (!totalRows) {
+          $master.prop('checked', false);
+          return;
+        }
+
+        var selectedInTable = $tableRows.find('.select-candidate-checkbox:checked').length;
+        $master.prop('checked', selectedInTable === totalRows);
+      });
+    }
+
+    function parseBackendError(xhr, fallbackMessage) {
+      var backendMessage = null;
+
+      if (xhr && xhr.responseJSON) {
+        backendMessage = xhr.responseJSON.message || xhr.responseJSON.error || null;
+      }
+
+      return backendMessage || fallbackMessage;
+    }
+
+    function updateVoteVisual(candidateId, voteCount) {
+      var $votePill = $('#vote_count_' + candidateId);
+      var $mobileVotePill = $('#mobile_vote_count_' + candidateId);
+
+      if (!$votePill.length) {
+        return;
+      }
+
+      $votePill.text(voteCount);
+      $votePill.addClass('updated');
+
+      if ($mobileVotePill.length) {
+        $mobileVotePill.text(voteCount);
+        $mobileVotePill.addClass('updated');
+      }
+
+      setTimeout(function() {
+        $votePill.removeClass('updated');
+        if ($mobileVotePill.length) {
+          $mobileVotePill.removeClass('updated');
+        }
+      }, 420);
+    }
+
+    function setVoteRequest(candidate_id, count_status, vote_count, committee) {
+      return $.ajax({
+        url: '/candidates/setVotes',
+        type: 'POST',
+        data: JSON.stringify({
+          _token: $('meta[name="csrf-token"]').attr('content'),
+          candidate_id: candidate_id,
+          count_status: count_status,
+          vote_count: vote_count,
+          committee: committee,
+        }),
+        contentType: 'application/json',
+      });
+    }
+
     function applyLiveStats(data) {
       if (!data || data.success !== true) {
         return;
@@ -1393,6 +1598,27 @@
     buildQuickLetterFilter();
     renderRecentCandidates();
     applyCategoryLayoutMode();
+    updateSelectionState();
+
+    $(document).on('change', '.select-candidate-checkbox', function() {
+      updateSelectionState();
+    });
+
+    $(document).on('change', '.select-all-candidates', function() {
+      var targetTable = String($(this).data('target-table') || '');
+      if (!targetTable) {
+        return;
+      }
+
+      var shouldCheck = $(this).is(':checked');
+      $('#' + targetTable + ' tbody .select-candidate-checkbox').prop('checked', shouldCheck);
+      updateSelectionState();
+    });
+
+    $('#clearSelectionButton').on('click', function() {
+      $('.select-candidate-checkbox, .select-all-candidates').prop('checked', false);
+      updateSelectionState();
+    });
 
     $(document).on('click', '.quick-letter-btn', function() {
       $('.quick-letter-btn').removeClass('active');
@@ -1483,54 +1709,120 @@
         return;
       }
 
-      $.ajax({
-        url: '/candidates/setVotes',
-        type: 'POST',
-        data: JSON.stringify({
-          _token: $('meta[name="csrf-token"]').attr('content'),
-          candidate_id: candidate_id,
-          count_status: count_status,
-          vote_count: vote_count,
-          committee: committee,
-        }),
-        contentType: 'application/json',
-        success: function(data) {
+      setVoteRequest(candidate_id, count_status, vote_count, committee)
+        .done(function(data) {
           if ((data.vote_count) || (data.vote_count === 0)) {
-            var $votePill = $('#vote_count_' + candidate_id);
-            var $mobileVotePill = $('#mobile_vote_count_' + candidate_id);
-            $votePill.text(data.vote_count);
-            $votePill.addClass('updated');
-            if ($mobileVotePill.length) {
-              $mobileVotePill.text(data.vote_count);
-              $mobileVotePill.addClass('updated');
-            }
-            setTimeout(function() {
-              $votePill.removeClass('updated');
-              if ($mobileVotePill.length) {
-                $mobileVotePill.removeClass('updated');
-              }
-            }, 420);
-
+            updateVoteVisual(candidate_id, data.vote_count);
             refreshTotalSortingVotes();
           }
           trackRecentCandidate(candidate_id);
           sucessMessageInModel(data.message);
-        },
-        error: function(xhr) {
-          var backendMessage = null;
-
-          if (xhr && xhr.responseJSON) {
-            backendMessage = xhr.responseJSON.message || xhr.responseJSON.error || null;
-          }
-
-          errorMessageInModel(backendMessage || 'حدث خطأ أثناء تحديث الأصوات.');
-        }
-      });
+        })
+        .fail(function(xhr) {
+          errorMessageInModel(parseBackendError(xhr, 'حدث خطأ أثناء تحديث الأصوات.'));
+        });
     }
+
+    $('#bulkVoteButton').on('click', function() {
+      if (bulkVoteInFlight) {
+        return;
+      }
+
+      if (isLocked) {
+        errorMessageInModel('الفرز متوقف حاليا، لا يمكن تنفيذ تصويت مجمع.');
+        return;
+      }
+
+      var $rows = selectedRows();
+      if (!$rows.length) {
+        errorMessageInModel('اختر مرشحا واحدا على الأقل لتنفيذ التصويت المجمع.');
+        return;
+      }
+
+      var voteCountRaw = $('#bulkVoteValue').val();
+      var voteCount = parseInt(voteCountRaw, 10);
+      if (voteCountRaw === '' || isNaN(voteCount) || voteCount < 0) {
+        errorMessageInModel('يرجى إدخال عدد أصوات صحيح للتصويت المجمع.');
+        return;
+      }
+
+      var countStatus = String($('#bulkVoteAction').val() || 'increment');
+      var invalidRows = [];
+
+      if (countStatus === 'decrement') {
+        $rows.each(function() {
+          var $row = $(this);
+          var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
+          var currentVotes = parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
+          if (voteCount > currentVotes) {
+            invalidRows.push(getCandidateNameFromRow($row));
+          }
+        });
+      }
+
+      if (invalidRows.length) {
+        errorMessageInModel('لا يمكن الحذف لبعض المرشحين لأن العدد المطلوب أكبر من أصواتهم الحالية.');
+        return;
+      }
+
+      var $bulkButton = $(this);
+      var originalButtonHtml = $bulkButton.html();
+      bulkVoteInFlight = true;
+      $bulkButton.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i><span>جارى التنفيذ...</span>');
+
+      var totalRows = $rows.length;
+      var successCount = 0;
+      var failCount = 0;
+
+      var requestPromises = [];
+
+      $rows.each(function() {
+        var $row = $(this);
+        var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
+        var committee = parseInt($row.find('.row-committee').val(), 10) || getCurrentCommitteeId();
+
+        if (!candidateId || !committee) {
+          failCount += 1;
+          return;
+        }
+
+        var requestPromise = setVoteRequest(candidateId, countStatus, voteCount, committee)
+          .then(function(data) {
+            if ((data.vote_count) || (data.vote_count === 0)) {
+              updateVoteVisual(candidateId, data.vote_count);
+              trackRecentCandidate(candidateId);
+              successCount += 1;
+            } else {
+              failCount += 1;
+            }
+          })
+          .catch(function() {
+            failCount += 1;
+          });
+
+        requestPromises.push(requestPromise);
+      });
+
+      Promise.allSettled(requestPromises).then(function() {
+        refreshTotalSortingVotes();
+
+        if (successCount > 0 && failCount === 0) {
+          toastr.success('تم تنفيذ التصويت المجمع بنجاح لعدد ' + successCount + ' مرشح.');
+        } else if (successCount > 0 && failCount > 0) {
+          toastr.warning('تم تنفيذ التصويت لعدد ' + successCount + ' مرشح، وفشل ' + failCount + ' من أصل ' + totalRows + '.');
+        } else {
+          errorMessageInModel('تعذر تنفيذ التصويت المجمع.');
+        }
+      }).finally(function() {
+        bulkVoteInFlight = false;
+        $bulkButton.html(originalButtonHtml);
+        updateSelectionState();
+      });
+    });
 
     function refreshTotalSortingVotes() {
       var total = 0;
-      $('.vote-pill').each(function() {
+      $('span[id^="vote_count_"]').each(function() {
         total += parseInt($(this).text(), 10) || 0;
       });
       $('.totalSortingSound').text(total);
