@@ -1721,6 +1721,33 @@
       renderSortByOptions(selectedId ? ('preset:' + selectedId) : null);
     }
 
+    function sortPreferenceStorageKey() {
+      return 'sorting_selected_sort_v1_committee_' + (getCurrentCommitteeId() || 0);
+    }
+
+    function loadSortPreference() {
+      try {
+        var raw = localStorage.getItem(sortPreferenceStorageKey());
+        var parsed = raw ? JSON.parse(raw) : {};
+        return {
+          sortBy: String(parsed.sortBy || 'default'),
+          sortDirection: String(parsed.sortDirection || 'asc'),
+        };
+      } catch (error) {
+        return {
+          sortBy: 'default',
+          sortDirection: 'asc',
+        };
+      }
+    }
+
+    function saveSortPreference() {
+      localStorage.setItem(sortPreferenceStorageKey(), JSON.stringify({
+        sortBy: String($('#sortBySelect').val() || 'default'),
+        sortDirection: String($('#sortDirectionSelect').val() || 'asc'),
+      }));
+    }
+
     function setCustomOrderMode(enabled) {
       if (enabled) {
         $('#namedSortPanel').stop(true, true).slideDown(140);
@@ -2056,9 +2083,23 @@
     applyCategoryLayoutMode();
     applyTableSort();
     updateSelectionState();
+    var initialSortPreference = loadSortPreference();
+    if (initialSortPreference.sortDirection === 'asc' || initialSortPreference.sortDirection === 'desc') {
+      $('#sortDirectionSelect').val(initialSortPreference.sortDirection);
+      activeSortDirection = initialSortPreference.sortDirection;
+    }
     renderSortByOptions('default');
     loadNamedSortPresets().then(function() {
       renderNamedSortPresetOptions('');
+
+      var preferredSortBy = String(initialSortPreference.sortBy || 'default');
+      if ($('#sortBySelect').find('option[value="' + preferredSortBy + '"]').length) {
+        $('#sortBySelect').val(preferredSortBy).trigger('change');
+      } else {
+        $('#sortBySelect').val('default').trigger('change');
+      }
+
+      saveSortPreference();
     });
     setCustomOrderMode(false);
     updateQuickAssignUI();
@@ -2088,11 +2129,13 @@
       }
 
       searchTable();
+      saveSortPreference();
     });
 
     $('#sortDirectionSelect').on('change', function() {
       activeSortDirection = String($(this).val() || 'asc');
       searchTable();
+      saveSortPreference();
     });
 
     $(document).on('input', '.custom-order-input', function() {
@@ -2191,8 +2234,7 @@
 
       $('#namedSortNameInput').val(selectedPreset.name || '');
       applyCustomOrders(selectedPreset.orders || {});
-      $('#sortBySelect').val('preset:' + selectedId);
-      searchTable();
+      $('#sortBySelect').val('preset:' + selectedId).trigger('change');
     });
 
     $('#saveNamedSortButton').on('click', function() {
@@ -2223,7 +2265,6 @@
       }
 
       var selectedPresetId = String($('#namedSortPresetSelect').val() || '');
-      var now = Date.now();
 
       axios.post(namedPresetsSaveUrl, {
         committee: getCurrentCommitteeId(),
@@ -2240,7 +2281,7 @@
         selectedPresetId = String(data.preset_id || selectedPresetId || '');
         renderNamedSortPresetOptions(selectedPresetId);
         if (selectedPresetId) {
-          $('#sortBySelect').val('preset:' + selectedPresetId);
+          $('#sortBySelect').val('preset:' + selectedPresetId).trigger('change');
         }
         toastr.success(data.message || 'تم حفظ الترتيب وإتاحته لكل مستخدمي الحملة.');
       }).catch(function(error) {
