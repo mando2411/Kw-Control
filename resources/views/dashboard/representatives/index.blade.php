@@ -223,6 +223,52 @@
             };
 
             bindSearch();
+
+            var updateUrlTemplate = @json(route('dashboard.rep.change', ['id' => '__ID__']));
+
+            document.addEventListener('click', function (event) {
+                var saveButton = event.target.closest('.js-save-rep-creator');
+                if (!saveButton) {
+                    return;
+                }
+
+                var repId = saveButton.getAttribute('data-rep-id');
+                if (!repId) {
+                    return;
+                }
+
+                var row = saveButton.closest('tr');
+                if (!row) {
+                    return;
+                }
+
+                var creatorSelect = row.querySelector('.js-rep-creator-select');
+                if (!creatorSelect) {
+                    return;
+                }
+
+                var selectedCreatorId = creatorSelect.value || null;
+
+                saveButton.disabled = true;
+
+                axios.post(updateUrlTemplate.replace('__ID__', repId), {
+                    creator_id: selectedCreatorId,
+                })
+                    .then(function (response) {
+                        if (window.toastr) {
+                            toastr.success(response?.data?.message || 'تم تعديل المرشح التابع للمندوب بنجاح');
+                        }
+                    })
+                    .catch(function (error) {
+                        var message = error?.response?.data?.message || 'تعذر حفظ التعديل، يرجى المحاولة مرة أخرى.';
+                        if (window.toastr) {
+                            toastr.error(message);
+                        }
+                    })
+                    .finally(function () {
+                        saveButton.disabled = false;
+                    });
+            });
         });
     </script>
 @endpush

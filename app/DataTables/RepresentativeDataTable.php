@@ -2,8 +2,10 @@
 
 namespace App\DataTables;
 
+use App\Models\Candidate;
 use App\Models\Representative;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
@@ -13,12 +15,50 @@ use Yajra\DataTables\Services\DataTable;
 
 class RepresentativeDataTable extends DataTable
 {
+    private ?Collection $creatorCandidateOptions = null;
+
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
             ->addColumn('representative_name', fn(Representative $representative) => $representative->user?->name ?? 'غير محدد')
             ->addColumn('election', fn(Representative $representative) => $representative->election?->name ?? 'غير محددة')
-            ->addColumn('created_by', fn(Representative $representative) => $representative->user?->creator?->name ?? 'غير محدد')
+            ->addColumn('created_by', function (Representative $representative) {
+                $creatorName = (string) ($representative->user?->creator?->name ?? 'غير محدد');
+                $creatorId = (int) ($representative->user?->creator_id ?? 0);
+
+                if (!auth()->check() || !auth()->user()->can('representatives.edit')) {
+                    return e($creatorName);
+                }
+
+                $optionsHtml = '<option value="">-- اختر المرشح --</option>';
+                $representativeElectionId = (int) ($representative->election_id ?? 0);
+                $currentCreatorRendered = false;
+
+                foreach ($this->resolveCreatorCandidateOptions() as $option) {
+                    $optionUserId = (int) ($option['user_id'] ?? 0);
+                    $optionElectionId = (int) ($option['election_id'] ?? 0);
+
+                    if ($representativeElectionId > 0 && $optionElectionId > 0 && $optionElectionId !== $representativeElectionId) {
+                        continue;
+                    }
+
+                    $selected = $optionUserId === $creatorId ? ' selected' : '';
+                    if ($selected !== '') {
+                        $currentCreatorRendered = true;
+                    }
+                    $optionLabel = e((string) ($option['name'] ?? 'غير محدد'));
+                    $optionsHtml .= '<option value="' . $optionUserId . '"' . $selected . '>' . $optionLabel . '</option>';
+                }
+
+                if ($creatorId > 0 && !$currentCreatorRendered) {
+                    $optionsHtml .= '<option value="' . $creatorId . '" selected>' . e($creatorName) . ' (الحالي)</option>';
+                }
+
+                return '<div class="rep-created-by-editor d-flex flex-column gap-1">'
+                    . '<select class="form-select form-select-sm js-rep-creator-select" data-rep-id="' . (int) $representative->id . '">' . $optionsHtml . '</select>'
+                    . '<button type="button" class="btn btn-sm btn-outline-primary js-save-rep-creator" data-rep-id="' . (int) $representative->id . '">حفظ</button>'
+                    . '</div>';
+            })
             ->editColumn('created_at', fn(Representative $representative) => optional($representative->created_at)->format('Y/m/d'))
             ->addColumn('action', 'dashboard.representatives.action')
             ->filterColumn('representative_name', function ($query, $keyword) {
@@ -38,7 +78,7 @@ class RepresentativeDataTable extends DataTable
             })
             
             ->setRowId('id')
-            ->rawColumns(['action']);
+                ->rawColumns(['created_by', 'action']);
     }
 
     public function query(Representative $model): QueryBuilder
@@ -116,5 +156,40 @@ class RepresentativeDataTable extends DataTable
     protected function filename(): string
     {
         return 'Representative_' . date('YmdHis');
+    }
+
+    private function resolveCreatorCandidateOptions(): Collection
+    {
+        if ($this->creatorCandidateOptions !== null) {
+            return $this->creatorCandidateOptions;
+        }
+
+        $currentUser = auth()->user();
+        $query = Candidate::withoutGlobalScopes()
+            ->join('users', 'users.id', '=', 'candidates.user_id')
+            ->select('candidates.user_id', 'users.name', 'candidates.election_id')
+            ->distinct();
+
+        if ($currentUser && !$currentUser->hasRole('Administrator')) {
+            $userElectionId = (int) ($currentUser->election_id ?? 0);
+            if ($userElectionId > 0) {
+                $query->where('candidates.election_id', $userElectionId);
+            }
+        }
+
+        $this->creatorCandidateOptions = $query
+            ->orderBy('users.name')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'user_id' => (int) ($row->user_id ?? 0),
+                    'name' => (string) ($row->name ?? ''),
+                    'election_id' => (int) ($row->election_id ?? 0),
+                ];
+            })
+            ->filter(fn (array $row) => (int) ($row['user_id'] ?? 0) > 0)
+            ->values();
+
+        return $this->creatorCandidateOptions;
     }
 }

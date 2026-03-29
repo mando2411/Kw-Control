@@ -375,8 +375,9 @@ class RepresentativeController extends Controller
         abort_if(!$rep->user, 422, 'لا يوجد مستخدم مرتبط بهذا المندوب.');
 
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'phone' => [
+                'sometimes',
                 'required',
                 'string',
                 'max:15',
@@ -385,6 +386,7 @@ class RepresentativeController extends Controller
             'committee_id' => 'nullable|integer|exists:committees,id',
             'candidate_ids' => 'nullable|array',
             'candidate_ids.*' => 'integer|exists:candidates,id',
+            'creator_id' => 'nullable|integer|exists:users,id',
         ]);
 
         $committeeId = $validatedData['committee_id'] ?? null;
@@ -393,7 +395,42 @@ class RepresentativeController extends Controller
             abort_if($committee && (int) $committee->election_id !== (int) admin()->election_id, 422, 'اللجنة المختارة لا تتبع نفس الحملة الانتخابية.');
         }
 
-        $rep->user->update(Arr::only($validatedData, ['name', 'phone']));
+        $userPayload = Arr::only($validatedData, ['name', 'phone']);
+
+        if (array_key_exists('creator_id', $validatedData)) {
+            $creatorId = (int) ($validatedData['creator_id'] ?? 0);
+
+            if ($creatorId > 0) {
+                $selectedCreatorCandidate = Candidate::withoutGlobalScopes()
+                    ->select(['id', 'user_id', 'election_id'])
+                    ->where('user_id', $creatorId)
+                    ->first();
+
+                abort_if(!$selectedCreatorCandidate, 422, 'المرشح المختار غير صالح أو غير موجود.');
+
+                $selectedCreatorElectionId = (int) ($selectedCreatorCandidate->election_id ?? 0);
+                $repElectionId = (int) ($rep->election_id ?? 0);
+
+                if (!admin()->hasRole('Administrator')) {
+                    $viewerElectionId = (int) (admin()->election_id ?? 0);
+                    if ($viewerElectionId > 0 && $selectedCreatorElectionId > 0) {
+                        abort_if($viewerElectionId !== $selectedCreatorElectionId, 422, 'لا يمكنك اختيار مرشح من حملة انتخابية مختلفة.');
+                    }
+                }
+
+                if ($repElectionId > 0 && $selectedCreatorElectionId > 0 && $repElectionId !== $selectedCreatorElectionId) {
+                    abort(422, 'لا يمكن ربط المندوب بمرشح من حملة مختلفة.');
+                }
+
+                $userPayload['creator_id'] = $creatorId;
+            } else {
+                $userPayload['creator_id'] = null;
+            }
+        }
+
+        if (!empty($userPayload)) {
+            $rep->user->update($userPayload);
+        }
 
         if($committeeId !== null ) {
             $rep->update(['committee_id' => $committeeId]);
