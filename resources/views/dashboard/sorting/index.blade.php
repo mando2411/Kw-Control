@@ -1028,6 +1028,14 @@
   }
 
   @media (max-width: 767.98px) {
+    .dashboard-topbar-mobile,
+    .dashboard-mobile-bar,
+    .dashboard-mobile-nav,
+    .mobile-bottom-nav,
+    .bottom-mobile-nav {
+      display: none !important;
+    }
+
     .sorting-shell {
       display: flex;
       flex-direction: column;
@@ -1210,11 +1218,14 @@
     }
 
     .paper-floating-controls {
+      position: fixed;
       left: 10px;
       right: 10px;
-      bottom: 10px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
       flex-direction: row;
       gap: 0.45rem;
+      z-index: 2140;
+      display: flex !important;
     }
 
     .paper-floating-btn {
