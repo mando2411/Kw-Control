@@ -431,6 +431,23 @@
     white-space: nowrap;
   }
 
+  .paper-report-modal-close {
+    opacity: 1;
+    background-color: #ffffff;
+    border: 1px solid #cbd9e8;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(16, 42, 67, 0.12);
+    padding: 0.42rem;
+  }
+
+  .paper-report-modal-close:hover,
+  .paper-report-modal-close:focus {
+    opacity: 1;
+    background-color: #eef4fb;
+    border-color: #9ab4d0;
+    box-shadow: 0 6px 14px rgba(16, 42, 67, 0.18);
+  }
+
   .paper-report-empty {
     padding: 1rem;
     text-align: center;
@@ -1522,7 +1539,7 @@
           <div class="modal-content">
             <div class="modal-header bg-light">
               <h5 class="modal-title text-dark">سجل التصويت بالأوراق</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+              <button type="button" class="btn-close paper-report-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <div class="modal-body">
               <div id="paperReportList" class="paper-report-list">
