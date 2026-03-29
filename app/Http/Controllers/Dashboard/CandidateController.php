@@ -1918,6 +1918,226 @@ class CandidateController extends Controller
             'message' => 'تم حفظ الترتيب وإتاحته لكل مستخدمي الحملة.'
         ]);
     }
+
+    public function sortingCurrentPaper(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['required', 'integer', 'exists:committees,id'],
+        ]);
+
+        $committeeId = (int) $validated['committee'];
+        $paper = DB::table('sorting_papers')
+            ->where('committee_id', $committeeId)
+            ->orderByDesc('paper_number')
+            ->first(['id', 'paper_number', 'created_at']);
+
+        return response()->json([
+            'success' => true,
+            'paper' => $paper ? [
+                'id' => (int) $paper->id,
+                'number' => (int) $paper->paper_number,
+                'created_at' => (string) $paper->created_at,
+            ] : null,
+        ]);
+    }
+
+    public function sortingNextPaper(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['required', 'integer', 'exists:committees,id'],
+        ]);
+
+        $committeeId = (int) $validated['committee'];
+        $electionId = $this->resolveSortingNamedPresetElectionId($user, $committeeId);
+
+        $paper = DB::transaction(function () use ($committeeId, $electionId, $user) {
+            $latestPaperNumber = (int) (DB::table('sorting_papers')
+                ->where('committee_id', $committeeId)
+                ->lockForUpdate()
+                ->max('paper_number') ?? 0);
+
+            $nextPaperNumber = $latestPaperNumber + 1;
+
+            $paperId = DB::table('sorting_papers')->insertGetId([
+                'election_id' => $electionId > 0 ? $electionId : null,
+                'committee_id' => $committeeId,
+                'paper_number' => $nextPaperNumber,
+                'started_by_user_id' => (int) $user->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return [
+                'id' => (int) $paperId,
+                'number' => (int) $nextPaperNumber,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'paper' => $paper,
+            'message' => 'تم الانتقال إلى الورقة رقم ' . (int) ($paper['number'] ?? 0),
+        ]);
+    }
+
+    public function sortingLogPaperEvent(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['required', 'integer', 'exists:committees,id'],
+            'candidate_id' => ['required', 'integer', 'exists:candidates,id'],
+            'action_type' => ['required', 'string', 'max:20'],
+            'action_value' => ['required', 'integer', 'min:0'],
+            'delta_votes' => ['required', 'integer'],
+        ]);
+
+        $committeeId = (int) $validated['committee'];
+        $candidateId = (int) $validated['candidate_id'];
+        $deltaVotes = (int) $validated['delta_votes'];
+
+        $candidate = Candidate::withoutGlobalScopes()
+            ->select(['id', 'election_id'])
+            ->where('id', $candidateId)
+            ->first();
+
+        if (!$candidate) {
+            return response()->json(['message' => 'المرشح غير موجود.'], 422);
+        }
+
+        $paper = DB::table('sorting_papers')
+            ->where('committee_id', $committeeId)
+            ->orderByDesc('paper_number')
+            ->first(['id', 'paper_number']);
+
+        if (!$paper) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لم يتم بدء أي ورقة بعد.',
+            ], 422);
+        }
+
+        DB::table('sorting_paper_events')->insert([
+            'sorting_paper_id' => (int) $paper->id,
+            'committee_id' => $committeeId,
+            'candidate_id' => $candidateId,
+            'delta_votes' => $deltaVotes,
+            'action_type' => (string) $validated['action_type'],
+            'action_value' => (int) $validated['action_value'],
+            'created_by_user_id' => (int) $user->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'paper_number' => (int) $paper->paper_number,
+        ]);
+    }
+
+    public function sortingPaperReport(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['required', 'integer', 'exists:committees,id'],
+        ]);
+
+        $committeeId = (int) $validated['committee'];
+
+        $papers = DB::table('sorting_papers')
+            ->where('committee_id', $committeeId)
+            ->orderBy('paper_number')
+            ->get(['id', 'paper_number', 'created_at']);
+
+        if ($papers->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'papers' => [],
+            ]);
+        }
+
+        $paperIds = $papers->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+
+        $events = DB::table('sorting_paper_events as e')
+            ->join('sorting_papers as p', 'p.id', '=', 'e.sorting_paper_id')
+            ->join('candidates as c', 'c.id', '=', 'e.candidate_id')
+            ->join('users as u', 'u.id', '=', 'c.user_id')
+            ->whereIn('e.sorting_paper_id', $paperIds)
+            ->select([
+                'e.sorting_paper_id',
+                'p.paper_number',
+                'c.id as candidate_id',
+                'c.candidate_type',
+                'c.list_name',
+                'u.name as candidate_name',
+                DB::raw('SUM(e.delta_votes) as net_votes'),
+            ])
+            ->groupBy('e.sorting_paper_id', 'p.paper_number', 'c.id', 'c.candidate_type', 'c.list_name', 'u.name')
+            ->orderBy('p.paper_number')
+            ->get();
+
+        $eventsByPaper = $events
+            ->groupBy('sorting_paper_id')
+            ->map(function ($paperEvents) {
+                return collect($paperEvents)
+                    ->map(function ($event) {
+                        $candidateType = (string) ($event->candidate_type ?? '');
+                        $displayName = (string) ($event->candidate_name ?? '');
+
+                        if ($candidateType === 'list_leader') {
+                            $listName = trim((string) ($event->list_name ?? ''));
+                            if ($listName !== '') {
+                                $displayName = 'القائمة: ' . $listName;
+                            }
+                        }
+
+                        return [
+                            'candidate_id' => (int) ($event->candidate_id ?? 0),
+                            'candidate_name' => $displayName,
+                            'votes' => (int) ($event->net_votes ?? 0),
+                        ];
+                    })
+                    ->filter(fn (array $item) => (int) ($item['votes'] ?? 0) !== 0)
+                    ->sortByDesc('votes')
+                    ->values()
+                    ->all();
+            });
+
+        $result = $papers->map(function ($paper) use ($eventsByPaper) {
+            $paperId = (int) ($paper->id ?? 0);
+            $items = (array) ($eventsByPaper->get($paperId, []));
+
+            return [
+                'id' => $paperId,
+                'number' => (int) ($paper->paper_number ?? 0),
+                'created_at' => (string) ($paper->created_at ?? ''),
+                'items' => $items,
+                'total_votes' => (int) collect($items)->sum('votes'),
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'success' => true,
+            'papers' => $result,
+        ]);
+    }
     //==============================================================
     public function storeFakeCandidate(Request $request, UserRequest $userRequest)
     {

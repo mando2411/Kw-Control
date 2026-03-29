@@ -336,6 +336,88 @@
     animation: spPulseQuick 0.4s ease;
   }
 
+  .paper-floating-controls {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .paper-floating-btn {
+    border: 0;
+    border-radius: 999px;
+    min-height: 42px;
+    min-width: 138px;
+    padding: 0.45rem 0.9rem;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.83rem;
+    box-shadow: 0 12px 22px rgba(16, 42, 67, 0.22);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+  }
+
+  .paper-floating-btn--start {
+    background: linear-gradient(135deg, #0f766e 0%, #159e90 100%);
+  }
+
+  .paper-floating-btn--report {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e64f0 100%);
+  }
+
+  .paper-report-list {
+    max-height: 58vh;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+  }
+
+  .paper-report-card {
+    border: 1px solid #d8e4f0;
+    border-radius: 12px;
+    padding: 0.7rem;
+    background: #fff;
+  }
+
+  .paper-report-card + .paper-report-card {
+    margin-top: 0.65rem;
+  }
+
+  .paper-report-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.45rem;
+    font-weight: 800;
+    color: #123c67;
+  }
+
+  .paper-report-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.84rem;
+    color: #334e68;
+    padding: 0.25rem 0;
+    border-bottom: 1px dashed #e5edf6;
+  }
+
+  .paper-report-item:last-child {
+    border-bottom: 0;
+  }
+
+  .paper-report-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #486581;
+    font-weight: 700;
+  }
+
   .committee-stats {
     margin-top: 1rem;
     display: grid;
@@ -867,6 +949,21 @@
       grid-template-columns: 1fr;
     }
 
+    .paper-floating-controls {
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      flex-direction: row;
+      gap: 0.45rem;
+    }
+
+    .paper-floating-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 0.45rem 0.6rem;
+      font-size: 0.78rem;
+    }
+
     .named-sort-grid {
       grid-template-columns: 1fr;
     }
@@ -1386,7 +1483,35 @@
         </div>
       </div>
 
+      <div class="paper-floating-controls">
+        <button type="button" id="paperTrackerButton" class="paper-floating-btn paper-floating-btn--start">
+          <i class="fa-solid fa-file-circle-plus"></i>
+          <span>ابدأ</span>
+        </button>
+
+        <button type="button" id="paperReportButton" class="paper-floating-btn paper-floating-btn--report">
+          <i class="fa-solid fa-clipboard-list"></i>
+          <span>سجل الأوراق</span>
+        </button>
+      </div>
+
       @include('dashboard.sorting.model_pop_up')
+
+      <div class="modal fade sorting-modal" id="paperReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content">
+            <div class="modal-header bg-light">
+              <h5 class="modal-title text-dark">سجل التصويت بالأوراق</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+              <div id="paperReportList" class="paper-report-list">
+                <div class="paper-report-empty">جارى تحميل السجل...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     @else
       <div class="sorting-card empty-state">
         <i class="fa-regular fa-folder-open"></i>
@@ -1404,6 +1529,10 @@
     var liveStatsUrl = @json(route('dashboard.sorting.live-stats'));
     var namedPresetsUrl = @json(route('dashboard.sorting.named-presets'));
     var namedPresetsSaveUrl = @json(route('dashboard.sorting.named-presets.save'));
+    var paperCurrentUrl = @json(route('dashboard.sorting.papers.current'));
+    var paperNextUrl = @json(route('dashboard.sorting.papers.next'));
+    var paperLogEventUrl = @json(route('dashboard.sorting.papers.log-event'));
+    var paperReportUrl = @json(route('dashboard.sorting.papers.report'));
     var realtimeChannels = [];
     var fallbackTimer = null;
     var liveStatsInFlight = false;
@@ -1414,6 +1543,7 @@
     var activeSortBy = 'default';
     var activeSortDirection = 'asc';
     var namedSortPresets = [];
+    var currentPaperNumber = 0;
     var quickAssignMode = false;
     var quickAssignNext = 1;
     var recentCandidateIds = [];
@@ -1426,6 +1556,9 @@
     }
     if ($('#successModal').length) {
       $('#successModal').appendTo('body');
+    }
+    if ($('#paperReportModal').length) {
+      $('#paperReportModal').appendTo('body');
     }
 
     if ($('#sorting-select').length) {
@@ -2069,6 +2202,149 @@
       });
     }
 
+    function updatePaperTrackerButton() {
+      var $button = $('#paperTrackerButton');
+      if (!$button.length) {
+        return;
+      }
+
+      var label = currentPaperNumber > 0 ? ('الورقة ' + currentPaperNumber) : 'ابدأ';
+      $button.find('span').text(label);
+    }
+
+    function loadCurrentPaper() {
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        currentPaperNumber = 0;
+        updatePaperTrackerButton();
+        return;
+      }
+
+      axios.get(paperCurrentUrl, {
+        params: {
+          committee: committeeId,
+        },
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then(function(response) {
+        var paper = response?.data?.paper || null;
+        currentPaperNumber = paper && paper.number ? parseInt(paper.number, 10) || 0 : 0;
+        updatePaperTrackerButton();
+      }).catch(function() {
+        currentPaperNumber = 0;
+        updatePaperTrackerButton();
+      });
+    }
+
+    function startNextPaper() {
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        toastr.error('اختر لجنة أولا قبل بدء الورقة.');
+        return;
+      }
+
+      axios.post(paperNextUrl, {
+        committee: committeeId,
+      }, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then(function(response) {
+        var paper = response?.data?.paper || null;
+        currentPaperNumber = paper && paper.number ? parseInt(paper.number, 10) || 0 : 0;
+        updatePaperTrackerButton();
+        toastr.success(response?.data?.message || 'تم بدء ورقة جديدة.');
+      }).catch(function(error) {
+        var message = error?.response?.data?.message || 'تعذر بدء الورقة الآن.';
+        toastr.error(message);
+      });
+    }
+
+    function logVotePaperEvent(candidateId, committeeId, actionType, actionValue, deltaVotes) {
+      if (!currentPaperNumber || !candidateId || !committeeId) {
+        return;
+      }
+
+      if (!deltaVotes) {
+        return;
+      }
+
+      axios.post(paperLogEventUrl, {
+        committee: committeeId,
+        candidate_id: candidateId,
+        action_type: actionType,
+        action_value: actionValue,
+        delta_votes: deltaVotes,
+      }, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).catch(function() {
+        // This log is for analytics only, so keep failures silent.
+      });
+    }
+
+    function renderPaperReportList(papers) {
+      var $container = $('#paperReportList');
+      if (!$container.length) {
+        return;
+      }
+
+      if (!Array.isArray(papers) || !papers.length) {
+        $container.html('<div class="paper-report-empty">لا توجد أوراق مسجلة حتى الآن.</div>');
+        return;
+      }
+
+      var html = papers.map(function(paper) {
+        var items = Array.isArray(paper.items) ? paper.items : [];
+        var itemsHtml = '';
+
+        if (!items.length) {
+          itemsHtml = '<div class="paper-report-item"><span>لا توجد أحداث مسجلة لهذه الورقة.</span><strong>0</strong></div>';
+        } else {
+          itemsHtml = items.map(function(item) {
+            var votes = parseInt(item.votes, 10) || 0;
+            return '<div class="paper-report-item"><span>' + escapeHtml(item.candidate_name || 'مرشح غير معروف') + '</span><strong>' + votes + '</strong></div>';
+          }).join('');
+        }
+
+        var paperNumber = parseInt(paper.number, 10) || 0;
+        var totalVotes = parseInt(paper.total_votes, 10) || 0;
+
+        return '<div class="paper-report-card">'
+          + '<div class="paper-report-head"><span>الورقة ' + paperNumber + '</span><span>إجمالي: ' + totalVotes + '</span></div>'
+          + itemsHtml
+          + '</div>';
+      }).join('');
+
+      $container.html(html);
+    }
+
+    function openPaperReportModal() {
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        toastr.error('اختر لجنة أولا لعرض سجل الأوراق.');
+        return;
+      }
+
+      $('#paperReportList').html('<div class="paper-report-empty">جارى تحميل السجل...</div>');
+      $('#paperReportModal').modal('show');
+
+      axios.get(paperReportUrl, {
+        params: {
+          committee: committeeId,
+        },
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then(function(response) {
+        renderPaperReportList(response?.data?.papers || []);
+      }).catch(function() {
+        $('#paperReportList').html('<div class="paper-report-empty">تعذر تحميل سجل الأوراق حاليا.</div>');
+      });
+    }
+
     function applyLiveStats(data) {
       if (!data || data.success !== true) {
         return;
@@ -2191,6 +2467,7 @@
     }
 
     startSortingRealtime();
+    loadCurrentPaper();
     buildQuickLetterFilter();
     renderRecentCandidates();
     activeFilterMode = loadFilterModePreference();
@@ -2220,6 +2497,14 @@
     });
     setCustomOrderMode(false);
     updateQuickAssignUI();
+
+    $('#paperTrackerButton').on('click', function() {
+      startNextPaper();
+    });
+
+    $('#paperReportButton').on('click', function() {
+      openPaperReportModal();
+    });
 
     $('#sortBySelect').on('change', function() {
       var selectedSortValue = String($(this).val() || 'default');
@@ -2543,11 +2828,22 @@
         return;
       }
 
+      var previousVotes = parseInt($('#vote_count_' + candidate_id).text(), 10) || 0;
+
       setVoteRequest(candidate_id, count_status, vote_count, committee)
         .done(function(data) {
           if ((data.vote_count) || (data.vote_count === 0)) {
+            var nextVotes = parseInt(data.vote_count, 10) || 0;
+            var deltaVotes = nextVotes - previousVotes;
             updateVoteVisual(candidate_id, data.vote_count);
             refreshTotalSortingVotes();
+            logVotePaperEvent(
+              parseInt(candidate_id, 10) || 0,
+              parseInt(committee, 10) || getCurrentCommitteeId(),
+              count_status,
+              parseInt(vote_count, 10) || 0,
+              deltaVotes
+            );
           }
           trackRecentCandidate(candidate_id);
           sucessMessageInModel(data.message);
@@ -2621,6 +2917,7 @@
         var $row = $(this);
         var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
         var committee = parseInt($row.find('.row-committee').val(), 10) || getCurrentCommitteeId();
+        var previousVotes = parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
 
         if (!candidateId || !committee) {
           failCount += 1;
@@ -2630,8 +2927,11 @@
         var requestPromise = setVoteRequest(candidateId, countStatus, voteCount, committee)
           .then(function(data) {
             if ((data.vote_count) || (data.vote_count === 0)) {
+              var nextVotes = parseInt(data.vote_count, 10) || 0;
+              var deltaVotes = nextVotes - previousVotes;
               updateVoteVisual(candidateId, data.vote_count);
               trackRecentCandidate(candidateId);
+              logVotePaperEvent(candidateId, committee, countStatus, voteCount, deltaVotes);
               successCount += 1;
             } else {
               failCount += 1;
