@@ -411,6 +411,26 @@
     border-bottom: 0;
   }
 
+  .paper-report-item-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .paper-report-action-tag {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.06rem 0.48rem;
+    border: 1px solid rgba(15, 118, 110, 0.32);
+    background: rgba(15, 118, 110, 0.1);
+    color: #0b5f58;
+    font-size: 0.7rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
   .paper-report-empty {
     padding: 1rem;
     text-align: center;
@@ -2305,7 +2325,14 @@
         } else {
           itemsHtml = items.map(function(item) {
             var votes = parseInt(item.votes, 10) || 0;
-            return '<div class="paper-report-item"><span>' + escapeHtml(item.candidate_name || 'مرشح غير معروف') + '</span><strong>' + votes + '</strong></div>';
+            var actionLabel = String(item.set_action_label || '').trim();
+            var actionBadge = actionLabel
+              ? '<span class="paper-report-action-tag">' + escapeHtml(actionLabel) + '</span>'
+              : '';
+            return '<div class="paper-report-item"><span class="paper-report-item-name">'
+              + '<span>' + escapeHtml(item.candidate_name || 'مرشح غير معروف') + '</span>'
+              + actionBadge
+              + '</span><strong>' + votes + '</strong></div>';
           }).join('');
         }
 

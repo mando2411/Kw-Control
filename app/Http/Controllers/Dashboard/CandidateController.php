@@ -2130,6 +2130,7 @@ class CandidateController extends Controller
                 'c.list_name',
                 'u.name as candidate_name',
                 DB::raw('SUM(e.delta_votes) as net_votes'),
+                DB::raw("SUM(CASE WHEN e.action_type = 'set' THEN 1 ELSE 0 END) as set_actions_count"),
             ])
             ->groupBy('e.sorting_paper_id', 'p.paper_number', 'c.id', 'c.candidate_type', 'c.list_name', 'u.name')
             ->orderBy('p.paper_number')
@@ -2150,10 +2151,19 @@ class CandidateController extends Controller
                             }
                         }
 
+                        $setActionsCount = (int) ($event->set_actions_count ?? 0);
+                        $setActionLabel = '';
+                        if ($setActionsCount === 1) {
+                            $setActionLabel = 'تحديد جديد';
+                        } elseif ($setActionsCount > 1) {
+                            $setActionLabel = 'إعادة مجموع الأصوات';
+                        }
+
                         return [
                             'candidate_id' => (int) ($event->candidate_id ?? 0),
                             'candidate_name' => $displayName,
                             'votes' => (int) ($event->net_votes ?? 0),
+                            'set_action_label' => $setActionLabel,
                         ];
                     })
                     ->filter(fn (array $item) => (int) ($item['votes'] ?? 0) !== 0)
