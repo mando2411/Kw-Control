@@ -135,6 +135,56 @@
     font-size: 0.88rem;
   }
 
+  .named-sort-panel {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px dashed #bcd2e8;
+    border-radius: 12px;
+    background: #f8fbff;
+    display: none;
+  }
+
+  .named-sort-grid {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) minmax(170px, 1fr) auto;
+    gap: 0.55rem;
+    align-items: center;
+  }
+
+  .named-sort-help {
+    margin: 0.45rem 0 0;
+    color: #486581;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .btn-named-sort-save {
+    border: 0;
+    border-radius: 11px;
+    height: 46px;
+    min-width: 150px;
+    color: #fff;
+    font-weight: 800;
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e64f0 100%);
+  }
+
+  .order-display {
+    display: inline-flex;
+    min-width: 34px;
+    justify-content: center;
+  }
+
+  .custom-order-input {
+    width: 70px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #b8cde2;
+    text-align: center;
+    font-weight: 800;
+    display: none;
+    margin: 0 auto;
+  }
+
   .search-wrap {
     position: relative;
   }
@@ -752,6 +802,14 @@
       grid-template-columns: 1fr;
     }
 
+    .named-sort-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-named-sort-save {
+      width: 100%;
+    }
+
     .candidate-name-desktop {
       display: none;
     }
@@ -1002,6 +1060,7 @@
               <option value="order">الترتيب</option>
               <option value="name">الاسم</option>
               <option value="votes">الأصوات</option>
+              <option value="named">ترتيب مختار</option>
             </select>
 
             <select id="sortDirectionSelect" class="sorting-select">
@@ -1009,6 +1068,23 @@
               <option value="desc">تنازلي</option>
             </select>
           </div>
+        </div>
+
+        <div class="named-sort-panel" id="namedSortPanel">
+          <div class="named-sort-grid">
+            <select id="namedSortPresetSelect" class="sorting-select">
+              <option value="">ترتيب جديد</option>
+            </select>
+
+            <input type="text" id="namedSortNameInput" class="sorting-input" placeholder="اسم الترتيب (مثال: ترتيب اليوم الصباحي)">
+
+            <button type="button" id="saveNamedSortButton" class="btn-named-sort-save">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>حفظ الترتيب</span>
+            </button>
+          </div>
+
+          <p class="named-sort-help">عند اختيار "ترتيب مختار" أدخل رقم كل مرشح ثم احفظ باسمك، وسيظهر مباشرة في قائمة الترتيبات.</p>
         </div>
       </div>
 
@@ -1077,7 +1153,10 @@
                   <td data-label="تحديد">
                     <input type="checkbox" class="select-candidate-checkbox" value="{{ $can['id'] }}">
                   </td>
-                  <td data-label="الترتيب">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</td>
+                  <td data-label="الترتيب">
+                    <span class="order-display">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</span>
+                    <input type="number" min="1" class="custom-order-input" value="{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}">
+                  </td>
                   <td data-label="إضافة">
                     <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
                       <i class="fa-solid fa-plus"></i>
@@ -1147,7 +1226,10 @@
                     <td data-label="تحديد">
                       <input type="checkbox" class="select-candidate-checkbox" value="{{ $can['id'] }}">
                     </td>
-                    <td data-label="الترتيب">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</td>
+                    <td data-label="الترتيب">
+                      <span class="order-display">{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}</span>
+                      <input type="number" min="1" class="custom-order-input" value="{{ (int) ($can['sorting_order'] ?? 0) > 0 ? (int) $can['sorting_order'] : $index + 1 }}">
+                    </td>
                     <td data-label="إضافة">
                       <button class="action-btn action-plus plusBtn sortBtn" data-message="{{ 'تأكيد إضافة صوت جديد للمرشح (' . $can['name'] . ')' }}">
                         <i class="fa-solid fa-plus"></i>
@@ -1239,6 +1321,7 @@
     var activeCategory = 'all';
     var activeSortBy = 'default';
     var activeSortDirection = 'asc';
+    var namedSortPresets = [];
     var recentCandidateIds = [];
     var maxRecentCandidates = 8;
     var bulkVoteInFlight = false;
@@ -1436,13 +1519,17 @@
         return getCandidateNameFromRow($row).toLowerCase();
       }
 
+      if (sortBy === 'named') {
+        return getCustomOrderValue($row);
+      }
+
       if (sortBy === 'votes') {
         var candidateId = parseInt($row.data('candidate-id'), 10) || 0;
         return parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
       }
 
       if (sortBy === 'order') {
-        return parseInt($row.find('td[data-label="الترتيب"]').first().text(), 10) || 0;
+        return parseInt($row.find('.order-display').first().text(), 10) || 0;
       }
 
       return parseInt($row.data('origin-order'), 10) || 0;
@@ -1496,6 +1583,104 @@
 
       var rowCommitteeValue = $('.row-committee').first().val();
       return parseInt(rowCommitteeValue, 10) || 0;
+    }
+
+    function namedSortStorageKey() {
+      var committeeId = getCurrentCommitteeId() || 0;
+      return 'sorting_named_presets_v1_committee_' + committeeId;
+    }
+
+    function loadNamedSortPresets() {
+      try {
+        var raw = localStorage.getItem(namedSortStorageKey());
+        var parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveNamedSortPresets() {
+      localStorage.setItem(namedSortStorageKey(), JSON.stringify(namedSortPresets));
+    }
+
+    function renderNamedSortPresetOptions(selectedId) {
+      var $presetSelect = $('#namedSortPresetSelect');
+      if (!$presetSelect.length) {
+        return;
+      }
+
+      var html = '<option value="">ترتيب جديد</option>';
+      namedSortPresets.forEach(function(preset) {
+        html += '<option value="' + String(preset.id || '') + '">' + String(preset.name || 'بدون اسم') + '</option>';
+      });
+
+      $presetSelect.html(html);
+      if (selectedId) {
+        $presetSelect.val(String(selectedId));
+      }
+    }
+
+    function setCustomOrderMode(enabled) {
+      if (enabled) {
+        $('#namedSortPanel').stop(true, true).slideDown(140);
+        $('.custom-order-input').show();
+        $('.order-display').hide();
+      } else {
+        $('#namedSortPanel').stop(true, true).slideUp(140);
+        $('.custom-order-input').hide();
+        $('.order-display').show();
+      }
+    }
+
+    function getCustomOrderValue($row) {
+      var value = parseInt($row.find('.custom-order-input').first().val(), 10);
+      if (isNaN(value) || value <= 0) {
+        return Number.MAX_SAFE_INTEGER;
+      }
+      return value;
+    }
+
+    function collectCustomOrders() {
+      var orders = {};
+
+      $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
+        var $row = $(this);
+        var candidateId = parseInt($row.data('candidate-id'), 10) || 0;
+        if (!candidateId) {
+          return;
+        }
+
+        var value = parseInt($row.find('.custom-order-input').first().val(), 10);
+        if (!isNaN(value) && value > 0) {
+          orders[candidateId] = value;
+        }
+      });
+
+      return orders;
+    }
+
+    function applyCustomOrders(orderMap) {
+      if (!orderMap || typeof orderMap !== 'object') {
+        return;
+      }
+
+      $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
+        var $row = $(this);
+        var candidateId = parseInt($row.data('candidate-id'), 10) || 0;
+        if (!candidateId || typeof orderMap[candidateId] === 'undefined') {
+          return;
+        }
+
+        var value = parseInt(orderMap[candidateId], 10);
+        if (isNaN(value) || value <= 0) {
+          return;
+        }
+
+        $row.find('.custom-order-input').first().val(value);
+        $row.find('.order-display').first().text(value);
+        $row.find('.candidate-mobile-rank').first().text(value);
+      });
     }
 
     function getVisibleCandidateIds() {
@@ -1717,15 +1902,114 @@
     applyCategoryLayoutMode();
     applyTableSort();
     updateSelectionState();
+    namedSortPresets = loadNamedSortPresets();
+    renderNamedSortPresetOptions('');
+    setCustomOrderMode(false);
 
     $('#sortBySelect').on('change', function() {
       activeSortBy = String($(this).val() || 'default');
+      setCustomOrderMode(activeSortBy === 'named');
       searchTable();
     });
 
     $('#sortDirectionSelect').on('change', function() {
       activeSortDirection = String($(this).val() || 'asc');
       searchTable();
+    });
+
+    $(document).on('input', '.custom-order-input', function() {
+      var $input = $(this);
+      var value = parseInt($input.val(), 10);
+      var $row = $input.closest('tr');
+
+      if (!isNaN(value) && value > 0) {
+        $row.find('.order-display').first().text(value);
+        $row.find('.candidate-mobile-rank').first().text(value);
+      }
+
+      if (activeSortBy === 'named') {
+        applyTableSort();
+      }
+    });
+
+    $('#namedSortPresetSelect').on('change', function() {
+      var selectedId = String($(this).val() || '');
+
+      if (!selectedId) {
+        $('#namedSortNameInput').val('');
+        return;
+      }
+
+      var selectedPreset = namedSortPresets.find(function(preset) {
+        return String(preset.id || '') === selectedId;
+      });
+
+      if (!selectedPreset) {
+        return;
+      }
+
+      $('#namedSortNameInput').val(selectedPreset.name || '');
+      applyCustomOrders(selectedPreset.orders || {});
+      searchTable();
+    });
+
+    $('#saveNamedSortButton').on('click', function() {
+      if (activeSortBy !== 'named') {
+        $('#sortBySelect').val('named').trigger('change');
+      }
+
+      var sortName = String($('#namedSortNameInput').val() || '').trim();
+      if (!sortName) {
+        errorMessageInModel('اكتب اسم الترتيب قبل الحفظ.');
+        return;
+      }
+
+      var orders = collectCustomOrders();
+      var totalRows = $('#candidates_table tbody tr, #lists_table tbody tr').length;
+      var orderKeysCount = Object.keys(orders).length;
+
+      if (orderKeysCount !== totalRows) {
+        errorMessageInModel('لازم تكتب رقم ترتيب لكل مرشح قبل الحفظ.');
+        return;
+      }
+
+      var orderValues = Object.values(orders);
+      var uniqueOrderValues = Array.from(new Set(orderValues));
+      if (uniqueOrderValues.length !== orderValues.length) {
+        errorMessageInModel('أرقام الترتيب يجب أن تكون بدون تكرار.');
+        return;
+      }
+
+      var selectedPresetId = String($('#namedSortPresetSelect').val() || '');
+      var now = Date.now();
+
+      if (selectedPresetId) {
+        namedSortPresets = namedSortPresets.map(function(preset) {
+          if (String(preset.id || '') !== selectedPresetId) {
+            return preset;
+          }
+
+          return {
+            id: preset.id,
+            name: sortName,
+            orders: orders,
+            updated_at: now,
+          };
+        });
+      } else {
+        var newPreset = {
+          id: 'preset_' + now,
+          name: sortName,
+          orders: orders,
+          updated_at: now,
+        };
+        namedSortPresets.unshift(newPreset);
+        selectedPresetId = newPreset.id;
+      }
+
+      saveNamedSortPresets();
+      renderNamedSortPresetOptions(selectedPresetId);
+      toastr.success('تم حفظ الترتيب المختار وإضافته إلى القائمة.');
     });
 
     $('.bulk-vote-value').on('input', function() {
