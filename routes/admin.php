@@ -93,6 +93,7 @@ Route::group(['prefix' => 'dashboard',
     Route::post('sorting/papers/next', [CandidateController::class, 'sortingNextPaper'])->name('sorting.papers.next');
     Route::post('sorting/papers/log-event', [CandidateController::class, 'sortingLogPaperEvent'])->name('sorting.papers.log-event');
     Route::get('sorting/papers/report', [CandidateController::class, 'sortingPaperReport'])->name('sorting.papers.report');
+    Route::post('sorting/papers/reset', [CandidateController::class, 'sortingResetPapers'])->name('sorting.papers.reset');
     Route::get('attending',[RepresentativeController::class,'attending'])->name('attending');
     Route::get('rep-home',[RepresentativeController::class,'home'])->name('rep-home');
     Route::get('results',[CandidateController::class,'result'])->name('results');

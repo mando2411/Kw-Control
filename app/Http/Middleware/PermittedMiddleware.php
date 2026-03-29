@@ -60,6 +60,7 @@ class PermittedMiddleware
                 ->replace('sorting.papers.next', 'sorting')
                 ->replace('sorting.papers.log-event', 'sorting')
                 ->replace('sorting.papers.report', 'sorting')
+                ->replace('sorting.papers.reset', 'sorting')
                 ->replace('candidates.ordering.update', 'candidates.edit')
                 ->replace('candidates.ordering', 'candidates.list')
                 ->replace('committee.status', 'committees.update-status')

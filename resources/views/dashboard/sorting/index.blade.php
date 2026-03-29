@@ -567,6 +567,30 @@
     box-shadow: 0 6px 14px rgba(16, 42, 67, 0.18);
   }
 
+  .paper-report-reset-btn {
+    border: 1px solid rgba(220, 38, 38, 0.34);
+    background: rgba(220, 38, 38, 0.1);
+    color: #b91c1c;
+    border-radius: 999px;
+    min-height: 34px;
+    padding: 0.3rem 0.72rem;
+    font-size: 0.77rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.34rem;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+  }
+
+  .paper-report-reset-btn:hover,
+  .paper-report-reset-btn:focus {
+    color: #991b1b;
+    border-color: rgba(185, 28, 28, 0.45);
+    background: rgba(220, 38, 38, 0.16);
+  }
+
   .paper-report-empty {
     padding: 1.3rem 1rem;
     text-align: center;
@@ -1704,12 +1728,43 @@
                 <i class="fa-solid fa-file-signature text-primary"></i>
                 <span>سجل التصويت بالأوراق</span>
               </h5>
-              <button type="button" class="btn-close paper-report-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+              <div class="d-inline-flex align-items-center" style="gap: .45rem;">
+                <button type="button" id="paperResetButton" class="paper-report-reset-btn">
+                  <i class="fa-solid fa-rotate-left"></i>
+                  <span>إعادة تعيين</span>
+                </button>
+                <button type="button" class="btn-close paper-report-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+              </div>
             </div>
             <div class="modal-body">
               <div id="paperReportList" class="paper-report-list">
                 <div class="paper-report-empty">جارى تحميل السجل...</div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade sorting-modal" id="paperResetConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+          <div class="modal-content">
+            <div class="modal-header bg-light">
+              <h5 class="modal-title text-dark d-inline-flex align-items-center" style="gap: .35rem;">
+                <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+                <span>تأكيد إعادة التعيين</span>
+              </h5>
+              <button type="button" class="btn-close paper-report-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body">
+              <p class="mb-2 fw-bold text-dark">سيتم حذف كل الأوراق المسجلة لهذه اللجنة.</p>
+              <p class="mb-0 text-muted">بعد التأكيد ستعود الحالة إلى زر <strong>ابدأ</strong> من جديد. لا يمكن التراجع عن هذه العملية.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 d-flex justify-content-end" style="gap: .45rem;">
+              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+              <button type="button" id="confirmPaperResetButton" class="btn btn-danger">
+                <i class="fa-solid fa-trash-can ms-1"></i>
+                تأكيد إعادة التعيين
+              </button>
             </div>
           </div>
         </div>
@@ -1735,6 +1790,7 @@
     var paperNextUrl = @json(route('dashboard.sorting.papers.next'));
     var paperLogEventUrl = @json(route('dashboard.sorting.papers.log-event'));
     var paperReportUrl = @json(route('dashboard.sorting.papers.report'));
+    var paperResetUrl = @json(route('dashboard.sorting.papers.reset'));
     var realtimeChannels = [];
     var fallbackTimer = null;
     var liveStatsInFlight = false;
@@ -1761,6 +1817,9 @@
     }
     if ($('#paperReportModal').length) {
       $('#paperReportModal').appendTo('body');
+    }
+    if ($('#paperResetConfirmModal').length) {
+      $('#paperResetConfirmModal').appendTo('body');
     }
 
     if ($('#sorting-select').length) {
@@ -2560,6 +2619,41 @@
       });
     }
 
+    function resetPaperTrackingForCurrentCommittee() {
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        toastr.error('اختر لجنة أولا لإعادة تعيين سجل الأوراق.');
+        return;
+      }
+
+      var $confirmBtn = $('#confirmPaperResetButton');
+      if ($confirmBtn.prop('disabled')) {
+        return;
+      }
+
+      var originalHtml = $confirmBtn.html();
+      $confirmBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin ms-1"></i>جارى التنفيذ...');
+
+      axios.post(paperResetUrl, {
+        committee: committeeId,
+      }, {
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then(function(response) {
+        $('#paperResetConfirmModal').modal('hide');
+        currentPaperNumber = 0;
+        updatePaperTrackerButton();
+        renderPaperReportList([]);
+        toastr.success(response?.data?.message || 'تمت إعادة تعيين سجل الأوراق.');
+      }).catch(function(error) {
+        var message = error?.response?.data?.message || 'تعذر إعادة تعيين سجل الأوراق حاليا.';
+        toastr.error(message);
+      }).finally(function() {
+        $confirmBtn.prop('disabled', false).html(originalHtml);
+      });
+    }
+
     function applyLiveStats(data) {
       if (!data || data.success !== true) {
         return;
@@ -2719,6 +2813,20 @@
 
     $('#paperReportButton').on('click', function() {
       openPaperReportModal();
+    });
+
+    $('#paperResetButton').on('click', function() {
+      var committeeId = getCurrentCommitteeId();
+      if (!committeeId) {
+        toastr.error('اختر لجنة أولا لإعادة تعيين سجل الأوراق.');
+        return;
+      }
+
+      $('#paperResetConfirmModal').modal('show');
+    });
+
+    $('#confirmPaperResetButton').on('click', function() {
+      resetPaperTrackingForCurrentCommittee();
     });
 
     $('#sortBySelect').on('change', function() {

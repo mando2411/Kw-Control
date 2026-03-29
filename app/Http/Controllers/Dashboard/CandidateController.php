@@ -2190,6 +2190,68 @@ class CandidateController extends Controller
             'papers' => $result,
         ]);
     }
+
+    public function sortingResetPapers(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'يجب تسجيل الدخول أولا.'], 403);
+        }
+
+        if (!$this->sortingPaperTablesReady()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ميزة تتبع الأوراق غير مفعلة بعد. يرجى تنفيذ التحديثات (migrate).',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['required', 'integer', 'exists:committees,id'],
+        ]);
+
+        $committeeId = (int) $validated['committee'];
+
+        try {
+            $deletedPapers = DB::transaction(function () use ($committeeId) {
+                $paperIds = DB::table('sorting_papers')
+                    ->where('committee_id', $committeeId)
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->values()
+                    ->all();
+
+                if (empty($paperIds)) {
+                    return 0;
+                }
+
+                // Keep explicit event cleanup to be safe even if FK constraints differ between environments.
+                DB::table('sorting_paper_events')
+                    ->whereIn('sorting_paper_id', $paperIds)
+                    ->delete();
+
+                return (int) DB::table('sorting_papers')
+                    ->whereIn('id', $paperIds)
+                    ->delete();
+            });
+        } catch (\Throwable $exception) {
+            Log::error('sortingResetPapers failed', [
+                'committee_id' => $committeeId,
+                'user_id' => (int) $user->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر إعادة تعيين سجل الأوراق حاليا. حاول مرة أخرى.',
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'deleted_papers' => $deletedPapers,
+            'message' => 'تمت إعادة تعيين سجل الأوراق لهذه اللجنة بنجاح.',
+        ]);
+    }
     //==============================================================
     public function storeFakeCandidate(Request $request, UserRequest $userRequest)
     {
