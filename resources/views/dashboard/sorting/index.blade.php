@@ -1817,21 +1817,96 @@
       $('#paperResetConfirmModal').appendTo('body');
     }
 
-    function getFixedHeaderOffset() {
-      var selectors = [
-        '.page-main-header',
-        '.main-header',
-        '.app-header',
-        '.layout-navbar',
-        '.header',
-        'header.fixed-top',
-        '.navbar.fixed-top',
-        '.topbar',
-        '.horizontal-header'
-      ];
+    var headerSelectors = [
+      '.page-main-header',
+      '.main-header',
+      '.app-header',
+      '.layout-navbar',
+      '.header',
+      'header.fixed-top',
+      '.navbar.fixed-top',
+      '.topbar',
+      '.horizontal-header'
+    ];
 
+    var sortingPrimaryHeader = null;
+    var sortingHeaderHidden = false;
+
+    function resolvePrimaryFixedHeader() {
+      var bestCandidate = null;
+      var bestBottom = 0;
+
+      headerSelectors.forEach(function(selector) {
+        document.querySelectorAll(selector).forEach(function(el) {
+          if (!el || !el.offsetParent) {
+            return;
+          }
+
+          var style = window.getComputedStyle(el);
+          if (style.display === 'none' || style.visibility === 'hidden') {
+            return;
+          }
+
+          if (style.position !== 'fixed' && style.position !== 'sticky') {
+            return;
+          }
+
+          var rect = el.getBoundingClientRect();
+          if (rect.bottom <= 0) {
+            return;
+          }
+
+          if (rect.top > window.innerHeight * 0.35) {
+            return;
+          }
+
+          if (rect.bottom > bestBottom) {
+            bestBottom = rect.bottom;
+            bestCandidate = el;
+          }
+        });
+      });
+
+      return bestCandidate;
+    }
+
+    function setSortingHeaderHidden(hidden) {
+      sortingPrimaryHeader = sortingPrimaryHeader || resolvePrimaryFixedHeader();
+      if (!sortingPrimaryHeader) {
+        return;
+      }
+
+      if (hidden === sortingHeaderHidden) {
+        return;
+      }
+
+      if (!sortingPrimaryHeader.dataset.sortingHeaderTransition) {
+        sortingPrimaryHeader.dataset.sortingHeaderTransition = sortingPrimaryHeader.style.transition || '';
+        sortingPrimaryHeader.dataset.sortingHeaderTransform = sortingPrimaryHeader.style.transform || '';
+        sortingPrimaryHeader.dataset.sortingHeaderPointerEvents = sortingPrimaryHeader.style.pointerEvents || '';
+      }
+
+      sortingHeaderHidden = hidden;
+
+      if (hidden) {
+        sortingPrimaryHeader.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+        sortingPrimaryHeader.style.transform = 'translateY(-110%)';
+        sortingPrimaryHeader.style.pointerEvents = 'none';
+      } else {
+        sortingPrimaryHeader.style.transition = sortingPrimaryHeader.dataset.sortingHeaderTransition || '';
+        sortingPrimaryHeader.style.transform = sortingPrimaryHeader.dataset.sortingHeaderTransform || '';
+        sortingPrimaryHeader.style.pointerEvents = sortingPrimaryHeader.dataset.sortingHeaderPointerEvents || '';
+      }
+    }
+
+    function updateSortingHeaderVisibility() {
+      var shouldHide = window.scrollY > 24;
+      setSortingHeaderHidden(shouldHide);
+    }
+
+    function getFixedHeaderOffset() {
       var maxBottom = 0;
-      selectors.forEach(function(selector) {
+      headerSelectors.forEach(function(selector) {
         document.querySelectorAll(selector).forEach(function(el) {
           if (!el || !el.offsetParent) {
             return;
@@ -1879,7 +1954,11 @@
     setTimeout(applyBulkStickyTopOffset, 220);
     window.addEventListener('resize', scheduleBulkStickyTopOffset, { passive: true });
     window.addEventListener('orientationchange', scheduleBulkStickyTopOffset, { passive: true });
-    window.addEventListener('scroll', scheduleBulkStickyTopOffset, { passive: true });
+    window.addEventListener('scroll', function() {
+      updateSortingHeaderVisibility();
+      scheduleBulkStickyTopOffset();
+    }, { passive: true });
+    updateSortingHeaderVisibility();
 
     if ($('#sorting-select').length) {
       $('#sorting-select').on('change', function() {
@@ -3428,6 +3507,8 @@
     }
 
     window.addEventListener('beforeunload', function() {
+      setSortingHeaderHidden(false);
+
       if (window.Echo && typeof window.Echo.leave === 'function') {
         realtimeChannels.forEach(function (channelName) {
           window.Echo.leave(channelName);
