@@ -1834,7 +1834,9 @@
 
     var sortingPrimaryHeader = null;
     var sortingHeaderHidden = false;
-    var sortingLastScrollY = Math.max(0, window.scrollY || 0);
+    var bulkStickySection = null;
+    var sortingHeaderHideStartY = Number.POSITIVE_INFINITY;
+    var sortingHeaderBaseHeight = 0;
 
     function resolvePrimaryFixedHeader() {
       var bestCandidate = null;
@@ -1908,28 +1910,57 @@
     }
 
     function updateSortingHeaderVisibility() {
-      var currentY = Math.max(0, window.scrollY || 0);
-      var delta = currentY - sortingLastScrollY;
+      if (!sortingPrimaryHeader) {
+        sortingPrimaryHeader = resolvePrimaryFixedHeader();
+      }
 
+      if (!sortingPrimaryHeader) {
+        return;
+      }
+
+      if (!bulkStickySection) {
+        bulkStickySection = document.querySelector('.bulk-vote-card--sticky');
+      }
+
+      if (!bulkStickySection) {
+        setSortingHeaderHidden(false);
+        return;
+      }
+
+      if (!Number.isFinite(sortingHeaderHideStartY)) {
+        recalculateHeaderHideStartPoint();
+      }
+
+      var currentY = Math.max(0, window.scrollY || 0);
       if (currentY <= 8) {
         setSortingHeaderHidden(false);
-        sortingLastScrollY = currentY;
         return;
       }
 
-      if (Math.abs(delta) < 2) {
-        sortingLastScrollY = currentY;
-        return;
-      }
-
-      // Hide on clear downward scroll, show again as soon as user scrolls up.
-      if (delta > 0 && currentY > 72) {
+      if (currentY >= sortingHeaderHideStartY) {
         setSortingHeaderHidden(true);
-      } else if (delta < 0) {
+      } else {
         setSortingHeaderHidden(false);
       }
+    }
 
-      sortingLastScrollY = currentY;
+    function recalculateHeaderHideStartPoint() {
+      sortingPrimaryHeader = resolvePrimaryFixedHeader();
+      bulkStickySection = document.querySelector('.bulk-vote-card--sticky');
+
+      if (!sortingPrimaryHeader || !bulkStickySection) {
+        sortingHeaderHideStartY = Number.POSITIVE_INFINITY;
+        return;
+      }
+
+      var headerRect = sortingPrimaryHeader.getBoundingClientRect();
+      sortingHeaderBaseHeight = Math.max(0, Math.ceil(headerRect.height || 0));
+
+      var bulkRect = bulkStickySection.getBoundingClientRect();
+      var bulkTopInPage = Math.max(0, Math.floor((window.scrollY || 0) + bulkRect.top));
+
+      // Hide header only when bulk section reaches the header band and is ready to take its place.
+      sortingHeaderHideStartY = Math.max(0, bulkTopInPage - sortingHeaderBaseHeight - 8);
     }
 
     function getFixedHeaderOffset() {
@@ -1970,6 +2001,7 @@
     }
 
     function applyBulkStickyTopOffset() {
+      recalculateHeaderHideStartPoint();
       var offset = getFixedHeaderOffset();
       document.documentElement.style.setProperty('--sorting-bulk-sticky-top', offset + 'px');
     }
