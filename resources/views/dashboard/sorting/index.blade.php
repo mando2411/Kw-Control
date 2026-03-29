@@ -1834,6 +1834,7 @@
 
     var sortingPrimaryHeader = null;
     var sortingHeaderHidden = false;
+    var sortingLastScrollY = Math.max(0, window.scrollY || 0);
 
     function resolvePrimaryFixedHeader() {
       var bestCandidate = null;
@@ -1907,8 +1908,28 @@
     }
 
     function updateSortingHeaderVisibility() {
-      var shouldHide = window.scrollY > 24;
-      setSortingHeaderHidden(shouldHide);
+      var currentY = Math.max(0, window.scrollY || 0);
+      var delta = currentY - sortingLastScrollY;
+
+      if (currentY <= 8) {
+        setSortingHeaderHidden(false);
+        sortingLastScrollY = currentY;
+        return;
+      }
+
+      if (Math.abs(delta) < 2) {
+        sortingLastScrollY = currentY;
+        return;
+      }
+
+      // Hide on clear downward scroll, show again as soon as user scrolls up.
+      if (delta > 0 && currentY > 72) {
+        setSortingHeaderHidden(true);
+      } else if (delta < 0) {
+        setSortingHeaderHidden(false);
+      }
+
+      sortingLastScrollY = currentY;
     }
 
     function getFixedHeaderOffset() {
