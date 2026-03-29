@@ -1238,6 +1238,21 @@
       font-size: 0.78rem;
     }
 
+    #toast-container {
+      top: auto !important;
+      right: 10px !important;
+      left: 10px !important;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 70px) !important;
+      width: auto !important;
+      z-index: 2050 !important;
+    }
+
+    #toast-container > .toast {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 0 0.38rem !important;
+    }
+
     .named-sort-grid {
       grid-template-columns: 1fr;
     }
