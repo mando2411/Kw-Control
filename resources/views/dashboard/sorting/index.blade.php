@@ -1818,6 +1818,9 @@
     }
 
     var headerSelectors = [
+      '.dashboard-topbar-desktop',
+      '.dashboard-topbar-mobile',
+      '.dashboard-topbar',
       '.page-main-header',
       '.main-header',
       '.app-header',
@@ -1838,12 +1841,16 @@
 
       headerSelectors.forEach(function(selector) {
         document.querySelectorAll(selector).forEach(function(el) {
-          if (!el || !el.offsetParent) {
+          if (!el) {
             return;
           }
 
           var style = window.getComputedStyle(el);
           if (style.display === 'none' || style.visibility === 'hidden') {
+            return;
+          }
+
+          if (!el.getClientRects || el.getClientRects().length === 0) {
             return;
           }
 
@@ -1908,12 +1915,16 @@
       var maxBottom = 0;
       headerSelectors.forEach(function(selector) {
         document.querySelectorAll(selector).forEach(function(el) {
-          if (!el || !el.offsetParent) {
+          if (!el) {
             return;
           }
 
           var style = window.getComputedStyle(el);
           if (style.display === 'none' || style.visibility === 'hidden') {
+            return;
+          }
+
+          if (!el.getClientRects || el.getClientRects().length === 0) {
             return;
           }
 
