@@ -373,37 +373,120 @@
   .paper-report-list {
     max-height: 58vh;
     overflow-y: auto;
-    padding-right: 0.2rem;
+    padding: 0.25rem 0.25rem 0.15rem;
+    display: grid;
+    gap: 0.8rem;
+    background:
+      linear-gradient(180deg, rgba(14, 165, 233, 0.05) 0%, rgba(15, 118, 110, 0.04) 100%),
+      repeating-linear-gradient(0deg, rgba(148, 163, 184, 0.08), rgba(148, 163, 184, 0.08) 1px, transparent 1px, transparent 32px);
+    border: 1px solid #dbe8f4;
+    border-radius: 14px;
   }
 
   .paper-report-card {
-    border: 1px solid #d8e4f0;
-    border-radius: 12px;
-    padding: 0.7rem;
-    background: #fff;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #cfdeec;
+    border-radius: 15px;
+    padding: 0.9rem 0.85rem 0.75rem;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, #fdfefe 100%);
+    box-shadow: 0 12px 22px rgba(16, 42, 67, 0.1);
   }
 
-  .paper-report-card + .paper-report-card {
-    margin-top: 0.65rem;
+  .paper-report-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-top: 18px solid #dcecf8;
+    border-right: 18px solid transparent;
+  }
+
+  .paper-report-card::after {
+    content: "انتخاب";
+    position: absolute;
+    top: 9px;
+    right: 10px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px dashed rgba(220, 38, 38, 0.38);
+    color: rgba(185, 28, 28, 0.74);
+    font-size: 0.66rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-12deg);
+    pointer-events: none;
   }
 
   .paper-report-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.45rem;
-    font-weight: 800;
+    margin-bottom: 0.52rem;
+    gap: 0.6rem;
+  }
+
+  .paper-report-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.08rem;
+    min-width: 0;
+  }
+
+  .paper-report-paper-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.36rem;
     color: #123c67;
+    font-weight: 900;
+    font-size: 0.92rem;
+    line-height: 1.2;
+  }
+
+  .paper-report-paper-title i {
+    color: #0f766e;
+    font-size: 0.88rem;
+  }
+
+  .paper-report-meta {
+    color: #5f7489;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .paper-report-total-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 0.24rem 0.62rem;
+    background: rgba(29, 78, 216, 0.12);
+    border: 1px solid rgba(29, 78, 216, 0.26);
+    color: #1d4ed8;
+    font-size: 0.77rem;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .paper-report-items {
+    border-top: 1px dashed #d4e2ef;
+    padding-top: 0.35rem;
   }
 
   .paper-report-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
-    font-size: 0.84rem;
+    gap: 0.6rem;
+    font-size: 0.83rem;
     color: #334e68;
-    padding: 0.25rem 0;
+    padding: 0.37rem 0;
     border-bottom: 1px dashed #e5edf6;
   }
 
@@ -429,6 +512,26 @@
     font-size: 0.7rem;
     font-weight: 800;
     white-space: nowrap;
+  }
+
+  .paper-report-votes {
+    min-width: 68px;
+    text-align: center;
+    border-radius: 999px;
+    padding: 0.11rem 0.58rem;
+    background: rgba(15, 118, 110, 0.11);
+    border: 1px solid rgba(15, 118, 110, 0.24);
+    color: #0b5f58;
+    font-size: 0.79rem;
+    font-weight: 900;
+    line-height: 1.25;
+  }
+
+  .paper-report-item--empty {
+    justify-content: center;
+    color: #5f7489;
+    font-weight: 700;
+    border-bottom: 0;
   }
 
   .paper-report-modal-close {
@@ -465,10 +568,13 @@
   }
 
   .paper-report-empty {
-    padding: 1rem;
+    padding: 1.3rem 1rem;
     text-align: center;
     color: #486581;
     font-weight: 700;
+    background: rgba(255, 255, 255, 0.78);
+    border: 1px dashed #c5d5e6;
+    border-radius: 12px;
   }
 
   .committee-stats {
@@ -917,6 +1023,46 @@
 
     .sorting-chip {
       font-size: 0.78rem;
+    }
+
+    .paper-report-list {
+      max-height: 66vh;
+      padding: 0.2rem;
+    }
+
+    .paper-report-card {
+      padding: 0.78rem 0.7rem 0.68rem;
+      border-radius: 13px;
+    }
+
+    .paper-report-card::after {
+      width: 50px;
+      height: 50px;
+      font-size: 0.61rem;
+      top: 8px;
+      right: 8px;
+    }
+
+    .paper-report-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .paper-report-total-pill {
+      align-self: flex-end;
+      font-size: 0.74rem;
+      padding: 0.2rem 0.55rem;
+    }
+
+    .paper-report-item {
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .paper-report-votes {
+      min-width: 58px;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.48rem;
     }
 
     .committee-stats {
@@ -1554,7 +1700,10 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
           <div class="modal-content">
             <div class="modal-header bg-light">
-              <h5 class="modal-title text-dark">سجل التصويت بالأوراق</h5>
+              <h5 class="modal-title text-dark d-inline-flex align-items-center" style="gap: .4rem;">
+                <i class="fa-solid fa-file-signature text-primary"></i>
+                <span>سجل التصويت بالأوراق</span>
+              </h5>
               <button type="button" class="btn-close paper-report-modal-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
             </div>
             <div class="modal-body">
@@ -2354,7 +2503,7 @@
         var itemsHtml = '';
 
         if (!items.length) {
-          itemsHtml = '<div class="paper-report-item"><span>لا توجد أحداث مسجلة لهذه الورقة.</span><strong>0</strong></div>';
+          itemsHtml = '<div class="paper-report-item paper-report-item--empty"><span>لا توجد أحداث مسجلة لهذه الورقة.</span></div>';
         } else {
           itemsHtml = items.map(function(item) {
             var votes = parseInt(item.votes, 10) || 0;
@@ -2365,7 +2514,7 @@
             return '<div class="paper-report-item"><span class="paper-report-item-name">'
               + '<span>' + escapeHtml(item.candidate_name || 'مرشح غير معروف') + '</span>'
               + actionBadge
-              + '</span><strong>' + votes + '</strong></div>';
+              + '</span><strong class="paper-report-votes">' + votes + '</strong></div>';
           }).join('');
         }
 
@@ -2373,8 +2522,14 @@
         var totalVotes = parseInt(paper.total_votes, 10) || 0;
 
         return '<div class="paper-report-card">'
-          + '<div class="paper-report-head"><span>الورقة ' + paperNumber + '</span><span>إجمالي: ' + totalVotes + '</span></div>'
-          + itemsHtml
+          + '<div class="paper-report-head">'
+          + '<div class="paper-report-title-wrap">'
+          + '<span class="paper-report-paper-title"><i class="fa-solid fa-file-lines"></i>الورقة ' + paperNumber + '</span>'
+          + '<span class="paper-report-meta">متابعة انتخابية حسب الورقة</span>'
+          + '</div>'
+          + '<span class="paper-report-total-pill">إجمالي: ' + totalVotes + '</span>'
+          + '</div>'
+          + '<div class="paper-report-items">' + itemsHtml + '</div>'
           + '</div>';
       }).join('');
 
