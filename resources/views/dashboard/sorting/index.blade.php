@@ -1011,6 +1011,12 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .bulk-vote-field-count { grid-column: 1; }
+    .bulk-vote-field-action { grid-column: 2; }
+    .bulk-vote-btn-run { grid-column: 1; width: 100%; }
+    .bulk-vote-btn-clear { grid-column: 2; width: 100%; }
+    .bulk-vote-meta { grid-column: 1 / -1; justify-content: center; }
+
     .committee-stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1045,6 +1051,15 @@
       z-index: 1050;
       margin-top: 0.6rem;
       border-radius: 14px;
+    }
+
+    .bulk-vote-row {
+      gap: 0.5rem;
+    }
+
+    .bulk-vote-btn-run,
+    .bulk-vote-btn-clear {
+      min-height: 40px;
     }
 
     .sorting-page {
@@ -1520,20 +1535,20 @@
 
       <div class="sorting-card bulk-vote-card bulk-vote-card--sticky">
         <div class="bulk-vote-row">
-          <input type="number" min="0" class="sorting-input bulk-vote-value" placeholder="عدد الأصوات" value="1">
+          <input type="number" min="0" class="sorting-input bulk-vote-value bulk-vote-field-count" placeholder="عدد الأصوات" value="1">
 
-          <select class="sorting-select bulk-vote-action">
+          <select class="sorting-select bulk-vote-action bulk-vote-field-action">
             <option value="increment">إضافة</option>
             <option value="decrement">إزالة</option>
             <option value="set">تحديد</option>
           </select>
 
-          <button type="button" class="btn-bulk-vote bulk-vote-button" disabled>
+          <button type="button" class="btn-bulk-vote bulk-vote-button bulk-vote-btn-run" disabled>
             <i class="fa-solid fa-bolt"></i>
             <span>تنفيذ التصويت المجمع</span>
           </button>
 
-          <button type="button" class="btn-clear-selection clear-selection-button">
+          <button type="button" class="btn-clear-selection clear-selection-button bulk-vote-btn-clear">
             <i class="fa-solid fa-eraser"></i>
             <span>مسح التحديد</span>
           </button>
