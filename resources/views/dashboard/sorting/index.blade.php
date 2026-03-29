@@ -1037,10 +1037,11 @@
     .sorting-control-row { order: 2; }
     .sorting-toolbar--committee { order: 3; }
     .committee-stats { order: 4; }
-    .mobile-quick-access { order: 5; }
-    .sorting-toolbar--search { order: 6; }
-    .bulk-vote-card--sticky { order: 7; }
-    .candidates-card { order: 8; }
+    .quick-category-card { order: 5; }
+    .mobile-quick-access { order: 6; }
+    .sorting-toolbar--search { order: 7; }
+    .bulk-vote-card--sticky { order: 8; }
+    .candidates-card { order: 9; }
 
     .sorting-toolbar {
       position: static;
