@@ -125,6 +125,16 @@
     outline: none;
   }
 
+  .sorting-sort-inline {
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) minmax(100px, 0.8fr);
+    gap: 0.55rem;
+  }
+
+  .sorting-sort-inline .sorting-select {
+    font-size: 0.88rem;
+  }
+
   .search-wrap {
     position: relative;
   }
@@ -983,6 +993,23 @@
             <input type="text" placeholder="اكتب اسم المرشح" class="sorting-input" name="candidateName" id="searchBox" value="">
           </div>
         </div>
+
+        <div class="sorting-field">
+          <label class="sorting-label" for="sortBySelect">ترتيب الجدول</label>
+          <div class="sorting-sort-inline">
+            <select id="sortBySelect" class="sorting-select">
+              <option value="default">الافتراضي</option>
+              <option value="order">الترتيب</option>
+              <option value="name">الاسم</option>
+              <option value="votes">الأصوات</option>
+            </select>
+
+            <select id="sortDirectionSelect" class="sorting-select">
+              <option value="asc">تصاعدي</option>
+              <option value="desc">تنازلي</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div class="sorting-card bulk-vote-card">
@@ -1210,6 +1237,8 @@
     var fallbackIntervalMs = 2000;
     var activeQuickLetter = '';
     var activeCategory = 'all';
+    var activeSortBy = 'default';
+    var activeSortDirection = 'asc';
     var recentCandidateIds = [];
     var maxRecentCandidates = 8;
     var bulkVoteInFlight = false;
@@ -1402,6 +1431,64 @@
       $('#listsSection').hide();
     }
 
+    function getRowSortValue($row, sortBy) {
+      if (sortBy === 'name') {
+        return getCandidateNameFromRow($row).toLowerCase();
+      }
+
+      if (sortBy === 'votes') {
+        var candidateId = parseInt($row.data('candidate-id'), 10) || 0;
+        return parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
+      }
+
+      if (sortBy === 'order') {
+        return parseInt($row.find('td[data-label="الترتيب"]').first().text(), 10) || 0;
+      }
+
+      return parseInt($row.data('origin-order'), 10) || 0;
+    }
+
+    function sortRowsInTbody($tbody) {
+      var rows = $tbody.find('tr').get();
+      rows.sort(function(a, b) {
+        var $a = $(a);
+        var $b = $(b);
+        var aValue = getRowSortValue($a, activeSortBy);
+        var bValue = getRowSortValue($b, activeSortBy);
+
+        var compareResult = 0;
+        if (activeSortBy === 'name') {
+          compareResult = String(aValue).localeCompare(String(bValue), 'ar');
+        } else {
+          compareResult = (aValue - bValue);
+        }
+
+        if (compareResult === 0) {
+          var aOrigin = parseInt($a.data('origin-order'), 10) || 0;
+          var bOrigin = parseInt($b.data('origin-order'), 10) || 0;
+          compareResult = aOrigin - bOrigin;
+        }
+
+        return activeSortDirection === 'desc' ? -compareResult : compareResult;
+      });
+
+      $tbody.append(rows);
+    }
+
+    function applyTableSort() {
+      if (activeSortBy === 'default') {
+        return;
+      }
+
+      if (activeCategory === 'other_lists') {
+        sortRowsInTbody($('#candidates_table tbody'));
+        return;
+      }
+
+      sortRowsInTbody($('#candidates_table tbody'));
+      sortRowsInTbody($('#lists_table tbody'));
+    }
+
     function getCurrentCommitteeId() {
       if ($('#sorting-select').length && $('#sorting-select').val()) {
         return parseInt($('#sorting-select').val(), 10) || 0;
@@ -1482,6 +1569,10 @@
           $mobileVotePill.removeClass('updated');
         }
       }, 420);
+
+      if (activeSortBy === 'votes' || activeSortBy === 'order') {
+        applyTableSort();
+      }
     }
 
     function setVoteRequest(candidate_id, count_status, vote_count, committee) {
@@ -1624,7 +1715,18 @@
     buildQuickLetterFilter();
     renderRecentCandidates();
     applyCategoryLayoutMode();
+    applyTableSort();
     updateSelectionState();
+
+    $('#sortBySelect').on('change', function() {
+      activeSortBy = String($(this).val() || 'default');
+      searchTable();
+    });
+
+    $('#sortDirectionSelect').on('change', function() {
+      activeSortDirection = String($(this).val() || 'asc');
+      searchTable();
+    });
 
     $('.bulk-vote-value').on('input', function() {
       var currentValue = $(this).val();
@@ -1932,6 +2034,7 @@
 
     function searchTable() {
       applyCategoryLayoutMode();
+      applyTableSort();
       let entireValue = $('#searchBox').val().toLowerCase();
       $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
         let rowText = getCandidateNameFromRow($(this)).toLowerCase();
