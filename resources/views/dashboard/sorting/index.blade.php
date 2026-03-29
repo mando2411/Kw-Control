@@ -158,6 +158,37 @@
     font-weight: 700;
   }
 
+  .named-sort-actions {
+    margin-top: 0.55rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .btn-named-sort-aux {
+    border: 1px solid #b8cde2;
+    background: #fff;
+    color: #1f4369;
+    border-radius: 9px;
+    min-height: 36px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .btn-named-sort-aux.active {
+    background: linear-gradient(135deg, #0f766e 0%, #159e90 100%);
+    border-color: #0f766e;
+    color: #fff;
+  }
+
+  .quick-assign-status {
+    color: #334e68;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
   .btn-named-sort-save {
     border: 0;
     border-radius: 11px;
@@ -183,6 +214,10 @@
     font-weight: 800;
     display: none;
     margin: 0 auto;
+  }
+
+  tr.quick-assign-target {
+    box-shadow: inset 0 0 0 2px rgba(15, 118, 110, 0.22);
   }
 
   .search-wrap {
@@ -1085,6 +1120,25 @@
           </div>
 
           <p class="named-sort-help">عند اختيار "ترتيب مختار" أدخل رقم كل مرشح ثم احفظ باسمك، وسيظهر مباشرة في قائمة الترتيبات.</p>
+
+          <div class="named-sort-actions">
+            <button type="button" id="autoFillOrderButton" class="btn-named-sort-aux">
+              <i class="fa-solid fa-list-ol"></i>
+              ترقيم تلقائي حسب العرض
+            </button>
+
+            <button type="button" id="toggleQuickAssignButton" class="btn-named-sort-aux">
+              <i class="fa-solid fa-hand-pointer"></i>
+              تفعيل الترقيم بالضغط
+            </button>
+
+            <button type="button" id="clearCustomOrderButton" class="btn-named-sort-aux">
+              <i class="fa-solid fa-broom"></i>
+              مسح الأرقام
+            </button>
+
+            <span id="quickAssignStatus" class="quick-assign-status">الوضع السريع: غير مفعل</span>
+          </div>
         </div>
       </div>
 
@@ -1322,6 +1376,8 @@
     var activeSortBy = 'default';
     var activeSortDirection = 'asc';
     var namedSortPresets = [];
+    var quickAssignMode = false;
+    var quickAssignNext = 1;
     var recentCandidateIds = [];
     var maxRecentCandidates = 8;
     var bulkVoteInFlight = false;
@@ -1630,7 +1686,61 @@
         $('#namedSortPanel').stop(true, true).slideUp(140);
         $('.custom-order-input').hide();
         $('.order-display').show();
+        quickAssignMode = false;
+        updateQuickAssignUI();
       }
+    }
+
+    function updateQuickAssignUI() {
+      var $toggleButton = $('#toggleQuickAssignButton');
+      var $status = $('#quickAssignStatus');
+
+      if (!$toggleButton.length || !$status.length) {
+        return;
+      }
+
+      if (quickAssignMode) {
+        $toggleButton.addClass('active');
+        $status.text('الوضع السريع: مفعل (اضغط على أي صف لإعطائه الرقم التالي)');
+      } else {
+        $toggleButton.removeClass('active');
+        $status.text('الوضع السريع: غير مفعل');
+      }
+    }
+
+    function visibleRowsForRanking() {
+      return $('#candidates_table tbody tr:visible, #lists_table tbody tr:visible');
+    }
+
+    function setRowOrderValue($row, value) {
+      if (!$row || !$row.length) {
+        return;
+      }
+
+      $row.find('.custom-order-input').first().val(value);
+      $row.find('.order-display').first().text(value);
+      $row.find('.candidate-mobile-rank').first().text(value);
+    }
+
+    function nextAvailableOrder(startFrom) {
+      var used = new Set();
+      visibleRowsForRanking().each(function() {
+        var value = parseInt($(this).find('.custom-order-input').first().val(), 10);
+        if (!isNaN(value) && value > 0) {
+          used.add(value);
+        }
+      });
+
+      var candidate = Math.max(1, parseInt(startFrom, 10) || 1);
+      while (used.has(candidate)) {
+        candidate += 1;
+      }
+
+      return candidate;
+    }
+
+    function recomputeQuickAssignNext() {
+      quickAssignNext = nextAvailableOrder(1);
     }
 
     function getCustomOrderValue($row) {
@@ -1905,6 +2015,7 @@
     namedSortPresets = loadNamedSortPresets();
     renderNamedSortPresetOptions('');
     setCustomOrderMode(false);
+    updateQuickAssignUI();
 
     $('#sortBySelect').on('change', function() {
       activeSortBy = String($(this).val() || 'default');
@@ -1930,6 +2041,69 @@
       if (activeSortBy === 'named') {
         applyTableSort();
       }
+
+      recomputeQuickAssignNext();
+    });
+
+    $('#autoFillOrderButton').on('click', function() {
+      if (activeSortBy !== 'named') {
+        $('#sortBySelect').val('named').trigger('change');
+      }
+
+      var index = 1;
+      visibleRowsForRanking().each(function() {
+        setRowOrderValue($(this), index);
+        index += 1;
+      });
+
+      recomputeQuickAssignNext();
+      searchTable();
+      toastr.success('تم ترقيم المرشحين تلقائيا حسب العرض الحالي.');
+    });
+
+    $('#clearCustomOrderButton').on('click', function() {
+      visibleRowsForRanking().each(function() {
+        $(this).find('.custom-order-input').first().val('');
+        $(this).find('.order-display').first().text('-');
+      });
+
+      recomputeQuickAssignNext();
+      if (activeSortBy === 'named') {
+        applyTableSort();
+      }
+      toastr.info('تم مسح أرقام الترتيب للصفوف المعروضة.');
+    });
+
+    $('#toggleQuickAssignButton').on('click', function() {
+      if (activeSortBy !== 'named') {
+        $('#sortBySelect').val('named').trigger('change');
+      }
+
+      quickAssignMode = !quickAssignMode;
+      recomputeQuickAssignNext();
+      updateQuickAssignUI();
+    });
+
+    $(document).on('click', '#candidates_table tbody tr, #lists_table tbody tr', function(event) {
+      if (!quickAssignMode || activeSortBy !== 'named') {
+        return;
+      }
+
+      if ($(event.target).closest('button, input, select, a, label').length) {
+        return;
+      }
+
+      var $row = $(this);
+      var assignValue = quickAssignNext;
+      setRowOrderValue($row, assignValue);
+
+      $row.addClass('quick-assign-target');
+      setTimeout(function() {
+        $row.removeClass('quick-assign-target');
+      }, 280);
+
+      quickAssignNext = nextAvailableOrder(assignValue + 1);
+      applyTableSort();
     });
 
     $('#namedSortPresetSelect').on('change', function() {
