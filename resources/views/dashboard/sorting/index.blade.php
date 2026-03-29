@@ -1848,6 +1848,13 @@
     var maxRecentCandidates = 8;
     var bulkVoteInFlight = false;
 
+    if (typeof toastr !== 'undefined') {
+      toastr.options = Object.assign({}, toastr.options || {}, {
+        timeOut: 1000,
+        extendedTimeOut: 150
+      });
+    }
+
     // Render modals at body level to avoid clipping by parent containers.
     if ($('#confirmModal').length) {
       $('#confirmModal').appendTo('body');
