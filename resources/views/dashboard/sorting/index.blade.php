@@ -1735,6 +1735,27 @@
       return parseInt(rowCommitteeValue, 10) || 0;
     }
 
+    function filterModeStorageKey() {
+      return 'sorting_filter_mode_v1_committee_' + (getCurrentCommitteeId() || 0);
+    }
+
+    function loadFilterModePreference() {
+      try {
+        var raw = localStorage.getItem(filterModeStorageKey());
+        if (raw === 'mode1' || raw === 'mode2') {
+          return raw;
+        }
+      } catch (error) {
+        // no-op
+      }
+
+      return 'mode1';
+    }
+
+    function saveFilterModePreference() {
+      localStorage.setItem(filterModeStorageKey(), activeFilterMode);
+    }
+
     function escapeHtml(value) {
       return String(value || '')
         .replace(/&/g, '&amp;')
@@ -2172,6 +2193,9 @@
     startSortingRealtime();
     buildQuickLetterFilter();
     renderRecentCandidates();
+    activeFilterMode = loadFilterModePreference();
+    $('.filter-mode-btn').removeClass('active');
+    $('.filter-mode-btn[data-filter-mode="' + activeFilterMode + '"]').addClass('active');
     renderQuickCategoryButtons();
     applyCategoryLayoutMode();
     applyTableSort();
@@ -2454,6 +2478,7 @@
       renderQuickCategoryButtons();
       applyCategoryLayoutMode();
       searchTable();
+      saveFilterModePreference();
     });
 
     $(document).on('click', '.recent-candidate-chip', function() {
