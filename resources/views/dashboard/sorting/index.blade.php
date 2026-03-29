@@ -1029,11 +1029,14 @@
 
   @media (max-width: 767.98px) {
     .dashboard-topbar-mobile,
+    .dashboard-mobilebar,
     .dashboard-mobile-bar,
     .dashboard-mobile-nav,
     .mobile-bottom-nav,
     .bottom-mobile-nav {
       display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
     }
 
     .sorting-shell {
