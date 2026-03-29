@@ -985,6 +985,32 @@
         </div>
       </div>
 
+      <div class="sorting-card bulk-vote-card">
+        <div class="bulk-vote-row">
+          <input type="number" min="0" class="sorting-input bulk-vote-value" placeholder="عدد الأصوات">
+
+          <select class="sorting-select bulk-vote-action">
+            <option value="increment">إضافة</option>
+            <option value="decrement">إزالة</option>
+            <option value="set">تحديد</option>
+          </select>
+
+          <button type="button" class="btn-bulk-vote bulk-vote-button" disabled>
+            <i class="fa-solid fa-bolt"></i>
+            <span>تنفيذ التصويت المجمع</span>
+          </button>
+
+          <button type="button" class="btn-clear-selection clear-selection-button">
+            <i class="fa-solid fa-eraser"></i>
+            <span>مسح التحديد</span>
+          </button>
+
+          <div class="bulk-vote-meta">
+            عدد المحددين: <strong class="selected-candidates-count">0</strong>
+          </div>
+        </div>
+      </div>
+
       <div class="sorting-card candidates-card">
         <div id="lock-overlay">
           <i class="fas fa-lock lock-icon"></i>
@@ -1138,26 +1164,26 @@
 
       <div class="sorting-card bulk-vote-card">
         <div class="bulk-vote-row">
-          <input type="number" min="0" class="sorting-input" id="bulkVoteValue" placeholder="عدد الأصوات">
+          <input type="number" min="0" class="sorting-input bulk-vote-value" placeholder="عدد الأصوات">
 
-          <select id="bulkVoteAction" class="sorting-select">
+          <select class="sorting-select bulk-vote-action">
             <option value="increment">إضافة</option>
             <option value="decrement">إزالة</option>
             <option value="set">تحديد</option>
           </select>
 
-          <button type="button" id="bulkVoteButton" class="btn-bulk-vote" disabled>
+          <button type="button" class="btn-bulk-vote bulk-vote-button" disabled>
             <i class="fa-solid fa-bolt"></i>
             <span>تنفيذ التصويت المجمع</span>
           </button>
 
-          <button type="button" id="clearSelectionButton" class="btn-clear-selection">
+          <button type="button" class="btn-clear-selection clear-selection-button">
             <i class="fa-solid fa-eraser"></i>
             <span>مسح التحديد</span>
           </button>
 
           <div class="bulk-vote-meta">
-            عدد المحددين: <strong id="selectedCandidatesCount">0</strong>
+            عدد المحددين: <strong class="selected-candidates-count">0</strong>
           </div>
         </div>
       </div>
@@ -1399,8 +1425,8 @@
 
     function updateSelectionState() {
       var selectedCount = selectedRows().length;
-      $('#selectedCandidatesCount').text(selectedCount);
-      $('#bulkVoteButton').prop('disabled', selectedCount === 0 || bulkVoteInFlight);
+      $('.selected-candidates-count').text(selectedCount);
+      $('.bulk-vote-button').prop('disabled', selectedCount === 0 || bulkVoteInFlight);
 
       $('tr').removeClass('row-selected');
       $('.select-candidate-checkbox:checked').closest('tr').addClass('row-selected');
@@ -1600,6 +1626,16 @@
     applyCategoryLayoutMode();
     updateSelectionState();
 
+    $('.bulk-vote-value').on('input', function() {
+      var currentValue = $(this).val();
+      $('.bulk-vote-value').not(this).val(currentValue);
+    });
+
+    $('.bulk-vote-action').on('change', function() {
+      var currentValue = $(this).val();
+      $('.bulk-vote-action').not(this).val(currentValue);
+    });
+
     $(document).on('change', '.select-candidate-checkbox', function() {
       updateSelectionState();
     });
@@ -1615,7 +1651,7 @@
       updateSelectionState();
     });
 
-    $('#clearSelectionButton').on('click', function() {
+    $(document).on('click', '.clear-selection-button', function() {
       $('.select-candidate-checkbox, .select-all-candidates').prop('checked', false);
       updateSelectionState();
     });
@@ -1723,7 +1759,7 @@
         });
     }
 
-    $('#bulkVoteButton').on('click', function() {
+    $(document).on('click', '.bulk-vote-button', function() {
       if (bulkVoteInFlight) {
         return;
       }
@@ -1739,14 +1775,15 @@
         return;
       }
 
-      var voteCountRaw = $('#bulkVoteValue').val();
+      var $currentBulkCard = $(this).closest('.bulk-vote-card');
+      var voteCountRaw = $currentBulkCard.find('.bulk-vote-value').val();
       var voteCount = parseInt(voteCountRaw, 10);
       if (voteCountRaw === '' || isNaN(voteCount) || voteCount < 0) {
         errorMessageInModel('يرجى إدخال عدد أصوات صحيح للتصويت المجمع.');
         return;
       }
 
-      var countStatus = String($('#bulkVoteAction').val() || 'increment');
+      var countStatus = String($currentBulkCard.find('.bulk-vote-action').val() || 'increment');
       var invalidRows = [];
 
       if (countStatus === 'decrement') {
@@ -1766,9 +1803,15 @@
       }
 
       var $bulkButton = $(this);
-      var originalButtonHtml = $bulkButton.html();
+      $('.bulk-vote-button').each(function() {
+        var $btn = $(this);
+        if (!$btn.data('original-html')) {
+          $btn.data('original-html', $btn.html());
+        }
+      });
+
       bulkVoteInFlight = true;
-      $bulkButton.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i><span>جارى التنفيذ...</span>');
+      $('.bulk-vote-button').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i><span>جارى التنفيذ...</span>');
 
       var totalRows = $rows.length;
       var successCount = 0;
@@ -1815,7 +1858,10 @@
         }
       }).finally(function() {
         bulkVoteInFlight = false;
-        $bulkButton.html(originalButtonHtml);
+        $('.bulk-vote-button').each(function() {
+          var $btn = $(this);
+          $btn.html($btn.data('original-html') || '<i class="fa-solid fa-bolt"></i><span>تنفيذ التصويت المجمع</span>');
+        });
         updateSelectionState();
       });
     });
