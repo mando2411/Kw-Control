@@ -1367,6 +1367,8 @@
 <script>
   $(document).ready(function() {
     var liveStatsUrl = @json(route('dashboard.sorting.live-stats'));
+    var namedPresetsUrl = @json(route('dashboard.sorting.named-presets'));
+    var namedPresetsSaveUrl = @json(route('dashboard.sorting.named-presets.save'));
     var realtimeChannels = [];
     var fallbackTimer = null;
     var liveStatsInFlight = false;
@@ -1641,28 +1643,68 @@
       return parseInt(rowCommitteeValue, 10) || 0;
     }
 
-    function namedSortStorageKey() {
-      var committeeId = getCurrentCommitteeId() || 0;
-      return 'sorting_named_presets_v1_committee_' + committeeId;
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     function loadNamedSortPresets() {
-      try {
-        var raw = localStorage.getItem(namedSortStorageKey());
-        var parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (error) {
+      return axios.get(namedPresetsUrl, {
+        params: {
+          committee: getCurrentCommitteeId(),
+        },
+        headers: {
+          'Accept': 'application/json',
+        }
+      }).then(function(response) {
+        var data = response && response.data ? response.data : {};
+        namedSortPresets = Array.isArray(data.presets) ? data.presets : [];
+        return namedSortPresets;
+      }).catch(function() {
+        namedSortPresets = [];
         return [];
-      }
+      });
     }
 
-    function saveNamedSortPresets() {
-      localStorage.setItem(namedSortStorageKey(), JSON.stringify(namedSortPresets));
+    function renderSortByOptions(selectedValue) {
+      var $sortSelect = $('#sortBySelect');
+      if (!$sortSelect.length) {
+        return;
+      }
+
+      var desiredValue = String(selectedValue || $sortSelect.val() || 'default');
+
+      var baseOptions = [
+        '<option value="default">الافتراضي</option>',
+        '<option value="order">الترتيب</option>',
+        '<option value="name">الاسم</option>',
+        '<option value="votes">الأصوات</option>'
+      ];
+
+      var presetOptions = namedSortPresets.map(function(preset) {
+        return '<option value="preset:' + escapeHtml(preset.id) + '">' + escapeHtml(preset.name) + '</option>';
+      });
+
+      var html = baseOptions.concat(presetOptions).join('')
+        + '<option value="named">ترتيب مختار</option>';
+
+      $sortSelect.html(html);
+
+      if ($sortSelect.find('option[value="' + desiredValue + '"]').length) {
+        $sortSelect.val(desiredValue);
+      } else {
+        $sortSelect.val('default');
+      }
     }
 
     function renderNamedSortPresetOptions(selectedId) {
       var $presetSelect = $('#namedSortPresetSelect');
       if (!$presetSelect.length) {
+        renderSortByOptions(selectedId ? ('preset:' + selectedId) : null);
         return;
       }
 
@@ -1675,6 +1717,8 @@
       if (selectedId) {
         $presetSelect.val(String(selectedId));
       }
+
+      renderSortByOptions(selectedId ? ('preset:' + selectedId) : null);
     }
 
     function setCustomOrderMode(enabled) {
@@ -2012,14 +2056,37 @@
     applyCategoryLayoutMode();
     applyTableSort();
     updateSelectionState();
-    namedSortPresets = loadNamedSortPresets();
-    renderNamedSortPresetOptions('');
+    renderSortByOptions('default');
+    loadNamedSortPresets().then(function() {
+      renderNamedSortPresetOptions('');
+    });
     setCustomOrderMode(false);
     updateQuickAssignUI();
 
     $('#sortBySelect').on('change', function() {
-      activeSortBy = String($(this).val() || 'default');
-      setCustomOrderMode(activeSortBy === 'named');
+      var selectedSortValue = String($(this).val() || 'default');
+
+      if (selectedSortValue.indexOf('preset:') === 0) {
+        var presetId = selectedSortValue.replace('preset:', '');
+        var selectedPreset = namedSortPresets.find(function(preset) {
+          return String(preset.id || '') === presetId;
+        });
+
+        if (selectedPreset) {
+          activeSortBy = 'named';
+          applyCustomOrders(selectedPreset.orders || {});
+          $('#namedSortPresetSelect').val(presetId);
+          $('#namedSortNameInput').val(selectedPreset.name || '');
+          setCustomOrderMode(false);
+        } else {
+          activeSortBy = 'default';
+          setCustomOrderMode(false);
+        }
+      } else {
+        activeSortBy = selectedSortValue;
+        setCustomOrderMode(activeSortBy === 'named');
+      }
+
       searchTable();
     });
 
@@ -2124,6 +2191,7 @@
 
       $('#namedSortNameInput').val(selectedPreset.name || '');
       applyCustomOrders(selectedPreset.orders || {});
+      $('#sortBySelect').val('preset:' + selectedId);
       searchTable();
     });
 
@@ -2157,33 +2225,28 @@
       var selectedPresetId = String($('#namedSortPresetSelect').val() || '');
       var now = Date.now();
 
-      if (selectedPresetId) {
-        namedSortPresets = namedSortPresets.map(function(preset) {
-          if (String(preset.id || '') !== selectedPresetId) {
-            return preset;
-          }
-
-          return {
-            id: preset.id,
-            name: sortName,
-            orders: orders,
-            updated_at: now,
-          };
-        });
-      } else {
-        var newPreset = {
-          id: 'preset_' + now,
-          name: sortName,
-          orders: orders,
-          updated_at: now,
-        };
-        namedSortPresets.unshift(newPreset);
-        selectedPresetId = newPreset.id;
-      }
-
-      saveNamedSortPresets();
-      renderNamedSortPresetOptions(selectedPresetId);
-      toastr.success('تم حفظ الترتيب المختار وإضافته إلى القائمة.');
+      axios.post(namedPresetsSaveUrl, {
+        committee: getCurrentCommitteeId(),
+        name: sortName,
+        orders: orders,
+        preset_id: selectedPresetId || null,
+      }, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).then(function(response) {
+        var data = response && response.data ? response.data : {};
+        namedSortPresets = Array.isArray(data.presets) ? data.presets : [];
+        selectedPresetId = String(data.preset_id || selectedPresetId || '');
+        renderNamedSortPresetOptions(selectedPresetId);
+        if (selectedPresetId) {
+          $('#sortBySelect').val('preset:' + selectedPresetId);
+        }
+        toastr.success(data.message || 'تم حفظ الترتيب وإتاحته لكل مستخدمي الحملة.');
+      }).catch(function(error) {
+        var backendMessage = error?.response?.data?.message || 'تعذر حفظ الترتيب الآن.';
+        errorMessageInModel(backendMessage);
+      });
     });
 
     $('.bulk-vote-value').on('input', function() {

@@ -87,6 +87,8 @@ Route::group(['prefix' => 'dashboard',
     Route::get('sorting',[CandidateController::class,'sorting'])->name('sorting');
     Route::post('sorting/status', [CandidateController::class, 'sortingStatus'])->name('sorting.status');
     Route::get('sorting/live-stats', [CandidateController::class, 'sortingLiveStats'])->name('sorting.live-stats');
+    Route::get('sorting/named-presets', [CandidateController::class, 'sortingNamedPresets'])->name('sorting.named-presets');
+    Route::post('sorting/named-presets', [CandidateController::class, 'sortingSaveNamedPreset'])->name('sorting.named-presets.save');
     Route::get('attending',[RepresentativeController::class,'attending'])->name('attending');
     Route::get('rep-home',[RepresentativeController::class,'home'])->name('rep-home');
     Route::get('results',[CandidateController::class,'result'])->name('results');

@@ -1789,6 +1789,135 @@ class CandidateController extends Controller
             'sorting_status' => $this->resolveCurrentUserSortingStatus($user),
         ]);
     }
+
+    public function sortingNamedPresets(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'error' => 'يجب تسجيل الدخول أولا.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['nullable', 'integer', 'exists:committees,id'],
+        ]);
+
+        $committeeId = (int) ($validated['committee'] ?? 0);
+        $electionId = $this->resolveSortingNamedPresetElectionId($user, $committeeId);
+        if ($electionId <= 0) {
+            return response()->json([
+                'success' => true,
+                'election_id' => 0,
+                'presets' => [],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'election_id' => $electionId,
+            'presets' => $this->getSortingNamedPresets($electionId),
+        ]);
+    }
+
+    public function sortingSaveNamedPreset(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'error' => 'يجب تسجيل الدخول أولا.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'committee' => ['nullable', 'integer', 'exists:committees,id'],
+            'name' => ['required', 'string', 'max:120'],
+            'orders' => ['required', 'array', 'min:1'],
+            'orders.*' => ['nullable', 'integer', 'min:1'],
+            'preset_id' => ['nullable', 'string', 'max:80'],
+        ]);
+
+        $committeeId = (int) ($validated['committee'] ?? 0);
+        $electionId = $this->resolveSortingNamedPresetElectionId($user, $committeeId);
+        if ($electionId <= 0) {
+            return response()->json([
+                'message' => 'تعذر تحديد الحملة الانتخابية للحفظ.'
+            ], 422);
+        }
+
+        $normalizedOrders = collect((array) ($validated['orders'] ?? []))
+            ->mapWithKeys(function ($value, $candidateId) {
+                $candidateId = (int) $candidateId;
+                $orderValue = (int) $value;
+
+                if ($candidateId <= 0 || $orderValue <= 0) {
+                    return [];
+                }
+
+                return [$candidateId => $orderValue];
+            })
+            ->all();
+
+        if (empty($normalizedOrders)) {
+            return response()->json([
+                'message' => 'لا توجد قيم ترتيب صالحة للحفظ.'
+            ], 422);
+        }
+
+        $orderValues = array_values($normalizedOrders);
+        if (count(array_unique($orderValues)) !== count($orderValues)) {
+            return response()->json([
+                'message' => 'أرقام الترتيب يجب أن تكون فريدة بدون تكرار.'
+            ], 422);
+        }
+
+        $requestedCandidateIds = array_map('intval', array_keys($normalizedOrders));
+        $validCandidateIds = Candidate::withoutGlobalScopes()
+            ->where('election_id', $electionId)
+            ->whereIn('id', $requestedCandidateIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if (count($validCandidateIds) !== count($requestedCandidateIds)) {
+            return response()->json([
+                'message' => 'بعض المرشحين لا يتبعون نفس الحملة الانتخابية.'
+            ], 422);
+        }
+
+        $existingPresets = $this->getSortingNamedPresets($electionId);
+        $presetId = trim((string) ($validated['preset_id'] ?? ''));
+        if ($presetId === '') {
+            $presetId = 'preset_' . now()->format('YmdHisv') . '_' . (int) $user->id;
+        }
+
+        $savedPreset = [
+            'id' => $presetId,
+            'name' => trim((string) $validated['name']),
+            'orders' => $normalizedOrders,
+            'updated_at' => now()->toDateTimeString(),
+            'updated_by' => (int) $user->id,
+        ];
+
+        $updatedPresets = collect($existingPresets)
+            ->reject(fn ($preset) => (string) ($preset['id'] ?? '') === $presetId)
+            ->prepend($savedPreset)
+            ->values()
+            ->all();
+
+        Setting::query()->updateOrCreate(
+            ['option_key' => $this->sortingNamedPresetsSettingKey($electionId)],
+            ['option_value' => $updatedPresets]
+        );
+
+        return response()->json([
+            'success' => true,
+            'preset_id' => $presetId,
+            'presets' => $updatedPresets,
+            'message' => 'تم حفظ الترتيب وإتاحته لكل مستخدمي الحملة.'
+        ]);
+    }
     //==============================================================
     public function storeFakeCandidate(Request $request, UserRequest $userRequest)
     {
@@ -2351,6 +2480,71 @@ class CandidateController extends Controller
     private function sortingStatusSessionKey(int $userId): string
     {
         return 'sorting_status_user_fallback_' . $userId;
+    }
+
+    private function resolveSortingNamedPresetElectionId(?User $user, int $committeeId = 0): int
+    {
+        $scopeElectionId = $this->resolveSortingScopeElectionId($user, $committeeId > 0 ? $committeeId : null);
+        if ($scopeElectionId > 0) {
+            return $scopeElectionId;
+        }
+
+        if ($committeeId > 0 && Schema::hasColumn('committees', 'election_id')) {
+            return (int) (Committee::query()->where('id', $committeeId)->value('election_id') ?? 0);
+        }
+
+        return (int) ($user?->election_id ?? 0);
+    }
+
+    private function sortingNamedPresetsSettingKey(int $electionId): string
+    {
+        return 'sorting_named_presets_election_' . $electionId;
+    }
+
+    private function getSortingNamedPresets(int $electionId): array
+    {
+        if ($electionId <= 0) {
+            return [];
+        }
+
+        $setting = Setting::query()
+            ->where('option_key', $this->sortingNamedPresetsSettingKey($electionId))
+            ->first();
+
+        $presets = collect((array) ($setting?->option_value ?? []))
+            ->map(function ($preset) {
+                $id = trim((string) ($preset['id'] ?? ''));
+                $name = trim((string) ($preset['name'] ?? ''));
+                $orders = collect((array) ($preset['orders'] ?? []))
+                    ->mapWithKeys(function ($orderValue, $candidateId) {
+                        $candidateId = (int) $candidateId;
+                        $orderValue = (int) $orderValue;
+
+                        if ($candidateId <= 0 || $orderValue <= 0) {
+                            return [];
+                        }
+
+                        return [$candidateId => $orderValue];
+                    })
+                    ->all();
+
+                if ($id === '' || $name === '' || empty($orders)) {
+                    return null;
+                }
+
+                return [
+                    'id' => $id,
+                    'name' => $name,
+                    'orders' => $orders,
+                    'updated_at' => (string) ($preset['updated_at'] ?? ''),
+                    'updated_by' => (int) ($preset['updated_by'] ?? 0),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return $presets;
     }
 
 }

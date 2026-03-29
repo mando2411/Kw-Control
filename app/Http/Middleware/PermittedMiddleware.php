@@ -54,6 +54,8 @@ class PermittedMiddleware
                 ->replace('statement.search-modern', 'statement.search')
                 ->replace('sorting.status', 'sorting')
                 ->replace('sorting.live-stats', 'sorting')
+                ->replace('sorting.named-presets.save', 'sorting')
+                ->replace('sorting.named-presets', 'sorting')
                 ->replace('candidates.ordering.update', 'candidates.edit')
                 ->replace('candidates.ordering', 'candidates.list')
                 ->replace('committee.status', 'committees.update-status')
