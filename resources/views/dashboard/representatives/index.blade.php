@@ -112,6 +112,7 @@
 
         .representatives-table-wrap {
             background: #ffffff;
+            padding-top: 0.35rem;
         }
 
         .representatives-page .dataTables_wrapper .dataTables_filter {
@@ -133,15 +134,21 @@
             border-collapse: separate;
             border-spacing: 0;
             width: 100% !important;
+            border: 1px solid #e5edf8;
+            border-radius: 14px;
+            overflow: hidden;
         }
 
         .representatives-page #data-table thead th {
             border-bottom: 1px solid #dbe6f5;
-            background: #f4f8ff;
+            background: linear-gradient(180deg, #f8fbff 0%, #edf4ff 100%);
             color: #1f4369;
             font-weight: 700;
             padding: 0.9rem 0.75rem;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         .representatives-page #data-table tbody td {
@@ -153,6 +160,10 @@
 
         .representatives-page #data-table tbody tr {
             transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+        }
+
+        .representatives-page #data-table tbody tr:nth-child(even) {
+            background: #fcfdff;
         }
 
         .representatives-page #data-table tbody tr:hover {
@@ -179,6 +190,61 @@
             background: #2878d2;
         }
 
+        .representatives-page #data-table tbody td:nth-child(3) {
+            min-width: 260px;
+        }
+
+        .representatives-page .rep-created-by-editor {
+            min-width: 230px;
+            max-width: 320px;
+            gap: 0.45rem !important;
+        }
+
+        .representatives-page .rep-created-by-editor .js-rep-creator-select {
+            min-height: 38px;
+            border-radius: 10px;
+            border-color: #cddcf1;
+            color: #1f4369;
+            font-weight: 600;
+            background-color: #f8fbff;
+            padding-inline: 0.65rem;
+            box-shadow: 0 1px 0 rgba(13, 63, 116, 0.03);
+            transition: all 0.2s ease;
+        }
+
+        .representatives-page .rep-created-by-editor .js-rep-creator-select:focus {
+            border-color: #2f81db;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 0.2rem rgba(47, 129, 219, 0.16);
+            outline: none;
+        }
+
+        .representatives-page .rep-created-by-editor .js-save-rep-creator {
+            min-height: 34px;
+            border-radius: 10px;
+            border-width: 1px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: #1f66b3;
+            border-color: #c4daf4;
+            background: linear-gradient(180deg, #ffffff 0%, #f1f7ff 100%);
+            transition: all 0.2s ease;
+        }
+
+        .representatives-page .rep-created-by-editor .js-save-rep-creator:hover:not(:disabled) {
+            color: #ffffff;
+            border-color: #2f81db;
+            background: linear-gradient(135deg, #2f81db 0%, #226fc6 100%);
+            box-shadow: 0 8px 16px rgba(34, 111, 198, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .representatives-page .rep-created-by-editor .js-save-rep-creator:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 991px) {
             .representatives-header-wrap {
                 padding: 1rem;
@@ -196,6 +262,15 @@
 
             .representatives-add-btn {
                 width: 100%;
+            }
+
+            .representatives-page #data-table tbody td:nth-child(3) {
+                min-width: 220px;
+            }
+
+            .representatives-page .rep-created-by-editor {
+                min-width: 200px;
+                max-width: 260px;
             }
         }
     </style>
