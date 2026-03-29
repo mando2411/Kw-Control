@@ -655,9 +655,11 @@
 
   .bulk-vote-card--sticky {
     position: sticky;
-    top: 0.55rem;
-    z-index: 34;
-    box-shadow: 0 12px 24px rgba(16, 42, 67, 0.14);
+    top: 0;
+    z-index: 1040;
+    box-shadow: 0 14px 26px rgba(16, 42, 67, 0.16);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .bulk-vote-row {
@@ -1011,6 +1013,11 @@
     .committee-stats {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .bulk-vote-card--sticky {
+      top: 0;
+      z-index: 1045;
+    }
   }
 
   @media (max-width: 767.98px) {
@@ -1033,8 +1040,8 @@
     }
 
     .bulk-vote-card--sticky {
-      top: 0.15rem;
-      z-index: 44;
+      top: 0;
+      z-index: 1050;
       margin-top: 0.6rem;
       border-radius: 14px;
     }
