@@ -255,6 +255,36 @@
     gap: 0.4rem;
   }
 
+  .filter-mode-switch {
+    margin-top: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem;
+    border: 1px solid #d7e2ee;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .filter-mode-btn {
+    border: 0;
+    border-radius: 9px;
+    min-height: 34px;
+    min-width: 88px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #334e68;
+    background: transparent;
+    transition: all 0.16s ease;
+  }
+
+  .filter-mode-btn.active {
+    color: #fff;
+    background: linear-gradient(135deg, #0f766e 0%, #159e90 100%);
+    box-shadow: 0 7px 14px rgba(15, 118, 110, 0.25);
+  }
+
   .quick-category-card {
     margin-top: 0.85rem;
     padding: 0.75rem 0.8rem;
@@ -1060,6 +1090,11 @@
       </div>
 
       <div class="sorting-card quick-category-card">
+        <div class="filter-mode-switch" id="filterModeSwitch">
+          <button type="button" class="filter-mode-btn active" data-filter-mode="mode1">مود 1</button>
+          <button type="button" class="filter-mode-btn" data-filter-mode="mode2">مود 2</button>
+        </div>
+
         <div class="quick-category-filter" id="quickCategoryFilter">
           <button type="button" class="quick-category-btn" data-category="my_list">قائمتى</button>
           <button type="button" class="quick-category-btn" data-category="other_lists">القوائم الأخرى</button>
@@ -1374,6 +1409,7 @@
     var liveStatsInFlight = false;
     var fallbackIntervalMs = 2000;
     var activeQuickLetter = '';
+    var activeFilterMode = 'mode1';
     var activeCategory = 'all';
     var activeSortBy = 'default';
     var activeSortDirection = 'asc';
@@ -1563,6 +1599,10 @@
       restoreRowsToOriginTable();
       $('#listsSection').show();
 
+      if (activeFilterMode !== 'mode1') {
+        return;
+      }
+
       if (activeCategory !== 'other_lists') {
         return;
       }
@@ -1570,6 +1610,58 @@
       $('#lists_table tbody tr').appendTo('#candidates_table tbody');
       applyOtherListsOrder();
       $('#listsSection').hide();
+    }
+
+    function getFilterModeOptions(mode) {
+      if (mode === 'mode2') {
+        return [
+          { key: 'list_members', label: 'التزام' },
+          { key: 'all_candidates', label: 'مفرق' },
+        ];
+      }
+
+      return [
+        { key: 'my_list', label: 'قائمتى' },
+        { key: 'other_lists', label: 'القوائم الأخرى' },
+        { key: 'independent', label: 'المستقلين' },
+      ];
+    }
+
+    function renderQuickCategoryButtons() {
+      var $container = $('#quickCategoryFilter');
+      if (!$container.length) {
+        return;
+      }
+
+      var modeOptions = getFilterModeOptions(activeFilterMode);
+      var html = modeOptions.map(function(item) {
+        var isActive = activeCategory === item.key ? ' active' : '';
+        return '<button type="button" class="quick-category-btn' + isActive + '" data-category="' + item.key + '">' + item.label + '</button>';
+      }).join('');
+
+      $container.html(html);
+    }
+
+    function rowMatchesActiveCategory($row) {
+      var rowCategory = String($row.data('candidate-group') || 'independent');
+
+      if (activeCategory === 'all') {
+        return true;
+      }
+
+      if (activeFilterMode === 'mode2') {
+        if (activeCategory === 'all_candidates') {
+          return true;
+        }
+
+        if (activeCategory === 'list_members') {
+          return rowCategory !== 'independent';
+        }
+
+        return true;
+      }
+
+      return rowCategory === activeCategory;
     }
 
     function getRowSortValue($row, sortBy) {
@@ -2080,6 +2172,7 @@
     startSortingRealtime();
     buildQuickLetterFilter();
     renderRecentCandidates();
+    renderQuickCategoryButtons();
     applyCategoryLayoutMode();
     applyTableSort();
     updateSelectionState();
@@ -2336,13 +2429,29 @@
 
       if (activeCategory === selectedCategory) {
         activeCategory = 'all';
-        $('.quick-category-btn').removeClass('active');
       } else {
         activeCategory = selectedCategory;
-        $('.quick-category-btn').removeClass('active');
-        $button.addClass('active');
       }
 
+      renderQuickCategoryButtons();
+
+      applyCategoryLayoutMode();
+      searchTable();
+    });
+
+    $(document).on('click', '.filter-mode-btn', function() {
+      var selectedMode = String($(this).data('filter-mode') || 'mode1');
+      if (!selectedMode || activeFilterMode === selectedMode) {
+        return;
+      }
+
+      activeFilterMode = selectedMode;
+      activeCategory = 'all';
+
+      $('.filter-mode-btn').removeClass('active');
+      $(this).addClass('active');
+
+      renderQuickCategoryButtons();
       applyCategoryLayoutMode();
       searchTable();
     });
@@ -2601,10 +2710,9 @@
       $('#candidates_table tbody tr, #lists_table tbody tr').each(function() {
         let rowText = getCandidateNameFromRow($(this)).toLowerCase();
         let rowFirstLetter = getCandidateFirstLetter(rowText);
-        let rowCategory = String($(this).data('candidate-group') || 'independent');
         let matchEntire = entireValue === '';
         let matchLetter = activeQuickLetter === '' || rowFirstLetter === activeQuickLetter;
-        let matchCategory = activeCategory === 'all' || rowCategory === activeCategory;
+        let matchCategory = rowMatchesActiveCategory($(this));
         if (entireValue !== '') {
           matchEntire = rowText.indexOf(entireValue) > -1;
         }
