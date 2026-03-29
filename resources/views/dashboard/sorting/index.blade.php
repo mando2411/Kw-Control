@@ -1835,8 +1835,6 @@
     var sortingPrimaryHeader = null;
     var sortingHeaderHidden = false;
     var bulkStickySection = null;
-    var sortingHeaderHideStartY = Number.POSITIVE_INFINITY;
-    var sortingHeaderBaseHeight = 0;
 
     function resolvePrimaryFixedHeader() {
       var bestCandidate = null;
@@ -1927,40 +1925,24 @@
         return;
       }
 
-      if (!Number.isFinite(sortingHeaderHideStartY)) {
-        recalculateHeaderHideStartPoint();
-      }
-
       var currentY = Math.max(0, window.scrollY || 0);
       if (currentY <= 8) {
         setSortingHeaderHidden(false);
         return;
       }
 
-      if (currentY >= sortingHeaderHideStartY) {
+      var bulkRect = bulkStickySection.getBoundingClientRect();
+      var stickyTopValue = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sorting-bulk-sticky-top'));
+      var stickyTop = Number.isFinite(stickyTopValue) ? stickyTopValue : 8;
+
+      // Header hides only while bulk section is actually pinned in the sticky slot.
+      var bulkPinned = bulkRect.top <= (stickyTop + 1);
+
+      if (bulkPinned) {
         setSortingHeaderHidden(true);
       } else {
         setSortingHeaderHidden(false);
       }
-    }
-
-    function recalculateHeaderHideStartPoint() {
-      sortingPrimaryHeader = resolvePrimaryFixedHeader();
-      bulkStickySection = document.querySelector('.bulk-vote-card--sticky');
-
-      if (!sortingPrimaryHeader || !bulkStickySection) {
-        sortingHeaderHideStartY = Number.POSITIVE_INFINITY;
-        return;
-      }
-
-      var headerRect = sortingPrimaryHeader.getBoundingClientRect();
-      sortingHeaderBaseHeight = Math.max(0, Math.ceil(headerRect.height || 0));
-
-      var bulkRect = bulkStickySection.getBoundingClientRect();
-      var bulkTopInPage = Math.max(0, Math.floor((window.scrollY || 0) + bulkRect.top));
-
-      // Hide header only when bulk section reaches the header band and is ready to take its place.
-      sortingHeaderHideStartY = Math.max(0, bulkTopInPage - sortingHeaderBaseHeight - 8);
     }
 
     function getFixedHeaderOffset() {
@@ -2001,7 +1983,6 @@
     }
 
     function applyBulkStickyTopOffset() {
-      recalculateHeaderHideStartPoint();
       var offset = getFixedHeaderOffset();
       document.documentElement.style.setProperty('--sorting-bulk-sticky-top', offset + 'px');
     }
