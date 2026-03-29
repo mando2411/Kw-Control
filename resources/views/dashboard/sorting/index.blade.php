@@ -653,6 +653,13 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, #f7fbff 100%);
   }
 
+  .bulk-vote-card--sticky {
+    position: sticky;
+    top: 0.55rem;
+    z-index: 34;
+    box-shadow: 0 12px 24px rgba(16, 42, 67, 0.14);
+  }
+
   .bulk-vote-row {
     display: grid;
     grid-template-columns: minmax(130px, 180px) minmax(140px, 170px) minmax(160px, 220px) minmax(120px, 150px) minmax(100px, 1fr);
@@ -1018,12 +1025,18 @@
     .committee-stats { order: 4; }
     .mobile-quick-access { order: 5; }
     .sorting-toolbar--search { order: 6; }
-    .candidates-card { order: 7; }
+    .bulk-vote-card--sticky { order: 7; }
+    .candidates-card { order: 8; }
 
     .sorting-toolbar {
-      position: sticky;
-      top: 0.4rem;
-      z-index: 25;
+      position: static;
+    }
+
+    .bulk-vote-card--sticky {
+      top: 0.15rem;
+      z-index: 44;
+      margin-top: 0.6rem;
+      border-radius: 14px;
     }
 
     .sorting-page {
@@ -1497,9 +1510,9 @@
         </div>
       </div>
 
-      <div class="sorting-card bulk-vote-card">
+      <div class="sorting-card bulk-vote-card bulk-vote-card--sticky">
         <div class="bulk-vote-row">
-          <input type="number" min="0" class="sorting-input bulk-vote-value" placeholder="عدد الأصوات">
+          <input type="number" min="0" class="sorting-input bulk-vote-value" placeholder="عدد الأصوات" value="1">
 
           <select class="sorting-select bulk-vote-action">
             <option value="increment">إضافة</option>
@@ -1678,32 +1691,6 @@
           </div>
           </div>
         @endif
-      </div>
-
-      <div class="sorting-card bulk-vote-card">
-        <div class="bulk-vote-row">
-          <input type="number" min="0" class="sorting-input bulk-vote-value" placeholder="عدد الأصوات">
-
-          <select class="sorting-select bulk-vote-action">
-            <option value="increment">إضافة</option>
-            <option value="decrement">إزالة</option>
-            <option value="set">تحديد</option>
-          </select>
-
-          <button type="button" class="btn-bulk-vote bulk-vote-button" disabled>
-            <i class="fa-solid fa-bolt"></i>
-            <span>تنفيذ التصويت المجمع</span>
-          </button>
-
-          <button type="button" class="btn-clear-selection clear-selection-button">
-            <i class="fa-solid fa-eraser"></i>
-            <span>مسح التحديد</span>
-          </button>
-
-          <div class="bulk-vote-meta">
-            عدد المحددين: <strong class="selected-candidates-count">0</strong>
-          </div>
-        </div>
       </div>
 
       <div class="paper-floating-controls">
