@@ -432,14 +432,28 @@
   }
 
   .paper-report-modal-close {
-    --bs-btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23102a43'%3e%3cpath d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293A1 1 0 01.293 14.293L6.586 8 .293 1.707a1 1 0 010-1.414z'/%3e%3c/svg%3e");
+    --bs-btn-close-bg: none;
     opacity: 1;
-    filter: none;
-    background-color: #ffffff;
+    filter: none !important;
+    background: #ffffff !important;
+    background-image: none !important;
     border: 1px solid #cbd9e8;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(16, 42, 67, 0.12);
+    width: 1.95rem;
+    height: 1.95rem;
     padding: 0.42rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .paper-report-modal-close::before {
+    content: "\00d7";
+    color: #102a43;
+    font-size: 1.16rem;
+    font-weight: 800;
+    line-height: 1;
   }
 
   .paper-report-modal-close:hover,
