@@ -43,19 +43,34 @@ class ContractorController extends Controller
 
     public function index(ContractorDataTable $dataTable)
     {
-            $parents = Contractor::parents()->where('creator_id',auth()->user()->id)->get()->map(fn($contractor)=>[
-                'id'=>$contractor->id,
-                'name'=>$contractor->name
-            ]);
+        $parents = Contractor::parents()->where('creator_id', auth()->user()->id)->get()->map(fn($contractor) => [
+            'id' => $contractor->id,
+            'name' => $contractor->name
+        ]);
 
-                if(auth()->user()->contractor){
-					$parents = auth()->user()->contractor()->get();
-                }
+        if (auth()->user()->contractor) {
+            $parents = auth()->user()->contractor()->get();
+        }
 
-                $children = $this->resolveVisibleChildrenForCurrentUser();
+        $children = $this->resolveVisibleChildrenForCurrentUser()
+            ->map(function ($contractor) {
+                return [
+                    'id' => $contractor->id,
+                    'name' => $contractor->name,
+                    // عدد القوائم الخاصة بالمتعهد
+                    'groups_count' => $contractor->groups()->count(),
+                    // الحضور (مثال: عدد الحضور)
+                    // 'attendance_count' => $contractor->attendance()->count(),
+                    // المضامين (مثال: عدد المضامين)
+                    // 'commitments_count' => $contractor->commitments()->count(),
+                    // نسبة الالتزام (مثال: نسبة مئوية)
+                    // 'commitment_percentage' => $contractor->calculateCommitmentPercentage(),
+                    // صدق المضامين (مثال: نسبة مئوية)
+                    // 'commitment_truth' => $contractor->calculateCommitmentTruth(),
+                ];
+            });
 
-
-            return view('dashboard.contractors.index', compact('parents','children'));
+        return view('dashboard.contractors.index', compact('parents', 'children'));
     }
 
     public function onlineChildren(Request $request)
