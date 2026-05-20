@@ -561,13 +561,19 @@ class ContractorController extends Controller
         $log=[];
         if ($request->filled('name')) {
             $name = $request->input('name');
-            $normalizedInput = ArabicHelper::normalizeArabic($name);
-             // إذا كان المدخل رقم فقط، ابحث بتطابق تام في alsndok فقط
+            // تطبيع الاسم المدخل وإزالة المسافات الزائدة وتوحيد الياء والألف المقصورة
+    $normalizedInput = ArabicHelper::normalizeArabic(preg_replace('/\s+/', ' ', trim($name)));
+    $normalizedInput = str_replace(['ى', 'ي'], 'ي', $normalizedInput);
+
     if (is_numeric($name)) {
+        // بحث بتطابق تام في رقم القيد فقط
         $votersQuery->where('alsndok', '=', $name);
     } else {
-        // بحث بالاسم فقط
-        $votersQuery->where('normalized_name', 'LIKE', $normalizedInput . '%');
+        // تطبيع الاسم في قاعدة البيانات أيضاً للمقارنة غير الحساسة للمسافات والياء/الألف المقصورة
+        $votersQuery->whereRaw(
+            "REPLACE(REPLACE(TRIM(normalized_name), 'ى', 'ي'), '  ', ' ') LIKE ?",
+            [$normalizedInput . '%']
+        );
     }
     $log[] = "بحث بالاسم أو رقم القيد :" . $name;
         }
