@@ -560,18 +560,18 @@ class ContractorController extends Controller
             : Voter::query();
         $log=[];
         if ($request->filled('name')) {
-            $name = $request->input('name');
-            // تطبيع الاسم المدخل وإزالة المسافات الزائدة وتوحيد الياء والألف المقصورة
-    $normalizedInput = ArabicHelper::normalizeArabic(preg_replace('/\s+/', ' ', trim($name)));
+    $name = $request->input('name');
+    // تطبيع الاسم المدخل: إزالة كل المسافات وتوحيد الياء/الألف المقصورة
+    $normalizedInput = ArabicHelper::normalizeArabic(preg_replace('/\s+/', '', trim($name)));
     $normalizedInput = str_replace(['ى', 'ي'], 'ي', $normalizedInput);
 
     if (is_numeric($name)) {
         // بحث بتطابق تام في رقم القيد فقط
         $votersQuery->where('alsndok', '=', $name);
     } else {
-        // تطبيع الاسم في قاعدة البيانات أيضاً للمقارنة غير الحساسة للمسافات والياء/الألف المقصورة
+        // إزالة كل المسافات من normalized_name في قاعدة البيانات وتوحيد الياء/الألف المقصورة
         $votersQuery->whereRaw(
-            "REPLACE(REPLACE(TRIM(normalized_name), 'ى', 'ي'), '  ', ' ') LIKE ?",
+            "REPLACE(REPLACE(REPLACE(TRIM(normalized_name), ' ', ''), 'ى', 'ي'), 'ي', 'ي') LIKE ?",
             [$normalizedInput . '%']
         );
     }
