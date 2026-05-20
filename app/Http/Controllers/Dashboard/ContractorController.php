@@ -562,21 +562,14 @@ class ContractorController extends Controller
         if ($request->filled('name')) {
             $name = $request->input('name');
             $normalizedInput = ArabicHelper::normalizeArabic($name);
-            // إذا كان الإدخال رقم فقط أو يحتوي على أرقام، ابحث في الهاتف أو القيد أيضاً
-            if (is_numeric($name)) {
-                $votersQuery->where(function ($query) use ($normalizedInput, $name) {
-                    $query->where('normalized_name', 'LIKE', $normalizedInput . '%')
-                        ->orWhere('phone1', 'LIKE', "%$name%")
-                        ->orWhere('alsndok', 'LIKE', "%$name%") ;
-                });
-            } else {
-                $votersQuery->where(function ($query) use ($normalizedInput, $name) {
-                    $query->where('normalized_name', 'LIKE', $normalizedInput . '%')
-                        ->orWhere('phone1', 'LIKE', "%$name%")
-                        ->orWhere('alsndok', 'LIKE', "%$name%") ;
-                });
-            }
-            $log[] = "بحث بالاسم أو الرقم :" . $name;
+             // إذا كان المدخل رقم فقط، ابحث بتطابق تام في alsndok فقط
+    if (is_numeric($name)) {
+        $votersQuery->where('alsndok', '=', $name);
+    } else {
+        // بحث بالاسم فقط
+        $votersQuery->where('normalized_name', 'LIKE', $normalizedInput . '%');
+    }
+    $log[] = "بحث بالاسم أو رقم القيد :" . $name;
         }
         if ($request->filled('family')) {
             $family = $request->input('family');
