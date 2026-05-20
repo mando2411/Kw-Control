@@ -561,9 +561,22 @@ class ContractorController extends Controller
         $log=[];
         if ($request->filled('name')) {
             $name = $request->input('name');
-            $normalizedInput = ArabicHelper ::normalizeArabic($name);
-            $votersQuery->where('normalized_name', 'LIKE', $normalizedInput . '%');
-            $log[]="بحث بالاسم :".$name;
+            $normalizedInput = ArabicHelper::normalizeArabic($name);
+            // إذا كان الإدخال رقم فقط أو يحتوي على أرقام، ابحث في الهاتف أو القيد أيضاً
+            if (is_numeric($name)) {
+                $votersQuery->where(function ($query) use ($normalizedInput, $name) {
+                    $query->where('normalized_name', 'LIKE', $normalizedInput . '%')
+                        ->orWhere('phone1', 'LIKE', "%$name%")
+                        ->orWhere('alsndok', 'LIKE', "%$name%") ;
+                });
+            } else {
+                $votersQuery->where(function ($query) use ($normalizedInput, $name) {
+                    $query->where('normalized_name', 'LIKE', $normalizedInput . '%')
+                        ->orWhere('phone1', 'LIKE', "%$name%")
+                        ->orWhere('alsndok', 'LIKE', "%$name%") ;
+                });
+            }
+            $log[] = "بحث بالاسم أو الرقم :" . $name;
         }
         if ($request->filled('family')) {
             $family = $request->input('family');

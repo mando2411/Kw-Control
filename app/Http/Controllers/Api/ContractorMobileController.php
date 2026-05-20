@@ -101,8 +101,22 @@ class ContractorMobileController extends Controller
         $votersQuery = Voter::query();
 
         if ($request->filled('name')) {
-            $normalizedInput = ArabicHelper::normalizeArabic((string) $request->input('name'));
-            $votersQuery->where('normalized_name', 'LIKE', $normalizedInput . '%');
+            $input = (string) $request->input('name');
+            $normalizedInput = ArabicHelper::normalizeArabic($input);
+            // إذا كان الإدخال رقم فقط أو يحتوي على أرقام، ابحث في الهاتف أو القيد أيضاً
+            if (is_numeric($input)) {
+                $votersQuery->where(function ($query) use ($normalizedInput, $input) {
+                    $query->where('normalized_name', 'LIKE', $normalizedInput . '%')
+                        ->orWhere('phone1', 'LIKE', "%$input%")
+                        ->orWhere('alsndok', 'LIKE', "%$input%") ;
+                });
+            } else {
+                $votersQuery->where(function ($query) use ($normalizedInput, $input) {
+                    $query->where('normalized_name', 'LIKE', $normalizedInput . '%')
+                        ->orWhere('phone1', 'LIKE', "%$input%")
+                        ->orWhere('alsndok', 'LIKE', "%$input%") ;
+                });
+            }
         }
 
         if ($request->filled('family')) {
