@@ -52,23 +52,11 @@ class ContractorController extends Controller
             $parents = auth()->user()->contractor()->get();
         }
 
-        $children = $this->resolveVisibleChildrenForCurrentUser()
-            ->map(function ($contractor) {
-                return [
-                    'id' => $contractor->id,
-                    'name' => $contractor->name,
-                    // عدد القوائم الخاصة بالمتعهد
-                    'groups_count' => $contractor->groups()->count(),
-                    // الحضور (مثال: عدد الحضور)
-                    // 'attendance_count' => $contractor->attendance()->count(),
-                    // المضامين (مثال: عدد المضامين)
-                    // 'commitments_count' => $contractor->commitments()->count(),
-                    // نسبة الالتزام (مثال: نسبة مئوية)
-                    // 'commitment_percentage' => $contractor->calculateCommitmentPercentage(),
-                    // صدق المضامين (مثال: نسبة مئوية)
-                    // 'commitment_truth' => $contractor->calculateCommitmentTruth(),
-                ];
-            });
+        $children = $this->resolveVisibleChildrenForCurrentUser();
+        // إذا كانت $children عبارة عن Collection من Eloquent Models، نعيد تحميلها مع withCount
+        if ($children instanceof \Illuminate\Database\Eloquent\Collection) {
+            $children = Contractor::whereIn('id', $children->pluck('id'))->withCount('groups')->get();
+        }
 
         return view('dashboard.contractors.index', compact('parents', 'children'));
     }
