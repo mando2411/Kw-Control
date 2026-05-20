@@ -55,7 +55,12 @@ class ContractorController extends Controller
         $children = $this->resolveVisibleChildrenForCurrentUser();
         // إذا كانت $children عبارة عن Collection من Eloquent Models، نعيد تحميلها مع withCount
         if ($children instanceof \Illuminate\Database\Eloquent\Collection) {
-            $children = Contractor::whereIn('id', $children->pluck('id'))->withCount('groups')->get();
+            // عد فقط القوائم من نوع "مضمون" (يمكنك تغيير النوع حسب ما يظهر في صفحة المتعهد)
+            $children = Contractor::whereIn('id', $children->pluck('id'))
+                ->withCount(['groups as custom_groups_count' => function($q) {
+                    $q->where('type', 'مضمون');
+                }])
+                ->get();
         }
 
         return view('dashboard.contractors.index', compact('parents', 'children'));
