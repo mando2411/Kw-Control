@@ -532,6 +532,7 @@
                             <th>الهاتف</th>
                             <th>الحضور</th>
                             <th>مضامين</th>
+                            <th>عدد القوائم</th>
                             <th>نسبة الالتزام</th>
                             <th>صدق المضامين</th>
                         </tr>
@@ -560,10 +561,11 @@
                                 </td>
                                 <td>{{ $i->phone }}</td>
                                 <td>{{ $i->voters->filter(function ($voter) {
-                                        return $voter->status ==     1;
+                                        return $voter->status == 1;
                                     })->count() }}
                                 </td>
                                 <td>{{ $i->voters->count() }}</td>
+                                <td>{{ $i['groups_count'] ?? 0 }}</td>
                                 <td>{{ $i->trust }}%</td>
                                 <td>{{ $i->voters->where('status', 1)->count() }}</td>
                             </tr>
