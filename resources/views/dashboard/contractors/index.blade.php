@@ -565,7 +565,7 @@
                                     })->count() }}
                                 </td>
                                 <td>{{ $i->voters->count() }}</td>
-                                <td>{{ $i->custom_groups_count ?? 0 }}</td>
+                                <td>{{ $i->groups_count ?? 0 }}</td>
                                 <td>{{ $i->trust }}%</td>
                                 <td>{{ $i->voters->where('status', 1)->count() }}</td>
                             </tr>
