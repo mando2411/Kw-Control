@@ -41,10 +41,6 @@ class Contractor extends Authenticatable
         'phone',
     ];
 
-    protected $withCount = [
-        'groups',
-    ];
-
     protected static function booted()
     {
         static::addGlobalScope(new ElectionScope);
