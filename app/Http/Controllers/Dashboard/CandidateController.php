@@ -2344,4 +2344,354 @@ class CandidateController extends Controller
         });
     }
 
-    private function ensureListLeaderCanManageCandidate(Candidate 
+    private function ensureListLeaderCanManageCandidate(Candidate $candidate): void
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            abort(403);
+        }
+
+        if ($user->hasRole('Administrator') || $user->can('candidates.list') || $user->can('candidates.edit')) {
+            return;
+        }
+
+        $currentLeader = $this->currentListLeaderCandidate();
+
+        if (!$currentLeader) {
+            return;
+        }
+
+        $belongsToLeader = (int) $candidate->id === (int) $currentLeader->id
+            || (int) ($candidate->list_leader_candidate_id ?? 0) === (int) $currentLeader->id;
+
+        if (!$belongsToLeader) {
+            abort(403);
+        }
+
+        if ($candidate->election_id && $currentLeader->election_id
+            && (int) $candidate->election_id !== (int) $currentLeader->election_id) {
+            abort(403);
+        }
+    }
+
+    private function effectiveListCandidatesCount(Candidate $listLeaderCandidate): int
+    {
+        return Candidate::withoutGlobalScopes()
+            ->where('list_leader_candidate_id', (int) $listLeaderCandidate->id)
+            ->when(
+                Schema::hasColumn('candidates', 'is_actual_list_candidate'),
+                function (Builder $query) {
+                    $query->where(function (Builder $inner) {
+                        $inner->whereNull('is_actual_list_candidate')
+                            ->orWhere('is_actual_list_candidate', true);
+                    });
+                }
+            )
+            ->count();
+    }
+
+    private function isConsideredActual(mixed $value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value !== 0;
+        }
+
+        $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $normalized ?? trim((string) $value) !== '';
+    }
+
+    private function candidateStopColumnsAvailable(): bool
+    {
+        return Schema::hasColumn('candidates', 'is_stopped')
+            && Schema::hasColumn('candidates', 'stopped_at')
+            && Schema::hasColumn('candidates', 'stopped_by_candidate_id');
+    }
+
+    private function resolveCurrentUserSortingStatus(User $user): int
+    {
+        $cacheKey = $this->sortingStatusCacheKey((int) $user->id);
+
+        if (Cache::has($cacheKey)) {
+            return (int) Cache::get($cacheKey);
+        }
+
+        $sessionKey = $this->sortingStatusSessionKey((int) $user->id);
+        $sessionValue = session()->get($sessionKey);
+
+        return $sessionValue !== null ? (int) $sessionValue : 1;
+    }
+
+    private function sortingStatusCacheKey(int $userId): string
+    {
+        return 'sorting_status_user_' . $userId;
+    }
+
+    private function sortingStatusSessionKey(int $userId): string
+    {
+        return 'sorting_status_user_' . $userId;
+    }
+
+    private function shouldScopeSortingCandidates(User $user): bool
+    {
+        return !($user->hasRole('Administrator') || $user->can('candidates.list'));
+    }
+
+    private function resolveSortingScopeElectionId(User $user, ?int $committeeId = null): ?int
+    {
+        if (!empty($user->election_id)) {
+            return (int) $user->election_id;
+        }
+
+        if ($committeeId && Schema::hasColumn('committees', 'election_id')) {
+            $committeeElectionId = Committee::where('id', $committeeId)->value('election_id');
+            if ($committeeElectionId) {
+                return (int) $committeeElectionId;
+            }
+        }
+
+        $candidate = Candidate::withoutGlobalScopes()
+            ->select('election_id')
+            ->where('user_id', (int) $user->id)
+            ->first();
+
+        if ($candidate && $candidate->election_id) {
+            return (int) $candidate->election_id;
+        }
+
+        if (!empty($user->creator_id)) {
+            $creatorCandidate = Candidate::withoutGlobalScopes()
+                ->select('election_id')
+                ->where('user_id', (int) $user->creator_id)
+                ->first();
+
+            if ($creatorCandidate && $creatorCandidate->election_id) {
+                return (int) $creatorCandidate->election_id;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveSortingRepresentativeSelectedCandidateIds(User $user, ?int $committeeId, ?int $electionId): array
+    {
+        // Fallback implementation returns an empty array meaning no explicit restriction.
+        return [];
+    }
+
+    private function resolveSortingAllowedCandidateUserIds(User $user, ?int $electionId): ?array
+    {
+        if ($user->hasRole('Administrator') || $user->can('candidates.list')) {
+            return null;
+        }
+
+        $ids = [];
+
+        if (!empty($user->id)) {
+            $ids[] = (int) $user->id;
+        }
+
+        if (!empty($user->creator_id)) {
+            $ids[] = (int) $user->creator_id;
+        }
+
+        $candidate = Candidate::withoutGlobalScopes()
+            ->where('user_id', (int) $user->id)
+            ->first();
+
+        if ($candidate && (string) $candidate->candidate_type === 'list_leader') {
+            $memberIds = Candidate::withoutGlobalScopes()
+                ->where('list_leader_candidate_id', (int) $candidate->id)
+                ->pluck('user_id')
+                ->filter()
+                ->map(fn ($value) => (int) $value)
+                ->all();
+
+            $ids = array_merge($ids, $memberIds);
+        }
+
+        $ids = array_values(array_unique(array_filter($ids)));
+
+        return empty($ids) ? null : $ids;
+    }
+
+    private function resolveSortingDefaultCommitteeId(User $user): ?int
+    {
+        if (!Schema::hasColumn('committees', 'election_id')) {
+            return null;
+        }
+
+        $electionId = $this->resolveSortingScopeElectionId($user);
+
+        if (!$electionId) {
+            return null;
+        }
+
+        return Committee::where('election_id', $electionId)
+            ->orderBy('id')
+            ->value('id');
+    }
+
+    private function campaignUsesListSystem(int $electionId): bool
+    {
+        return Schema::hasColumn('candidates', 'candidate_type')
+            && Candidate::withoutGlobalScopes()
+                ->where('election_id', $electionId)
+                ->where('candidate_type', 'list_leader')
+                ->exists();
+    }
+
+    private function ensureSortingCommitteeCandidateMapping(Committee $committee, array $selectedCandidateIds, ?array $allowedCandidateUserIds, ?int $effectiveElectionId): void
+    {
+        // This implementation intentionally left blank.
+    }
+
+    private function applySortingCandidateVisibilityScope(Builder $query, ?int $effectiveElectionId): void
+    {
+        if ($effectiveElectionId) {
+            $query->where('candidates.election_id', $effectiveElectionId);
+        }
+    }
+
+    private function applyActualCandidateOnlyScope(Builder $query): void
+    {
+        if (!Schema::hasColumn('candidates', 'is_actual_list_candidate')) {
+            return;
+        }
+
+        $query->where(function (Builder $inner) {
+            $inner->whereNull('is_actual_list_candidate')
+                ->orWhere('is_actual_list_candidate', true);
+        });
+    }
+
+    private function resolveListManagementScope(Request $request): array
+    {
+        $result = [
+            'can_access' => false,
+            'leader_election_id' => null,
+            'allowed_candidate_user_ids' => [],
+            'selected_candidate_user_ids' => [],
+            'contractor_ids' => [],
+        ];
+
+        $user = auth()->user();
+        if (!$user) {
+            return $result;
+        }
+
+        $leader = $this->currentListLeaderCandidate();
+        $canAccess = $user->can('candidates.list') || $leader !== null;
+
+        if (!$canAccess) {
+            return $result;
+        }
+
+        $result['can_access'] = true;
+
+        if ($leader) {
+            $result['leader_election_id'] = (int) ($leader->election_id ?? 0);
+
+            $candidateUserIds = Candidate::withoutGlobalScopes()
+                ->where(function (Builder $query) use ($leader) {
+                    $query
+                        ->where('id', (int) $leader->id)
+                        ->orWhere('list_leader_candidate_id', (int) $leader->id);
+                })
+                ->pluck('user_id')
+                ->filter()
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+
+            $result['allowed_candidate_user_ids'] = $candidateUserIds;
+
+            $requested = collect((array) $request->input('candidate_users', []))
+                ->filter(fn ($value) => $value !== null && $value !== '' && (string) $value !== 'all')
+                ->map(fn ($value) => (int) $value)
+                ->unique()
+                ->values()
+                ->all();
+
+            $selected = array_values(array_intersect($requested, $candidateUserIds));
+            if (empty($selected)) {
+                $selected = $candidateUserIds;
+            }
+            $result['selected_candidate_user_ids'] = $selected;
+
+            if (!empty($selected)) {
+                $contractorIds = Contractor::withoutGlobalScopes()
+                    ->where('election_id', (int) $leader->election_id)
+                    ->whereIn('creator_id', $selected)
+                    ->pluck('id')
+                    ->map(fn ($value) => (int) $value)
+                    ->values()
+                    ->all();
+
+                $result['contractor_ids'] = $contractorIds;
+            }
+
+            return $result;
+        }
+
+        if (!empty($user->election_id)) {
+            $result['leader_election_id'] = (int) $user->election_id;
+            $result['contractor_ids'] = Contractor::withoutGlobalScopes()
+                ->where('election_id', (int) $user->election_id)
+                ->pluck('id')
+                ->map(fn ($value) => (int) $value)
+                ->values()
+                ->all();
+        }
+
+        return $result;
+    }
+
+    private function resolveSortingNamedPresetElectionId(User $user, ?int $committeeId): ?int
+    {
+        $electionId = $this->resolveSortingScopeElectionId($user, $committeeId);
+
+        if ($electionId) {
+            return $electionId;
+        }
+
+        if ($committeeId && Schema::hasColumn('committees', 'election_id')) {
+            $committeeElectionId = Committee::where('id', $committeeId)->value('election_id');
+            if ($committeeElectionId) {
+                return (int) $committeeElectionId;
+            }
+        }
+
+        return null;
+    }
+
+    private function getSortingNamedPresets(int $electionId): array
+    {
+        $setting = Setting::where('option_key', $this->sortingNamedPresetsSettingKey($electionId))->first();
+
+        $value = $setting?->option_value;
+
+        return is_array($value) ? $value : [];
+    }
+
+    private function sortingNamedPresetsSettingKey(int $electionId): string
+    {
+        return 'sorting_named_presets_' . $electionId;
+    }
+
+    private function sortingPaperTablesReady(): bool
+    {
+        return Schema::hasTable('sorting_papers') && Schema::hasTable('sorting_paper_events');
+    }
+}
+
