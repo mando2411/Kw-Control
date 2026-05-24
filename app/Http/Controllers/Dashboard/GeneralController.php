@@ -175,75 +175,22 @@ class GeneralController extends Controller
                 return $voters;
             }
 
+            // Check if digits-only search
             $digitsOnly = preg_replace('/\s+/u', '', $searchValue);
             if ($digitsOnly !== '' && preg_match('/^\d+$/', $digitsOnly)) {
                 return $voters->where('alsndok', '=', $digitsOnly);
             }
 
-            // Normalized characters mapping
-            $normalizedChars = [
-                'أ' => ['أ', 'ا', 'إ', 'آ'],
-                'ا' => ['أ', 'ا', 'إ', 'آ'],
-                'إ' => ['أ', 'ا', 'إ', 'آ'],
-                'آ' => ['أ', 'ا', 'إ', 'آ'],
-                'ي' => ['ي', 'ى'],
-                'ى' => ['ي', 'ى'],
-                'ة' => ['ة', 'ه'],
-                'ه' => ['ة', 'ه']
-            ];
+            // For name search: normalize and remove spaces for prefix matching
+            // Normalize: ا ا ا ه ي (treat similar letters as same)
+            $normalizedSearch = str_replace(['أ', 'إ', 'آ', 'ة', 'ى'], ['ا', 'ا', 'ا', 'ه', 'ي'], $searchValue);
+            $normalizedSearchNoSpaces = preg_replace('/\s+/u', '', $normalizedSearch);
 
-            // Word substitutions
-            $substitutions = [
-                'نجلاء' => ['نجله'],
-                'بداح' => ['ابداح'],
-                'ظافر' => ['ضافر'],
-                'ندا' => ['نداء'],
-                'سارا' => ['سارة'],
-                'نورا' => ['نوره']
-            ];
-
-            // Extract first name and remaining words
-            $keywords = array_values(array_filter(explode(' ', $searchValue), fn ($word) => $word !== ''));
-            $firstWord = (string) ($keywords[0] ?? ''); // First name must match exactly when available
-            $remainingWords = array_slice($keywords, 1); // Other words
-
-            $hasNormalizedName = Schema::hasColumn('voters', 'normalized_name');
-            $normalizedSearch = str_replace(['أ', 'إ', 'آ', 'ى', 'ة'], ['ا', 'ا', 'ا', 'ي', 'ه'], $searchValue);
-
-            $voters->where(function ($query) use ($searchValue, $firstWord, $remainingWords, $keywords, $normalizedChars, $substitutions, $hasNormalizedName, $normalizedSearch) {
-                if ($firstWord !== '') {
-                    $query->orWhere(function ($nameQuery) use ($firstWord, $remainingWords, $keywords, $normalizedChars, $substitutions) {
-                        // Generate variations for the first word
-                        $firstWordVariations = $this->generateSearchTerms($firstWord, $normalizedChars);
-
-                        // Add word substitutions
-                        if (array_key_exists($firstWord, $substitutions)) {
-                            $firstWordVariations = array_merge($firstWordVariations, $substitutions[$firstWord]);
-                        }
-
-                        // Ensure first name is match at the beginning
-                        $nameQuery->where(function ($subQuery) use ($firstWordVariations) {
-                            foreach ($firstWordVariations as $variation) {
-                                $subQuery->orWhere('name', 'LIKE', "{$variation}%");
-                            }
-                        });
-
-                        // If there are additional words, require them to appear in the same order.
-                        if (!empty($remainingWords)) {
-                            $phrasePattern = implode('%', $keywords);
-                            $nameQuery->where('name', 'LIKE', "%{$phrasePattern}%");
-                        }
-                    });
-                }
-
-                // Broad fallback search to avoid false zero-results from strict first-name matching.
-                $query->orWhere('name', 'LIKE', "%{$searchValue}%")
-                    ->orWhere('alsndok', 'like', "%{$searchValue}%");
-
-                if ($hasNormalizedName && $normalizedSearch !== '') {
-                    $query->orWhere('normalized_name', 'LIKE', '%' . $normalizedSearch . '%');
-                }
-            });
+            // Prefix match on normalized name (spaces removed, letters normalized)
+            $voters->whereRaw(
+                "REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(name, ' ', ''), 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا'), 'ة', 'ه'), 'ى', 'ي') LIKE ?",
+                ["{$normalizedSearchNoSpaces}%"]
+            );
         }
         return $voters;
     }
