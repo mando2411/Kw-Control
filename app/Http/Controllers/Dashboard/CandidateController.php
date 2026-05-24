@@ -247,7 +247,7 @@ class CandidateController extends Controller
                     return $firstRow;
                 })
                 ->values()
-                ->sortByDesc(fn ($row) => (int) ($row->voter_status ?? 0))
+                ->sortBy(fn ($row) => sprintf('%s|%s', (int) ($row->voter_status ?? 0) ? '0' : '1', Str::lower((string) ($row->voter_name ?? ''))))
                 ->values();
         }
 
