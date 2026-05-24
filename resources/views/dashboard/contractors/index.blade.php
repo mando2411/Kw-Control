@@ -521,6 +521,17 @@
 			</div>
 			
 			</div>
+            @php
+                $totalAttendance = $children->sum(function ($contractor) {
+                    return $contractor->voters->where('status', 1)->count();
+                });
+                $totalVoters = $children->sum(function ($contractor) {
+                    return $contractor->voters->count();
+                });
+                $totalGroups = $children->sum(function ($contractor) {
+                    return (int) ($contractor->groups_count ?? 0);
+                });
+            @endphp
             <div id="list-management-contractors-table-wrap" class="table-responsive mt-4 cm-anim cm-anim-delay-3 list-management-contractors-only">
                 <table id="myTable" class="table rtl overflow-hidden rounded-3 text-center">
                     <thead class="table-primary border-0 border-secondary border-bottom border-2">
@@ -530,9 +541,9 @@
                             </th>
                             <th class="w150"> المتعهدين ({{ $children->count() }}) </th>
                             <th>الهاتف</th>
-                            <th>الحضور</th>
-                            <th>مضامين</th>
-                            <th>عدد القوائم</th>
+                            <th>الحضور ({{ $totalAttendance }})</th>
+                            <th>مضامين ({{ $totalVoters }})</th>
+                            <th>عدد القوائم ({{ $totalGroups }})</th>
                             <th>نسبة الالتزام</th>
                             <th>صدق المضامين</th>
                         </tr>
