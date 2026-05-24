@@ -59,8 +59,8 @@ class GeneralController extends Controller
             $digitsOnly = preg_replace('/\s+/u', '', $searchValue);
             if ($digitsOnly !== '' && preg_match('/^\d+$/', $digitsOnly)) {
                 $orderQuery = $orderQuery->orderByRaw(
-                    "CASE WHEN `alsndok` = ? THEN 0 WHEN `alrkm_almd_yn` = ? THEN 0 ELSE 1 END, `name` ASC",
-                    [$digitsOnly, $digitsOnly]
+                    "CASE WHEN `alsndok` = ? THEN 0 ELSE 1 END, `name` ASC",
+                    [$digitsOnly]
                 );
             } else {
                 $phrasePattern = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $searchValue);
@@ -177,10 +177,7 @@ class GeneralController extends Controller
 
             $digitsOnly = preg_replace('/\s+/u', '', $searchValue);
             if ($digitsOnly !== '' && preg_match('/^\d+$/', $digitsOnly)) {
-                return $voters->where(function ($query) use ($digitsOnly) {
-                    $query->where('alsndok', '=', $digitsOnly)
-                          ->orWhere('alrkm_almd_yn', '=', $digitsOnly);
-                });
+                return $voters->where('alsndok', '=', $digitsOnly);
             }
 
             // Normalized characters mapping
