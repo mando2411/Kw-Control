@@ -54,8 +54,18 @@ class GeneralController extends Controller
             $this->search2($votersQuery, $searchValue);
         }
 
-        $voters = (clone $votersQuery)
-            ->orderBy('name', 'asc')
+        $orderQuery = (clone $votersQuery);
+        if ($searchValue !== '') {
+            $phrasePattern = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $searchValue);
+            $orderQuery = $orderQuery->orderByRaw(
+                "CASE WHEN `name` LIKE ? THEN 0 WHEN `name` LIKE ? THEN 1 ELSE 2 END, `name` ASC",
+                ["{$phrasePattern}%", "%{$phrasePattern}%"]
+            );
+        } else {
+            $orderQuery = $orderQuery->orderBy('name', 'asc');
+        }
+
+        $voters = $orderQuery
             ->limit(100)
             ->get(['id', 'name', 'alsndok', 'status']);
 
@@ -64,10 +74,16 @@ class GeneralController extends Controller
             $fallbackQuery = $this->buildAttendingVotersQuery($committee, false, true);
             if ($searchValue !== '') {
                 $this->search2($fallbackQuery, $searchValue);
+                $phrasePattern = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $searchValue);
+                $fallbackQuery = $fallbackQuery->orderByRaw(
+                    "CASE WHEN `name` LIKE ? THEN 0 WHEN `name` LIKE ? THEN 1 ELSE 2 END, `name` ASC",
+                    ["{$phrasePattern}%", "%{$phrasePattern}%"]
+                );
+            } else {
+                $fallbackQuery = $fallbackQuery->orderBy('name', 'asc');
             }
 
             $voters = (clone $fallbackQuery)
-                ->orderBy('name', 'asc')
                 ->limit(100)
                 ->get(['id', 'name', 'alsndok', 'status']);
         }
@@ -77,10 +93,16 @@ class GeneralController extends Controller
             $lastFallbackQuery = $this->buildAttendingVotersQuery($committee, false, false);
             if ($searchValue !== '') {
                 $this->search2($lastFallbackQuery, $searchValue);
+                $phrasePattern = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $searchValue);
+                $lastFallbackQuery = $lastFallbackQuery->orderByRaw(
+                    "CASE WHEN `name` LIKE ? THEN 0 WHEN `name` LIKE ? THEN 1 ELSE 2 END, `name` ASC",
+                    ["{$phrasePattern}%", "%{$phrasePattern}%"]
+                );
+            } else {
+                $lastFallbackQuery = $lastFallbackQuery->orderBy('name', 'asc');
             }
 
             $voters = (clone $lastFallbackQuery)
-                ->orderBy('name', 'asc')
                 ->limit(100)
                 ->get(['id', 'name', 'alsndok', 'status']);
         }
