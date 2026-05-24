@@ -208,14 +208,14 @@
                 <div class="d-flex justify-content-center align-items-center flex-wrap gap-2 mb-3 text-center">
                     <button
                         type="button"
-                        class="btn btn-primary d-none"
+                        class="btn btn-primary"
                         id="list-management-contractors-btn"
                     >
                         إدارة المتعهدين
                     </button>
                     <button
                         type="button"
-                        class="btn btn-outline-primary d-none"
+                        class="btn btn-outline-primary"
                         id="list-management-mode-toggle"
                         data-voters-url="{{ route('dashboard.candidates.list-management.voters') }}"
                         data-voter-details-url-template="{{ route('dashboard.candidates.list-management.voters.details', ['voter' => '__VOTER__']) }}"
