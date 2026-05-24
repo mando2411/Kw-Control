@@ -56,11 +56,19 @@ class GeneralController extends Controller
 
         $orderQuery = (clone $votersQuery);
         if ($searchValue !== '') {
-            $phrasePattern = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $searchValue);
-            $orderQuery = $orderQuery->orderByRaw(
-                "CASE WHEN `name` LIKE ? THEN 0 WHEN `name` LIKE ? THEN 1 ELSE 2 END, `name` ASC",
-                ["{$phrasePattern}%", "%{$phrasePattern}%"]
-            );
+            $digitsOnly = preg_replace('/\s+/u', '', $searchValue);
+            if ($digitsOnly !== '' && preg_match('/^\d+$/', $digitsOnly)) {
+                $orderQuery = $orderQuery->orderByRaw(
+                    "CASE WHEN `alsndok` = ? THEN 0 WHEN `alrkm_almd_yn` = ? THEN 0 ELSE 1 END, `name` ASC",
+                    [$digitsOnly, $digitsOnly]
+                );
+            } else {
+                $phrasePattern = str_replace(["\\", "%", "_"], ["\\\\", "\\%", "\\_"], $searchValue);
+                $orderQuery = $orderQuery->orderByRaw(
+                    "CASE WHEN `name` LIKE ? THEN 0 WHEN `name` LIKE ? THEN 1 ELSE 2 END, `name` ASC",
+                    ["{$phrasePattern}%", "%{$phrasePattern}%"]
+                );
+            }
         } else {
             $orderQuery = $orderQuery->orderBy('name', 'asc');
         }
@@ -165,6 +173,14 @@ class GeneralController extends Controller
             $searchValue = $searchValue === null ? '' : $searchValue;
             if ($searchValue === '') {
                 return $voters;
+            }
+
+            $digitsOnly = preg_replace('/\s+/u', '', $searchValue);
+            if ($digitsOnly !== '' && preg_match('/^\d+$/', $digitsOnly)) {
+                return $voters->where(function ($query) use ($digitsOnly) {
+                    $query->where('alsndok', '=', $digitsOnly)
+                          ->orWhere('alrkm_almd_yn', '=', $digitsOnly);
+                });
             }
 
             // Normalized characters mapping
