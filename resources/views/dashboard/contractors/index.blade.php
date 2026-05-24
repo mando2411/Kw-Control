@@ -538,11 +538,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            $totalAttendance = 0;
-                            $totalVoters = 0;
-                            $totalGroups = 0;
-                        @endphp
                         @foreach ($children as $c=>$i)
                             @php
                                 $attendanceCount = $i->voters->filter(function ($voter) {
@@ -583,13 +578,6 @@
                                 <td>{{ $i->voters->where('status', 1)->count() }}</td>
                             </tr>
                         @endforeach
-                        <tr class="table-secondary fw-bold" style="font-size: 15px !important">
-                            <td colspan="3" class="text-end">المتعهدين ({{ $totalVoters }})</td>
-                            <td>{{ $totalAttendance }}</td>
-                            <td>{{ $totalVoters }}</td>
-                            <td>{{ $totalGroups }}</td>
-                            <td colspan="2"></td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
