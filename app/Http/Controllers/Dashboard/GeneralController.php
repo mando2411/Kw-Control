@@ -175,9 +175,9 @@ class GeneralController extends Controller
             $hasNormalizedName = Schema::hasColumn('voters', 'normalized_name');
             $normalizedSearch = str_replace(['أ', 'إ', 'آ', 'ى', 'ة'], ['ا', 'ا', 'ا', 'ي', 'ه'], $searchValue);
 
-            $voters->where(function ($query) use ($searchValue, $firstWord, $remainingWords, $normalizedChars, $substitutions, $hasNormalizedName, $normalizedSearch) {
+            $voters->where(function ($query) use ($searchValue, $firstWord, $remainingWords, $keywords, $normalizedChars, $substitutions, $hasNormalizedName, $normalizedSearch) {
                 if ($firstWord !== '') {
-                    $query->orWhere(function ($nameQuery) use ($firstWord, $remainingWords, $normalizedChars, $substitutions) {
+                    $query->orWhere(function ($nameQuery) use ($firstWord, $remainingWords, $keywords, $normalizedChars, $substitutions) {
                         // Generate variations for the first word
                         $firstWordVariations = $this->generateSearchTerms($firstWord, $normalizedChars);
 
