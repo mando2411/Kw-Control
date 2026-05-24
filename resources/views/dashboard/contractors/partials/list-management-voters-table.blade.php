@@ -39,8 +39,24 @@
                     <td class="lm-col-extra">{{ $row->civil_id ?: '—' }}</td>
                     <td class="lm-col-extra">{{ $row->family_name ?: '—' }}</td>
                     <td class="lm-col-extra">{{ $row->committee_name ?: '—' }}</td>
-                    <td>{{ $row->candidate_name ?: '—' }}</td>
-                    <td>{{ $row->contractor_name ?: '—' }}</td>
+                    <td>
+                        @if(!empty($row->candidate_names) && is_array($row->candidate_names))
+                            @foreach($row->candidate_names as $candidateName)
+                                <div>{{ $candidateName }}</div>
+                            @endforeach
+                        @else
+                            {{ $row->candidate_name ?: '—' }}
+                        @endif
+                    </td>
+                    <td>
+                        @if(!empty($row->contractor_names) && is_array($row->contractor_names))
+                            @foreach($row->contractor_names as $contractorName)
+                                <div>{{ $contractorName }}</div>
+                            @endforeach
+                        @else
+                            {{ $row->contractor_name ?: '—' }}
+                        @endif
+                    </td>
                     <td class="lm-col-extra">{{ $row->attached_at ? \Carbon\Carbon::parse($row->attached_at)->format('Y/m/d H:i') : '—' }}</td>
                 </tr>
             @empty
