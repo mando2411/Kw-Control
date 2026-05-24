@@ -385,13 +385,13 @@
                     <select name="parent_id" id="parent_id" class="form-control py-1">
                         <option value="الكل" disabled>الكل</option>
 
-                        @foreach ($parents as $item)
+                            @foreach ($parents as $item)
                             <option value="{{ $item['id'] }}"
-                            @if (auth()->user()->contractor && auth()->user()->contractor->id == $item['id'])
-                                selected
-                            @elseif (auth()->user()->contractor && auth()->user()->contractor->id != $item['id'])
-                                disabled
-                            @endif
+                                @if (auth()->user()->contractor && auth()->user()->contractor->id == $item['id'])
+                                    selected
+                                @elseif (auth()->user()->contractor && empty($isListManagementContext) && auth()->user()->contractor->id != $item['id'])
+                                    disabled
+                                @endif
                             >{{ $item['name'] }}</option>
                         @endforeach
                     </select>
