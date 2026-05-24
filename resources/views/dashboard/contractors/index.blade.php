@@ -530,9 +530,9 @@
                             </th>
                             <th class="w150"> المتعهدين ({{ $children->count() }}) </th>
                             <th>الهاتف</th>
-                            <th>الحضور</th>
+                            <th>الحضور ({{ $children->sum(function($contractor) { return $contractor->voters->filter(function ($voter) { return $voter->status == 1; })->count(); }) }})</th>
                             <th>مضامين ({{ $children->sum(function($contractor) { return $contractor->voters->count(); }) }})</th>
-                            <th>عدد القوائم</th>
+                            <th>عدد القوائم ({{ $children->sum(function($contractor) { return $contractor->groups_count ?? 0; }) }})</th>
                             <th>نسبة الالتزام</th>
                             <th>صدق المضامين</th>
                         </tr>
