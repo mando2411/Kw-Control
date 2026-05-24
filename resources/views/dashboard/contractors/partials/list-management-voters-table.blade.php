@@ -29,7 +29,7 @@
                 <tr>
                     <td class="lm-col-extra">{{ $index + 1 }}</td>
                     <td>
-                        <button type="button" class="btn btn-link p-0 js-list-management-voter-open" data-voter-id="{{ (int) ($row->voter_id ?? 0) }}" style="text-decoration:none;">
+                        <button type="button" class="btn btn-link p-0 js-list-management-voter-open {{ (!empty($row->voter_status) && (int) $row->voter_status === 1) ? 'text-success' : '' }}" data-voter-id="{{ (int) ($row->voter_id ?? 0) }}" style="text-decoration:none;">
                             {{ $row->voter_name ?: '—' }}
                         </button>
                         @if(!empty($row->is_duplicate))

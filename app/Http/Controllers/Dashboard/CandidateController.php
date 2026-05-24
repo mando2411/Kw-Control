@@ -213,6 +213,7 @@ class CandidateController extends Controller
                 ->select([
                     'v.id as voter_id',
                     'v.name as voter_name',
+                    'v.status as voter_status',
                     DB::raw($voterCivilIdColumn . ' as civil_id'),
                     'f.name as family_name',
                     'cm.name as committee_name',
