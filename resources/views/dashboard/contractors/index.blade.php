@@ -539,17 +539,6 @@
                     </thead>
                     <tbody>
                         @foreach ($children as $c=>$i)
-                            @php
-                                $attendanceCount = $i->voters->filter(function ($voter) {
-                                    return $voter->status == 1;
-                                })->count();
-                                $votersCount = $i->voters->count();
-                                $groupsCount = $i->groups_count ?? 0;
-                                
-                                $totalAttendance += $attendanceCount;
-                                $totalVoters += $votersCount;
-                                $totalGroups += $groupsCount;
-                            @endphp
                             <tr
                             class="all
                                 @if ($i->status == 1)
@@ -571,9 +560,12 @@
                                     {{ $i->name }}
                                 </td>
                                 <td>{{ $i->phone }}</td>
-                                <td>{{ $attendanceCount }}</td>
-                                <td>{{ $votersCount }}</td>
-                                <td>{{ $groupsCount }}</td>
+                                <td>{{ $i->voters->filter(function ($voter) {
+                                        return $voter->status == 1;
+                                    })->count() }}
+                                </td>
+                                <td>{{ $i->voters->count() }}</td>
+                                <td>{{ $i->groups_count ?? 0 }}</td>
                                 <td>{{ $i->trust }}%</td>
                                 <td>{{ $i->voters->where('status', 1)->count() }}</td>
                             </tr>
