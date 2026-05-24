@@ -246,6 +246,8 @@ class CandidateController extends Controller
 
                     return $firstRow;
                 })
+                ->values()
+                ->sortByDesc(fn ($row) => (int) ($row->voter_status ?? 0))
                 ->values();
         }
 
