@@ -531,7 +531,7 @@
                             <th class="w150"> المتعهدين ({{ $children->count() }}) </th>
                             <th>الهاتف</th>
                             <th>الحضور</th>
-                            <th>مضامين</th>
+                            <th>مضامين ({{ $children->sum(function($contractor) { return $contractor->voters->count(); }) }})</th>
                             <th>عدد القوائم</th>
                             <th>نسبة الالتزام</th>
                             <th>صدق المضامين</th>
