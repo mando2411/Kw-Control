@@ -538,7 +538,23 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $totalAttendance = 0;
+                            $totalVoters = 0;
+                            $totalGroups = 0;
+                        @endphp
                         @foreach ($children as $c=>$i)
+                            @php
+                                $attendanceCount = $i->voters->filter(function ($voter) {
+                                    return $voter->status == 1;
+                                })->count();
+                                $votersCount = $i->voters->count();
+                                $groupsCount = $i->groups_count ?? 0;
+                                
+                                $totalAttendance += $attendanceCount;
+                                $totalVoters += $votersCount;
+                                $totalGroups += $groupsCount;
+                            @endphp
                             <tr
                             class="all
                                 @if ($i->status == 1)
@@ -560,16 +576,20 @@
                                     {{ $i->name }}
                                 </td>
                                 <td>{{ $i->phone }}</td>
-                                <td>{{ $i->voters->filter(function ($voter) {
-                                        return $voter->status == 1;
-                                    })->count() }}
-                                </td>
-                                <td>{{ $i->voters->count() }}</td>
-                                <td>{{ $i->groups_count ?? 0 }}</td>
+                                <td>{{ $attendanceCount }}</td>
+                                <td>{{ $votersCount }}</td>
+                                <td>{{ $groupsCount }}</td>
                                 <td>{{ $i->trust }}%</td>
                                 <td>{{ $i->voters->where('status', 1)->count() }}</td>
                             </tr>
                         @endforeach
+                        <tr class="table-secondary fw-bold" style="font-size: 15px !important">
+                            <td colspan="3" class="text-end">المجموع</td>
+                            <td>{{ $totalAttendance }}</td>
+                            <td>{{ $totalVoters }}</td>
+                            <td>{{ $totalGroups }}</td>
+                            <td colspan="2"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
