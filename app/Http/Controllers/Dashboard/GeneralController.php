@@ -193,11 +193,10 @@ class GeneralController extends Controller
                             }
                         });
 
-                        // If there are additional words, ensure they appear somewhere in the name
+                        // If there are additional words, require them to appear in the same order.
                         if (!empty($remainingWords)) {
-                            foreach ($remainingWords as $word) {
-                                $nameQuery->where('name', 'LIKE', "%{$word}%");
-                            }
+                            $phrasePattern = implode('%', $keywords);
+                            $nameQuery->where('name', 'LIKE', "%{$phrasePattern}%");
                         }
                     });
                 }
