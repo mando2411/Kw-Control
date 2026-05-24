@@ -584,7 +584,7 @@
                             </tr>
                         @endforeach
                         <tr class="table-secondary fw-bold" style="font-size: 15px !important">
-                            <td colspan="3" class="text-end">المجموع</td>
+                            <td colspan="3" class="text-end">المجموع ({{ $totalVoters }})</td>
                             <td>{{ $totalAttendance }}</td>
                             <td>{{ $totalVoters }}</td>
                             <td>{{ $totalGroups }}</td>
