@@ -2229,6 +2229,7 @@
       $('#listsSection').show();
       $('#candidates_table').closest('.table-wrap').show();
       $('#candidates_table').closest('.table-wrap').prev('.candidates-head').show();
+      $('.bulk-vote-card').toggle(activeFilterMode !== 'mode3');
 
       if (activeFilterMode === 'mode3') {
         if (activeCategory === 'list_members') {
