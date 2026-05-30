@@ -123,6 +123,28 @@
                         </select>
                     </div>
 
+                    <div class="sm-export-section">
+                        <h6 class="sm-export-section-title">خيارات التصفية</h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="labelStyle pt-2 pb-1 rounded-3" for="smExportGender">النوع</label>
+                                <select id="smExportGender" name="gender" class="form-select bg-secondary bg-opacity-25">
+                                    <option value="all">الكل</option>
+                                    <option value="ذكر">ذكر</option>
+                                    <option value="انثى">انثى</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="labelStyle pt-2 pb-1 rounded-3" for="smExportAttendance">حالة الحضور</label>
+                                <select id="smExportAttendance" name="attendance" class="form-select bg-secondary bg-opacity-25">
+                                    <option value="all">الكل</option>
+                                    <option value="present">حضر</option>
+                                    <option value="absent">لم يحضر</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <input type="hidden" name="type" id="{{ $typeInputId }}">
 
                     <div class="sm-export-section">

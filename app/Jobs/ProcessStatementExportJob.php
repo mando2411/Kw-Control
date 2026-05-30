@@ -26,13 +26,27 @@ class ProcessStatementExportJob implements ShouldQueue
 
     public int $timeout = 3600;
 
+    private int $userId;
+    private string $type;
+    private array $voterIds;
+    private array $columns;
+    private string $source;
+    private array $filters;
+
     public function __construct(
-        private readonly int $userId,
-        private readonly string $type,
-        private readonly array $voterIds,
-        private readonly array $columns,
-        private readonly string $source = 'statement_search',
+        int $userId,
+        string $type,
+        array $voterIds,
+        array $columns,
+        string $source = 'statement_search',
+        array $filters = [],
     ) {
+        $this->userId = $userId;
+        $this->type = $type;
+        $this->voterIds = $voterIds;
+        $this->columns = $columns;
+        $this->source = $source;
+        $this->filters = $filters;
     }
 
     public function handle(): void
@@ -43,7 +57,21 @@ class ProcessStatementExportJob implements ShouldQueue
         }
 
         try {
-            $voters = Voter::whereIn('id', $this->voterIds)->get();
+            $query = Voter::whereIn('id', $this->voterIds);
+            $gender = isset($this->filters['gender']) ? (string) $this->filters['gender'] : 'all';
+            $attendance = isset($this->filters['attendance']) ? (string) $this->filters['attendance'] : 'all';
+
+            if ($gender !== 'all') {
+                $query->where('type', $gender);
+            }
+
+            if ($attendance === 'present') {
+                $query->where('status', 1);
+            } elseif ($attendance === 'absent') {
+                $query->where('status', 0);
+            }
+
+            $voters = $query->get();
 
             if ($voters->isEmpty()) {
                 $this->sendFailureNotification($user, 'لا يوجد ناخبون صالحون لإعداد الملف.');

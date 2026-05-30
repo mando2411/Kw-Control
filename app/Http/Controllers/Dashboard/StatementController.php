@@ -277,12 +277,18 @@ class StatementController extends Controller
                ->values()
                ->all();
 
+           $filters = [
+               'gender' => (string) $request->input('gender', 'all'),
+               'attendance' => (string) $request->input('attendance', 'all'),
+           ];
+
            ProcessStatementExportJob::dispatchAfterResponse(
                (int) auth()->id(),
                $type,
                $voterIds,
                $columns,
-               $source
+               $source,
+               $filters
            );
 
            return response()->json([
@@ -460,22 +466,22 @@ public function show(Request $request, VoterService $voterService)
 
 public function export(Request $request)
 {
-    if($request->family_id){
-        $voters=Voter::where('family_id',request('family_id'))
-        ->get();
-    }elseif($request->voter){
-        $voters_ids= $request->input('voter');
-        $voters = Voter::whereIn('id', $voters_ids)->get();
-    }elseif($request->school_id){
-        $school=School::find(request('school_id'));
-        $voters=$school->voters()->get();
-    }else{
+    if ($request->family_id) {
+        $voterQuery = Voter::where('family_id', $request->input('family_id'));
+    } elseif ($request->voter) {
+        $voterIds = (array) $request->input('voter');
+        $voterQuery = Voter::whereIn('id', $voterIds);
+    } elseif ($request->school_id) {
+        $school = School::find($request->input('school_id'));
+        $voterQuery = $school ? $school->voters() : Voter::query()->whereRaw('0 = 1');
+    } else {
         session()->flash('message', 'لايوجد اي ناخبين');
         session()->flash('type', 'danger');
         return redirect()->back();
-
-
     }
+
+    $voterQuery = $this->applyExportFiltersToQuery($voterQuery, $request);
+    $voters = $voterQuery->get();
     if ($request->type == "Excel") {
         return Excel::download(new VotersExport($voters, request('columns')), 'Voters.xlsx');
     } elseif ($request->type == "PDF" || $request->type == "Send") {
