@@ -2785,6 +2785,120 @@
       });
     }
 
+    function executeBulkVoteAction($bulkButton) {
+      return new Promise(function(resolve) {
+        $bulkButton = $bulkButton && $bulkButton.length ? $bulkButton : $('.bulk-vote-button.bulk-vote-btn-run').first();
+        if (!$bulkButton.length || $bulkButton.prop('disabled') || bulkVoteInFlight) {
+          resolve();
+          return;
+        }
+
+        if (isLocked) {
+          errorMessageInModel('الفرز متوقف حاليا، لا يمكن تنفيذ تصويت مجمع.');
+          resolve();
+          return;
+        }
+
+        var $rows = selectedRows();
+        if (!$rows.length) {
+          resolve();
+          return;
+        }
+
+        var $currentBulkCard = $bulkButton.closest('.bulk-vote-card');
+        var voteCountRaw = $currentBulkCard.find('.bulk-vote-value').val();
+        var voteCount = parseInt(voteCountRaw, 10);
+        if (voteCountRaw === '' || isNaN(voteCount) || voteCount < 0) {
+          errorMessageInModel('يرجى إدخال عدد أصوات صحيح للتصويت المجمع.');
+          resolve();
+          return;
+        }
+
+        var countStatus = String($currentBulkCard.find('.bulk-vote-action').val() || 'increment');
+        var invalidRows = [];
+
+        if (countStatus === 'decrement') {
+          $rows.each(function() {
+            var $row = $(this);
+            var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
+            var currentVotes = parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
+            if (voteCount > currentVotes) {
+              invalidRows.push(getCandidateNameFromRow($row));
+            }
+          });
+        }
+
+        if (invalidRows.length) {
+          errorMessageInModel('لا يمكن الحذف لبعض المرشحين لأن العدد المطلوب أكبر من أصواتهم الحالية.');
+          resolve();
+          return;
+        }
+
+        if (!$bulkButton.data('original-html')) {
+          $bulkButton.data('original-html', $bulkButton.html());
+        }
+
+        bulkVoteInFlight = true;
+        $('.bulk-vote-button').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i><span>جارى التنفيذ...</span>');
+
+        var totalRows = $rows.length;
+        var successCount = 0;
+        var failCount = 0;
+        var requestPromises = [];
+
+        $rows.each(function() {
+          var $row = $(this);
+          var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
+          var committee = parseInt($row.find('.row-committee').val(), 10) || getCurrentCommitteeId();
+          var previousVotes = parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
+
+          if (!candidateId || !committee) {
+            failCount += 1;
+            return;
+          }
+
+          var requestPromise = setVoteRequest(candidateId, countStatus, voteCount, committee)
+            .then(function(data) {
+              if ((data.vote_count) || (data.vote_count === 0)) {
+                var nextVotes = parseInt(data.vote_count, 10) || 0;
+                var deltaVotes = nextVotes - previousVotes;
+                updateVoteVisual(candidateId, data.vote_count);
+                trackRecentCandidate(candidateId);
+                logVotePaperEvent(candidateId, committee, countStatus, voteCount, deltaVotes);
+                successCount += 1;
+              } else {
+                failCount += 1;
+              }
+            })
+            .catch(function() {
+              failCount += 1;
+            });
+
+          requestPromises.push(requestPromise);
+        });
+
+        Promise.allSettled(requestPromises).then(function() {
+          refreshTotalSortingVotes();
+
+          if (successCount > 0 && failCount === 0) {
+            toastr.success('تم تنفيذ التصويت المجمع بنجاح لعدد ' + successCount + ' مرشح.');
+          } else if (successCount > 0 && failCount > 0) {
+            toastr.warning('تم تنفيذ التصويت لعدد ' + successCount + ' مرشح، وفشل ' + failCount + ' من أصل ' + totalRows + '.');
+          } else {
+            errorMessageInModel('تعذر تنفيذ التصويت المجمع.');
+          }
+        }).finally(function() {
+          bulkVoteInFlight = false;
+          $('.bulk-vote-button').each(function() {
+            var $btn = $(this);
+            $btn.html($btn.data('original-html') || '<i class="fa-solid fa-bolt"></i><span>تنفيذ التصويت المجمع</span>');
+          });
+          updateSelectionState();
+          resolve();
+        });
+      });
+    }
+
     function logVotePaperEvent(candidateId, committeeId, actionType, actionValue, deltaVotes) {
       if (!currentPaperNumber || !candidateId || !committeeId) {
         return;
@@ -3071,6 +3185,13 @@
     updateQuickAssignUI();
 
     $('#paperTrackerButton').on('click', function() {
+      if (activeFilterMode === 'mode3') {
+        executeBulkVoteAction().then(function() {
+          startNextPaper();
+        });
+        return;
+      }
+
       startNextPaper();
     });
 
@@ -3440,114 +3561,7 @@
     }
 
     $(document).on('click', '.bulk-vote-button', function() {
-      if (bulkVoteInFlight) {
-        return;
-      }
-
-      if (isLocked) {
-        errorMessageInModel('الفرز متوقف حاليا، لا يمكن تنفيذ تصويت مجمع.');
-        return;
-      }
-
-      var $rows = selectedRows();
-      if (!$rows.length) {
-        errorMessageInModel('اختر مرشحا واحدا على الأقل لتنفيذ التصويت المجمع.');
-        return;
-      }
-
-      var $currentBulkCard = $(this).closest('.bulk-vote-card');
-      var voteCountRaw = $currentBulkCard.find('.bulk-vote-value').val();
-      var voteCount = parseInt(voteCountRaw, 10);
-      if (voteCountRaw === '' || isNaN(voteCount) || voteCount < 0) {
-        errorMessageInModel('يرجى إدخال عدد أصوات صحيح للتصويت المجمع.');
-        return;
-      }
-
-      var countStatus = String($currentBulkCard.find('.bulk-vote-action').val() || 'increment');
-      var invalidRows = [];
-
-      if (countStatus === 'decrement') {
-        $rows.each(function() {
-          var $row = $(this);
-          var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
-          var currentVotes = parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
-          if (voteCount > currentVotes) {
-            invalidRows.push(getCandidateNameFromRow($row));
-          }
-        });
-      }
-
-      if (invalidRows.length) {
-        errorMessageInModel('لا يمكن الحذف لبعض المرشحين لأن العدد المطلوب أكبر من أصواتهم الحالية.');
-        return;
-      }
-
-      var $bulkButton = $(this);
-      $('.bulk-vote-button').each(function() {
-        var $btn = $(this);
-        if (!$btn.data('original-html')) {
-          $btn.data('original-html', $btn.html());
-        }
-      });
-
-      bulkVoteInFlight = true;
-      $('.bulk-vote-button').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i><span>جارى التنفيذ...</span>');
-
-      var totalRows = $rows.length;
-      var successCount = 0;
-      var failCount = 0;
-
-      var requestPromises = [];
-
-      $rows.each(function() {
-        var $row = $(this);
-        var candidateId = parseInt($row.find('.row-candidate-id').val(), 10) || 0;
-        var committee = parseInt($row.find('.row-committee').val(), 10) || getCurrentCommitteeId();
-        var previousVotes = parseInt($('#vote_count_' + candidateId).text(), 10) || 0;
-
-        if (!candidateId || !committee) {
-          failCount += 1;
-          return;
-        }
-
-        var requestPromise = setVoteRequest(candidateId, countStatus, voteCount, committee)
-          .then(function(data) {
-            if ((data.vote_count) || (data.vote_count === 0)) {
-              var nextVotes = parseInt(data.vote_count, 10) || 0;
-              var deltaVotes = nextVotes - previousVotes;
-              updateVoteVisual(candidateId, data.vote_count);
-              trackRecentCandidate(candidateId);
-              logVotePaperEvent(candidateId, committee, countStatus, voteCount, deltaVotes);
-              successCount += 1;
-            } else {
-              failCount += 1;
-            }
-          })
-          .catch(function() {
-            failCount += 1;
-          });
-
-        requestPromises.push(requestPromise);
-      });
-
-      Promise.allSettled(requestPromises).then(function() {
-        refreshTotalSortingVotes();
-
-        if (successCount > 0 && failCount === 0) {
-          toastr.success('تم تنفيذ التصويت المجمع بنجاح لعدد ' + successCount + ' مرشح.');
-        } else if (successCount > 0 && failCount > 0) {
-          toastr.warning('تم تنفيذ التصويت لعدد ' + successCount + ' مرشح، وفشل ' + failCount + ' من أصل ' + totalRows + '.');
-        } else {
-          errorMessageInModel('تعذر تنفيذ التصويت المجمع.');
-        }
-      }).finally(function() {
-        bulkVoteInFlight = false;
-        $('.bulk-vote-button').each(function() {
-          var $btn = $(this);
-          $btn.html($btn.data('original-html') || '<i class="fa-solid fa-bolt"></i><span>تنفيذ التصويت المجمع</span>');
-        });
-        updateSelectionState();
-      });
+      executeBulkVoteAction($(this));
     });
 
     function refreshTotalSortingVotes() {
