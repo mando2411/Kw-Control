@@ -26,12 +26,12 @@ class ProcessStatementExportJob implements ShouldQueue
 
     public int $timeout = 3600;
 
-    private int $userId;
-    private string $type;
-    private array $voterIds;
-    private array $columns;
-    private string $source;
-    private array $filters;
+    private $userId;
+    private $type;
+    private $voterIds;
+    private $columns;
+    private $source;
+    private $filters;
 
     public function __construct(
         int $userId,
