@@ -1477,14 +1477,14 @@
 
       <div class="sorting-card quick-category-card">
         <div class="filter-mode-switch" id="filterModeSwitch">
-          <button type="button" class="filter-mode-btn active" data-filter-mode="mode1">مود 1</button>
+          <button type="button" class="filter-mode-btn" data-filter-mode="mode1">مود 1</button>
           <button type="button" class="filter-mode-btn" data-filter-mode="mode2">مود 2</button>
+          <button type="button" class="filter-mode-btn active" data-filter-mode="mode3">مود 3</button>
         </div>
 
         <div class="quick-category-filter" id="quickCategoryFilter">
-          <button type="button" class="quick-category-btn" data-category="my_list">قائمتى</button>
-          <button type="button" class="quick-category-btn" data-category="other_lists">القوائم الأخرى</button>
-          <button type="button" class="quick-category-btn" data-category="independent">المستقلين</button>
+          <button type="button" class="quick-category-btn" data-category="list_members">التزام</button>
+          <button type="button" class="quick-category-btn" data-category="all_candidates">مفرق</button>
         </div>
       </div>
 
@@ -1836,7 +1836,7 @@
     var liveStatsInFlight = false;
     var fallbackIntervalMs = 2000;
     var activeQuickLetter = '';
-    var activeFilterMode = 'mode1';
+    var activeFilterMode = 'mode3';
     var activeCategory = 'all';
     var activeSortBy = 'default';
     var activeSortDirection = 'asc';
@@ -2249,6 +2249,13 @@
         ];
       }
 
+      if (mode === 'mode3') {
+        return [
+          { key: 'list_members', label: 'التزام' },
+          { key: 'all_candidates', label: 'مفرق' },
+        ];
+      }
+
       return [
         { key: 'my_list', label: 'قائمتى' },
         { key: 'other_lists', label: 'القوائم الأخرى' },
@@ -2278,7 +2285,7 @@
         return true;
       }
 
-      if (activeFilterMode === 'mode2') {
+      if (activeFilterMode === 'mode2' || activeFilterMode === 'mode3') {
         if (activeCategory === 'all_candidates') {
           return true;
         }
@@ -2371,14 +2378,14 @@
     function loadFilterModePreference() {
       try {
         var raw = localStorage.getItem(filterModeStorageKey());
-        if (raw === 'mode1' || raw === 'mode2') {
+        if (raw === 'mode1' || raw === 'mode2' || raw === 'mode3') {
           return raw;
         }
       } catch (error) {
         // no-op
       }
 
-      return 'mode1';
+      return 'mode3';
     }
 
     function saveFilterModePreference() {
