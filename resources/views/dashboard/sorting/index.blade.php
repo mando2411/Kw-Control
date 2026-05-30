@@ -2673,6 +2673,11 @@
       });
     }
 
+    function clearCandidateSelection() {
+      $('.select-candidate-checkbox, .select-all-candidates').prop('checked', false);
+      updateSelectionState();
+    }
+
     function parseBackendError(xhr, fallbackMessage) {
       var backendMessage = null;
 
@@ -2893,7 +2898,7 @@
             var $btn = $(this);
             $btn.html($btn.data('original-html') || '<i class="fa-solid fa-bolt"></i><span>تنفيذ التصويت المجمع</span>');
           });
-          updateSelectionState();
+          clearCandidateSelection();
           resolve();
         });
       });
