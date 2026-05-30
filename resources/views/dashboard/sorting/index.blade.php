@@ -2227,6 +2227,24 @@
     function applyCategoryLayoutMode() {
       restoreRowsToOriginTable();
       $('#listsSection').show();
+      $('#candidates_table').closest('.table-wrap').show();
+      $('#candidates_table').closest('.table-wrap').prev('.candidates-head').show();
+
+      if (activeFilterMode === 'mode3') {
+        if (activeCategory === 'list_members') {
+          $('#listsSection').show();
+          $('#candidates_table').closest('.table-wrap').hide();
+          $('#candidates_table').closest('.table-wrap').prev('.candidates-head').hide();
+          return;
+        }
+
+        if (activeCategory === 'all_candidates') {
+          $('#listsSection').hide();
+          $('#candidates_table').closest('.table-wrap').show();
+          $('#candidates_table').closest('.table-wrap').prev('.candidates-head').show();
+          return;
+        }
+      }
 
       if (activeFilterMode !== 'mode1') {
         return;
