@@ -2291,6 +2291,9 @@
         }
 
         if (activeCategory === 'list_members') {
+          if (activeFilterMode === 'mode3') {
+            return String($row.data('origin-table') || '') === 'lists';
+          }
           return rowCategory !== 'independent';
         }
 
