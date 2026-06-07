@@ -898,12 +898,22 @@
     <!-- main -->
     <main>
 
-        @if(auth()->user()->can('statement.show') ||
-        auth()->user()->can('madameen') ||
-        auth()->user()->can('contractors.list') ||
-        auth()->user()->can('statement') ||
-        auth()->user()->can('statement.search') ||
-        !empty($isListLeaderUser))
+        @php
+            $userCandidate = auth()->user()->candidate()->where('election_id', auth()->user()->election?->id)->first();
+            $isListCandidate = $userCandidate && (
+                $userCandidate->candidate_type === 'list_leader'
+                || !is_null($userCandidate->list_leader_candidate_id)
+            );
+        @endphp
+
+        @if(!$isListCandidate && (
+            auth()->user()->can('statement.show') ||
+            auth()->user()->can('madameen') ||
+            auth()->user()->can('contractors.list') ||
+            auth()->user()->can('statement') ||
+            auth()->user()->can('statement.search') ||
+            !empty($isListLeaderUser)
+        ))
         <div>
             <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتعهدين والمضامين</h1>
             <div class="container">

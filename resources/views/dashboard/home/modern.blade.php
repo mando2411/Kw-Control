@@ -1,6 +1,11 @@
 @php
     $user = auth()->user();
     $election = $user?->election;
+    $userCandidate = $user?->candidate()->where('election_id', $election?->id)->first();
+    $isListCandidate = $userCandidate && (
+        $userCandidate->candidate_type === 'list_leader'
+        || !is_null($userCandidate->list_leader_candidate_id)
+    );
     $isAdmin = $user && $user->hasRole('Administrator');
     $showOnlineUsersSection = $user && (
         $user->hasRole('Administrator')
@@ -88,12 +93,13 @@
             </div>
         @endif
 
-        <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 200ms;">
-            <div class="hm-section-title">
-                <i class="bi bi-grid-1x2"></i>
-                المتعهدين والمضامين
-            </div>
-            <div class="hm-actions">
+        @unless($isListCandidate)
+            <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 200ms;">
+                <div class="hm-section-title">
+                    <i class="bi bi-grid-1x2"></i>
+                    المتعهدين والمضامين
+                </div>
+                <div class="hm-actions">
                 @can('statement.show')
                     <a class="hm-action" href="{{ route('dashboard.statement.show') }}">
                         <span class="hm-action-icon"><i class="bi bi-table"></i></span>
@@ -138,6 +144,7 @@
                 @endif
             </div>
         </div>
+        @endunless
 
         <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 260ms;">
             <div class="hm-section-title">
