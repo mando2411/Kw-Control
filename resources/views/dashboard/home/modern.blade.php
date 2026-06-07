@@ -93,13 +93,12 @@
             </div>
         @endif
 
-        @unless($isListCandidate)
-            <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 200ms;">
-                <div class="hm-section-title">
-                    <i class="bi bi-grid-1x2"></i>
-                    المتعهدين والمضامين
-                </div>
-                <div class="hm-actions">
+        <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 200ms;">
+            <div class="hm-section-title">
+                <i class="bi bi-grid-1x2"></i>
+                المتعهدين والمضامين
+            </div>
+            <div class="hm-actions">
                 @can('statement.show')
                     <a class="hm-action" href="{{ route('dashboard.statement.show') }}">
                         <span class="hm-action-icon"><i class="bi bi-table"></i></span>
@@ -107,20 +106,22 @@
                         <span class="hm-action-sub">قائمة كاملة</span>
                     </a>
                 @endcan
-                @can('madameen')
-                    <a class="hm-action" href="{{ route('dashboard.madameen') }}">
-                        <span class="hm-action-icon"><i class="bi bi-list-check"></i></span>
-                        <span class="hm-action-title">المضامين</span>
-                        <span class="hm-action-sub">إدارة المضامين</span>
-                    </a>
-                @endcan
-                @can('contractors.list')
-                    <a class="hm-action" href="{{ route('dashboard.contractors.index') }}">
-                        <span class="hm-action-icon"><i class="bi bi-person-check"></i></span>
-                        <span class="hm-action-title">المتعهدين</span>
-                        <span class="hm-action-sub">قائمة المتعهدين</span>
-                    </a>
-                @endcan
+                @unless($isListCandidate)
+                    @can('madameen')
+                        <a class="hm-action" href="{{ route('dashboard.madameen') }}">
+                            <span class="hm-action-icon"><i class="bi bi-list-check"></i></span>
+                            <span class="hm-action-title">المضامين</span>
+                            <span class="hm-action-sub">إدارة المضامين</span>
+                        </a>
+                    @endcan
+                    @can('contractors.list')
+                        <a class="hm-action" href="{{ route('dashboard.contractors.index') }}">
+                            <span class="hm-action-icon"><i class="bi bi-person-check"></i></span>
+                            <span class="hm-action-title">المتعهدين</span>
+                            <span class="hm-action-sub">قائمة المتعهدين</span>
+                        </a>
+                    @endcan
+                @endunless
                 @can('statement')
                     <a class="hm-action" href="{{ route('dashboard.statement') }}">
                         <span class="hm-action-icon"><i class="bi bi-clipboard-data"></i></span>
@@ -144,7 +145,6 @@
                 @endif
             </div>
         </div>
-        @endunless
 
         <div class="hm-section hm-anim hm-card-anim" style="--hm-delay: 260ms;">
             <div class="hm-section-title">

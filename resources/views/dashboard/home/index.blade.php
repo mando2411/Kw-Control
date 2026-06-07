@@ -906,14 +906,14 @@
             );
         @endphp
 
-        @if(!$isListCandidate && (
+        @if(
             auth()->user()->can('statement.show') ||
             auth()->user()->can('madameen') ||
             auth()->user()->can('contractors.list') ||
             auth()->user()->can('statement') ||
             auth()->user()->can('statement.search') ||
             !empty($isListLeaderUser)
-        ))
+        )
         <div>
             <h1 class="bg-dark text-white py-2 text-center h2 mb-2">المتعهدين والمضامين</h1>
             <div class="container">
@@ -930,30 +930,32 @@
                         </div>
                     </div>
                     @endcan
-                    @can('madameen')
-                    <div class="col-lg-2 col-md-3 col-sm-6">
-                        <div class="w-100">
-                            <a href="{{route('dashboard.madameen')}}">
-                                <button class="btn w-100 btn-info">
-                                    <i class="fa fs-5 fa-list-check d-block my-1"></i>
-                                    <h6>المضامين</h6>
-                                </button>
-                            </a>
+                    @unless($isListCandidate)
+                        @can('madameen')
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <div class="w-100">
+                                <a href="{{route('dashboard.madameen')}}">
+                                    <button class="btn w-100 btn-info">
+                                        <i class="fa fs-5 fa-list-check d-block my-1"></i>
+                                        <h6>المضامين</h6>
+                                    </button>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    @endcan
-                    @can('contractors.list')
-                    <div class="col-lg-2 col-md-3 col-sm-6">
-                        <div class="w-100">
-                            <a href="{{route('dashboard.contractors.index')}}">
-                                <button class="btn w-100 btn-primary">
-                                    <i class="fa fs-5 fa-user-check d-block my-1"></i>
-                                    <h6>المتعهدين</h6>
-                                </button>
-                            </a>
+                        @endcan
+                        @can('contractors.list')
+                        <div class="col-lg-2 col-md-3 col-sm-6">
+                            <div class="w-100">
+                                <a href="{{route('dashboard.contractors.index')}}">
+                                    <button class="btn w-100 btn-primary">
+                                        <i class="fa fs-5 fa-user-check d-block my-1"></i>
+                                        <h6>المتعهدين</h6>
+                                    </button>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                    @endcan
+                        @endcan
+                    @endunless
                     @can('statement')
                     <div class="col-lg-2 col-md-3 col-sm-6">
                         <div class="w-100">
