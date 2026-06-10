@@ -146,6 +146,13 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                         if ($fallbackCount > 0) {
                             Log::info('Fallback voter search found candidates', ['national_id' => $nationalId, 'name' => $voterName]);
                             $voter_detail = $fallbackQuery;
+                        } elseif ($voterName) {
+                            $nameOnlyCount = Voter::withoutGlobalScopes()
+                                ->where('normalized_name', 'like', '%' . $this->normalizeText(ArabicHelper::normalizeArabic($voterName)) . '%')
+                                ->orWhere('name', 'like', '%' . $voterName . '%')
+                                ->count();
+
+                            Log::info('Name-only fallback search count', ['count' => $nameOnlyCount, 'national_id' => $nationalId, 'name' => $voterName]);
                         }
                     }
 
@@ -331,6 +338,8 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
             return null;
         }
 
+        $raw = $this->convertArabicDigits($raw);
+
         if (is_numeric($raw)) {
             $raw = (string) (str_contains($raw, 'E') || str_contains($raw, 'e')
                 ? number_format((float) $raw, 0, '.', '')
@@ -339,6 +348,13 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
 
         $normalized = preg_replace('/\D+/', '', $raw);
         return $normalized !== '' ? $normalized : null;
+    }
+
+    private function convertArabicDigits(string $value): string
+    {
+        $arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        $westernDigits = ['0','1','2','3','4','5','6','7','8','9'];
+        return str_replace($arabicDigits, $westernDigits, $value);
     }
 
     private function normalizeText(string $value): string
