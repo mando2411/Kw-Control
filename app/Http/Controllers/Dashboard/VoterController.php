@@ -353,6 +353,12 @@ class VoterController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            Log::error('ImportContractorVoters failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
             return response()->json([
                 'success'   => false,
                 'message'   => 'Error uploading file: ' . $e->getMessage(),

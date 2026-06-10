@@ -39,21 +39,22 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     public function collection(Collection $rows){
         DB::transaction(function () use ($rows) {
             foreach ($rows as $row) {
-                $row_data = $row->toArray();
-                $has_data = count(array_filter($row_data, function ($value) {
-                    return $value !== null && $value !== '';
-                })) > 0;
+                try {
+                    $row_data = $row->toArray();
+                    $has_data = count(array_filter($row_data, function ($value) {
+                        return $value !== null && $value !== '';
+                    })) > 0;
 
-                if (!$has_data) {
-                    continue;
-                }
+                    if (!$has_data) {
+                        continue;
+                    }
 
-                Log::info('----------------------------');
-                Log::info($row);
-                Log::info('----------------------------');
-                //=============================================================================================================
-                $contractorName = $this->value($row_data, 'asm_almtaahd', ['asm_almtahed', 'asm_almtaahd', 'اسم_المتعهد_الفرعي', 'اسم_المتعهد']);
-                $nationalId = $this->normalizeIdentifier($this->value($row_data, 'alrkm_almdn', ['alrkm_almdny', 'civil_id', 'civilid', 'id', 'national_id', 'الرقم_المدني']));
+                    Log::info('----------------------------');
+                    Log::info($row);
+                    Log::info('----------------------------');
+                    //=============================================================================================================
+                    $contractorName = $this->value($row_data, 'asm_almtaahd', ['asm_almtahed', 'asm_almtaahd', 'اسم_المتعهد_الفرعي', 'اسم_المتعهد']);
+                    $nationalId = $this->normalizeIdentifier($this->value($row_data, 'alrkm_almdn', ['alrkm_almdny', 'civil_id', 'civilid', 'id', 'national_id', 'الرقم_المدني']));
 
                 if (($this->contractor_id) == 0) {
                     if ($contractorName) {
@@ -117,6 +118,16 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                 }
                 //=============================================================================================================
                 Log::info('----------------------------');
+            } catch (\Throwable $e) {
+                $this->failed_count++;
+                $this->msg = 'حدث خطأ أثناء استيراد الصف.';
+                Log::error('ContractorVotersImport row failed', [
+                    'row' => $row_data ?? null,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                continue;
+            }
             }
         });
         Log::info('----------------------------');
@@ -249,8 +260,16 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     public function checkVoterWithContractorThroughElection($voter_id){
         // Get the contractor and its election ID
         $con_id      = ($this->contractor_id == 0)?$this->sheet_contractor_id:$this->contractor_id; 
-        $contractor  = Contractor::findOrFail($con_id);
+        $contractor  = Contractor::find($con_id);
+        if (!$contractor) {
+            Log::error('Contractor not found for election check', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
+            return 0;
+        }
         $election_id = $contractor->election_id;
+        if (!$election_id) {
+            Log::error('Contractor has no election_id', ['contractor_id' => $con_id]);
+            return 0;
+        }
         
         // Simple direct query to check if voter exists in election_voter
         $exists = DB::table('election_voter')
@@ -299,7 +318,12 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $status     = '';
         $con_id     = ($this->contractor_id == 0)?$this->sheet_contractor_id:$this->contractor_id; 
         
-        $contractor = Contractor::findOrFail($con_id);
+        $contractor = Contractor::find($con_id);
+        if (!$contractor) {
+            Log::error('Contractor not found for addVoterToContractor', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
+            $this->failed_count++;
+            return $status;
+        }
         
         Log::info('---------line 170-------------------');
         Log::info(json_encode($contractor));
