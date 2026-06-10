@@ -17,6 +17,9 @@ class ArabicHelper
         // Normalize Alif variations
         $text = str_replace(['أ', 'إ', 'آ'], 'ا', $text);
 
+        // Normalize Ya and alif maqsura
+        $text = str_replace(['ى'], 'ي', $text);
+
         // Replace Taa Marbuta with Haa
         $text = str_replace('ة', 'ه', $text);
 
