@@ -474,15 +474,33 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $isInSoftDeletes    = $contractor->softDelete()->where('voter_id', $voter_id)->exists();
         
         if ($isInSoftDeletes) {
-            $restore_data = $contractor->softDelete()->where('voter_id', $voter_id)->delete();
-            if ($restore_data) {
-                Log::info('restore soft delete relationship for voter', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
-                $this->success_count++;
-                return 'success';
+            $detachCount = $contractor->softDelete()->detach($voter_id);
+            if ($detachCount === 0) {
+                $this->failed_count++;
+                Log::warning('failed to detach voter from soft delete archive', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
             }
 
-            $this->failed_count++;
-            Log::warning('failed to restore voter from soft delete', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
+            if (!$isInVoters) {
+                try {
+                    $contractor->voters()->attach($voter_id, ['percentage' => 0]);
+                    Log::info('restored voter from soft delete archive to active contractor list', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
+                    $this->success_count++;
+                    return 'success';
+                } catch (\Throwable $e) {
+                    $this->failed_count++;
+                    Log::error('failed to restore voter to active contractor list', [
+                        'contractor_id' => $con_id,
+                        'voter_id'      => $voter_id,
+                        'error'         => $e->getMessage(),
+                        'trace'         => $e->getTraceAsString(),
+                    ]);
+                    return 'failed';
+                }
+            }
+
+            Log::info('restore soft delete relationship for voter', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
+            $this->success_count++;
+            return 'success';
         }
 
         if (!$isInVoters) {//voter not found with contractor --> add voter with contractor
