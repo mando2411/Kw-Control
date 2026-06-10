@@ -129,15 +129,21 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     Log::info($nationalId);
                     $voter_detail = Voter::withoutGlobalScopes()->where('alrkm_almd_yn', $nationalId);
                     if ($voter_detail->count() == 0) {
-                        Log::info('Trying fallback search using suffix and name', ['national_id' => $nationalId, 'name' => $voterName]);
+                        Log::info('Trying fallback search using contains and name', ['national_id' => $nationalId, 'name' => $voterName]);
                         $fallbackQuery = Voter::withoutGlobalScopes()
-                            ->where('alrkm_almd_yn', 'like', '%' . $nationalId);
+                            ->where('alrkm_almd_yn', 'like', '%' . $nationalId . '%');
 
                         if ($voterName) {
-                            $fallbackQuery->where('normalized_name', 'like', '%' . $this->normalizeText(ArabicHelper::normalizeArabic($voterName)) . '%');
+                            $fallbackQuery->where(function ($query) use ($voterName) {
+                                $query->where('normalized_name', 'like', '%' . $this->normalizeText(ArabicHelper::normalizeArabic($voterName)) . '%')
+                                      ->orWhere('name', 'like', '%' . $voterName . '%');
+                            });
                         }
 
-                        if ($fallbackQuery->count() > 0) {
+                        $fallbackCount = $fallbackQuery->count();
+                        Log::info('Fallback search count', ['count' => $fallbackCount, 'national_id' => $nationalId, 'name' => $voterName]);
+
+                        if ($fallbackCount > 0) {
                             Log::info('Fallback voter search found candidates', ['national_id' => $nationalId, 'name' => $voterName]);
                             $voter_detail = $fallbackQuery;
                         }
