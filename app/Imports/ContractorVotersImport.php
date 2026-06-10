@@ -194,7 +194,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                         $rowResolved = false;
                         foreach ($voter_detail->get() as $voter) {
                             $status = $this->handleAddLogic($voter, true, $row_data);
-                            if ($status === 'success' || $status === 'repeat') {
+                            if ($status === 'success' || $status === 'repeat' || $status === 'failed') {
                                 $rowResolved = true;
                                 if ($status === 'success') {
                                     break;
@@ -474,39 +474,50 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $isInSoftDeletes    = $contractor->softDelete()->where('voter_id', $voter_id)->exists();
         
         if ($isInSoftDeletes) {
-            $restore_data=$contractor->softDelete()->where('voter_id',$voter_id)->delete();
-            if($restore_data){
-                Log::info('delete softedelete');
+            $restore_data = $contractor->softDelete()->where('voter_id', $voter_id)->delete();
+            if ($restore_data) {
+                Log::info('restore soft delete relationship for voter', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
                 $this->success_count++;
-                $status='success';
-            }else{
-                $this->failed_count++;
-                Log::info('failed to add voter to contractor');
+                return 'success';
             }
+
+            $this->failed_count++;
+            Log::warning('failed to restore voter from soft delete', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
         }
 
         if (!$isInVoters) {//voter not found with contractor --> add voter with contractor
             Log::info('---------line 194-------------------');
             Log::info('-----voter not found with contractor before------------------');
-            $add_voter_to_contract=ContractorVoter::create([
-                'contractor_id'     => $con_id,
-                'voter_id'          => $voter_id,
-                'percentage'        => 0 
-            ]);
-            Log::info('-----after add query line 201------------------');
+            try {
+                $add_voter_to_contract = ContractorVoter::create([
+                    'contractor_id'     => $con_id,
+                    'voter_id'          => $voter_id,
+                    'percentage'        => 0 
+                ]);
+                Log::info('-----after add query line 201------------------');
 
-            if($add_voter_to_contract){
-                Log::info('add voter to contractor done');
-                $this->success_count++;
-                $status='success';   
-            }else{
-                // ($loop)?$this->failed_count++:'';
-                Log::info('failed to add voter to contractor');
+                if ($add_voter_to_contract) {
+                    Log::info('add voter to contractor done');
+                    $this->success_count++;
+                    $status = 'success';
+                } else {
+                    $this->failed_count++;
+                    Log::warning('failed to add voter to contractor, create returned falsy result', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
+                }
+            } catch (\Throwable $e) {
+                $this->failed_count++;
+                Log::error('ContractorVoter create failed', [
+                    'contractor_id' => $con_id,
+                    'voter_id'      => $voter_id,
+                    'error'         => $e->getMessage(),
+                    'trace'         => $e->getTraceAsString(),
+                ]);
+                $status = 'failed';
             }
-        }else{//voter already found with contractor
+        } else {//voter already found with contractor
             Log::info('---------line 214-------------------');
             Log::info('-----voter found with contractor before------------------');
-        
+
             Log::info('voter already exist');
             $this->repeat_count++;
             $status = 'repeat';
@@ -560,6 +571,12 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
             Log::info('---------line 248: before add operation-------------------');
             $status_msg = $this->addVoterToContractor($voter->id, $loop);
             Log::info('---------line 250: after add operation-------------------');
+            if ($status_msg === 'failed' && ! empty($rowData)) {
+                $this->recordFailedRow($rowData, 'db_error', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
+            }
+            if ($status_msg === 'failed' && ! empty($rowData)) {
+                $this->recordFailedRow($rowData, 'db_error', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
+            }
             
             //=====================================================
         } else {
