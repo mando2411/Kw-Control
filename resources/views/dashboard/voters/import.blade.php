@@ -88,6 +88,7 @@
                                         <h5 class="card-title" style="color:orange">عدد الناخبين المُكررين :<span id="repeat_count">0</span></h5>
                                         <div id="failed_rows_summary" class="text-danger"></div>
                                         <div id="failed_rows_details" class="mt-3" style="display:none; text-align:right;"></div>
+                                        <button id="download_failed_rows" type="button" class="btn btn-warning mt-3" style="display:none;">تحميل ملف تفاصيل الفشل</button>
                                     </div>
                                 </div>
                             </center>
@@ -202,6 +203,7 @@
                     document.getElementById('failed_rows_summary').innerHTML = summary.length ? '<strong>تفاصيل أسباب الفشل:</strong> ' + summary.join('، ') : '';
 
                     const failedRows = response.data.failed_rows ?? [];
+                    window.failedRowsDetail = failedRows;
                     if (failedRows.length > 0) {
                         const preview = failedRows.slice(0, 10).map((row, index) => {
                             const rowText = JSON.stringify(row.row, null, 0);
@@ -209,9 +211,11 @@
                         }).join('');
                         document.getElementById('failed_rows_details').innerHTML = '<div><strong>أول 10 صفوف فاشلة:</strong></div>' + preview;
                         document.getElementById('failed_rows_details').style.display = 'block';
+                        document.getElementById('download_failed_rows').style.display = 'inline-block';
                     } else {
                         document.getElementById('failed_rows_details').style.display = 'none';
                         document.getElementById('failed_rows_details').innerHTML = '';
+                        document.getElementById('download_failed_rows').style.display = 'none';
                     }
                     
                     // Reset form
@@ -230,6 +234,52 @@
             error: function(xhr, status, error) {
                 alert('Error uploading file: ' + error);
                 document.getElementById('result').style.display = 'none';
+            }
+        });
+
+        document.getElementById('download_failed_rows').addEventListener('click', function() {
+            if (!window.failedRowsDetail || window.failedRowsDetail.length === 0) {
+                return;
+            }
+
+            const rows = window.failedRowsDetail;
+            const allKeys = new Set();
+            rows.forEach(({ row }) => {
+                Object.keys(row || {}).forEach((key) => allKeys.add(key));
+            });
+
+            const headers = ['reason', ...Array.from(allKeys)];
+            const escapeValue = (value) => {
+                if (value === null || value === undefined) return '';
+                const str = String(value).replace(/"/g, '""');
+                return '"' + str + '"';
+            };
+
+            const csvLines = rows.map(({ reason, row }) => {
+                const rowValues = headers.map((header) => {
+                    if (header === 'reason') {
+                        return escapeValue(reason);
+                    }
+                    return escapeValue(row ? row[header] : '');
+                });
+                return rowValues.join(',');
+            });
+
+            const csvContent = [headers.map(escapeValue).join(','), ...csvLines].join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const filename = 'failed_import_rows_' + new Date().toISOString().slice(0,19).replace(/[:T]/g, '-') + '.csv';
+
+            if (navigator.msSaveBlob) {
+                navigator.msSaveBlob(blob, filename);
+            } else {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
             }
         });
     });
