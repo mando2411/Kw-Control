@@ -470,8 +470,13 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         Log::info(json_encode($contractor));
         Log::info('----------------------------');
         
-        $isInVoters         = $contractor->voters()->where('voter_id', $voter_id)->exists();
-        $isInSoftDeletes    = $contractor->softDelete()->where('voter_id', $voter_id)->exists();
+        $isInVoters = ContractorVoter::where('contractor_id', $con_id)
+            ->where('voter_id', $voter_id)
+            ->exists();
+        $isInSoftDeletes = DB::table('contractor_voter_delete')
+            ->where('contractor_id', $con_id)
+            ->where('voter_id', $voter_id)
+            ->exists();
         
         if ($isInSoftDeletes) {
             $detachCount = $contractor->softDelete()->detach($voter_id);
