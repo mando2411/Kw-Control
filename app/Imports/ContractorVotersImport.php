@@ -140,8 +140,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
 
                         if ($voterName) {
                             $normalizedQueryName = $this->normalizeText(ArabicHelper::normalizeArabic($voterName));
+                            $normalizedQueryName = str_replace(['ى', 'ي'], 'ي', preg_replace('/\s+/u', '', $normalizedQueryName));
                             $fallbackQuery->where(function ($query) use ($normalizedQueryName, $voterName) {
-                                $query->whereRaw("REPLACE(normalized_name, 'ى', 'ي') LIKE ?", ['%' . $normalizedQueryName . '%'])
+                                $query->whereRaw("REPLACE(REPLACE(REPLACE(TRIM(normalized_name), ' ', ''), 'ى', 'ي'), 'ي', 'ي') LIKE ?", ['%' . $normalizedQueryName . '%'])
                                       ->orWhere('name', 'like', '%' . $voterName . '%');
                             });
                         }
@@ -159,8 +160,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                                 $alsndokQuery = Voter::withoutGlobalScopes()->where('alsndok', $nationalId);
                                 if ($voterName) {
                                     $normalizedQueryName = $this->normalizeText(ArabicHelper::normalizeArabic($voterName));
+                                    $normalizedQueryName = str_replace(['ى', 'ي'], 'ي', preg_replace('/\s+/u', '', $normalizedQueryName));
                                     $alsndokQuery->where(function ($query) use ($normalizedQueryName, $voterName) {
-                                        $query->whereRaw("REPLACE(normalized_name, 'ى', 'ي') LIKE ?", ['%' . $normalizedQueryName . '%'])
+                                        $query->whereRaw("REPLACE(REPLACE(REPLACE(TRIM(normalized_name), ' ', ''), 'ى', 'ي'), 'ي', 'ي') LIKE ?", ['%' . $normalizedQueryName . '%'])
                                               ->orWhere('name', 'like', '%' . $voterName . '%');
                                     });
                                 }
