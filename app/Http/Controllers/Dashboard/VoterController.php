@@ -342,12 +342,15 @@ class VoterController extends Controller
                 'success'   => true,
                 'message'   => 'File uploaded successfully',
                 'data'      => [
-                    'success_count' => $import->getSuccessCount(),
-                    'failed_count'  => $import->getFailedCount(),
-                    'repeat_count'  => $import->getRepeatedCount(),
-                    'contractor_id' => $import->getTargetContractorId(),
-                    'sheet_contractor_id' => $import->getSheetContractorId(),
-                    'msg'           => ($import->getMsg() != '')
+                    'success_count'           => $import->getSuccessCount(),
+                    'failed_count'            => $import->getFailedCount(),
+                    'repeat_count'            => $import->getRepeatedCount(),
+                    'not_allowed_count'       => $import->getNotAllowedCount(),
+                    'voter_not_found_count'   => $import->getVoterNotFoundCount(),
+                    'contractor_not_found_count' => $import->getContractorNotFoundCount(),
+                    'contractor_id'           => $import->getTargetContractorId(),
+                    'sheet_contractor_id'     => $import->getSheetContractorId(),
+                    'msg'                     => ($import->getMsg() != '')
                         ? $import->getMsg()
                         : (($import->getSuccessCount() > 0 || $import->getRepeatedCount() > 0 || $import->getFailedCount() > 0)
                             ? 'تمت اضافة الناخبين بنجاح'

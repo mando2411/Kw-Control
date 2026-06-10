@@ -19,6 +19,10 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     private $success_count;
     private $failed_count;
     private $repeat_count;
+    private $missing_id_count;
+    private $voter_not_found_count;
+    private $not_allowed_count;
+    private $contractor_not_found_count;
     private $msg;
     private array $resolvedColumns = [];
     private array $normalizedHeaderToOriginal = [];
@@ -30,6 +34,10 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $this->success_count        = 0;
         $this->failed_count         = 0;
         $this->repeat_count         = 0;
+        $this->missing_id_count     = 0;
+        $this->voter_not_found_count= 0;
+        $this->not_allowed_count    = 0;
+        $this->contractor_not_found_count = 0;
         $this->msg                  = '';
     }
     //=================================================================================================
@@ -53,22 +61,49 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     Log::info($row);
                     Log::info('----------------------------');
                     //=============================================================================================================
-                    $contractorName = $this->value($row_data, 'asm_almtaahd', ['asm_almtahed', 'asm_almtaahd', 'اسم_المتعهد_الفرعي', 'اسم_المتعهد']);
-                    $nationalId = $this->normalizeIdentifier($this->value($row_data, 'alrkm_almdn', ['alrkm_almdny', 'civil_id', 'civilid', 'id', 'national_id', 'الرقم_المدني']));
+                    $contractorName = $this->value($row_data, 'asm_almtaahd', [
+                        'asm_almtahed',
+                        'asm_almtaahd',
+                        'اسم_المتعهد_الفرعي',
+                        'اسم_المتعهد',
+                        'اسم_المتعاقد',
+                        'اسم_المتعهد الفرعي',
+                        'sub_contractor',
+                        'subcontractor'
+                    ]);
+                    $nationalId = $this->normalizeIdentifier($this->value($row_data, 'alrkm_almdn', [
+                        'alrkm_almdn',
+                        'alrkm_almdny',
+                        'alrkm_almd_yn',
+                        'civil_id',
+                        'civilid',
+                        'id',
+                        'national_id',
+                        'الرقم_المدني',
+                        'الرقم_المدنى'
+                    ]));
 
-                if (($this->contractor_id) == 0) {
+                    if (($this->contractor_id) == 0) {
                     if ($contractorName) {
-                        $constractor_detail = Contractor::select('id')
-                            ->where('name', $contractorName)
+                        $constractor_detail = Contractor::withoutGlobalScopes()
+                            ->whereRaw('LOWER(TRIM(name)) = ?', [mb_strtolower(trim($contractorName), 'UTF-8')])
                             ->first();
-                        if (isset($constractor_detail)) {
+                        if (!$constractor_detail) {
+                            $constractor_detail = Contractor::withoutGlobalScopes()
+                                ->where('name', 'like', '%' . trim($contractorName) . '%')
+                                ->first();
+                        }
+                        if ($constractor_detail) {
                             $this->sheet_contractor_id = $constractor_detail->id;
                             Log::info('----------------------------');
                             Log::info('contractor_id : '.$this->sheet_contractor_id);
+                            Log::info('contractor_name : '.$constractor_detail->name);
                             Log::info('----------------------------');
                         } else {
                             $this->failed_count++;
+                            $this->contractor_not_found_count++;
                             $this->msg = 'لم يتم العثور على المتعهد الفرعى في الشيت.';
+                            Log::warning('Contractor name not found in sheet row', ['contractor_name' => $contractorName, 'row' => $row_data]);
                             continue;
                         }
                     } else {
@@ -83,10 +118,11 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                 //=============================================================================================================
                 if ($nationalId) {
                     Log::info($nationalId);
-                    $voter_detail = Voter::where('alrkm_almd_yn', $nationalId);
+                    $voter_detail = Voter::withoutGlobalScopes()->where('alrkm_almd_yn', $nationalId);
                     if ($voter_detail->count() == 0) {
                         $this->failed_count++;
-                        Log::info('no voter');
+                        $this->voter_not_found_count++;
+                        Log::warning('Voter not found by national id', ['national_id' => $nationalId, 'row' => $row_data]);
                     } elseif ($voter_detail->count() == 1) {
                         $voter = $voter_detail->first();
                         Log::info($voter);
@@ -97,16 +133,14 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                             $this->failed_count++;
                         }
                     } else {
-                        $check_status = 0;
+                        $hadSuccess = false;
                         foreach ($voter_detail->get() as $voter) {
-                            if ($this->handleAddLogic($voter, true) == 'success') {
-                                $check_status = 1;
+                            if ($this->handleAddLogic($voter, true) === 'success') {
+                                $hadSuccess = true;
                                 break;
                             }
                         }
-                        if ($check_status == 1) {
-                            $this->success_count++;
-                        } else {
+                        if (! $hadSuccess) {
                             $this->failed_count++;
                         }
                     }
@@ -160,6 +194,18 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
 
     public function getSheetContractorId(){
         return $this->sheet_contractor_id;
+    }
+
+    public function getNotAllowedCount(){
+        return $this->not_allowed_count;
+    }
+
+    public function getVoterNotFoundCount(){
+        return $this->voter_not_found_count;
+    }
+
+    public function getContractorNotFoundCount(){
+        return $this->contractor_not_found_count;
     }
     //=================================================================================================
     private function value(array $row, string $field, array $aliases = []): mixed
@@ -264,11 +310,16 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $normalized = preg_replace('/\D+/', '', $raw);
         return $normalized !== '' ? $normalized : null;
     }
+
+    private function normalizeText(string $value): string
+    {
+        return mb_strtolower(preg_replace('/\s+/u', ' ', trim($value)), 'UTF-8');
+    }
     //=================================================================================================
     public function checkVoterWithContractorThroughElection($voter_id){
         // Get the contractor and its election ID
-        $con_id      = ($this->contractor_id == 0)?$this->sheet_contractor_id:$this->contractor_id; 
-        $contractor  = Contractor::find($con_id);
+        $con_id      = ($this->contractor_id == 0) ? $this->sheet_contractor_id : $this->contractor_id; 
+        $contractor  = Contractor::withoutGlobalScopes()->find($con_id);
         if (!$contractor) {
             Log::error('Contractor not found for election check', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
             return 0;
@@ -276,6 +327,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $election_id = $contractor->election_id;
         if (!$election_id) {
             Log::error('Contractor has no election_id', ['contractor_id' => $con_id]);
+            $this->not_allowed_count++;
             return 0;
         }
         
@@ -326,10 +378,11 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $status     = '';
         $con_id     = ($this->contractor_id == 0)?$this->sheet_contractor_id:$this->contractor_id; 
         
-        $contractor = Contractor::find($con_id);
+        $contractor = Contractor::withoutGlobalScopes()->find($con_id);
         if (!$contractor) {
             Log::error('Contractor not found for addVoterToContractor', ['contractor_id' => $con_id, 'voter_id' => $voter_id]);
             $this->failed_count++;
+            $this->contractor_not_found_count++;
             return $status;
         }
         
@@ -406,9 +459,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         return 1;
     }
     //=================================================================================================
-    public function  handleAddLogic($voter,$loop=false){
+    public function handleAddLogic($voter, $loop = false){
         $status_msg = '';
-        $con_id     = ($this->contractor_id == 0)?$this->sheet_contractor_id:$this->contractor_id; 
+        $con_id     = ($this->contractor_id == 0) ? $this->sheet_contractor_id : $this->contractor_id; 
         
         if ($this->checkVoterWithContractorThroughElection($voter->id)) {//check if this voter related with Contractor election
             Log::info("Voter {$voter->id} is allowed in election. Adding to contractor {$con_id}");
@@ -416,13 +469,14 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
             Log::info('contractor id : '.$con_id);
             //=====================================================
             Log::info('---------line 248: before add operation-------------------');
-            $status_msg = $this->addVoterToContractor($voter->id,$loop);
+            $status_msg = $this->addVoterToContractor($voter->id, $loop);
             Log::info('---------line 250: after add operation-------------------');
             
             //=====================================================
         } else {
             Log::info("Voter {$voter->id} is not allowed in election for contractor {$con_id}");
             $this->failed_count++;
+            $this->not_allowed_count++;
         }
         return $status_msg;
     }
