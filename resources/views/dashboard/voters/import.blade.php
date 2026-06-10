@@ -187,18 +187,16 @@
                     document.getElementById('repeat_count').innerHTML   = (response.data.repeat_count) ?? 0;
 
                     const summary = [];
-                    if (response.data.not_allowed_count) {
-                        summary.push('غير مصرح لهم: ' + response.data.not_allowed_count);
-                    }
-                    if (response.data.voter_not_found_count) {
-                        summary.push('لم يتم العثور على ناخبين: ' + response.data.voter_not_found_count);
-                    }
-                    if (response.data.contractor_not_found_count) {
-                        summary.push('متعهد غير موجود: ' + response.data.contractor_not_found_count);
-                    }
+                    const reasonLabels = {
+                        not_allowed: 'غير مصرح لهم',
+                        voter_not_found: 'لم يتم العثور على ناخبين',
+                        contractor_not_found: 'متعهد غير موجود',
+                        missing_identifier: 'رقم مدني مفقود'
+                    };
                     if (response.data.failed_rows_summary) {
                         Object.entries(response.data.failed_rows_summary).forEach(([reason, count]) => {
-                            summary.push(reason + ': ' + count);
+                            const label = reasonLabels[reason] ?? reason;
+                            summary.push(label + ': ' + count);
                         });
                     }
                     document.getElementById('failed_rows_summary').innerHTML = summary.length ? '<strong>تفاصيل أسباب الفشل:</strong> ' + summary.join('، ') : '';
