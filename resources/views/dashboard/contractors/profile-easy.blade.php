@@ -2257,6 +2257,7 @@
     ->toArray();
 
     $voters = $contractor->voters()
+    ->withoutGlobalScopes()
     ->orderByRaw('status = true ASC')
     ->orderByPivot('created_at', 'desc')
     ->orderBy('name', 'asc')

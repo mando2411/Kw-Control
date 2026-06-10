@@ -2191,6 +2191,7 @@
     @php
     $id=$contractor->id;
     $voters = $contractor->voters()
+    ->withoutGlobalScopes()
     ->whereDoesntHave('groups', function ($query) use ($id) {
         $query->where('contractor_id', $id);
     })
