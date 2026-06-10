@@ -153,6 +153,14 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     public function getMsg(){
         return $this->msg;
     }
+
+    public function getTargetContractorId(){
+        return ($this->contractor_id == 0) ? $this->sheet_contractor_id : $this->contractor_id;
+    }
+
+    public function getSheetContractorId(){
+        return $this->sheet_contractor_id;
+    }
     //=================================================================================================
     private function value(array $row, string $field, array $aliases = []): mixed
     {
