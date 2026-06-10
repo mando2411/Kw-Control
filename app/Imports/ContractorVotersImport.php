@@ -84,12 +84,15 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                         'alrkm_almdn',
                         'alrkm_almdny',
                         'alrkm_almd_yn',
+                        'alsndok',
+                        'registration_number',
                         'civil_id',
                         'civilid',
                         'id',
                         'national_id',
                         'الرقم_المدني',
-                        'الرقم_المدنى'
+                        'الرقم_المدنى',
+                        'رقم_القيد'
                     ]));
 
                     if (($this->contractor_id) == 0) {
@@ -129,7 +132,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     Log::info($nationalId);
                     $voter_detail = Voter::withoutGlobalScopes()->where('alrkm_almd_yn', $nationalId);
                     if ($voter_detail->count() == 0) {
-                        Log::info('Trying fallback search using contains and name', ['national_id' => $nationalId, 'name' => $voterName]);
+                        Log::info('Trying fallback search using contains and name', ['identifier' => $nationalId, 'name' => $voterName]);
                         $fallbackQuery = Voter::withoutGlobalScopes()
                             ->where('alrkm_almd_yn', 'like', '%' . $nationalId . '%');
 
@@ -141,18 +144,29 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                         }
 
                         $fallbackCount = $fallbackQuery->count();
-                        Log::info('Fallback search count', ['count' => $fallbackCount, 'national_id' => $nationalId, 'name' => $voterName]);
+                        Log::info('Fallback search count', ['count' => $fallbackCount, 'identifier' => $nationalId, 'name' => $voterName]);
 
                         if ($fallbackCount > 0) {
-                            Log::info('Fallback voter search found candidates', ['national_id' => $nationalId, 'name' => $voterName]);
+                            Log::info('Fallback voter search found candidates', ['identifier' => $nationalId, 'name' => $voterName]);
                             $voter_detail = $fallbackQuery;
-                        } elseif ($voterName) {
-                            $nameOnlyCount = Voter::withoutGlobalScopes()
-                                ->where('normalized_name', 'like', '%' . $this->normalizeText(ArabicHelper::normalizeArabic($voterName)) . '%')
-                                ->orWhere('name', 'like', '%' . $voterName . '%')
-                                ->count();
-
-                            Log::info('Name-only fallback search count', ['count' => $nameOnlyCount, 'national_id' => $nationalId, 'name' => $voterName]);
+                        } else {
+                            $numericIdentifier = ctype_digit($nationalId);
+                            if ($numericIdentifier && mb_strlen($nationalId) <= 6) {
+                                $logKey = 'alsndok';
+                                $alsndokQuery = Voter::withoutGlobalScopes()->where('alsndok', $nationalId);
+                                if ($voterName) {
+                                    $alsndokQuery->where(function ($query) use ($voterName) {
+                                        $query->where('normalized_name', 'like', '%' . $this->normalizeText(ArabicHelper::normalizeArabic($voterName)) . '%')
+                                              ->orWhere('name', 'like', '%' . $voterName . '%');
+                                    });
+                                }
+                                $alsndokCount = $alsndokQuery->count();
+                                Log::info('Registration number fallback search count', ['count' => $alsndokCount, 'alsndok' => $nationalId, 'name' => $voterName]);
+                                if ($alsndokCount > 0) {
+                                    Log::info('Registration number fallback found candidates', ['alsndok' => $nationalId, 'name' => $voterName]);
+                                    $voter_detail = $alsndokQuery;
+                                }
+                            }
                         }
                     }
 
