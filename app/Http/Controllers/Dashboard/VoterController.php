@@ -337,25 +337,43 @@ class VoterController extends Controller
         try {
             $import = new ContractorVotersImport($request->sub_contractor);
             Excel::import($import, $request->file('import'));
-            
+
+            $successCount = $import->getSuccessCount();
+            $failedCount = $import->getFailedCount();
+            $repeatCount = $import->getRepeatedCount();
+            $totalRows = $successCount + $failedCount + $repeatCount;
+            $failedRows = $import->getFailedRows();
+            $failedRowsSummary = collect($failedRows)->groupBy('reason')->map->count()->toArray();
+
+            $message = $import->getMsg();
+            if ($message === '') {
+                if ($successCount > 0 || $repeatCount > 0) {
+                    if ($failedCount > 0) {
+                        $message = "تمت معالجة الملف. تم إضافة $successCount ناخبين، و $repeatCount مكرر، وفشل إضافة $failedCount.";
+                    } else {
+                        $message = 'تمت إضافة الناخبين بنجاح';
+                    }
+                } else {
+                    $message = 'لم يتم العثور على الناخبين المطابقين. يرجى التحقق من رقم الـ ID أو الاسم في الملف.';
+                }
+            }
+
             return response()->json([
                 'success'   => true,
-                'message'   => 'File uploaded successfully',
+                'message'   => $message,
                 'data'      => [
-                    'success_count'           => $import->getSuccessCount(),
-                    'failed_count'            => $import->getFailedCount(),
-                    'repeat_count'            => $import->getRepeatedCount(),
-                    'not_allowed_count'       => $import->getNotAllowedCount(),
-                    'voter_not_found_count'   => $import->getVoterNotFoundCount(),
-                    'contractor_not_found_count' => $import->getContractorNotFoundCount(),
-                    'failed_rows'             => $import->getFailedRows(),
-                    'contractor_id'           => $import->getTargetContractorId(),
-                    'sheet_contractor_id'     => $import->getSheetContractorId(),
-                    'msg'                     => ($import->getMsg() != '')
-                        ? $import->getMsg()
-                        : (($import->getSuccessCount() > 0 || $import->getRepeatedCount() > 0)
-                            ? 'تمت اضافة الناخبين بنجاح'
-                            : 'لم يتم العثور على الناخبين المطابقين. يرجى التحقق من رقم الـ ID أو الاسم في الملف.'),
+                    'success_count'             => $successCount,
+                    'failed_count'              => $failedCount,
+                    'repeat_count'              => $repeatCount,
+                    'total_rows'                => $totalRows,
+                    'not_allowed_count'         => $import->getNotAllowedCount(),
+                    'voter_not_found_count'     => $import->getVoterNotFoundCount(),
+                    'contractor_not_found_count'=> $import->getContractorNotFoundCount(),
+                    'failed_rows'               => $failedRows,
+                    'failed_rows_summary'       => $failedRowsSummary,
+                    'contractor_id'             => $import->getTargetContractorId(),
+                    'sheet_contractor_id'       => $import->getSheetContractorId(),
+                    'msg'                       => $message,
                 ]
             ]);
         } catch (\Exception $e) {

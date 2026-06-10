@@ -79,12 +79,15 @@
                             <center>
                                 <br>
                                 <div class="card border-success mb-6" style="max-width: 45rem;display:none" id="result" >
-                                    <div class="card-body text-success">
+                                    <div class="card-body text-success text-start">
                                         <h5 class="card-title" style="color:red"> <span id="msg"></span></h5>
                                         <hr>
+                                        <h5 class="card-title">عدد الصفوف المجهزة: <span id="total_rows">0</span></h5>
                                         <h5 class="card-title">عدد الناخبين اللذين تمت اضافتهم: <span id="success_count">0</span></h5>
                                         <h5 class="card-title" style="color:red">عدد الناخبين اللذين فشل اضافتهم: <span id="failed_count">0</span></h5>
                                         <h5 class="card-title" style="color:orange">عدد الناخبين المُكررين :<span id="repeat_count">0</span></h5>
+                                        <div id="failed_rows_summary" class="text-danger"></div>
+                                        <div id="failed_rows_details" class="mt-3" style="display:none; text-align:right;"></div>
                                     </div>
                                 </div>
                             </center>
@@ -177,10 +180,41 @@
             success: function(response) {
                 if (response.success) {
                     document.getElementById('result').style.display     = 'block';
-                    document.getElementById('msg').innerHTML            = (response.data.msg)??'';
-                    document.getElementById('success_count').innerHTML  = (response.data.success_count)??0;
-                    document.getElementById('failed_count').innerHTML   = (response.data.failed_count)??0;
-                    document.getElementById('repeat_count').innerHTML   = (response.data.repeat_count)??0;
+                    document.getElementById('msg').innerHTML            = (response.data.msg) ?? '';
+                    document.getElementById('total_rows').innerHTML      = (response.data.total_rows) ?? 0;
+                    document.getElementById('success_count').innerHTML  = (response.data.success_count) ?? 0;
+                    document.getElementById('failed_count').innerHTML   = (response.data.failed_count) ?? 0;
+                    document.getElementById('repeat_count').innerHTML   = (response.data.repeat_count) ?? 0;
+
+                    const summary = [];
+                    if (response.data.not_allowed_count) {
+                        summary.push('غير مصرح لهم: ' + response.data.not_allowed_count);
+                    }
+                    if (response.data.voter_not_found_count) {
+                        summary.push('لم يتم العثور على ناخبين: ' + response.data.voter_not_found_count);
+                    }
+                    if (response.data.contractor_not_found_count) {
+                        summary.push('متعهد غير موجود: ' + response.data.contractor_not_found_count);
+                    }
+                    if (response.data.failed_rows_summary) {
+                        Object.entries(response.data.failed_rows_summary).forEach(([reason, count]) => {
+                            summary.push(reason + ': ' + count);
+                        });
+                    }
+                    document.getElementById('failed_rows_summary').innerHTML = summary.length ? '<strong>تفاصيل أسباب الفشل:</strong> ' + summary.join('، ') : '';
+
+                    const failedRows = response.data.failed_rows ?? [];
+                    if (failedRows.length > 0) {
+                        const preview = failedRows.slice(0, 10).map((row, index) => {
+                            const rowText = JSON.stringify(row.row, null, 0);
+                            return '<div><strong>' + (index + 1) + '.</strong> ' + row.reason + ' - ' + rowText + '</div>';
+                        }).join('');
+                        document.getElementById('failed_rows_details').innerHTML = '<div><strong>أول 10 صفوف فاشلة:</strong></div>' + preview;
+                        document.getElementById('failed_rows_details').style.display = 'block';
+                    } else {
+                        document.getElementById('failed_rows_details').style.display = 'none';
+                        document.getElementById('failed_rows_details').innerHTML = '';
+                    }
                     
                     // Reset form
                     $('#candidate').val('');
@@ -192,7 +226,7 @@
                     $('.progress .progress-bar').css("width", "0%");
                     $('.progress .progress-bar').attr("aria-valuenow", 0);
                     
-                    alert('File has been uploaded successfully!');
+                    alert(response.data.msg || 'File has been uploaded successfully!');
                 } else {
                     alert('Error uploading file: ' + response.message);
                 }
