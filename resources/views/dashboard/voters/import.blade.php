@@ -266,7 +266,7 @@
             });
 
             const csvContent = [headers.map(escapeValue).join(','), ...csvLines].join('\r\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             const filename = 'failed_import_rows_' + new Date().toISOString().slice(0,19).replace(/[:T]/g, '-') + '.csv';
 
