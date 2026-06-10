@@ -225,8 +225,6 @@
                     document.getElementById('progress_percentage').innerHTML = 0 + '%';
                     $('.progress .progress-bar').css("width", "0%");
                     $('.progress .progress-bar').attr("aria-valuenow", 0);
-                    
-                    alert(response.data.msg || 'File has been uploaded successfully!');
                 } else {
                     alert('Error uploading file: ' + response.message);
                 }

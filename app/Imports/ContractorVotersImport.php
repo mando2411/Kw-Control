@@ -187,16 +187,21 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                             $this->failed_count++;
                         }
                     } else {
-                        $hadSuccess = false;
+                        $rowResolved = false;
                         foreach ($voter_detail->get() as $voter) {
-                            if ($this->handleAddLogic($voter, true, $row_data) === 'success') {
-                                $hadSuccess = true;
-                                break;
+                            $status = $this->handleAddLogic($voter, true, $row_data);
+                            if ($status === 'success' || $status === 'repeat') {
+                                $rowResolved = true;
+                                if ($status === 'success') {
+                                    break;
+                                }
                             }
                         }
-                        if (! $hadSuccess) {
+
+                        if (! $rowResolved) {
                             $this->failed_count++;
-                            $this->recordFailedRow($row_data, 'voter_not_allowed_or_add_failed', ['identifier' => $nationalId]);
+                            $this->not_allowed_count++;
+                            $this->recordFailedRow($row_data, 'not_allowed', ['identifier' => $nationalId]);
                         }
                     }
                 } else {
@@ -500,6 +505,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         
             Log::info('voter already exist');
             $this->repeat_count++;
+            $status = 'repeat';
         }
         return $status;
     }
@@ -554,10 +560,12 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
             //=====================================================
         } else {
             Log::info("Voter {$voter->id} is not allowed in election for contractor {$con_id}");
-            $this->failed_count++;
-            $this->not_allowed_count++;
-            if (! empty($rowData)) {
-                $this->recordFailedRow($rowData, 'not_allowed', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
+            if (! $loop) {
+                $this->failed_count++;
+                $this->not_allowed_count++;
+                if (! empty($rowData)) {
+                    $this->recordFailedRow($rowData, 'not_allowed', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
+                }
             }
         }
         return $status_msg;
