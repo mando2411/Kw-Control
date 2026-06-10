@@ -25,6 +25,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     private $not_allowed_count;
     private $contractor_not_found_count;
     private $msg;
+    private array $failedRows = [];
     private array $resolvedColumns = [];
     private array $normalizedHeaderToOriginal = [];
     private bool $headersBootstrapped = false;
@@ -40,6 +41,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         $this->not_allowed_count    = 0;
         $this->contractor_not_found_count = 0;
         $this->msg                  = '';
+        $this->failedRows          = [];
     }
     //=================================================================================================
     /**
@@ -173,12 +175,13 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     if ($voter_detail->count() == 0) {
                         $this->failed_count++;
                         $this->voter_not_found_count++;
+                        $this->recordFailedRow($row_data, 'voter_not_found', ['identifier' => $nationalId]);
                         Log::warning('Voter not found by national id', ['national_id' => $nationalId, 'row' => $row_data]);
                     } elseif ($voter_detail->count() == 1) {
                         $voter = $voter_detail->first();
                         Log::info($voter);
                         if ($voter) {
-                            $this->handleAddLogic($voter);
+                            $this->handleAddLogic($voter, false, $row_data);
                         } else {
                             Log::info('no voter');
                             $this->failed_count++;
@@ -186,19 +189,22 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     } else {
                         $hadSuccess = false;
                         foreach ($voter_detail->get() as $voter) {
-                            if ($this->handleAddLogic($voter, true) === 'success') {
+                            if ($this->handleAddLogic($voter, true, $row_data) === 'success') {
                                 $hadSuccess = true;
                                 break;
                             }
                         }
                         if (! $hadSuccess) {
                             $this->failed_count++;
+                            $this->recordFailedRow($row_data, 'voter_not_allowed_or_add_failed', ['identifier' => $nationalId]);
                         }
                     }
                 } else {
                     Log::warning('Missing data in row:', $row_data);
-                    $this->msg = 'تاكد من ادخال قيمه للرقم المدنى ';
                     $this->failed_count++;
+                    $this->missing_id_count++;
+                    $this->recordFailedRow($row_data, 'missing_identifier');
+                    $this->msg = 'تاكد من ادخال قيمه للرقم المدنى ';
                     continue;
                 }
                 //=============================================================================================================
@@ -237,6 +243,11 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     //=================================================================================================
     public function getMsg(){
         return $this->msg;
+    }
+
+    public function getFailedRows(): array
+    {
+        return $this->failedRows;
     }
 
     public function getTargetContractorId(){
@@ -493,6 +504,14 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         return $status;
     }
     //=================================================================================================
+    private function recordFailedRow(array $rowData, string $reason, array $details = []): void
+    {
+        $this->failedRows[] = array_merge([
+            'reason' => $reason,
+            'row' => $rowData,
+        ], $details);
+    }
+
     public function oldAddVoterToContractor($voter_id){
         $check_found_before=ContractorVoter::where([
             'contractor_id'     => $this->contractor_id,
@@ -519,7 +538,7 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
         return 1;
     }
     //=================================================================================================
-    public function handleAddLogic($voter, $loop = false){
+    public function handleAddLogic($voter, $loop = false, array $rowData = []){
         $status_msg = '';
         $con_id     = ($this->contractor_id == 0) ? $this->sheet_contractor_id : $this->contractor_id; 
         
@@ -537,6 +556,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
             Log::info("Voter {$voter->id} is not allowed in election for contractor {$con_id}");
             $this->failed_count++;
             $this->not_allowed_count++;
+            if (! empty($rowData)) {
+                $this->recordFailedRow($rowData, 'not_allowed', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
+            }
         }
         return $status_msg;
     }

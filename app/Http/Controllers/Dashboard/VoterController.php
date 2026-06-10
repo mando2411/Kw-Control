@@ -348,6 +348,7 @@ class VoterController extends Controller
                     'not_allowed_count'       => $import->getNotAllowedCount(),
                     'voter_not_found_count'   => $import->getVoterNotFoundCount(),
                     'contractor_not_found_count' => $import->getContractorNotFoundCount(),
+                    'failed_rows'             => $import->getFailedRows(),
                     'contractor_id'           => $import->getTargetContractorId(),
                     'sheet_contractor_id'     => $import->getSheetContractorId(),
                     'msg'                     => ($import->getMsg() != '')
