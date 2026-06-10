@@ -562,33 +562,19 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     public function handleAddLogic($voter, $loop = false, array $rowData = []){
         $status_msg = '';
         $con_id     = ($this->contractor_id == 0) ? $this->sheet_contractor_id : $this->contractor_id; 
-        
-        if ($this->checkVoterWithContractorThroughElection($voter->id)) {//check if this voter related with Contractor election
-            Log::info("Voter {$voter->id} is allowed in election. Adding to contractor {$con_id}");
-            Log::info('voter id: '.$voter->id);
-            Log::info('contractor id : '.$con_id);
-            //=====================================================
-            Log::info('---------line 248: before add operation-------------------');
-            $status_msg = $this->addVoterToContractor($voter->id, $loop);
-            Log::info('---------line 250: after add operation-------------------');
-            if ($status_msg === 'failed' && ! empty($rowData)) {
-                $this->recordFailedRow($rowData, 'db_error', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
-            }
-            if ($status_msg === 'failed' && ! empty($rowData)) {
-                $this->recordFailedRow($rowData, 'db_error', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
-            }
-            
-            //=====================================================
-        } else {
-            Log::info("Voter {$voter->id} is not allowed in election for contractor {$con_id}");
-            if (! $loop) {
-                $this->failed_count++;
-                $this->not_allowed_count++;
-                if (! empty($rowData)) {
-                    $this->recordFailedRow($rowData, 'not_allowed', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
-                }
-            }
+
+        Log::info("Attempting to add voter {$voter->id} to contractor {$con_id}");
+        Log::info('voter id: '.$voter->id);
+        Log::info('contractor id : '.$con_id);
+        //=====================================================
+        Log::info('---------line 248: before add operation-------------------');
+        $status_msg = $this->addVoterToContractor($voter->id, $loop);
+        Log::info('---------line 250: after add operation-------------------');
+        if ($status_msg === 'failed' && ! empty($rowData)) {
+            $this->recordFailedRow($rowData, 'db_error', ['voter_id' => $voter->id, 'contractor_id' => $con_id]);
         }
+        //=====================================================
+
         return $status_msg;
     }
     //=================================================================================================
