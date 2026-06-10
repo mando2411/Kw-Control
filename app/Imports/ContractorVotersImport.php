@@ -20,6 +20,9 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     private $failed_count;
     private $repeat_count;
     private $msg;
+    private array $resolvedColumns = [];
+    private array $normalizedHeaderToOriginal = [];
+    private bool $headersBootstrapped = false;
     //=================================================================================================
     public function __construct($contractor_id){
         $this->contractor_id        = $contractor_id;
@@ -49,20 +52,26 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                 Log::info($row);
                 Log::info('----------------------------');
                 //=============================================================================================================
-                if(($this->contractor_id) == 0 ){
-                    if(isset($row['asm_almtaahd']) && $row['asm_almtaahd'] != null){//check if found namr for mtaahd or miss in case no value choosen from form
-                        $constractor_detail=Contractor::select('id')->where('name',$row['asm_almtaahd'])->first();
-                        if(isset($constractor_detail)){
+                $contractorName = $this->value($row_data, 'asm_almtaahd', ['asm_almtahed', 'asm_almtaahd', 'اسم_المتعهد_الفرعي', 'اسم_المتعهد']);
+                $nationalId = $this->normalizeIdentifier($this->value($row_data, 'alrkm_almdn', ['alrkm_almdny', 'civil_id', 'civilid', 'id', 'national_id', 'الرقم_المدني']));
+
+                if (($this->contractor_id) == 0) {
+                    if ($contractorName) {
+                        $constractor_detail = Contractor::select('id')
+                            ->where('name', $contractorName)
+                            ->first();
+                        if (isset($constractor_detail)) {
                             $this->sheet_contractor_id = $constractor_detail->id;
                             Log::info('----------------------------');
                             Log::info('contractor_id : '.$this->sheet_contractor_id);
                             Log::info('----------------------------');
-                        }else{
+                        } else {
                             $this->failed_count++;
+                            $this->msg = 'لم يتم العثور على المتعهد الفرعى في الشيت.';
                             continue;
                         }
-                    }else{
-                        if($row['alrkm_almdn']==null){
+                    } else {
+                        if ($nationalId === null) {
                             continue;
                         }
                         $this->msg = 'تاكد من ادخال قيمه للمتعهد الفرعى فى النموذج ';
@@ -71,37 +80,37 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                     }
                 }
                 //=============================================================================================================
-                // if(isset($row['alrkm_almdn']) && $row['alasm']){
-                if(isset($row['alrkm_almdn'])){
-                    Log::info($row['alrkm_almdn']);
-                
-                    $voter_detail = Voter::where(['alrkm_almd_yn'=> $row['alrkm_almdn']]);//check if the voter is already exist in the database
-                    if($voter_detail->count()==0){//no voter found with this number
+                if ($nationalId) {
+                    Log::info($nationalId);
+                    $voter_detail = Voter::where('alrkm_almd_yn', $nationalId);
+                    if ($voter_detail->count() == 0) {
                         $this->failed_count++;
                         Log::info('no voter');
-                    }elseif($voter_detail->count()==1){//found only one voter
+                    } elseif ($voter_detail->count() == 1) {
                         $voter = $voter_detail->first();
                         Log::info($voter);
-                        if($voter){
+                        if ($voter) {
                             $this->handleAddLogic($voter);
-                            // $this->success_count++;
-                        }else{
-                            // $this->failed_count++;
+                        } else {
                             Log::info('no voter');
+                            $this->failed_count++;
                         }
-                    }else{//found more than one voter
-                        $check_status=0;
+                    } else {
+                        $check_status = 0;
                         foreach ($voter_detail->get() as $voter) {
-                            if($this->handleAddLogic($voter,true)=='success'){
-                                $check_status=1;
+                            if ($this->handleAddLogic($voter, true) == 'success') {
+                                $check_status = 1;
                                 break;
                             }
                         }
-                        // ($check_status==1)?$this->success_count++:$this->failed_count++;
-                        if($check_status==1){$this->success_count++;}
+                        if ($check_status == 1) {
+                            $this->success_count++;
+                        } else {
+                            $this->failed_count++;
+                        }
                     }
-                }else{
-                    Log::warning('Missing data in row:', $row->toArray());
+                } else {
+                    Log::warning('Missing data in row:', $row_data);
                     $this->msg = 'تاكد من ادخال قيمه للرقم المدنى ';
                     $this->failed_count++;
                     continue;
@@ -132,6 +141,109 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
     //=================================================================================================
     public function getMsg(){
         return $this->msg;
+    }
+    //=================================================================================================
+    private function value(array $row, string $field, array $aliases = []): mixed
+    {
+        $columnKey = $this->resolveColumnKey($row, $field, $aliases);
+        if (!$columnKey || !array_key_exists($columnKey, $row)) {
+            return null;
+        }
+
+        $value = $row[$columnKey];
+        if (is_string($value)) {
+            $value = trim($value);
+            return $value === '' ? null : $value;
+        }
+
+        return $value;
+    }
+
+    private function resolveColumnKey(array $row, string $field, array $aliases = []): ?string
+    {
+        $this->bootstrapHeaders($row);
+
+        if (array_key_exists($field, $this->resolvedColumns)) {
+            return $this->resolvedColumns[$field];
+        }
+
+        $candidates = array_merge([$field], $aliases);
+
+        foreach ($candidates as $candidate) {
+            $normalized = $this->normalizeHeader($candidate);
+            if ($normalized !== '' && isset($this->normalizedHeaderToOriginal[$normalized])) {
+                $this->resolvedColumns[$field] = $this->normalizedHeaderToOriginal[$normalized];
+                return $this->resolvedColumns[$field];
+            }
+        }
+
+        $candidateTokens = collect($candidates)
+            ->map(fn($candidate) => $this->normalizeHeader((string) $candidate))
+            ->filter()
+            ->values()
+            ->all();
+
+        foreach ($this->normalizedHeaderToOriginal as $normalizedHeader => $originalHeader) {
+            foreach ($candidateTokens as $token) {
+                if ($token === '') {
+                    continue;
+                }
+
+                if (str_contains($normalizedHeader, $token) || str_contains($token, $normalizedHeader)) {
+                    $this->resolvedColumns[$field] = $originalHeader;
+                    return $this->resolvedColumns[$field];
+                }
+            }
+        }
+
+        $this->resolvedColumns[$field] = null;
+        return null;
+    }
+
+    private function bootstrapHeaders(array $row): void
+    {
+        if ($this->headersBootstrapped) {
+            return;
+        }
+
+        foreach (array_keys($row) as $header) {
+            $normalized = $this->normalizeHeader((string) $header);
+            if ($normalized !== '' && !isset($this->normalizedHeaderToOriginal[$normalized])) {
+                $this->normalizedHeaderToOriginal[$normalized] = (string) $header;
+            }
+        }
+
+        $this->headersBootstrapped = true;
+    }
+
+    private function normalizeHeader(string $header): string
+    {
+        $header = preg_replace('/^\xEF\xBB\xBF/u', '', $header);
+        $normalized = mb_strtolower($header, 'UTF-8');
+        $normalized = preg_replace('/[^\p{L}\p{N}]+/u', '', $normalized);
+
+        return trim((string) $normalized);
+    }
+
+    private function normalizeIdentifier(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $raw = is_string($value) ? trim($value) : (string) $value;
+        if ($raw === '') {
+            return null;
+        }
+
+        if (is_numeric($raw)) {
+            $raw = (string) (str_contains($raw, 'E') || str_contains($raw, 'e')
+                ? number_format((float) $raw, 0, '.', '')
+                : preg_replace('/\.0+$/', '', $raw));
+        }
+
+        $normalized = preg_replace('/\D+/', '', $raw);
+        return $normalized !== '' ? $normalized : null;
     }
     //=================================================================================================
     public function checkVoterWithContractorThroughElection($voter_id){
@@ -272,16 +384,13 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
             Log::info('contractor id : '.$con_id);
             //=====================================================
             Log::info('---------line 248: before add operation-------------------');
-            $status_msg=$this->addVoterToContractor($voter->id,$loop);
+            $status_msg = $this->addVoterToContractor($voter->id,$loop);
             Log::info('---------line 250: after add operation-------------------');
             
-            // $this->success_count++;
-            //=====================================================
-            // $this->oldAddVoterToContractor($voter->id);
             //=====================================================
         } else {
             Log::info("Voter {$voter->id} is not allowed in election for contractor {$con_id}");
-            // $this->failed_count++;
+            $this->failed_count++;
         }
         return $status_msg;
     }
