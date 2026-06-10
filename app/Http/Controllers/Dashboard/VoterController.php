@@ -352,9 +352,9 @@ class VoterController extends Controller
                     'sheet_contractor_id'     => $import->getSheetContractorId(),
                     'msg'                     => ($import->getMsg() != '')
                         ? $import->getMsg()
-                        : (($import->getSuccessCount() > 0 || $import->getRepeatedCount() > 0 || $import->getFailedCount() > 0)
+                        : (($import->getSuccessCount() > 0 || $import->getRepeatedCount() > 0)
                             ? 'تمت اضافة الناخبين بنجاح'
-                            : 'تاكد من ادراج ناخبين متواجدين بالفعل ضمن الانتخابات الخاصه بالمرشح'),
+                            : 'لم يتم العثور على الناخبين المطابقين. يرجى التحقق من رقم الـ ID أو الاسم في الملف.'),
                 ]
             ]);
         } catch (\Exception $e) {

@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\ArabicHelper;
 use App\Models\Voter;
 use App\Models\Contractor;
 use App\Models\ContractorVoter;
@@ -71,6 +72,14 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                         'sub_contractor',
                         'subcontractor'
                     ]);
+                    $voterName = $this->value($row_data, 'alasm', [
+                        'alasm',
+                        'name',
+                        'full_name',
+                        'fullname',
+                        'الاسم',
+                        'اسم'
+                    ]);
                     $nationalId = $this->normalizeIdentifier($this->value($row_data, 'alrkm_almdn', [
                         'alrkm_almdn',
                         'alrkm_almdny',
@@ -119,6 +128,21 @@ class ContractorVotersImport implements ToCollection, WithHeadingRow
                 if ($nationalId) {
                     Log::info($nationalId);
                     $voter_detail = Voter::withoutGlobalScopes()->where('alrkm_almd_yn', $nationalId);
+                    if ($voter_detail->count() == 0) {
+                        Log::info('Trying fallback search using suffix and name', ['national_id' => $nationalId, 'name' => $voterName]);
+                        $fallbackQuery = Voter::withoutGlobalScopes()
+                            ->where('alrkm_almd_yn', 'like', '%' . $nationalId);
+
+                        if ($voterName) {
+                            $fallbackQuery->where('normalized_name', 'like', '%' . $this->normalizeText(ArabicHelper::normalizeArabic($voterName)) . '%');
+                        }
+
+                        if ($fallbackQuery->count() > 0) {
+                            Log::info('Fallback voter search found candidates', ['national_id' => $nationalId, 'name' => $voterName]);
+                            $voter_detail = $fallbackQuery;
+                        }
+                    }
+
                     if ($voter_detail->count() == 0) {
                         $this->failed_count++;
                         $this->voter_not_found_count++;
